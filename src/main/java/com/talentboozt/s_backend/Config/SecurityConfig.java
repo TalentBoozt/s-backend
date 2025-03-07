@@ -70,12 +70,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/stripe/**", "/actuator/**", "/public/**",
                                 "/login", "/oauth2/**", "/oauth/**",
-                                "/sitemap.xml", "/home", "/about", "/job",
-                                "/companies", "/privacy-policy",
-                                "/terms-and-conditions", "/pricing", "/faq",
-                                "/for-companies", "/employees", "/*.ico",
-                                "/*.png", "/*.jpg", "/*.jpeg", "/*.svg",
-                                "/*.webp", "/*.gif", "/assets/**", "/*.css", "/*.js"
+                                "/sitemap.xml"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

@@ -7,8 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class AngularController {
 
-    @RequestMapping(value = "/{path:[^\\.]*}")
-    public String redirect(@PathVariable String path) {
-        return "forward:/index.html";
-    }
+//    @RequestMapping(value = "/{path:[^\\.]*}")
+//    public String redirect(@PathVariable String path) {
+//        return "forward:/index.html";
+//    }
 }
