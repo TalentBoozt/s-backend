@@ -172,7 +172,7 @@ public class SecurityConfig {
         newUser.setLastname(""); // You can customize this if needed
         newUser.setRole("candidate");
         newUser.setUserLevel("1");
-        CredentialsModel savedUser = credentialsService.addCredentials(newUser);
+        CredentialsModel savedUser = credentialsService.addCredentials(newUser, null, null);
         return (OidcUser) savedUser; // Adjust if you want to return a different type
     }
 
@@ -189,7 +189,7 @@ public class SecurityConfig {
         newUser.setLastname(lastName);
         newUser.setRole("candidate");
         newUser.setUserLevel("1");
-        CredentialsModel savedUser = credentialsService.addCredentials(newUser);
+        CredentialsModel savedUser = credentialsService.addCredentials(newUser, null, null);
         return (OidcUser) savedUser;
     }
 
@@ -220,7 +220,7 @@ public class SecurityConfig {
         newUser.setLastname(lastName);
         newUser.setRole("candidate");
         newUser.setUserLevel("1");
-        return (OidcUser) credentialsService.addCredentials(newUser);
+        return (OidcUser) credentialsService.addCredentials(newUser, null, null);
     }
 
     private OAuth2UserService<OAuth2UserRequest, OAuth2User> linkedinUserService() {
@@ -250,7 +250,7 @@ public class SecurityConfig {
         newUser.setLastname(lastName);
         newUser.setRole("candidate");
         newUser.setUserLevel("1");
-        return (OidcUser) credentialsService.addCredentials(newUser);
+        return (OidcUser) credentialsService.addCredentials(newUser, null, null);
     }
 
 }

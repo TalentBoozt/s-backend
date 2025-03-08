@@ -93,7 +93,7 @@ public class OAuthController {
         newUser.setRole("candidate");
         newUser.setUserLevel("1");
 
-        CredentialsModel savedUser = credentialsService.addCredentials(newUser);
+        CredentialsModel savedUser = credentialsService.addCredentials(newUser, null, null);
         return ResponseEntity.ok(savedUser);
     }
 

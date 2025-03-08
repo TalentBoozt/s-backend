@@ -9,9 +9,7 @@ import com.talentboozt.s_backend.Repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class CredentialsService {
@@ -25,11 +23,25 @@ public class CredentialsService {
     @Autowired
     private CompanyRepository companyRepository;
 
-    public CredentialsModel addCredentials(CredentialsModel credentials) {
+    public CredentialsModel addCredentials(CredentialsModel credentials, String platform, String referrer) {
         Optional<CredentialsModel> optionalCredentials = Optional.ofNullable(credentialsRepository.findByEmail(credentials.getEmail()));
+
         if (optionalCredentials.isPresent()) {
-            return null;
+            CredentialsModel existingUser = optionalCredentials.get();
+
+            // Ensure accessedPlatforms is a Set to prevent duplicates
+            Set<String> platforms = new HashSet<>(existingUser.getAccessedPlatforms());
+            if (platforms.add(platform)) { // Adds only if it's not already present
+                existingUser.setAccessedPlatforms(new ArrayList<>(platforms));
+                credentialsRepository.save(existingUser);
+            }
+            return existingUser;
         } else {
+            credentials.setRegisteredFrom(platform);
+            credentials.setReferrerId(referrer);
+            credentials.setAccessedPlatforms(new ArrayList<>(Set.of(platform))); // Ensures uniqueness
+
+            // Create EmployeeModel and set initial profile completion
             EmployeeModel emp = new EmployeeModel();
             emp.setFirstname(credentials.getFirstname());
             emp.setLastname(credentials.getLastname());
@@ -52,6 +64,7 @@ public class CredentialsService {
             profileCompleted.put("socialLinks", false);
             emp.setProfileCompleted(profileCompleted);
 
+            // Check if user is an employer or higher level
             if (credentials.getUserLevel().equals("2") || credentials.getUserLevel().equals("3") || credentials.getUserLevel().equals("4")) {
                 CompanyModel cmp = new CompanyModel();
 
@@ -80,7 +93,6 @@ public class CredentialsService {
             }
 
             EmployeeModel savedEmp = employeeRepository.save(emp);
-
             credentials.setEmployeeId(savedEmp.getId());
 
             return credentialsRepository.save(credentials);

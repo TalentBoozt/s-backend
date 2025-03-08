@@ -6,6 +6,8 @@ import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
+
 @Getter
 @Setter
 @ToString
@@ -22,4 +24,7 @@ public class CredentialsModel {
     private String password;
     private String role;
     private String userLevel; // Free, Pro
+    private String registeredFrom; // JobPortal, ResumeBuilder, TrainingPlatform
+    private String referrerId; // Stores the referrer (e.g., partner company ID or promo source)
+    private List<String> accessedPlatforms; // Tracks where the user has logged in
 }

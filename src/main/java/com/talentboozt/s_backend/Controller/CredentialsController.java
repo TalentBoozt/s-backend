@@ -15,8 +15,8 @@ public class CredentialsController {
     private CredentialsService credentialsService;
 
     @PostMapping("/add")
-    public CredentialsModel addCredentials(@RequestBody CredentialsModel credentials) {
-        return credentialsService.addCredentials(credentials);
+    public CredentialsModel addCredentials(@RequestBody CredentialsModel credentials, String platform, String referrer) {
+        return credentialsService.addCredentials(credentials, platform, referrer);
     }
 
     @GetMapping("/getAll")
