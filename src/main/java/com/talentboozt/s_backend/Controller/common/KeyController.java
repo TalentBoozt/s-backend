@@ -22,7 +22,6 @@ public class KeyController {
 
     @PostMapping("/encrypt")
     public ResponseEntity<Map<String, String>> encrypt(@RequestBody Map<String, String> request) {
-        System.out.println("called");
         String data = request.get("data");
         try {
             String encryptedData = encryptionUtility.encrypt(data);
