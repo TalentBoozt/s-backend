@@ -14,8 +14,9 @@ public class CredentialsController {
     @Autowired
     private CredentialsService credentialsService;
 
-    @PostMapping("/add")
-    public CredentialsModel addCredentials(@RequestBody CredentialsModel credentials, String platform, String referrer) {
+    @PostMapping("/add/{platform}")
+    public CredentialsModel addCredentials(@RequestBody CredentialsModel credentials, @PathVariable String platform) {
+        String referrer = credentials.getReferrerId();
         return credentialsService.addCredentials(credentials, platform, referrer);
     }
 
