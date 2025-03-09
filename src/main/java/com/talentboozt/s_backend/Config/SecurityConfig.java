@@ -26,6 +26,11 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -66,6 +71,7 @@ public class SecurityConfig {
                                         .maxAgeInSeconds(31536000)
                         )
                 )
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/stripe/**", "/actuator/**", "/public/**",
@@ -94,6 +100,27 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedOrigins(List.of(
+                configUtil.getProperty("ALLOWED_ORIGIN_1"),
+                configUtil.getProperty("ALLOWED_ORIGIN_2"),
+                configUtil.getProperty("ALLOWED_ORIGIN_3"),
+                configUtil.getProperty("ALLOWED_ORIGIN_4"),
+                configUtil.getProperty("ALLOWED_ORIGIN_5"),
+                configUtil.getProperty("ALLOWED_ORIGIN_6")
+        ));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("Stripe-Signature", "X-Demo-Mode"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean

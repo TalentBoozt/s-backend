@@ -27,16 +27,4 @@ public class CorsConfig implements WebMvcConfigurer {
                 .exposedHeaders("Stripe-Signature", "X-Demo-Mode")
                 .allowCredentials(true);
     }
-
-    @Bean
-    public CorsFilter corsFilter() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
-        config.setAllowedOrigins(Arrays.asList(configUtility.getProperty("ALLOWED_ORIGIN_1"), configUtility.getProperty("ALLOWED_ORIGIN_2"), configUtility.getProperty("ALLOWED_ORIGIN_3"), configUtility.getProperty("ALLOWED_ORIGIN_4"), configUtility.getProperty("ALLOWED_ORIGIN_5"), configUtility.getProperty("ALLOWED_ORIGIN_6")));
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
-        source.registerCorsConfiguration("/**", config);
-        return new CorsFilter(source);
-    }
 }

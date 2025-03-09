@@ -21,7 +21,8 @@ public class KeyController {
     }
 
     @PostMapping("/encrypt")
-    public ResponseEntity<Map> encrypt(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, String>> encrypt(@RequestBody Map<String, String> request) {
+        System.out.println("called");
         String data = request.get("data");
         try {
             String encryptedData = encryptionUtility.encrypt(data);
@@ -34,7 +35,7 @@ public class KeyController {
     }
 
     @PostMapping("/decrypt")
-    public ResponseEntity<Map> decrypt(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, String>> decrypt(@RequestBody Map<String, String> request) {
         String data = request.get("data");
         try {
             String decryptedData = encryptionUtility.decrypt(data);
