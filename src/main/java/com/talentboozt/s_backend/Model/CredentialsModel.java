@@ -25,6 +25,7 @@ public class CredentialsModel {
     private String role;
     private String userLevel; // Free, Pro
     private String registeredFrom; // JobPortal, ResumeBuilder, TrainingPlatform
+    private String promotion; // facebook, linkedin
     private String referrerId; // Stores the referrer (e.g., partner company ID or promo source)
     private List<String> accessedPlatforms; // Tracks where the user has logged in
 }
