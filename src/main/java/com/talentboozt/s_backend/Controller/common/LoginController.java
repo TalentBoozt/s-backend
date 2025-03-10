@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.Controller.common;
 
+import com.talentboozt.s_backend.DTO.common.LoginMetaDTO;
 import com.talentboozt.s_backend.Service.common.LoginService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +17,8 @@ public class LoginController {
 
     // Record daily login
     @PostMapping("/{userId}/record")
-    public ResponseEntity<String> recordLogin(@PathVariable String userId) {
-        loginService.recordLogin(userId);
+    public ResponseEntity<String> recordLogin(@PathVariable String userId, @RequestBody LoginMetaDTO metaData) {
+        loginService.recordLogin(userId, metaData);
         return ResponseEntity.ok("Login recorded successfully!");
     }
 
