@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.Service.common;
 
+import com.talentboozt.s_backend.DTO.common.LoginMetaDTO;
 import com.talentboozt.s_backend.Model.common.Login;
 import com.talentboozt.s_backend.Repository.common.LoginRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ public class LoginService {
     private LoginRepository loginRepository;
 
     // Record daily login
-    public void recordLogin(String userId) {
+    public void recordLogin(String userId, LoginMetaDTO metadata) {
         LocalDate today = LocalDate.now();
         String todayStr = today.toString();
 
@@ -29,6 +30,7 @@ public class LoginService {
             // Add today's date if not already present
             if (!login.getLoginDates().contains(todayStr)) {
                 login.getLoginDates().add(todayStr);
+                login.getMetaData().add(metadata);
                 loginRepository.save(login);
             }
         } else {
@@ -36,7 +38,10 @@ public class LoginService {
             Login newLogin = new Login();
             newLogin.setUserId(userId);
             List<String> dates = new ArrayList<>();
+            List<LoginMetaDTO> newMetaData = new ArrayList<>();
             dates.add(todayStr);
+            newMetaData.add(metadata);
+            newLogin.setMetaData(newMetaData);
             newLogin.setLoginDates(dates);
             loginRepository.save(newLogin);
         }
