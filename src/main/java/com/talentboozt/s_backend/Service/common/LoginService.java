@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -22,6 +23,15 @@ public class LoginService {
         LocalDate today = LocalDate.now();
         String todayStr = today.toString();
 
+        if (metadata == null) {
+            metadata = new LoginMetaDTO();
+            metadata.setPlatform("Unknown");
+            metadata.setReferrer("Unknown");
+            metadata.setPromotion("Unknown");
+            metadata.setProvider("Unknown");
+            metadata.setUserAgent("Unknown");
+        }
+
         // Find login record by user ID
         Optional<Login> optionalLogin = loginRepository.findByUserId(userId);
         if (optionalLogin.isPresent()) {
@@ -32,6 +42,10 @@ public class LoginService {
                 login.getLoginDates().add(todayStr);
                 login.getMetaData().add(metadata);
                 loginRepository.save(login);
+            }
+
+            if (Objects.equals(userId, "unknown")) {
+                login.getMetaData().add(metadata);
             }
         } else {
             // Create new login record if not exists

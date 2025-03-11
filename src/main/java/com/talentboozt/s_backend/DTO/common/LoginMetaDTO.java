@@ -9,4 +9,6 @@ public class LoginMetaDTO {
     private String referrer;
     private String platform;
     private String promotion;
+    private String provider;
+    private String userAgent;
 }
