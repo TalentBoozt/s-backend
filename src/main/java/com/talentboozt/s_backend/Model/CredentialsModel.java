@@ -28,4 +28,6 @@ public class CredentialsModel {
     private String promotion; // facebook, linkedin
     private String referrerId; // Stores the referrer (e.g., partner company ID or promo source)
     private List<String> accessedPlatforms; // Tracks where the user has logged in
+    private boolean active; // Flag to indicate if the user is active
+    private boolean disabled; // Flag to indicate if the user is disabled(banned)
 }
