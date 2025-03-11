@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.Service.common;
 
+import com.talentboozt.s_backend.DTO.common.LocationCordDTO;
 import com.talentboozt.s_backend.DTO.common.LoginMetaDTO;
 import com.talentboozt.s_backend.Model.common.Login;
 import com.talentboozt.s_backend.Repository.common.LoginRepository;
@@ -30,6 +31,14 @@ public class LoginService {
             metadata.setPromotion("Unknown");
             metadata.setProvider("Unknown");
             metadata.setUserAgent("Unknown");
+            metadata.setLanguage("Unknown");
+            metadata.setLanguages("Unknown");
+            metadata.setPlatformDetails("Unknown");
+            metadata.setHardwareConcurrency("Unknown");
+            metadata.setDeviceMemory("Unknown");
+            metadata.setCookiesEnabled("Unknown");
+            metadata.setOnlineStatus("Unknown");
+            metadata.setLocation(new LocationCordDTO());
         }
 
         // Find login record by user ID
@@ -42,10 +51,13 @@ public class LoginService {
                 login.getLoginDates().add(todayStr);
                 login.getMetaData().add(metadata);
                 loginRepository.save(login);
+                return;
             }
 
-            if (Objects.equals(userId, "unknown")) {
+            if (userId.equals("unknown")) {
+                login.setLoginDates(login.getLoginDates());
                 login.getMetaData().add(metadata);
+                loginRepository.save(login);
             }
         } else {
             // Create new login record if not exists
