@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.Config;
 
-import com.talentboozt.s_backend.Model.CredentialsModel;
-import com.talentboozt.s_backend.Service.CredentialsService;
+import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
+import com.talentboozt.s_backend.Service.common.CredentialsService;
 import com.talentboozt.s_backend.Utils.ConfigUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
