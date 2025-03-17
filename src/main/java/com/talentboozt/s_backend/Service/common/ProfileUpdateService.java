@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.Service.common;
 
-import com.talentboozt.s_backend.Model.EmpFollowersModel;
-import com.talentboozt.s_backend.Model.EmpFollowingModel;
+import com.talentboozt.s_backend.Model.EndUser.EmpFollowersModel;
+import com.talentboozt.s_backend.Model.EndUser.EmpFollowingModel;
 import com.mongodb.client.result.UpdateResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
