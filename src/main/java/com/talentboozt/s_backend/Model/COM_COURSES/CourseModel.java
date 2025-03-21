@@ -17,6 +17,7 @@ import java.util.List;
 public class CourseModel {
     @Id
     private String id;
+    private String companyId;
     private String name;
     private String description;
     private String overview;
