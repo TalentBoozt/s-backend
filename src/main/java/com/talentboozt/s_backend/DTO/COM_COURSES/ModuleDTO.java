@@ -1,4 +1,4 @@
-package com.talentboozt.s_backend.DTO.PLAT_COURSES;
+package com.talentboozt.s_backend.DTO.COM_COURSES;
 
 import lombok.Getter;
 import lombok.Setter;
