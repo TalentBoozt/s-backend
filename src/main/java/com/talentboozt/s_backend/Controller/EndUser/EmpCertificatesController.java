@@ -30,7 +30,7 @@ public class EmpCertificatesController {
         return empCertificatesService.updateEmpCertificates(id, empCertificates);
     }
 
-    @PutMapping("edit-single/{employeeId}")
+    @PutMapping("/edit-single/{employeeId}")
     public EmpCertificatesModel editEmpCertificate(@PathVariable String employeeId, @RequestBody EmpCertificatesDTO certificate) {
         return empCertificatesService.editEmpCertificate(employeeId, certificate);
     }
