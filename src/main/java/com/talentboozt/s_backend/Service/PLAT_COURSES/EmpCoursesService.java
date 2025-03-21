@@ -3,7 +3,6 @@ package com.talentboozt.s_backend.Service.PLAT_COURSES;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
 import com.talentboozt.s_backend.Model.COM_COURSES.CourseModel;
 import com.talentboozt.s_backend.Model.PLAT_COURSES.EmpCoursesModel;
-import com.talentboozt.s_backend.Repository.EndUser.EmployeeRepository;
 import com.talentboozt.s_backend.Repository.PLAT_COURSES.EmpCoursesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -17,9 +16,6 @@ public class EmpCoursesService {
 
     @Autowired
     private EmpCoursesRepository empCoursesRepository;
-
-    @Autowired
-    private EmployeeRepository employeeRepository;
 
     public List<EmpCoursesModel> getEmpCoursesByEmployeeId(String employeeId) { return empCoursesRepository.findByEmployeeId(employeeId); }
 
