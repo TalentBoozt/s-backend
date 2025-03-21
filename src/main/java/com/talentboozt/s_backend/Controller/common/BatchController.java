@@ -4,11 +4,13 @@ import com.talentboozt.s_backend.Model.COM_JOB_PORTAL.CmpPostedJobsModel;
 import com.talentboozt.s_backend.Model.COM_JOB_PORTAL.CmpSocialModel;
 import com.talentboozt.s_backend.Model.COM_JOB_PORTAL.CompanyModel;
 import com.talentboozt.s_backend.Model.EndUser.*;
+import com.talentboozt.s_backend.Model.PLAT_COURSES.EmpCoursesModel;
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CmpPostedJobsService;
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CmpSocialService;
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CompanyService;
 import com.talentboozt.s_backend.Service.EndUser.*;
+import com.talentboozt.s_backend.Service.PLAT_COURSES.EmpCoursesService;
 import com.talentboozt.s_backend.Service.common.CredentialsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,6 +56,9 @@ public class BatchController {
     private EmpFollowingService empFollowingService;
 
     @Autowired
+    private EmpCoursesService empCoursesService;
+
+    @Autowired
     private CredentialsService credentialsService;
 
     @Autowired
@@ -78,6 +83,7 @@ public class BatchController {
         response.put("auth", credentialsService.getCredentialsByEmployeeId(id));
         response.put("empFollowers", empFollowersService.getEmpFollowersByEmployeeId(id));
         response.put("empFollowing", empFollowingService.getEmpFollowingByEmployeeId(id));
+        response.put("empCourses", empCoursesService.getEmpCoursesByEmployeeId(id));
         return response;
     }
 
@@ -93,6 +99,7 @@ public class BatchController {
         Optional<CredentialsModel> credentialsFuture = credentialsService.getCredentialsByEmployeeId(id);
         CompletableFuture<List<EmpFollowersModel>> followersFuture = empFollowersService.getEmpFollowersByEmployeeIdAsync(id);
         CompletableFuture<List<EmpFollowingModel>> followingFuture = empFollowingService.getEmpFollowingByEmployeeIdAsync(id);
+        CompletableFuture<List<EmpCoursesModel>> coursesFuture = empCoursesService.getEmpCoursesByEmployeeIdAsync(id);
 
         // Wait for all async calls to complete
         return CompletableFuture.allOf(employeeFuture, contactFuture, educationFuture, skillsFuture, experiencesFuture)
@@ -108,6 +115,7 @@ public class BatchController {
                     response.put("auth", credentialsFuture);
                     response.put("empFollowers", followersFuture.join());
                     response.put("empFollowing", followingFuture.join());
+                    response.put("empCourses", coursesFuture.join());
                     return response;
                 });
     }
