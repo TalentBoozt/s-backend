@@ -1,7 +1,7 @@
-package com.talentboozt.s_backend.Model.PLAT_COURSES;
+package com.talentboozt.s_backend.Model.COM_COURSES;
 
-import com.talentboozt.s_backend.DTO.PLAT_COURSES.InstallmentDTO;
-import com.talentboozt.s_backend.DTO.PLAT_COURSES.ModuleDTO;
+import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
+import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -19,7 +19,7 @@ public class CourseModel {
     private String id;
     private String name;
     private String description;
-    private String overviewan;
+    private String overview;
     private String category;
     private String organizer;
     private String level;

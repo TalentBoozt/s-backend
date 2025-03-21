@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.Model.PLAT_COURSES;
 
+import com.talentboozt.s_backend.Model.COM_COURSES.CourseModel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
