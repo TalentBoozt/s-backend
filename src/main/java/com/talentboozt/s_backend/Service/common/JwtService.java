@@ -1,8 +1,7 @@
 package com.talentboozt.s_backend.Service.common;
 
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -37,9 +36,25 @@ public class JwtService {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(token).parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(Keys.hmacShaKeyFor(this.token.getBytes())).build().parseClaimsJws(token);
             return true;
+        } catch (ExpiredJwtException e) {
+            System.out.println("Token has expired: " + e.getMessage());
+            return false;
+        } catch (UnsupportedJwtException e) {
+            System.out.println("Unsupported JWT token: " + e.getMessage());
+            return false;
+        } catch (MalformedJwtException e) {
+            System.out.println("Malformed JWT token: " + e.getMessage());
+            return false;
+        } catch (SignatureException e) {
+            System.out.println("Invalid JWT signature: " + e.getMessage());
+            return false;
+        } catch (IllegalArgumentException e) {
+            System.out.println("Illegal argument while parsing JWT: " + e.getMessage());
+            return false;
         } catch (Exception e) {
+            System.out.println("Error while parsing JWT: " + e.getMessage());
             return false;
         }
     }
