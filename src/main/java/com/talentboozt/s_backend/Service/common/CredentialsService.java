@@ -39,7 +39,13 @@ public class CredentialsService {
         } else {
             credentials.setRegisteredFrom(platform);
             credentials.setReferrerId(referrer);
+            if (credentials.getAccessedPlatforms() == null) credentials.setAccessedPlatforms(new ArrayList<>());
+            if (credentials.getRoles() == null) credentials.setRoles(new ArrayList<>());
+            if (credentials.getOrganizations() == null) credentials.setOrganizations(new ArrayList<>());
+
             credentials.setAccessedPlatforms(new ArrayList<>(Set.of(platform))); // Ensures uniqueness
+            credentials.setRoles(new ArrayList<>(Set.of(credentials.getRole()))); // Ensures uniqueness
+            credentials.setOrganizations(new ArrayList<>(Set.of(credentials.getCompanyId()))); // Ensures uniqueness
 
             // Create EmployeeModel and set initial profile completion
             EmployeeModel emp = new EmployeeModel();

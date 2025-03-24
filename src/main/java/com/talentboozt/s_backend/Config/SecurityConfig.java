@@ -2,15 +2,22 @@ package com.talentboozt.s_backend.Config;
 
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
 import com.talentboozt.s_backend.Service.common.CredentialsService;
+import com.talentboozt.s_backend.Service.common.CustomUserDetailsService;
+import com.talentboozt.s_backend.Shared.JwtAuthenticationFilter;
 import com.talentboozt.s_backend.Utils.ConfigUtility;
+import com.talentboozt.s_backend.Utils.EncryptionUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,6 +33,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -39,30 +47,31 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private CredentialsService credentialsService;
+    private final CredentialsService credentialsService;
+    private final ConfigUtility configUtil;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomUserDetailsService userDetailsService;
 
-    @Autowired
-    private ConfigUtility configUtil;
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomUserDetailsService userDetailsService, ConfigUtility configUtil, CredentialsService credentialsService) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.userDetailsService = userDetailsService;
+        this.configUtil = configUtil;
+        this.credentialsService = credentialsService;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+
+        return new ProviderManager(authProvider);
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .headers(headers -> headers
-                        .contentSecurityPolicy(policy -> policy
-                                .policyDirectives("default-src 'self'; " +
-                                        "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; " +
-                                        "style-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net 'unsafe-inline'; " +
-                                        "font-src 'self' https://fonts.gstatic.com https://kit.fontawesome.com; " +
-                                        "img-src 'self' data:; " +
-                                        "connect-src 'self' https://firebaseinstallations.googleapis.com; " +
-                                        "frame-src 'none'; " +
-                                        "object-src 'none'; " +
-                                        "base-uri 'self'; " +
-                                        "form-action 'self'; " +
-                                        "script-src-elem 'self' https://cdn.jsdelivr.net 'unsafe-inline'; " +
-                                        "style-src-elem 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net 'unsafe-inline'")
-                        )
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                         .xssProtection(HeadersConfigurer.XXssConfig::disable)
                         .referrerPolicy(referrerPolicy -> referrerPolicy.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
@@ -77,13 +86,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(
                                 "/stripe/**", "/actuator/**", "/public/**",
-                                "/login", "/oauth2/**", "/oauth/**",
+                                "/api/auth/**", "/oauth2/**", "/oauth/**",
                                 "/sitemap.xml"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
-                .httpBasic(withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage(configUtil.getProperty("FAILURE_REDIRECT"))
                         .defaultSuccessUrl(configUtil.getProperty("SUCCESS_REDIRECT"), true)
@@ -143,7 +153,26 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new PasswordEncoder() {
+            @Override
+            public String encode(CharSequence rawPassword) {
+                try {
+                    return EncryptionUtility.encrypt(rawPassword.toString()); // Encrypt password before storing
+                } catch (Exception e) {
+                    throw new RuntimeException("Password encryption failed", e);
+                }
+            }
+
+            @Override
+            public boolean matches(CharSequence rawPassword, String encodedPassword) {
+                try {
+                    String decryptedPassword = EncryptionUtility.decrypt(encodedPassword);
+                    return decryptedPassword.equals(rawPassword.toString()); // Compare decrypted password
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+        };
     }
 
     private OidcUserService oidcUserService() {
