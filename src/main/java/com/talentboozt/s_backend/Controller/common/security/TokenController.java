@@ -21,7 +21,6 @@ public class TokenController {
 
     @GetMapping("/api/v2/validate-token")
     public ResponseEntity<ApiResponse> validateToken(@RequestParam String token) {
-        System.out.println("Token: " + token);
         if (validateTokenService.validateToken(token)) {
             return ResponseEntity.ok(new ApiResponse("Valid token"));
         } else {
