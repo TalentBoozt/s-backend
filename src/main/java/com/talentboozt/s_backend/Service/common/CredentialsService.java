@@ -45,7 +45,6 @@ public class CredentialsService {
 
             credentials.setAccessedPlatforms(new ArrayList<>(Set.of(platform))); // Ensures uniqueness
             credentials.setRoles(new ArrayList<>(Set.of(credentials.getRole()))); // Ensures uniqueness
-            credentials.setOrganizations(new ArrayList<>(Set.of(credentials.getCompanyId()))); // Ensures uniqueness
 
             // Create EmployeeModel and set initial profile completion
             EmployeeModel emp = new EmployeeModel();
@@ -71,7 +70,7 @@ public class CredentialsService {
             emp.setProfileCompleted(profileCompleted);
 
             // Check if user is an employer or higher level
-            if (credentials.getUserLevel().equals("2") || credentials.getUserLevel().equals("3") || credentials.getUserLevel().equals("4")) {
+            if (credentials.getUserLevel().equals("2") || credentials.getUserLevel().equals("3") || credentials.getUserLevel().equals("4") || credentials.getUserLevel().equals("5")) {
                 CompanyModel cmp = new CompanyModel();
 
                 Map<String, Boolean> cmpProfileCompleted = new HashMap<>();
@@ -96,6 +95,7 @@ public class CredentialsService {
                 CompanyModel savedCmp = companyRepository.save(cmp);
                 emp.setCompanyId(savedCmp.getId());
                 credentials.setCompanyId(savedCmp.getId());
+                credentials.setOrganizations(new ArrayList<>(Set.of(savedCmp.getId()))); // Ensures uniqueness
             }
 
             EmployeeModel savedEmp = employeeRepository.save(emp);
