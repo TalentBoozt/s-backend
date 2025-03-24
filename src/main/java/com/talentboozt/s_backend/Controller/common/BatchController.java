@@ -12,17 +12,18 @@ import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CompanyService;
 import com.talentboozt.s_backend.Service.EndUser.*;
 import com.talentboozt.s_backend.Service.PLAT_COURSES.EmpCoursesService;
 import com.talentboozt.s_backend.Service.common.CredentialsService;
+import com.talentboozt.s_backend.Service.common.JwtService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/api/v2/batch")
@@ -70,8 +71,24 @@ public class BatchController {
     @Autowired
     private CmpSocialService cmpSocialService;
 
+    @Autowired
+    private JwtService jwtService;
+
     @GetMapping("/getEmployee/{id}")
-    public Map<String, Object> getEmployee(@PathVariable String id) {
+    public Map<String, Object> getEmployee(@RequestHeader("Authorization") String token, @PathVariable String id) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        if (token == null) {
+            errorResponse.put("message", "Private key not found.");
+            errorResponse.put("status", 401);
+            return errorResponse;
+        }
+        String extractedToken = token.substring(7);
+        if (!jwtService.validateToken(extractedToken)) {
+            errorResponse.put("message", "Invalid or expired token.");
+            errorResponse.put("status", 401);
+            return errorResponse;
+        }
+
         Map<String, Object> response = new HashMap<>();
         response.put("employee", employeeService.getEmployee(id));
         response.put("empContact", empContactService.getEmpContactByEmployeeId(id));
@@ -88,7 +105,20 @@ public class BatchController {
     }
 
     @GetMapping("/async/getEmployee/{id}")
-    public CompletableFuture<Map<String, Object>> getEmployeeAsync(@PathVariable String id) {
+    public CompletableFuture<Map<String, Object>> getEmployeeAsync(@RequestHeader("Authorization") String token, @PathVariable String id) throws ExecutionException, InterruptedException {
+        CompletableFuture<Map<String, Object>> errorResponse = CompletableFuture.completedFuture(new HashMap<>());
+        if (token == null) {
+            errorResponse.get().put("message", "Private key not found.");
+            errorResponse.get().put("status", 401);
+            return errorResponse;
+        }
+        String extractedToken = token.substring(7);
+        if (!jwtService.validateToken(extractedToken)) {
+
+            errorResponse.get().put("message", "Invalid or expired token.");
+            errorResponse.get().put("status", 401);
+            return errorResponse;
+        }
         CompletableFuture<EmployeeModel> employeeFuture = employeeService.getEmployeeByIdAsync(id);
         CompletableFuture<List<EmpContactModel>> contactFuture = empContactService.getEmpContactByEmployeeIdAsync(id);
         CompletableFuture<List<EmpEducationModel>> educationFuture = empEducationService.getEmpEducationByEmployeeIdAsync(id);
