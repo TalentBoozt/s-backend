@@ -1,6 +1,8 @@
 package com.talentboozt.s_backend.Service.PLAT_COURSES;
 
+import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
+import com.talentboozt.s_backend.DTO.PLAT_COURSES.CourseEnrollment;
 import com.talentboozt.s_backend.Model.COM_COURSES.CourseModel;
 import com.talentboozt.s_backend.Model.PLAT_COURSES.EmpCoursesModel;
 import com.talentboozt.s_backend.Repository.PLAT_COURSES.EmpCoursesRepository;
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -24,7 +27,7 @@ public class EmpCoursesService {
         EmpCoursesModel empCoursesModel;
         if (!empCoursesList.isEmpty()) {
             empCoursesModel = empCoursesList.get(0);
-            List<CourseModel> courses = empCoursesModel.getCourses();
+            List<CourseEnrollment> courses = empCoursesModel.getCourses();
             if (courses == null) {
                 courses = new java.util.ArrayList<>(); // Initialize the courses list if it's null
             }
@@ -55,9 +58,9 @@ public class EmpCoursesService {
         List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
-            List<CourseModel> courses = empCoursesModel.getCourses();
+            List<CourseEnrollment> courses = empCoursesModel.getCourses();
             if (courses != null) {
-                courses.removeIf(course -> course.getId().equals(courseId));
+                courses.removeIf(course -> course.getCourseId().equals(courseId));
                 empCoursesModel.setCourses(courses);
                 return empCoursesRepository.save(empCoursesModel);
             }
@@ -70,30 +73,18 @@ public class EmpCoursesService {
         List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
-            List<CourseModel> courses = empCoursesModel.getCourses();
+            List<CourseEnrollment> courses = empCoursesModel.getCourses();
             if (courses != null) {
-                for (CourseModel c : courses) {
-                    if (c.getId().equals(course.getId())) {
-                        c.setName(course.getName());
+                for (CourseEnrollment c : courses) {
+                    if (c.getCourseId().equals(course.getId())) {
+                        c.setCourseName(course.getName());
                         c.setDescription(course.getDescription());
-                        c.setOverview(course.getOverview());
-                        c.setCategory(course.getCategory());
                         c.setOrganizer(course.getOrganizer());
-                        c.setLevel(course.getLevel());
-                        c.setPrice(course.getPrice());
-                        c.setInstallment(course.getInstallment());
-                        c.setDuration(course.getDuration());
                         c.setModules(course.getModules());
-                        c.setRating(course.getRating());
-                        c.setLanguage(course.getLanguage());
-                        c.setLecturer(course.getLecturer());
+                        c.setInstallment(course.getInstallment());
                         c.setImage(course.getImage());
-                        c.setSkills(course.getSkills());
-                        c.setRequirements(course.getRequirements());
-                        c.setPlatform(course.getPlatform());
-                        c.setStartDate(course.getStartDate());
-                        c.setFromTime(course.getFromTime());
-                        c.setToTime(course.getToTime());
+                        c.setEnrollmentDate(LocalDateTime.now().toString());
+                        c.setStatus("Enrolled");
                         break;
                     }
                 }
@@ -107,13 +98,34 @@ public class EmpCoursesService {
         List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
-            List<CourseModel> courses = empCoursesModel.getCourses();
+            List<CourseEnrollment> courses = empCoursesModel.getCourses();
             if (courses != null) {
-                for (CourseModel c : courses) {
-                    if (c.getId().equals(courseId)) {
+                for (CourseEnrollment c : courses) {
+                    if (c.getCourseId().equals(courseId)) {
                         for (ModuleDTO m : c.getModules()) {
                             if (m.getId().equals(moduleId)) {
                                 m.setPaid(status);
+                                return empCoursesModel;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        throw new RuntimeException("Employee not found for id: " + employeeId);
+    }
+
+    public EmpCoursesModel updateInstallmentPayment(String employeeId, String courseId, String installmentId, String status){
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        if (!empCoursesList.isEmpty()) {
+            EmpCoursesModel empCoursesModel = empCoursesList.get(0);
+            List<CourseEnrollment> courses = empCoursesModel.getCourses();
+            if (courses != null) {
+                for (CourseEnrollment c : courses) {
+                    if (c.getCourseId().equals(courseId)) {
+                        for (InstallmentDTO i : c.getInstallment()) {
+                            if (i.getId().equals(installmentId)) {
+                                i.setPaid(status);
                                 return empCoursesModel;
                             }
                         }

@@ -8,4 +8,5 @@ import java.util.List;
 public interface EmpCoursesRepository extends MongoRepository<EmpCoursesModel, String> {
     List<EmpCoursesModel> findByEmployeeId(String employeeId);
     void deleteByEmployeeId(String employeeId);
+    List<EmpCoursesModel> findByCoursesCourseId(String courseId);
 }

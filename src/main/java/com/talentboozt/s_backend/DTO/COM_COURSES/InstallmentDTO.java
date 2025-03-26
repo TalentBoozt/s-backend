@@ -17,4 +17,5 @@ public class InstallmentDTO {
     private String accountNb;
     private String branch;
     private String holder;
+    private String paid;
 }
