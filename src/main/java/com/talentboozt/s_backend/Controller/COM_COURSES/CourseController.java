@@ -3,6 +3,8 @@ package com.talentboozt.s_backend.Controller.COM_COURSES;
 import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
 import com.talentboozt.s_backend.Model.COM_COURSES.CourseModel;
+import com.talentboozt.s_backend.Model.EndUser.EmployeeModel;
+import com.talentboozt.s_backend.Model.PLAT_COURSES.EmpCoursesModel;
 import com.talentboozt.s_backend.Service.COM_COURSES.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -74,5 +76,15 @@ public class CourseController {
     @PostMapping("/add-installment/{courseId}")
     public CourseModel addInstallment(@PathVariable String courseId, @RequestBody InstallmentDTO installment) {
         return courseService.addInstallment(courseId, installment);
+    }
+
+    @GetMapping("/get/{courseId}/users")
+    public List<EmployeeModel> getUsersEnrolledInCourse(@PathVariable String courseId) {
+        return courseService.getUsersEnrolledInCourse(courseId);
+    }
+
+    @GetMapping("/get/{courseId}/enrolls")
+    public List<EmpCoursesModel> getEnrollesInCourse(@PathVariable String courseId) {
+        return courseService.getEnrolls(courseId);
     }
 }

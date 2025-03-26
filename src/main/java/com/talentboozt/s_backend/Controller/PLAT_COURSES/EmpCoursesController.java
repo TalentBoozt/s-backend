@@ -40,6 +40,11 @@ public class EmpCoursesController {
         return empCoursesService.updateModulePayment(employeeId, courseId, moduleId, status);
     }
 
+    @PutMapping("/update-installment-payment/{employeeId}/{courseId}/{installmentId}/{status}")
+    public EmpCoursesModel updateInstallmentPayment(@PathVariable String employeeId, @PathVariable String courseId, @PathVariable String installmentId, @PathVariable String status) {
+        return empCoursesService.updateInstallmentPayment(employeeId, courseId, installmentId, status);
+    }
+
     @DeleteMapping("/delete/{id}")
     public void deleteEmpCourses(@PathVariable String id) {
         empCoursesService.deleteEmpCourses(id);

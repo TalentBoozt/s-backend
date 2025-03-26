@@ -3,17 +3,28 @@ package com.talentboozt.s_backend.Service.COM_COURSES;
 import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
 import com.talentboozt.s_backend.Model.COM_COURSES.CourseModel;
+import com.talentboozt.s_backend.Model.EndUser.EmployeeModel;
+import com.talentboozt.s_backend.Model.PLAT_COURSES.EmpCoursesModel;
 import com.talentboozt.s_backend.Repository.COM_COURSES.CourseRepository;
+import com.talentboozt.s_backend.Repository.EndUser.EmployeeRepository;
+import com.talentboozt.s_backend.Repository.PLAT_COURSES.EmpCoursesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CourseService {
 
     @Autowired
     private CourseRepository courseRepository;
+
+    @Autowired
+    private EmpCoursesRepository empCoursesRepository;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     public List<CourseModel> getAllCourses() {
         return courseRepository.findAll();
@@ -150,5 +161,19 @@ public class CourseService {
             return courseRepository.save(course);
         }
         return null;
+    }
+
+    public List<EmployeeModel> getUsersEnrolledInCourse(String courseId) {
+        List<EmpCoursesModel> enrollments = empCoursesRepository.findByCoursesCourseId(courseId);
+
+        List<String> employeeIds = enrollments.stream()
+                .map(EmpCoursesModel::getEmployeeId)
+                .collect(Collectors.toList());
+
+        return employeeRepository.findAllById(employeeIds);
+    }
+
+    public List<EmpCoursesModel> getEnrolls(String courseId) {
+        return empCoursesRepository.findByCoursesCourseId(courseId);
     }
 }

@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.Model.PLAT_COURSES;
 
-import com.talentboozt.s_backend.Model.COM_COURSES.CourseModel;
+import com.talentboozt.s_backend.DTO.PLAT_COURSES.CourseEnrollment;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -20,5 +20,5 @@ public class EmpCoursesModel {
     private String id;
     private String employeeId;
     @Field("courses")
-    private List<CourseModel> courses;
+    private List<CourseEnrollment> courses;
 }
