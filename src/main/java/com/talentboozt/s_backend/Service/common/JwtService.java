@@ -58,4 +58,20 @@ public class JwtService {
             return false;
         }
     }
+
+    public String generateRefreshToken(CredentialsModel user) {
+        // Refresh token should have a much longer expiration time, e.g., 30 days.
+        Key key = Keys.hmacShaKeyFor(token.getBytes());
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", user.getEmployeeId());
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(user.getEmail())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 2592000000L)) // 30 days expiration
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
 }
