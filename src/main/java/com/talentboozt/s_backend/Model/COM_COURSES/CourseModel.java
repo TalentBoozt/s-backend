@@ -24,6 +24,7 @@ public class CourseModel {
     private String category;
     private String organizer;
     private String level;
+    private String currency;
     private String price;
     @Field("installment")
     private List<InstallmentDTO> installment;
@@ -38,7 +39,9 @@ public class CourseModel {
     private List<String> requirements;
     private boolean certificate;
     private String platform;
+    private String location;
     private String startDate;
     private String fromTime;
     private String toTime;
+    private String courseStatus;
 }

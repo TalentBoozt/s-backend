@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -25,7 +26,7 @@ public class CredentialsModel {
     private String role; // deprecated
     private List<String> roles; // ["JOB_SEEKER", "RECRUITER_ADMIN"]
     private List<String> permissions; // ["CAN_POST_JOBS", "CAN_CREATE_COURSES"]
-    private List<String> organizations; // ["companyId1", "companyId2"]
+    private List<Map<String, String>> organizations; // ["companyId1", "companyId2"]
     private String userLevel; // Free, Pro
     private String registeredFrom; // JobPortal, ResumeBuilder, TrainingPlatform
     private String promotion; // facebook, linkedin

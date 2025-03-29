@@ -95,7 +95,9 @@ public class CredentialsService {
                 CompanyModel savedCmp = companyRepository.save(cmp);
                 emp.setCompanyId(savedCmp.getId());
                 credentials.setCompanyId(savedCmp.getId());
-                credentials.setOrganizations(new ArrayList<>(Set.of(savedCmp.getId()))); // Ensures uniqueness
+                Map<String, String> orgs = new HashMap<>();
+                orgs.put(platform, savedCmp.getId());
+                credentials.setOrganizations(new ArrayList<>(Set.of(orgs))); // Ensures uniqueness
             }
 
             EmployeeModel savedEmp = employeeRepository.save(emp);
