@@ -124,13 +124,13 @@ class AuthResponse {
     private String refreshToken;
     private String employeeId;
     private String email;
-    private List<String> organizations;
+    private List<Map<String, String>> organizations;
     private List<String> permissions;
     private List<String> roles;
     private String userLevel;
     private boolean active;
 
-    public AuthResponse(String token, String refreshToken, String employeeId, String  email, String userLevel, List<String> organizations, List<String> permissions, List<String> roles, boolean active) {
+    public AuthResponse(String token, String refreshToken, String employeeId, String  email, String userLevel, List<Map<String, String>> organizations, List<String> permissions, List<String> roles, boolean active) {
         this.token = token;
         this.refreshToken = refreshToken;
         this.employeeId = employeeId;

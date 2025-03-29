@@ -137,22 +137,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService users() {
-        PasswordEncoder encoder = passwordEncoder();
-        UserDetails user = User.builder()
-                .username(configUtil.getProperty("USER2_USERNAME"))
-                .password(encoder.encode(configUtil.getProperty("USER2_PASSWORD")))
-                .roles("USER")
-                .build();
-        UserDetails admin = User.builder()
-                .username(configUtil.getProperty("USER1_USERNAME"))
-                .password(encoder.encode(configUtil.getProperty("USER1_PASSWORD")))
-                .roles("USER", "ADMIN")
-                .build();
-        return new InMemoryUserDetailsManager(user, admin);
-    }
-
-    @Bean
     public PasswordEncoder passwordEncoder() {
         return new PasswordEncoder() {
             @Override
