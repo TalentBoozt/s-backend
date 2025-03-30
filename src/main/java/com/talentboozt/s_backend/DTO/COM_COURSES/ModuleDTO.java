@@ -10,6 +10,7 @@ public class ModuleDTO {
     @Id
     private String id;
     private String name;
+    private String description;
     private String duration;
     private String installmentId;
     private String date;

@@ -78,7 +78,7 @@ public class EmpCoursesService {
                 for (CourseEnrollment c : courses) {
                     if (c.getCourseId().equals(course.getId())) {
                         c.setCourseName(course.getName());
-                        c.setDescription(course.getDescription());
+                        c.setOverview(course.getOverview());
                         c.setOrganizer(course.getOrganizer());
                         c.setModules(course.getModules());
                         c.setInstallment(course.getInstallment());
