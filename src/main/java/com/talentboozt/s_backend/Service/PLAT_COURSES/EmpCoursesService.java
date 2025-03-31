@@ -126,6 +126,8 @@ public class EmpCoursesService {
                         for (InstallmentDTO i : c.getInstallment()) {
                             if (i.getId().equals(installmentId)) {
                                 i.setPaid(status);
+                                if (status.equals("pending")) i.setRequestDate(LocalDateTime.now().toString());
+                                if (status.equals("paid") || status.equals("cancelled")) i.setPaymentDate(LocalDateTime.now().toString());
                                 return empCoursesModel;
                             }
                         }

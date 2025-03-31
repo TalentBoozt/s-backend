@@ -11,7 +11,11 @@ import com.talentboozt.s_backend.Repository.PLAT_COURSES.EmpCoursesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -175,5 +179,79 @@ public class CourseService {
 
     public List<EmpCoursesModel> getEnrolls(String courseId) {
         return empCoursesRepository.findByCoursesCourseId(courseId);
+    }
+
+    public List<String> getCategories() {
+        return courseRepository.findAll().stream()
+                .map(CourseModel::getCategory)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    public Map<String, Integer> getCoursesOverviewByCompanyId(String companyId) {
+        Map<String, Integer> overview = new HashMap<>();
+
+        // Fetch courses by companyId
+        List<CourseModel> courses = courseRepository.findByCompanyId(companyId);
+
+        int totalTrainingHours = 0;
+        int totalCompletedTrainings = 0;
+        int totalInProgressTrainings = 0;
+        int totalParticipants = 0;
+
+        // Iterate over each course
+        for (CourseModel course : courses) {
+            // Add the duration in hours to totalTrainingHours
+            totalTrainingHours += calculateTotalTrainingHours(course);
+
+            // Get enrolled participants
+            List<EmployeeModel> enrolledParticipants = getUsersEnrolledInCourse(course.getId());
+            totalParticipants += enrolledParticipants.size();
+
+            // Determine status of the course
+            String courseStatus = course.getCourseStatus();
+            if ("completed".equalsIgnoreCase(courseStatus)) {
+                totalCompletedTrainings ++;
+            } else if ("ongoing".equalsIgnoreCase(courseStatus)) {
+                totalInProgressTrainings ++;
+            }
+        }
+
+        // Add the results to the map
+        overview.put("totalTrainingHours", totalTrainingHours);
+        overview.put("totalCompletedTrainings", totalCompletedTrainings);
+        overview.put("totalInProgressTrainings", totalInProgressTrainings);
+        overview.put("totalParticipants", totalParticipants);
+
+        return overview;
+    }
+
+    private int calculateTotalTrainingHours(CourseModel course) {
+        int totalMinutes = 0;
+
+        // Ensure that the course has modules
+        if (course.getModules() != null && !course.getModules().isEmpty()) {
+            for (ModuleDTO module : course.getModules()) {
+                String startTime = module.getStart(); // "14:45"
+                String endTime = module.getEnd(); // "16:09"
+
+                try {
+                    // Parse the times into LocalTime
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+                    LocalTime start = LocalTime.parse(startTime, formatter);
+                    LocalTime end = LocalTime.parse(endTime, formatter);
+
+                    // Calculate the difference in minutes
+                    long minutes = java.time.Duration.between(start, end).toMinutes();
+                    totalMinutes += minutes; // Add to total training duration in minutes
+                } catch (Exception e) {
+                    // Handle any invalid time format gracefully
+                    System.err.println("Invalid time format for module: " + module.getName());
+                }
+            }
+        }
+
+        // Convert total minutes to hours
+        return totalMinutes; // Return the total training hours
     }
 }
