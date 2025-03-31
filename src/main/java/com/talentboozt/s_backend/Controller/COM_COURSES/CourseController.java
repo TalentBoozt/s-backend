@@ -7,9 +7,11 @@ import com.talentboozt.s_backend.Model.EndUser.EmployeeModel;
 import com.talentboozt.s_backend.Model.PLAT_COURSES.EmpCoursesModel;
 import com.talentboozt.s_backend.Service.COM_COURSES.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v2/course")
@@ -86,5 +88,16 @@ public class CourseController {
     @GetMapping("/get/{courseId}/enrolls")
     public List<EmpCoursesModel> getEnrollesInCourse(@PathVariable String courseId) {
         return courseService.getEnrolls(courseId);
+    }
+
+    @GetMapping("/get/categories")
+    public List<String> getCategories() {
+        return courseService.getCategories();
+    }
+
+    @GetMapping("/overview/{companyId}")
+    public ResponseEntity<Map<String, Integer>> getCoursesOverviewByCompanyId(@PathVariable String companyId) {
+        Map<String, Integer> courseOverview = courseService.getCoursesOverviewByCompanyId(companyId);
+        return ResponseEntity.ok(courseOverview);
     }
 }

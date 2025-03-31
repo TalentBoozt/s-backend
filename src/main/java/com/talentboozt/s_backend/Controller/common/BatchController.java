@@ -6,6 +6,7 @@ import com.talentboozt.s_backend.Model.COM_JOB_PORTAL.CompanyModel;
 import com.talentboozt.s_backend.Model.EndUser.*;
 import com.talentboozt.s_backend.Model.PLAT_COURSES.EmpCoursesModel;
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
+import com.talentboozt.s_backend.Service.COM_COURSES.CourseService;
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CmpPostedJobsService;
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CmpSocialService;
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CompanyService;
@@ -70,6 +71,9 @@ public class BatchController {
 
     @Autowired
     private CmpSocialService cmpSocialService;
+
+    @Autowired
+    private CourseService courseService;
 
     @Autowired
     private JwtService jwtService;
@@ -173,6 +177,14 @@ public class BatchController {
                     response.put("company", companyFuture.join());
                     return response;
                 });
+    }
+
+    @GetMapping("/getParticipants/{id}")
+    public Map<String, Object> getParticipant(@PathVariable String id) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("user", courseService.getUsersEnrolledInCourse(id));
+        response.put("enrolls", courseService.getEnrolls(id));
+        return response;
     }
 
 }

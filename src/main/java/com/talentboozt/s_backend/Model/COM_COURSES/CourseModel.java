@@ -44,4 +44,5 @@ public class CourseModel {
     private String fromTime;
     private String toTime;
     private String courseStatus;
+    private String paymentMethod;
 }

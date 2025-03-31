@@ -17,5 +17,8 @@ public class InstallmentDTO {
     private String accountNb;
     private String branch;
     private String holder;
-    private String paid; //paid, pending, failed
+    private String paid; //unpaid, paid, pending, failed
+    private String paymentMethod;
+    private String requestDate;
+    private String paymentDate;
 }
