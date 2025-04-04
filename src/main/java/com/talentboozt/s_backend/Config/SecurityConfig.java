@@ -125,7 +125,11 @@ public class SecurityConfig {
                 configUtil.getProperty("ALLOWED_ORIGIN_3"),
                 configUtil.getProperty("ALLOWED_ORIGIN_4"),
                 configUtil.getProperty("ALLOWED_ORIGIN_5"),
-                configUtil.getProperty("ALLOWED_ORIGIN_6")
+                configUtil.getProperty("ALLOWED_ORIGIN_6"),
+                configUtil.getProperty("ALLOWED_ORIGIN_7"),
+                configUtil.getProperty("ALLOWED_ORIGIN_8"),
+                configUtil.getProperty("ALLOWED_ORIGIN_9"),
+                configUtil.getProperty("ALLOWED_ORIGIN_10")
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
