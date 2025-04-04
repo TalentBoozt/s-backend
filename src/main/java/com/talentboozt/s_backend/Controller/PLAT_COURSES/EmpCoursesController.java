@@ -45,6 +45,11 @@ public class EmpCoursesController {
         return empCoursesService.updateInstallmentPayment(employeeId, courseId, installmentId, status);
     }
 
+    @PutMapping("/update-enrollment-status/{employeeId}/{courseId}/{status}")
+    public EmpCoursesModel updateEnrollmentStatus(@PathVariable String employeeId, @PathVariable String courseId, @PathVariable String status) {
+        return empCoursesService.updateEnrollmentStatus(employeeId, courseId, status);
+    }
+
     @DeleteMapping("/delete/{id}")
     public void deleteEmpCourses(@PathVariable String id) {
         empCoursesService.deleteEmpCourses(id);
