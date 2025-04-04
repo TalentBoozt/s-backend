@@ -89,7 +89,7 @@ public class EmpCoursesService {
                     }
                 }
             }
-            return empCoursesModel;
+            return empCoursesRepository.save(empCoursesModel);
         }
         throw new RuntimeException("Employee not found for id: " + employeeId);
     }
@@ -105,7 +105,7 @@ public class EmpCoursesService {
                         for (ModuleDTO m : c.getModules()) {
                             if (m.getId().equals(moduleId)) {
                                 m.setPaid(status);
-                                return empCoursesModel;
+                                return empCoursesRepository.save(empCoursesModel);
                             }
                         }
                     }
@@ -128,9 +128,26 @@ public class EmpCoursesService {
                                 i.setPaid(status);
                                 if (status.equals("pending")) i.setRequestDate(LocalDateTime.now().toString());
                                 if (status.equals("paid") || status.equals("cancelled")) i.setPaymentDate(LocalDateTime.now().toString());
-                                return empCoursesModel;
+                                return empCoursesRepository.save(empCoursesModel);
                             }
                         }
+                    }
+                }
+            }
+        }
+        throw new RuntimeException("Employee not found for id: " + employeeId);
+    }
+
+    public EmpCoursesModel updateEnrollmentStatus(String employeeId, String courseId, String status) {
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        if (!empCoursesList.isEmpty()) {
+            EmpCoursesModel empCoursesModel = empCoursesList.get(0);
+            List<CourseEnrollment> courses = empCoursesModel.getCourses();
+            if (courses != null) {
+                for (CourseEnrollment c : courses) {
+                    if (c.getCourseId().equals(courseId)) {
+                        c.setStatus(status);
+                        return empCoursesRepository.save(empCoursesModel);
                     }
                 }
             }

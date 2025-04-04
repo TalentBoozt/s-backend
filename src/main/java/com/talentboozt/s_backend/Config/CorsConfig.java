@@ -21,7 +21,16 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(configUtility.getProperty("ALLOWED_ORIGIN_1"), configUtility.getProperty("ALLOWED_ORIGIN_2"), configUtility.getProperty("ALLOWED_ORIGIN_3"), configUtility.getProperty("ALLOWED_ORIGIN_4"), configUtility.getProperty("ALLOWED_ORIGIN_5"), configUtility.getProperty("ALLOWED_ORIGIN_6"))
+                .allowedOrigins(configUtility.getProperty("ALLOWED_ORIGIN_1"),
+                        configUtility.getProperty("ALLOWED_ORIGIN_2"),
+                        configUtility.getProperty("ALLOWED_ORIGIN_3"),
+                        configUtility.getProperty("ALLOWED_ORIGIN_4"),
+                        configUtility.getProperty("ALLOWED_ORIGIN_5"),
+                        configUtility.getProperty("ALLOWED_ORIGIN_6"),
+                        configUtility.getProperty("ALLOWED_ORIGIN_7"),
+                        configUtility.getProperty("ALLOWED_ORIGIN_8"),
+                        configUtility.getProperty("ALLOWED_ORIGIN_9"),
+                        configUtility.getProperty("ALLOWED_ORIGIN_10"))
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .exposedHeaders("Stripe-Signature", "X-Demo-Mode")
