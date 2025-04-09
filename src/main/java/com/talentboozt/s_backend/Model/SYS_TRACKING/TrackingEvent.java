@@ -12,15 +12,15 @@ import java.util.Map;
 public class TrackingEvent {
     @Id
     private String id;
-    private String trackingId; // SaaS app identifier
-    private String eventType;  // e.g., page_view, click
+
+    private String trackingId;      // SaaS platform
+    private String eventType;       // page_view, click, scroll, etc.
     private String url;
     private String referrer;
+
     private String sessionId;
     private String userId;
-    private String elementId;
-    private String elementText;
-    private String elementType;
+
     private String screenResolution;
     private String browser;
     private String language;
@@ -28,5 +28,37 @@ public class TrackingEvent {
     private String country;
     private String region;
     private String city;
+
     private Instant timestamp;
+
+    // Click details
+    private String elementId;
+    private String elementText;
+    private String elementType;
+    private String elementClass;
+    private String elementAriaLabel;
+    private String elementRouterLink;
+    private Integer clickX;
+    private Integer clickY;
+
+    // Scroll
+    private Integer scrollPercent;
+
+    // Page time
+    private Long durationMs;
+
+    // Performance
+    private Long domLoadTime;
+    private Long fullLoadTime;
+    private Long ttfb;
+
+    // Errors
+    private String errorMessage;
+    private String errorSource;
+    private Integer errorLine;
+    private Integer errorColumn;
+    private String rejectionReason;
+
+    // For custom events or future-proofing
+    private Map<String, Object> customData;
 }
