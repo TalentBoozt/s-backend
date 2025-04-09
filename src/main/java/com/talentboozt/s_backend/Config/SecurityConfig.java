@@ -88,7 +88,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/stripe/**", "/actuator/**", "/public/**",
                                 "/api/auth/**", "/oauth2/**", "/oauth/**",
-                                "/sitemap.xml", "/api/track"
+                                "/sitemap.xml", "/api/event/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
