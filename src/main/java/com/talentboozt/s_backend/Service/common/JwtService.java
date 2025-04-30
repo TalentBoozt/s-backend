@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.Service.common;
 
+import com.talentboozt.s_backend.DTO.common.auth.SSO.AuthUser;
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -73,5 +74,14 @@ public class JwtService {
                 .setExpiration(new Date(System.currentTimeMillis() + 2592000000L)) // 30 days expiration
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public AuthUser getUserFromToken(String token) {
+        Claims claims = Jwts.parserBuilder().setSigningKey(token).build().parseClaimsJws(token).getBody();
+        AuthUser user = new AuthUser();
+        user.setEmployeeId((String) claims.get("userId"));
+        user.setEmail((String) claims.get("sub"));
+        user.setUserLevel((String) claims.get("userLevel"));
+        return user;
     }
 }
