@@ -83,13 +83,20 @@ public class SecurityConfig {
                 )
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/**").permitAll()
+                        .requestMatchers("/actuator/env").authenticated()
+                        .requestMatchers("/actuator/loggers").authenticated()
+                        .requestMatchers("/actuator/beans").authenticated()
+                        .requestMatchers("/actuator/configprops").authenticated()
+                        .requestMatchers(request ->
+                                request.getRequestURI().startsWith("/actuator/") && !request.getRequestURI().equals("/actuator/env")
+                        ).permitAll()
                         .requestMatchers(
-                                "/stripe/**", "/actuator/**", "/public/**",
+                                "/stripe/**", "/public/**", "/sso/**",
                                 "/api/auth/**", "/oauth2/**", "/oauth/**",
                                 "/sitemap.xml", "/api/event/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
