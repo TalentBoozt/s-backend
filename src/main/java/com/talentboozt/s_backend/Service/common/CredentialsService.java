@@ -111,6 +111,10 @@ public class CredentialsService {
         return credentialsRepository.findAll();
     }
 
+    public boolean isExistsByEmail(String email) {
+        return credentialsRepository.existsByEmail(email);
+    }
+
     public Optional<CredentialsModel> getCredentials(String employeeId) {
         return credentialsRepository.findByEmployeeId(employeeId);
     }

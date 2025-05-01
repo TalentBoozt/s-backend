@@ -7,6 +7,8 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
@@ -23,7 +25,7 @@ public class JwtService {
         Key key = Keys.hmacShaKeyFor(token.getBytes());
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", user.getEmployeeId());
+        claims.put("userId", user.getEmployeeId() == null ? "n/a" : user.getEmployeeId());
         claims.put("userLevel", user.getUserLevel());
 
         return Jwts.builder()
@@ -76,9 +78,16 @@ public class JwtService {
                 .compact();
     }
 
-    public AuthUser getUserFromToken(String token) {
-        Claims claims = Jwts.parserBuilder().setSigningKey(token).build().parseClaimsJws(token).getBody();
-        AuthUser user = new AuthUser();
+    public CredentialsModel getUserFromToken(String encodedToken) {
+        SecretKey key = Keys.hmacShaKeyFor(token.getBytes(StandardCharsets.UTF_8));
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(encodedToken)
+                .getBody();
+
+        CredentialsModel user = new CredentialsModel();
         user.setEmployeeId((String) claims.get("userId"));
         user.setEmail((String) claims.get("sub"));
         user.setUserLevel((String) claims.get("userLevel"));
