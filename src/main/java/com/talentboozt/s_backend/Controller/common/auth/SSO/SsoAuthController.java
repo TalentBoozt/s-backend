@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.Controller.common.auth.SSO;
 
 import com.talentboozt.s_backend.DTO.common.auth.SSO.*;
+import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
 import com.talentboozt.s_backend.Service.common.JwtService;
 import com.talentboozt.s_backend.Service.common.auth.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -75,7 +76,7 @@ public class SsoAuthController {
             return ResponseEntity.status(401).body(new MessageResponse("Session invalid"));
         }
 
-        AuthUser user = jwtService.getUserFromToken(token);
+        CredentialsModel user = jwtService.getUserFromToken(token);
         return ResponseEntity.ok(user);
     }
 }

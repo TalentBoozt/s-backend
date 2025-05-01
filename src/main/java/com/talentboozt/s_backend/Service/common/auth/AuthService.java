@@ -3,7 +3,7 @@ package com.talentboozt.s_backend.Service.common.auth;
 import com.talentboozt.s_backend.DTO.common.auth.SSO.AuthResponse;
 import com.talentboozt.s_backend.DTO.common.auth.SSO.RegisterRequest;
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
-import com.talentboozt.s_backend.Repository.common.auth.CredentialsRepository;
+import com.talentboozt.s_backend.Service.common.CredentialsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     @Autowired
-    private CredentialsRepository userRepository;
+    private CredentialsService credentialsService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -20,7 +20,7 @@ public class AuthService {
     // Add JWTService if you need to generate token inside service level (for flexibility)
 
     public AuthResponse login(String email, String password) {
-        CredentialsModel user = userRepository.findByEmail(email);
+        CredentialsModel user = credentialsService.getCredentialsByEmail(email);
 
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
             return null;
@@ -33,8 +33,11 @@ public class AuthService {
     }
 
     public AuthResponse register(RegisterRequest registerRequest) {
+        String platform = registerRequest.getPlatform();
+        String referrer = registerRequest.getReferrerId();
+
         // Check if user already exists
-        if (userRepository.existsByEmail(registerRequest.getEmail())) {
+        if (credentialsService.isExistsByEmail(registerRequest.getEmail())) {
             return null;
         }
 
@@ -47,12 +50,12 @@ public class AuthService {
         user.setUserLevel(registerRequest.getUserLevel());
         // add other fields if you have
 
-        userRepository.save(user);
+        CredentialsModel savedUser = credentialsService.addCredentials(user, platform, referrer);
 
         // Determine where to redirect after successful registration
-        String redirectUri = determineRedirectUri(user);
+        String redirectUri = determineRedirectUri(savedUser);
 
-        return new AuthResponse(user, redirectUri);
+        return new AuthResponse(savedUser, redirectUri);
     }
 
     private String determineRedirectUri(CredentialsModel user) {
