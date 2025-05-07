@@ -1,6 +1,9 @@
 package com.talentboozt.s_backend.Shared;
 
+import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
+import com.talentboozt.s_backend.Service._private.RateLimiterService;
 import com.talentboozt.s_backend.Service._private.UserActivityService;
+import com.talentboozt.s_backend.Service.common.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,6 +20,10 @@ public class IpCaptureFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserActivityService userActivityService;
+    @Autowired
+    private RateLimiterService rateLimiterService;
+    @Autowired
+    private JwtService jwtService;
 
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
@@ -34,13 +41,51 @@ public class IpCaptureFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String ipAddress = getClientIp(request);
-        String userId = "Anonymous"; // Replace with actual user ID from authentication
         String endpointAccessed = request.getRequestURI();
 
+        // Skip logging for actuator metrics endpoint
+        if (endpointAccessed.startsWith("/actuator/metrics")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String ipAddress = getClientIp(request);
+
+        // Extract JWT token from Authorization header
+        String token = extractJwtFromRequest(request);
+
+        String userId = "Anonymous";
+        if (token != null && jwtService.validateToken(token)) {
+            // Get user info from the JWT token
+            try {
+                CredentialsModel user = jwtService.getUserFromToken(token);
+                userId = user.getEmployeeId(); // Use the userId from the JWT token
+            } catch (Exception e) {
+                // Log and proceed with "anonymous" in case of any issues with the token
+                System.out.println("Error extracting user from JWT: " + e.getMessage());
+            }
+        }
+
+        // Check rate-limiting: If the user/IP exceeds the limit, we handle it accordingly
+        boolean allowed = rateLimiterService.checkRateLimit(ipAddress);
+        if (!allowed) {
+            response.setStatus(429); // 429 Too Many Requests
+            return;
+        }
+
+        // Log the activity
         userActivityService.logUserActivity(userId, ipAddress, endpointAccessed);
 
         filterChain.doFilter(request, response);
+    }
+
+    // Helper method to extract JWT from the Authorization header
+    private String extractJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7); // Extract token after "Bearer "
+        }
+        return null; // No token found
     }
 }
 
