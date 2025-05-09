@@ -95,6 +95,7 @@ public class SecurityConfig {
                                 "/api/auth/**", "/oauth2/**", "/oauth/**",
                                 "/sitemap.xml", "/api/event/**"
                         ).permitAll()
+//                        .requestMatchers("/actuator/**").permitAll() // for testing
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .anyRequest().authenticated()

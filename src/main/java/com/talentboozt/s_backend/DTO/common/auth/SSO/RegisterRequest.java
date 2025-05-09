@@ -13,4 +13,5 @@ public class RegisterRequest {
     private String platform;
     private String referrerId;
     private String promotion;
+    private boolean active;
 }
