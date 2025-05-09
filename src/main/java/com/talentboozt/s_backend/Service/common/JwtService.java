@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.Service.common;
 
-import com.talentboozt.s_backend.DTO.common.auth.SSO.AuthUser;
+import com.talentboozt.s_backend.DTO.common.auth.SSO.JwtUserPayload;
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -20,13 +20,15 @@ public class JwtService {
     @Value("${jwt-token.secret}")
     private String token;
 
-    public String generateToken(CredentialsModel user) {
+    public String generateToken(JwtUserPayload user) {
 
         Key key = Keys.hmacShaKeyFor(token.getBytes());
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", user.getEmployeeId() == null ? "n/a" : user.getEmployeeId());
+        claims.put("userId", user.getUserId() == null ? "n/a" : user.getUserId());
         claims.put("userLevel", user.getUserLevel());
+        claims.put("roles", user.getRoles());
+        claims.put("permissions", user.getPermissions());
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -62,12 +64,12 @@ public class JwtService {
         }
     }
 
-    public String generateRefreshToken(CredentialsModel user) {
+    public String generateRefreshToken(JwtUserPayload user) {
         // Refresh token should have a much longer expiration time, e.g., 30 days.
         Key key = Keys.hmacShaKeyFor(token.getBytes());
 
         Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", user.getEmployeeId());
+        claims.put("userId", user.getUserId());
 
         return Jwts.builder()
                 .setClaims(claims)

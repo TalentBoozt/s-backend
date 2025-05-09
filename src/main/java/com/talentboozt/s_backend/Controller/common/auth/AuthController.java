@@ -1,7 +1,9 @@
 package com.talentboozt.s_backend.Controller.common.auth;
 
 import com.talentboozt.s_backend.DTO.common.ErrorResponse;
+import com.talentboozt.s_backend.DTO.common.auth.SSO.JwtUserPayload;
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
+import com.talentboozt.s_backend.Model.common.auth.PermissionModel;
 import com.talentboozt.s_backend.Service.common.CredentialsService;
 import com.talentboozt.s_backend.Service.common.JwtService;
 import com.talentboozt.s_backend.Service.common.KeyService;
@@ -44,6 +46,13 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(new ErrorResponse("Your account is disabled"));
             }
 
+            JwtUserPayload userPayload = new JwtUserPayload();
+            userPayload.setUserId(user.getEmployeeId());
+            userPayload.setEmail(user.getEmail());
+            userPayload.setUserLevel(user.getUserLevel());
+            userPayload.setRoles(user.getRoles());
+            userPayload.setPermissions(user.getPermissions());
+
             try {
                 // Decrypt stored password
                 ResponseEntity<Map<String, String>> decryptedPassword = keyService.decryptData(user.getPassword());
@@ -55,8 +64,8 @@ public class AuthController {
                 }
 
                 // Generate JWT Token
-                String token = jwtService.generateToken(user);
-                String refreshToken = jwtService.generateRefreshToken(user);
+                String token = jwtService.generateToken(userPayload);
+                String refreshToken = jwtService.generateRefreshToken(userPayload);
 
                 return ResponseEntity.ok(new AuthResponse(token, refreshToken, user.getEmployeeId(), user.getEmail(), user.getUserLevel(), user.getOrganizations(), user.getPermissions(), user.getRoles(), user.isActive()));
 
@@ -80,9 +89,16 @@ public class AuthController {
                     return ResponseEntity.status(403).body(new ErrorResponse("Registered user but your account is disabled"));
                 }
 
+                JwtUserPayload userPayload = new JwtUserPayload();
+                userPayload.setUserId(newUser.getEmployeeId());
+                userPayload.setEmail(newUser.getEmail());
+                userPayload.setUserLevel(newUser.getUserLevel());
+                userPayload.setRoles(newUser.getRoles());
+                userPayload.setPermissions(newUser.getPermissions());
+
                 // Generate JWT Token for new user
-                String token = jwtService.generateToken(newUser);
-                String refreshToken = jwtService.generateRefreshToken(newUser);
+                String token = jwtService.generateToken(userPayload);
+                String refreshToken = jwtService.generateRefreshToken(userPayload);
 
                 return ResponseEntity.ok(new AuthResponse(token, refreshToken, newUser.getEmployeeId(), newUser.getEmail(), newUser.getUserLevel(), newUser.getOrganizations(), newUser.getPermissions(), newUser.getRoles(), newUser.isActive()));
 
@@ -104,10 +120,16 @@ public class AuthController {
             // Extract user information from refresh token or database
             String email = jwtUtil.extractUsername(refreshToken);
             CredentialsModel user = credentialsService.getCredentialsByEmail(email);
+            JwtUserPayload userPayload = new JwtUserPayload();
+            userPayload.setUserId(user.getEmployeeId());
+            userPayload.setEmail(user.getEmail());
+            userPayload.setUserLevel(user.getUserLevel());
+            userPayload.setRoles(user.getRoles());
+            userPayload.setPermissions(user.getPermissions());
 
             // Generate new access token
-            String newAccessToken = jwtService.generateToken(user);
-            String newRefreshToken = jwtService.generateRefreshToken(user);
+            String newAccessToken = jwtService.generateToken(userPayload);
+            String newRefreshToken = jwtService.generateRefreshToken(userPayload);
 
             // Return new access token
             return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken, user.getEmployeeId(), user.getEmail(), user.getUserLevel(), user.getOrganizations(), user.getPermissions(), user.getRoles(), user.isActive()));
@@ -125,12 +147,12 @@ class AuthResponse {
     private String employeeId;
     private String email;
     private List<Map<String, String>> organizations;
-    private List<String> permissions;
+    private List<PermissionModel> permissions;
     private List<String> roles;
     private String userLevel;
     private boolean active;
 
-    public AuthResponse(String token, String refreshToken, String employeeId, String  email, String userLevel, List<Map<String, String>> organizations, List<String> permissions, List<String> roles, boolean active) {
+    public AuthResponse(String token, String refreshToken, String employeeId, String  email, String userLevel, List<Map<String, String>> organizations, List<PermissionModel> permissions, List<String> roles, boolean active) {
         this.token = token;
         this.refreshToken = refreshToken;
         this.employeeId = employeeId;

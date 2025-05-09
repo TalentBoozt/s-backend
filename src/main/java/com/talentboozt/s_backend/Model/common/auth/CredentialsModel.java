@@ -25,7 +25,7 @@ public class CredentialsModel {
     private String password;
     private String role; // deprecated
     private List<String> roles; // ["JOB_SEEKER", "RECRUITER_ADMIN"]
-    private List<String> permissions; // ["CAN_POST_JOBS", "CAN_CREATE_COURSES"]
+    private List<PermissionModel> permissions; // ["CAN_POST_JOBS", "CAN_CREATE_COURSES"]
     private List<Map<String, String>> organizations; // ["companyId1", "companyId2"]
     private String userLevel; // Free, Pro
     private String registeredFrom; // JobPortal, ResumeBuilder, TrainingPlatform

@@ -2,13 +2,21 @@ package com.talentboozt.s_backend.Controller.common.auth.SSO;
 
 import com.talentboozt.s_backend.DTO.common.auth.SSO.*;
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
+import com.talentboozt.s_backend.Model.common.auth.PermissionModel;
 import com.talentboozt.s_backend.Service.common.JwtService;
 import com.talentboozt.s_backend.Service.common.auth.AuthService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 @RestController
 @RequestMapping("/sso")
@@ -31,6 +39,7 @@ public class SsoAuthController {
         }
 
         String token = jwtService.generateToken(authResponse.getUser());
+        String refreshToken = jwtService.generateRefreshToken(authResponse.getUser());
 
         ResponseCookie cookie = ResponseCookie.from("TB_SESSION", token)
                 .httpOnly(true)
@@ -43,7 +52,7 @@ public class SsoAuthController {
 
         response.addHeader("Set-Cookie", cookie.toString());
 
-        return ResponseEntity.ok(new RedirectResponse(authResponse.getRedirectUri(), token));
+        return ResponseEntity.ok(new RedirectResponse(authResponse.getRedirectUri(), token, refreshToken));
     }
 
     @PostMapping("/register")
@@ -55,6 +64,7 @@ public class SsoAuthController {
         }
 
         String token = jwtService.generateToken(authResponse.getUser());
+        String refreshToken = jwtService.generateRefreshToken(authResponse.getUser());
 
         ResponseCookie cookie = ResponseCookie.from("TB_SESSION", token)
                 .httpOnly(true)
@@ -67,16 +77,66 @@ public class SsoAuthController {
 
         response.addHeader("Set-Cookie", cookie.toString());
 
-        return ResponseEntity.ok(new RedirectResponse(authResponse.getRedirectUri(), token));
+        return ResponseEntity.ok(new RedirectResponse(authResponse.getRedirectUri(), token, refreshToken));
     }
 
     @GetMapping("/session")
-    public ResponseEntity<?> validateSession(@CookieValue(name = "TB_SESSION", required = false) String token) {
+    public ResponseEntity<?> validateSession(HttpServletRequest request) {
+        String token = null;
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("TB_SESSION".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
         if (token == null || !jwtService.validateToken(token)) {
             return ResponseEntity.status(401).body(new MessageResponse("Session invalid"));
         }
 
         CredentialsModel user = jwtService.getUserFromToken(token);
-        return ResponseEntity.ok(user);
+        SessionResponse session = new SessionResponse();
+        session.setUserId(user.getEmployeeId());
+        session.setEmail(user.getEmail());
+        session.setRoles(user.getRoles());
+        session.setPermissions(user.getPermissions());
+        session.setUserLevel(user.getUserLevel());
+        session.setCompanyId(user.getCompanyId());
+        session.setAccessedPlatforms(user.getAccessedPlatforms());
+
+        return ResponseEntity.ok(session);
     }
+
+    @GetMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletResponse response) {
+        ResponseCookie expiredCookie = ResponseCookie.from("TB_SESSION", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talentboozt.com")
+                .path("/")
+                .maxAge(0) // Expire immediately
+                .build();
+
+        response.addHeader("Set-Cookie", expiredCookie.toString());
+
+        return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
+    }
+
+}
+
+@Getter
+@Setter
+class SessionResponse {
+    private String userId;
+    private String email;
+    private List<String> roles;
+    private List<PermissionModel> permissions;
+    private String userLevel;
+    private String companyId;
+    private List<String> accessedPlatforms;
 }

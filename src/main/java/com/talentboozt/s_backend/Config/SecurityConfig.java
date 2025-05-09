@@ -83,18 +83,19 @@ public class SecurityConfig {
                 )
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/env").authenticated()
-                        .requestMatchers("/actuator/loggers").authenticated()
-                        .requestMatchers("/actuator/beans").authenticated()
-                        .requestMatchers("/actuator/configprops").authenticated()
-                        .requestMatchers(request ->
-                                request.getRequestURI().startsWith("/actuator/") && !request.getRequestURI().equals("/actuator/env")
-                        ).permitAll()
+//                        .requestMatchers("/actuator/env").authenticated()
+//                        .requestMatchers("/actuator/loggers").authenticated()
+//                        .requestMatchers("/actuator/beans").authenticated()
+//                        .requestMatchers("/actuator/configprops").authenticated()
+//                        .requestMatchers(request ->
+//                                request.getRequestURI().startsWith("/actuator/") && !request.getRequestURI().equals("/actuator/env")
+//                        ).permitAll()
                         .requestMatchers(
                                 "/stripe/**", "/public/**", "/sso/**",
                                 "/api/auth/**", "/oauth2/**", "/oauth/**",
                                 "/sitemap.xml", "/api/event/**"
                         ).permitAll()
+                        .requestMatchers("/actuator/**").permitAll() // for testing
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .anyRequest().authenticated()
