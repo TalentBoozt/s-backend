@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -136,6 +137,55 @@ public class AuthController {
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid refresh token"));
+    }
+
+    @PostMapping("/social-login-process/{platform}")
+    public ResponseEntity<?> socialLoginProcess(@RequestBody CredentialsModel credentials, @PathVariable String platform) {
+        CredentialsModel savedUser = credentialsService.addCredentials(credentials, platform, credentials.getReferrerId());
+
+        JwtUserPayload userPayload = new JwtUserPayload();
+        userPayload.setUserId(savedUser.getEmployeeId());
+        userPayload.setEmail(savedUser.getEmail());
+        userPayload.setUserLevel(savedUser.getUserLevel());
+        userPayload.setRoles(savedUser.getRoles());
+        userPayload.setPermissions(savedUser.getPermissions());
+
+        if (savedUser.isDisabled()) {
+            return ResponseEntity.status(403).body(new ErrorResponse("Registered user but your account is disabled"));
+        }
+
+        // After successful save or fetch, generate tokens
+        String accessToken = jwtService.generateToken(userPayload);
+        String refreshToken = jwtService.generateRefreshToken(userPayload);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("accessToken", accessToken);
+        response.put("refreshToken", refreshToken);
+        response.put("user", savedUser);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/getTokens/{email}")
+    public ResponseEntity<?> getCredentialsByEmail(@PathVariable String email) {
+        CredentialsModel credentials = credentialsService.getCredentialsByEmail(email);
+        if (credentials == null) return null;
+
+        JwtUserPayload userPayload = new JwtUserPayload();
+        userPayload.setUserId(credentials.getEmployeeId());
+        userPayload.setEmail(credentials.getEmail());
+        userPayload.setUserLevel(credentials.getUserLevel());
+        userPayload.setRoles(credentials.getRoles());
+        userPayload.setPermissions(credentials.getPermissions());
+
+        String accessToken = jwtService.generateToken(userPayload);
+        String refreshToken = jwtService.generateRefreshToken(userPayload);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("accessToken", accessToken);
+        response.put("refreshToken", refreshToken);
+
+        return ResponseEntity.ok(response);
     }
 }
 
