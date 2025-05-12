@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/sso")
@@ -100,13 +101,14 @@ public class SsoAuthController {
 
         CredentialsModel user = jwtService.getUserFromToken(token);
         SessionResponse session = new SessionResponse();
-        session.setUserId(user.getEmployeeId());
+        session.setEmployeeId(user.getEmployeeId());
         session.setEmail(user.getEmail());
         session.setRoles(user.getRoles());
         session.setPermissions(user.getPermissions());
         session.setUserLevel(user.getUserLevel());
         session.setCompanyId(user.getCompanyId());
         session.setAccessedPlatforms(user.getAccessedPlatforms());
+        session.setOrganizations(user.getOrganizations());
 
         return ResponseEntity.ok(session);
     }
@@ -132,11 +134,12 @@ public class SsoAuthController {
 @Getter
 @Setter
 class SessionResponse {
-    private String userId;
+    private String employeeId;
     private String email;
     private List<String> roles;
     private List<PermissionModel> permissions;
     private String userLevel;
     private String companyId;
     private List<String> accessedPlatforms;
+    private List<Map<String, String>> organizations;
 }
