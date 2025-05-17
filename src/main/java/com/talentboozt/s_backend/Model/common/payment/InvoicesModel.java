@@ -24,5 +24,7 @@ public class InvoicesModel {
     private Date dueDate;
     private Date periodStart;
     private Date periodEnd;
+    private String invoice_pdf;
+    private String hosted_invoice_url;
     private String status;
 }

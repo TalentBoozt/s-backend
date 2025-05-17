@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.Controller.common.payment;
 
+import com.stripe.param.CustomerUpdateParams;
 import com.talentboozt.s_backend.Model.common.payment.BillingHistoryModel;
 import com.talentboozt.s_backend.Model.common.payment.InvoicesModel;
 import com.talentboozt.s_backend.Model.common.payment.PaymentMethodsModel;
@@ -92,6 +93,7 @@ public class StripeWebhookController {
 
         Map<String, String> response = new HashMap<>();
         response.put("id", session.getId());
+        response.put("url", session.getUrl());
         return ResponseEntity.ok(response);
     }
 
@@ -133,6 +135,21 @@ public class StripeWebhookController {
                 return;
             }
 
+            if (session.getId() != null) {
+                session = Session.retrieve(session.getId());
+            }
+
+            Map<String, String> metadata = session.getMetadata();
+            Customer customer = Customer.retrieve(session.getCustomer());
+
+            CustomerUpdateParams updateParams = CustomerUpdateParams.builder()
+                    .putMetadata("company_id", metadata.get("company_id"))
+                    .putMetadata("plan_name", metadata.get("plan_name"))
+                    .build();
+
+            customer.update(updateParams);
+
+
             String companyId = session.getMetadata().get("company_id");
             String planName = session.getMetadata().get("plan_name");
 
@@ -145,7 +162,6 @@ public class StripeWebhookController {
                 createBillingHistory(companyId, session.getId(), session);
                 createPaymentMethod(companyId, session);
                 updateCompanyStatus(companyId, session);
-                logger.info("Subscription created successfully for company: {}", companyId);
             } catch (StripeException e) {
                 logger.error("Error creating subscription for company: {}", companyId, e);
             }
@@ -217,8 +233,14 @@ public class StripeWebhookController {
         Customer customer = Customer.retrieve(invoice.getCustomer());
         if (customer.getMetadata() != null && customer.getMetadata().containsKey("company_id")) {
             companyId = customer.getMetadata().get("company_id");
+        } else if (invoice.getLines().getData().get(0).getMetadata() != null && invoice.getLines().getData().get(0).getMetadata().containsKey("company_id")) {
+            companyId = invoice.getLines().getData().get(0).getMetadata().get("company_id");
         } else {
-            logger.warn("Customer metadata does not contain company_id");
+            companyId = null;
+        }
+
+        if (companyId == null) {
+            logger.warn("Missing required metadata: company_id");
             return;
         }
 
@@ -229,9 +251,14 @@ public class StripeWebhookController {
         invoiceModel.setAmountDue(String.valueOf(invoice.getAmountDue()));
         invoiceModel.setStatus(invoice.getStatus());
         invoiceModel.setBillingDate(new Date(invoice.getCreated() * 1000L));
-        invoiceModel.setDueDate(new Date(invoice.getDueDate() * 1000L));
+        Date dueDate = invoice.getDueDate() != null
+                ? new Date(invoice.getDueDate() * 1000L)
+                : new Date((invoice.getCreated() + (7 * 24 * 60 * 60)) * 1000L); // fallback: created + 7 days
+        invoiceModel.setDueDate(dueDate);
         invoiceModel.setPeriodStart(new Date(invoice.getPeriodStart() * 1000L));
         invoiceModel.setPeriodEnd(new Date(invoice.getPeriodEnd() * 1000L));
+        invoiceModel.setInvoice_pdf(invoice.getInvoicePdf());
+        invoiceModel.setHosted_invoice_url(invoice.getHostedInvoiceUrl());
 
         invoiceRepository.save(invoiceModel);
         prePaymentService.updateInvoiceId(invoice.getId(), companyId);
@@ -243,7 +270,13 @@ public class StripeWebhookController {
         Customer customer = Customer.retrieve(invoice.getCustomer());
         if (customer.getMetadata() != null && customer.getMetadata().containsKey("company_id")) {
             companyId = customer.getMetadata().get("company_id");
+        } else if (invoice.getLines().getData().get(0).getMetadata() != null && invoice.getLines().getData().get(0).getMetadata().containsKey("company_id")) {
+            companyId = invoice.getLines().getData().get(0).getMetadata().get("company_id");
         } else {
+            companyId = null;
+        }
+
+        if (companyId == null) {
             logger.warn("Missing required metadata: company_id");
             return;
         }
@@ -253,7 +286,10 @@ public class StripeWebhookController {
             existingInvoice.setAmountDue(String.valueOf(invoice.getAmountDue()));
             existingInvoice.setStatus(invoice.getStatus());
             existingInvoice.setBillingDate(new Date(invoice.getCreated() * 1000L));
-            existingInvoice.setDueDate(new Date(invoice.getDueDate() * 1000L));
+            Date dueDate = invoice.getDueDate() != null
+                    ? new Date(invoice.getDueDate() * 1000L)
+                    : new Date((invoice.getCreated() + (7 * 24 * 60 * 60)) * 1000L); // fallback: created + 7 days
+            existingInvoice.setDueDate(dueDate);
             existingInvoice.setPeriodStart(new Date(invoice.getPeriodStart() * 1000L));
             existingInvoice.setPeriodEnd(new Date(invoice.getPeriodEnd() * 1000L));
             invoiceRepository.save(existingInvoice);
@@ -267,6 +303,7 @@ public class StripeWebhookController {
 
         SubscriptionsModel subscriptionsModel = new SubscriptionsModel();
         subscriptionsModel.setCompanyId(companyId);
+        subscriptionsModel.setSubscriptionId(subscription.getId());
         subscriptionsModel.setPlan_name(planName);
         subscriptionsModel.setCost(String.valueOf(subscription.getItems().getData().get(0).getPlan().getAmount() / 100.0));
         subscriptionsModel.setBilling_cycle(subscription.getBillingCycleAnchor().toString());
@@ -277,7 +314,31 @@ public class StripeWebhookController {
     }
 
     private void createBillingHistory(String companyId, String invoiceId, Session session) throws StripeException {
-        PaymentIntent paymentIntent = PaymentIntent.retrieve(session.getPaymentIntent());
+        PaymentIntent paymentIntent = new PaymentIntent();
+        if (session.getPaymentIntent() == null && session.getMode().equals("subscription")) {
+            Subscription subscription = Subscription.retrieve(session.getSubscription());
+            String latestInvoiceId = subscription.getLatestInvoice();
+
+            if (latestInvoiceId != null) {
+                Invoice latestInvoice = Invoice.retrieve(latestInvoiceId);
+                String paymentIntentId = latestInvoice.getPaymentIntent();
+
+                if (paymentIntentId != null) {
+                    paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+                } else {
+                    logger.warn("PaymentIntent is null in latest invoice");
+                }
+            } else {
+                logger.warn("Subscription does not contain latest invoice");
+            }
+        } else {
+            paymentIntent = PaymentIntent.retrieve(session.getPaymentIntent());
+        }
+
+        if (paymentIntent == null) {
+            logger.warn("PaymentIntent is null");
+            return;
+        }
 
         BillingHistoryModel billingHistory = new BillingHistoryModel();
         billingHistory.setCompanyId(companyId);
@@ -289,7 +350,32 @@ public class StripeWebhookController {
     }
 
     private void createPaymentMethod(String companyId, Session session) throws StripeException {
-        PaymentIntent paymentIntent = PaymentIntent.retrieve(session.getPaymentIntent());
+        PaymentIntent paymentIntent = new PaymentIntent();
+        if (session.getPaymentIntent() == null && session.getMode().equals("subscription")) {
+            Subscription subscription = Subscription.retrieve(session.getSubscription());
+            String latestInvoiceId = subscription.getLatestInvoice();
+
+            if (latestInvoiceId != null) {
+                Invoice latestInvoice = Invoice.retrieve(latestInvoiceId);
+                String paymentIntentId = latestInvoice.getPaymentIntent();
+
+                if (paymentIntentId != null) {
+                    paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+                } else {
+                    logger.warn("PaymentIntent is null in latest invoice");
+                }
+            } else {
+                logger.warn("Subscription does not contain latest invoice");
+            }
+        } else {
+            paymentIntent = PaymentIntent.retrieve(session.getPaymentIntent());
+        }
+
+        if (paymentIntent == null) {
+            logger.warn("PaymentIntent is null");
+            return;
+        }
+
         PaymentMethod paymentMethod = PaymentMethod.retrieve(paymentIntent.getPaymentMethod());
 
         PaymentMethodsModel paymentMethodModel = new PaymentMethodsModel();
@@ -301,7 +387,31 @@ public class StripeWebhookController {
     }
 
     private void updateCompanyStatus(String companyId, Session session) throws StripeException {
-        PaymentIntent paymentIntent = PaymentIntent.retrieve(session.getPaymentIntent());
+        PaymentIntent paymentIntent = new PaymentIntent();
+        if (session.getPaymentIntent() == null && session.getMode().equals("subscription")) {
+            Subscription subscription = Subscription.retrieve(session.getSubscription());
+            String latestInvoiceId = subscription.getLatestInvoice();
+
+            if (latestInvoiceId != null) {
+                Invoice latestInvoice = Invoice.retrieve(latestInvoiceId);
+                String paymentIntentId = latestInvoice.getPaymentIntent();
+
+                if (paymentIntentId != null) {
+                    paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+                } else {
+                    logger.warn("PaymentIntent is null in latest invoice");
+                }
+            } else {
+                logger.warn("Subscription does not contain latest invoice");
+            }
+        } else {
+            paymentIntent = PaymentIntent.retrieve(session.getPaymentIntent());
+        }
+
+        if (paymentIntent == null) {
+            logger.warn("PaymentIntent is null");
+            return;
+        }
         PaymentMethod paymentMethod = PaymentMethod.retrieve(paymentIntent.getPaymentMethod());
         Subscription subscription = Subscription.retrieve(session.getSubscription());
 
@@ -315,19 +425,42 @@ public class StripeWebhookController {
     }
 
     private void handleSubscriptionUpdated(Event event) {
+        String companyId;
         Subscription subscription = (Subscription) event.getDataObjectDeserializer().getObject().orElse(null);
         if (subscription == null) {
             logger.warn("Subscription object is null");
             return;
         }
-        SubscriptionsModel subscriptionsModel = new SubscriptionsModel();
-        subscriptionsModel.setPlan_name(subscription.getItems().getData().get(0).getPlan().getNickname());
-        subscriptionsModel.setCost(String.valueOf(subscription.getItems().getData().get(0).getPlan().getAmount() / 100.0));
-        subscriptionsModel.setBilling_cycle(subscription.getBillingCycleAnchor().toString());
-        subscriptionsModel.setStart_date(subscription.getCurrentPeriodStart().toString());
-        subscriptionsModel.setEnd_date(subscription.getCurrentPeriodEnd().toString());
-        subscriptionsModel.set_active(subscription.getStatus().equals("active"));
-        subscriptionService.updateSubscription(subscription.getCustomer(), subscriptionsModel);
+
+        try {
+            companyId = getCompanyIdFromSubscription(subscription);
+
+            SubscriptionsModel subscriptionsModel = new SubscriptionsModel();
+            subscriptionsModel.setPlan_name(subscription.getItems().getData().get(0).getPlan().getNickname());
+            subscriptionsModel.setCost(String.valueOf(subscription.getItems().getData().get(0).getPlan().getAmount() / 100.0));
+            subscriptionsModel.setBilling_cycle(subscription.getBillingCycleAnchor().toString());
+            subscriptionsModel.setStart_date(subscription.getCurrentPeriodStart().toString());
+            subscriptionsModel.setEnd_date(subscription.getCurrentPeriodEnd().toString());
+            subscriptionsModel.set_active(subscription.getStatus().equals("active"));
+            subscriptionService.updateSubscription(companyId, subscriptionsModel);
+
+        } catch (StripeException e) {
+            logger.error(e.getMessage());
+        }
+    }
+
+    String getCompanyIdFromSubscription(Subscription subscription) throws StripeException {
+        String companyId = "";
+        Customer customer = Customer.retrieve(subscription.getCustomer());
+        if (customer.getMetadata() != null && customer.getMetadata().containsKey("company_id")) {
+            companyId = customer.getMetadata().get("company_id");
+        } else if (subscription.getMetadata() != null && subscription.getMetadata().containsKey("company_id")) {
+            companyId = subscription.getMetadata().get("company_id");
+        } else {
+            logger.warn("Missing required metadata: company_id");
+            return companyId;
+        }
+        return companyId;
     }
 
     private void handleSubscriptionDeleted(Event event) {

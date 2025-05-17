@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RateLimiterService {
 
     private final ConcurrentHashMap<String, RequestCounter> requestCounters = new ConcurrentHashMap<>();
-    private static final int MAX_REQUESTS_PER_MINUTE = 100;
+    private static final int MAX_REQUESTS_PER_MINUTE = 200;
 
     public boolean checkRateLimit(String ipAddress) {
         long currentTimeMillis = System.currentTimeMillis();

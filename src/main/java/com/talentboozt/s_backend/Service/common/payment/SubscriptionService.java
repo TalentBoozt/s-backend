@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.Service.common.payment;
 
 import com.talentboozt.s_backend.Model.common.payment.BillingHistoryModel;
 import com.talentboozt.s_backend.Model.common.payment.SubscriptionsModel;
+import com.talentboozt.s_backend.Repository.common.payment.BillingHistoryRepository;
 import com.talentboozt.s_backend.Repository.common.payment.SubscriptionRepository;
 import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionItem;
@@ -18,6 +19,9 @@ public class SubscriptionService {
     @Autowired
     private SubscriptionRepository subscriptionRepository;
 
+    @Autowired
+    private BillingHistoryRepository billingHistoryRepository;
+
     public SubscriptionsModel getSubscription(String companyId) {
         return subscriptionRepository.findByCompanyId(companyId);
     }
@@ -33,13 +37,16 @@ public class SubscriptionService {
             existingSubscription.set_active(subscription.is_active());
             return subscriptionRepository.save(existingSubscription);
         } else {
-            subscription.setCompanyId(companyId);
-            return subscriptionRepository.save(subscription);
+            if (companyId != null) {
+                subscription.setCompanyId(companyId);
+                return subscriptionRepository.save(subscription);
+            }
+            return null;
         }
     }
 
     public void updateBillingHistory(String subscriptionId, String amountPaid, String status) {
-        SubscriptionsModel subscription = subscriptionRepository.findById(subscriptionId).orElse(null);
+        SubscriptionsModel subscription = subscriptionRepository.findBySubscriptionId(subscriptionId).orElse(null);
         if (subscription != null) {
             BillingHistoryModel billingHistory = new BillingHistoryModel();
             billingHistory.setCompanyId(subscription.getCompanyId());
@@ -47,12 +54,12 @@ public class SubscriptionService {
             billingHistory.setDate(new Date().toString());
             billingHistory.setInvoice_id(UUID.randomUUID().toString());
             billingHistory.setStatus(status);
-            subscriptionRepository.save(subscription);
+            billingHistoryRepository.save(billingHistory);
         }
     }
 
     public void updateSubscriptionDetails(Subscription subscription) {
-        SubscriptionsModel existing = subscriptionRepository.findById(subscription.getId()).orElse(null);
+        SubscriptionsModel existing = subscriptionRepository.findBySubscriptionId(subscription.getId()).orElse(null);
         if (existing != null) {
             List<SubscriptionItem> items = subscription.getItems().getData();
             if (!items.isEmpty()) {

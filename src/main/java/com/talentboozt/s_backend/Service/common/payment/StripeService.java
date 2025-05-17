@@ -43,13 +43,12 @@ public class StripeService {
     }
 
     public Session createCheckoutSession(String companyId, String planName) throws StripeException {
-        Map<String, String> PLAN_PRICE_MAP = Map.of(
-            "Basic", configUtility.getProperty("STRIPE_TEST_PRICE_ID"),
-            "Pro", configUtility.getProperty("STRIPE_PRO_PRICE_ID"),
-            "Pro-Onetime", configUtility.getProperty("STRIPE_PRO_ONETIME_PRICE_ID"),
-            "Premium", configUtility.getProperty("STRIPE_PREMIUM_PRICE_ID"),
-            "Premium-Onetime", configUtility.getProperty("STRIPE_PREMIUM_ONETIME_PRICE_ID")
-        );
+        Map<String, String> PLAN_PRICE_MAP = new HashMap<>();
+        PLAN_PRICE_MAP.put("Basic", getRequiredProperty("STRIPE_TEST_PRICE_ID"));
+        PLAN_PRICE_MAP.put("Pro", getRequiredProperty("STRIPE_PRO_PRICE_ID"));
+        PLAN_PRICE_MAP.put("Pro-Onetime", getRequiredProperty("STRIPE_PRO_ONETIME_PRICE_ID"));
+        PLAN_PRICE_MAP.put("Premium", getRequiredProperty("STRIPE_PREMIUM_PRICE_ID"));
+        PLAN_PRICE_MAP.put("Premium-Onetime", getRequiredProperty("STRIPE_PREMIUM_ONETIME_PRICE_ID"));
 
         String priceId = PLAN_PRICE_MAP.get(planName);
         if (priceId == null) {
@@ -59,8 +58,13 @@ public class StripeService {
         boolean isOneTimePayment = planName.endsWith("-Onetime");
         String sessionMode = isOneTimePayment ? "payment" : "subscription";
 
+        Map<String, Object> metadata = Map.of(
+                "company_id", companyId,
+                "plan_name", planName
+        );
+
         Map<String, Object> subscriptionData = new HashMap<>();
-        subscriptionData.put("metadata", Map.of("company_id", companyId));
+        subscriptionData.put("metadata", metadata);
 
         Map<String, Object> params = new HashMap<>();
         params.put("line_items", List.of(Map.of("price", priceId, "quantity", 1)));
@@ -68,7 +72,7 @@ public class StripeService {
         params.put("subscription_data", subscriptionData);
         params.put("success_url", configUtility.getProperty("STRIPE_SUCCESS_URL"));
         params.put("cancel_url", configUtility.getProperty("STRIPE_CANCEL_URL"));
-        params.put("metadata", Map.of("company_id", companyId));
+        params.put("metadata", metadata);
 
         try {
             return Session.create(params);
@@ -77,6 +81,14 @@ public class StripeService {
         } catch (StripeException e) {
             throw new RuntimeException("Unexpected Stripe error occurred: ", e);
         }
+    }
+
+    private String getRequiredProperty(String key) {
+        String value = configUtility.getProperty(key);
+        if (value == null) {
+            throw new IllegalStateException("Missing Stripe config value for: " + key);
+        }
+        return value;
     }
 }
 
