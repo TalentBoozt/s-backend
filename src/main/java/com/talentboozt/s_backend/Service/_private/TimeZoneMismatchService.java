@@ -16,6 +16,10 @@ public class TimeZoneMismatchService {
     public boolean isTimeZoneMismatch(String ipAddress, int clientOffsetMinutes) {
         IpGeoData ipTimeZone = ipTimeZoneService.getTimeZoneForIp(ipAddress);
 
+        if (ipTimeZone == null) {
+            return false;
+        }
+
         if ("Unknown".equals(ipTimeZone.getTimezone())) {
             return false; // fallback or flag separately
         }
