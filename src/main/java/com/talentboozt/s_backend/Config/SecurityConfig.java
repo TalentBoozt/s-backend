@@ -142,7 +142,7 @@ public class SecurityConfig {
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("Stripe-Signature", "X-Demo-Mode"));
+        configuration.setExposedHeaders(List.of("Stripe-Signature", "X-Demo-Mode", "X-Timezone-Mismatch"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
