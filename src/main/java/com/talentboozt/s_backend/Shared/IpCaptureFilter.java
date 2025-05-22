@@ -1,7 +1,6 @@
 package com.talentboozt.s_backend.Shared;
 
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
-import com.talentboozt.s_backend.Repository.SYS_TRACKING.TrackingEventRepository;
 import com.talentboozt.s_backend.Service._private.IpTimeZoneService;
 import com.talentboozt.s_backend.Service._private.RateLimiterService;
 import com.talentboozt.s_backend.Service._private.TimeZoneMismatchService;
@@ -11,13 +10,15 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.time.Duration;
+import java.time.Instant;
 
 @Component
 public class IpCaptureFilter extends OncePerRequestFilter {
@@ -140,17 +141,16 @@ public class IpCaptureFilter extends OncePerRequestFilter {
     }
 
     private boolean captchaVerified(HttpServletRequest request) {
-        try {
-            String captcha = request.getHeader("X-Captcha-Verified");
-            if (Objects.equals(captcha, "true")) {
-                return true;
-            } else if (Objects.equals(captcha, "false")) {
-                return false;
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            Boolean verified = (Boolean) session.getAttribute("captchaVerified");
+            Instant verifiedAt = (Instant) session.getAttribute("captchaVerifiedAt");
+
+            if (Boolean.TRUE.equals(verified) && verifiedAt != null) {
+                Duration age = Duration.between(verifiedAt, Instant.now());
+                return age.toMinutes() < 30; // only valid for 30 minutes
             }
-        } catch (Exception e) {
-            return false;
         }
         return false;
     }
 }
-

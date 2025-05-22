@@ -17,11 +17,11 @@ public class TimeZoneMismatchService {
         IpGeoData ipTimeZone = ipTimeZoneService.getTimeZoneForIp(ipAddress);
 
         if (ipTimeZone == null) {
-            return false;
+            return true;
         }
 
         if ("Unknown".equals(ipTimeZone.getTimezone())) {
-            return false; // fallback or flag separately
+            return true; // fallback or flag separately
         }
 
         ZoneId zoneId = ZoneId.of(ipTimeZone.getTimezone());
