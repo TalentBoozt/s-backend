@@ -2,18 +2,25 @@ package com.talentboozt.s_backend.Service.SYS_TRACKING.monitor;
 
 import com.talentboozt.s_backend.DTO.SYS_TRACKING.monitor.*;
 import com.talentboozt.s_backend.Model.SYS_TRACKING.TrackingEvent;
+import com.talentboozt.s_backend.Model._private.UserActivity;
 import com.talentboozt.s_backend.Repository.SYS_TRACKING.TrackingEventRepository;
 import com.talentboozt.s_backend.Repository._private.UserActivityRepository;
 import com.talentboozt.s_backend.Repository.common.LoginRepository;
+import com.talentboozt.s_backend.Repository.common.auth.CredentialsRepository;
+import com.talentboozt.s_backend.Repository.common.auth.PermissionRepository;
+import com.talentboozt.s_backend.Repository.common.auth.RoleRepository;
 import eu.bitwalker.useragentutils.OperatingSystem;
 import eu.bitwalker.useragentutils.UserAgent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
+import org.bson.Document;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDate;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,6 +31,10 @@ public class MonitoringService {
     private final TrackingEventRepository eventRepo;
     private final UserActivityRepository activityRepo;
     private final LoginRepository loginRepo;
+    private final CredentialsRepository credentialsRepository;
+    private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
+    private final MongoTemplate mongoTemplate;
 
     public DashboardOverviewDTO getOverview(String trackingId, Instant from, Instant to) {
         long activeNow = activityRepo.countByLastActiveAfter(Instant.now().minusSeconds(300));
@@ -180,5 +191,162 @@ public class MonitoringService {
                 .mapToLong(Long::longValue)
                 .average()
                 .orElse(0);
+    }
+
+    public Map<String, Long> getBasicStats() {
+        long totalUsers = credentialsRepository.count();
+        long totalRoles = roleRepository.count();
+        long totalPermissions = permissionRepository.count();
+        long disabledUsers = credentialsRepository.countByDisabledTrue();
+
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("totalUsers", totalUsers);
+        stats.put("totalRoles", totalRoles);
+        stats.put("totalPermissions", totalPermissions);
+        stats.put("disabledUsers", disabledUsers);
+        return stats;
+    }
+
+    public List<RoleUserCountDTO> getActiveUsersByRole() {
+        Aggregation agg = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("active").is(true)),
+                Aggregation.unwind("roles"),
+                Aggregation.group("roles").count().as("count"),
+                Aggregation.project("count").and("_id").as("role")
+        );
+        AggregationResults<RoleUserCountDTO> results =
+                mongoTemplate.aggregate(agg, "portal_credentials", RoleUserCountDTO.class);
+        return results.getMappedResults();
+    }
+
+    public List<Document> getPermissionUsage() {
+        Aggregation agg = Aggregation.newAggregation(
+                Aggregation.unwind("permissions"),
+                Aggregation.group("permissions.name").count().as("count"),
+                Aggregation.project("count").and("_id").as("permission")
+        );
+        AggregationResults<Document> results = mongoTemplate.aggregate(agg, "portal_credentials", Document.class);
+        return results.getMappedResults();
+    }
+
+    public List<SuspiciousActivityDTO> getSuspiciousActivities() {
+        return List.of(
+                new SuspiciousActivityDTO("User123", "Admin", "CAN_MANAGE_USERS", "Accessed admin page"),
+                new SuspiciousActivityDTO("User123", "Job Seeker", "CAN_POST_JOBS", "Posted multiple jobs"),
+                new SuspiciousActivityDTO("Ab9ca123", "Job Seeker", "CAN_CREATE_COURSES", "Modified course"),
+                new SuspiciousActivityDTO("User123", "Admin", null, null)
+        );
+    }
+
+    /** Suspicious 1: Abnormal session durations */
+    public List<Document> detectAbnormalSessionDurations(long minSeconds, long maxSeconds) {
+        ProjectionOperation project = Aggregation.project()
+                .andExpression("$sessionEnd").as("sessionEnd")
+                .andExpression("$sessionStart").as("sessionStart")
+                .andExpression("$userId").as("userId")
+                .andExpression("$endpointAccessed").as("endpointAccessed")
+                .andExpression("$sessionEnd - $sessionStart").as("durationMs");
+
+        if (maxSeconds == 0) {
+            MatchOperation match = Aggregation.match(
+                    new Criteria().orOperator(
+                            Criteria.where("durationMs").lt(minSeconds * 1000)
+                    )
+            );
+
+            Aggregation agg = Aggregation.newAggregation(project, match);
+            return mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
+        }
+        MatchOperation match = Aggregation.match(
+                new Criteria().orOperator(
+                        Criteria.where("durationMs").lt(minSeconds * 1000),
+                        Criteria.where("durationMs").gt(maxSeconds * 1000)
+                )
+        );
+
+        Aggregation agg = Aggregation.newAggregation(project, match);
+        return mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
+    }
+
+    /** Suspicious 2: High frequency endpoint access */
+    public List<Document> detectHighFrequencyAccess(int thresholdPerMinute) {
+        GroupOperation groupByUserAndMinute = Aggregation.group("userId")
+                .first("userId").as("userId")
+                .count().as("totalAccesses");
+
+        MatchOperation match = Aggregation.match(Criteria.where("totalAccesses").gt(thresholdPerMinute));
+
+        Aggregation agg = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("timestamp").gt(LocalDateTime.now().minusMinutes(1))),
+                groupByUserAndMinute,
+                match
+        );
+
+        return mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
+    }
+
+    /** Suspicious 3: Multiple IPs per user in short time */
+    public List<Document> detectMultipleIpsPerUser(long timeWindowMinutes) {
+        Instant recentWindow = Instant.now().minusSeconds(timeWindowMinutes * 60);
+
+        Aggregation agg = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("timestamp").gt(LocalDateTime.ofInstant(recentWindow, ZoneOffset.UTC))),
+                Aggregation.group("userId")
+                        .addToSet("encryptedIpAddress").as("uniqueIps")
+                        .count().as("requestCount"),
+                Aggregation.project("uniqueIps", "requestCount")
+                        .and("_id").as("userId")
+                        .andExpression("size(uniqueIps)").as("ipCount"),
+                Aggregation.match(Criteria.where("ipCount").gt(1))
+        );
+
+        return mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
+    }
+
+    /** Suspicious 4: Geolocation anomaly per user */
+    public List<Document> detectGeolocationAnomalies(long timeWindowMinutes) {
+        Instant recentWindow = Instant.now().minusSeconds(timeWindowMinutes * 60);
+
+        Aggregation agg = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("timestamp").gt(recentWindow)),
+                Aggregation.group("userId")
+                        .addToSet("country").as("uniqueCountries")
+                        .addToSet("city").as("uniqueCities"),
+                Aggregation.project("uniqueCountries", "uniqueCities")
+                        .and("_id").as("userId")
+                        .andExpression("size(uniqueCountries)").as("countryCount")
+                        .andExpression("size(uniqueCities)").as("cityCount"),
+                Aggregation.match(new Criteria().orOperator(
+                        Criteria.where("countryCount").gt(1),
+                        Criteria.where("cityCount").gt(1)
+                ))
+        );
+
+        return mongoTemplate.aggregate(agg, "events", Document.class).getMappedResults();
+    }
+
+    /** Suspicious 5: Excessive JavaScript errors per user */
+    public List<Document> detectClientErrorsPerUser(int threshold) {
+        Aggregation agg = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("errorMessage").ne(null)),
+                Aggregation.group("userId")
+                        .count().as("errorCount"),
+                Aggregation.match(Criteria.where("errorCount").gt(threshold))
+        );
+
+        return mongoTemplate.aggregate(agg, "events", Document.class).getMappedResults();
+    }
+
+    /** Suspicious 6: Anonymous users hitting protected endpoints */
+    public List<Document> detectAnonymousAccessingProtectedEndpoints(List<String> protectedEndpoints) {
+        Aggregation agg = Aggregation.newAggregation(
+                Aggregation.match(new Criteria().andOperator(
+                        Criteria.where("userId").is("Anonymous"),
+                        Criteria.where("endpointAccessed").in(protectedEndpoints)
+                )),
+                Aggregation.project("userId", "endpointAccessed", "timestamp")
+        );
+
+        return mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
     }
 }

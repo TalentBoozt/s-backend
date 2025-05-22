@@ -1,7 +1,10 @@
 package com.talentboozt.s_backend.Shared;
 
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
+import com.talentboozt.s_backend.Repository.SYS_TRACKING.TrackingEventRepository;
+import com.talentboozt.s_backend.Service._private.IpTimeZoneService;
 import com.talentboozt.s_backend.Service._private.RateLimiterService;
+import com.talentboozt.s_backend.Service._private.TimeZoneMismatchService;
 import com.talentboozt.s_backend.Service._private.UserActivityService;
 import com.talentboozt.s_backend.Service.common.JwtService;
 import jakarta.servlet.FilterChain;
@@ -24,6 +27,10 @@ public class IpCaptureFilter extends OncePerRequestFilter {
     private RateLimiterService rateLimiterService;
     @Autowired
     private JwtService jwtService;
+    @Autowired
+    private IpTimeZoneService ipTimeZoneService;
+    @Autowired
+    private TimeZoneMismatchService timeZoneMisMatchService;
 
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
@@ -76,6 +83,26 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         // Log the activity
         userActivityService.logUserActivity(userId, ipAddress, endpointAccessed);
 
+        // Extract session ID from request headers or cookies
+        String sessionId = extractSessionIdFromRequest(request);
+        String userAgent = extractUserAgentFromRequest(request);
+        Integer offset = extractOffsetFromRequest(request);
+
+        // Detect timezone mismatch
+        boolean isTimeZoneMismatch = false;
+        if (offset != null) {
+            isTimeZoneMismatch = timeZoneMisMatchService.isTimeZoneMismatch(ipAddress, offset);
+        }
+
+        // Enrich session with timezone information
+        ipTimeZoneService.enrichSessionWithTimeZone(sessionId, userAgent, ipAddress, isTimeZoneMismatch);
+
+        // Optionally, log or handle the timezone mismatch
+        if (isTimeZoneMismatch) {
+            // Handle mismatch (e.g., log, alert, etc.)
+            System.out.println("Timezone mismatch detected for session: " + sessionId);
+        }
+
         filterChain.doFilter(request, response);
     }
 
@@ -86,6 +113,30 @@ public class IpCaptureFilter extends OncePerRequestFilter {
             return bearerToken.substring(7); // Extract token after "Bearer "
         }
         return null; // No token found
+    }
+
+    // Helper method to extract session ID from request headers or cookies
+    private String extractSessionIdFromRequest(HttpServletRequest request) {
+        String sessionId = request.getHeader("X-Session-Id");
+
+        if (sessionId == null) {
+            sessionId = request.getParameter("sessionId");
+        }
+
+        return sessionId;
+    }
+
+    private String extractUserAgentFromRequest(HttpServletRequest request) {
+        return request.getHeader("User-Agent");
+    }
+
+    private Integer extractOffsetFromRequest(HttpServletRequest request) {
+        try {
+            String offsetHeader = request.getHeader("X-Offset");
+            return offsetHeader != null ? Integer.parseInt(offsetHeader) : null;
+        } catch (NumberFormatException e) {
+            return null; // fallback to no mismatch detection
+        }
     }
 }
 

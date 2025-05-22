@@ -26,4 +26,7 @@ public class UserActivity {
     private LocalDateTime lastActive;
     private LocalDateTime sessionStart;
     private LocalDateTime sessionEnd;
+    private String country;
+    private boolean suspectedVpn;
+    private boolean suspectedBot;
 }
