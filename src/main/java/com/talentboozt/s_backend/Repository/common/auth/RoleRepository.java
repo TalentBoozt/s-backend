@@ -9,4 +9,7 @@ import java.util.Optional;
 @Repository
 public interface RoleRepository extends MongoRepository<RoleModel, String> {
     Optional<RoleModel> findByName(String name);
+    boolean existsByName(String name);
+
+    long count();
 }

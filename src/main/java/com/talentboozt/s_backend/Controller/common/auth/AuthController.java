@@ -197,12 +197,12 @@ class AuthResponse {
     private String employeeId;
     private String email;
     private List<Map<String, String>> organizations;
-    private List<PermissionModel> permissions;
+    private List<String> permissions;
     private List<String> roles;
     private String userLevel;
     private boolean active;
 
-    public AuthResponse(String token, String refreshToken, String employeeId, String  email, String userLevel, List<Map<String, String>> organizations, List<PermissionModel> permissions, List<String> roles, boolean active) {
+    public AuthResponse(String token, String refreshToken, String employeeId, String  email, String userLevel, List<Map<String, String>> organizations, List<String> permissions, List<String> roles, boolean active) {
         this.token = token;
         this.refreshToken = refreshToken;
         this.employeeId = employeeId;

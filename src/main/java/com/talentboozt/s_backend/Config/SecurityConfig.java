@@ -93,7 +93,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/stripe/**", "/public/**", "/sso/**",
                                 "/api/auth/**", "/oauth2/**", "/oauth/**",
-                                "/sitemap.xml", "/api/event/**"
+                                "/sitemap.xml", "/api/event/**", "/api/monitoring/**"
                         ).permitAll()
 //                        .requestMatchers("/actuator/**").permitAll() // for testing
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

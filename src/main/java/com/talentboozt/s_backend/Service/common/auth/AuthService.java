@@ -4,7 +4,6 @@ import com.talentboozt.s_backend.DTO.common.auth.SSO.AuthResponse;
 import com.talentboozt.s_backend.DTO.common.auth.SSO.JwtUserPayload;
 import com.talentboozt.s_backend.DTO.common.auth.SSO.RegisterRequest;
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
-import com.talentboozt.s_backend.Model.common.auth.PermissionModel;
 import com.talentboozt.s_backend.Model.common.auth.RoleModel;
 import com.talentboozt.s_backend.Service.common.CredentialsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +59,7 @@ public class AuthService {
         Set<String> userRoles = new HashSet<>();
         userRoles.add(def_role);
 
-        Set<PermissionModel> userPermissions = new HashSet<>();
+        Set<String> userPermissions = new HashSet<>();
         for (String roleName : userRoles) {
             Optional<RoleModel> role = roleService.getRoleByName(roleName);
             if (role.isPresent()){

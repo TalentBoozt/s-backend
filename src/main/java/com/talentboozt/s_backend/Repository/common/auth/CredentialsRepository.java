@@ -16,4 +16,8 @@ public interface CredentialsRepository extends MongoRepository<CredentialsModel,
     CredentialsModel deleteByEmployeeId(String employeeIdd);
 
     boolean existsByEmail(String email);
+
+    long count();
+
+    long countByDisabledTrue();
 }

@@ -28,6 +28,9 @@ public class TrackingEvent {
     private String country;
     private String region;
     private String city;
+    private String countryCode;
+    private String isp;
+    private boolean proxy;
 
     private Instant timestamp;
 
@@ -52,6 +55,11 @@ public class TrackingEvent {
     private Long fullLoadTime;
     private Long ttfb;
 
+    // Network
+    private Integer downlink; // in Mbps
+    private String effectiveType;
+    private Integer rtt; // in ms
+
     // Errors
     private String errorMessage;
     private String errorSource;
@@ -61,4 +69,9 @@ public class TrackingEvent {
 
     // For custom events or future-proofing
     private Map<String, Object> customData;
+
+    private String timezone;
+    private Integer timezoneOffset;
+    private boolean suspectedVpn;
+    private boolean suspectedBot;
 }

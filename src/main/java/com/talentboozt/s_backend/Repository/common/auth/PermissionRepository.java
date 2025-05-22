@@ -9,4 +9,7 @@ import java.util.Optional;
 @Repository
 public interface PermissionRepository extends MongoRepository<PermissionModel, String> {
     Optional<PermissionModel> findByName(String name);
+    boolean existsByName(String name);
+
+    long count();
 }

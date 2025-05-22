@@ -137,7 +137,7 @@ class SessionResponse {
     private String employeeId;
     private String email;
     private List<String> roles;
-    private List<PermissionModel> permissions;
+    private List<String> permissions;
     private String userLevel;
     private String companyId;
     private List<String> accessedPlatforms;

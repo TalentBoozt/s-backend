@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.Model.common.auth;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
@@ -17,8 +18,9 @@ import java.util.List;
 public class RoleModel {
     @Id
     private String id;
+    @Indexed(unique = true)
     private String name;
-    private List<PermissionModel> permissions;
+    private List<String> permissions;
     private String description;
 }
 
