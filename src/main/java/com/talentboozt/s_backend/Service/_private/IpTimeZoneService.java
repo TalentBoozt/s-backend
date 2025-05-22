@@ -20,10 +20,9 @@ public class IpTimeZoneService {
 
     public IpGeoData getTimeZoneForIp(String ipAddress) {
         try {
-            String url = "http://ip-api.com/json/" + ipAddress + "?fields=status,message,timezone,country,countryCode,regionName,city,isp,lat,lon,proxy";
+            String url = "http://ip-api.com/json/" + ipAddress + "?fields=status,message,timezone,country,countryCode,regionName,city,isp,proxy";
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
             Map body = response.getBody();
-            System.out.println(body);
 
             if ("success".equalsIgnoreCase((String) body.get("status"))) {
                 return new IpGeoData(
@@ -33,7 +32,7 @@ public class IpTimeZoneService {
                         (String) body.get("regionName"),
                         (String) body.get("city"),
                         (String) body.get("isp"),
-                        Boolean.parseBoolean((String) body.get("proxy"))
+                        (boolean) body.get("proxy")
                 );
             } else {
                 System.out.println("IP lookup failed: " + body.get("message"));
@@ -49,7 +48,7 @@ public class IpTimeZoneService {
         // Retrieve geo data based on IP
         IpGeoData geoData = getTimeZoneForIp(ipAddress);
 
-        if (geoData != null) {
+        if (geoData != null && geoData.getTimezone() != null) {
             String country = geoData.getCountry();
             String timezone = geoData.getTimezone();
             String countryCode = geoData.getCountryCode();
