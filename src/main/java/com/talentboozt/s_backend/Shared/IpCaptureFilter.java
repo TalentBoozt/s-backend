@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @Component
 public class IpCaptureFilter extends OncePerRequestFilter {
@@ -87,6 +88,7 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         String sessionId = extractSessionIdFromRequest(request);
         String userAgent = extractUserAgentFromRequest(request);
         Integer offset = extractOffsetFromRequest(request);
+        boolean captcha = captchaVerified(request);
 
         // Detect timezone mismatch
         boolean isTimeZoneMismatch = false;
@@ -97,10 +99,8 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         // Enrich session with timezone information
         ipTimeZoneService.enrichSessionWithTimeZone(sessionId, userAgent, ipAddress, isTimeZoneMismatch);
 
-        // Optionally, log or handle the timezone mismatch
-        if (isTimeZoneMismatch) {
-            // Handle mismatch (e.g., log, alert, etc.)
-            System.out.println("Timezone mismatch detected for session: " + sessionId);
+        if (isTimeZoneMismatch && !captcha) {
+            response.setHeader("X-Timezone-Mismatch", "true");
         }
 
         filterChain.doFilter(request, response);
@@ -137,6 +137,20 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         } catch (NumberFormatException e) {
             return null; // fallback to no mismatch detection
         }
+    }
+
+    private boolean captchaVerified(HttpServletRequest request) {
+        try {
+            String captcha = request.getHeader("X-Captcha-Verified");
+            if (Objects.equals(captcha, "true")) {
+                return true;
+            } else if (Objects.equals(captcha, "false")) {
+                return false;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+        return false;
     }
 }
 

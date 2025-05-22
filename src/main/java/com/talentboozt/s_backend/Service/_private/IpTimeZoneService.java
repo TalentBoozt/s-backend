@@ -19,6 +19,10 @@ public class IpTimeZoneService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public IpGeoData getTimeZoneForIp(String ipAddress) {
+        if (ipAddress.startsWith("192.168.") || ipAddress.startsWith("10.") || ipAddress.startsWith("127.")) {
+            System.out.println("Skipping reserved IP: " + ipAddress);
+            return null;
+        }
         try {
             String url = "http://ip-api.com/json/" + ipAddress + "?fields=status,message,timezone,country,countryCode,regionName,city,isp,proxy";
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
