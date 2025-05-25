@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.Controller.common.auth.SSO;
 import com.talentboozt.s_backend.DTO.common.auth.SSO.*;
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
 import com.talentboozt.s_backend.Model.common.auth.PermissionModel;
+import com.talentboozt.s_backend.Repository.common.auth.CredentialsRepository;
 import com.talentboozt.s_backend.Service.common.JwtService;
 import com.talentboozt.s_backend.Service.common.auth.AuthService;
 import jakarta.servlet.http.Cookie;
@@ -28,6 +29,9 @@ public class SsoAuthController {
 
     @Autowired
     private JwtService jwtService; // Service to create and validate JWTs
+
+    @Autowired
+    private CredentialsRepository credentialsRepository;
 
     private final int COOKIE_EXPIRATION = 60 * 60 * 24 * 7; // 7 days
 
@@ -100,15 +104,20 @@ public class SsoAuthController {
         }
 
         CredentialsModel user = jwtService.getUserFromToken(token);
+        CredentialsModel existingUser = credentialsRepository.findByEmail(user.getEmail());
+
+        if (existingUser == null) {
+            return ResponseEntity.status(401).body(new MessageResponse("Session invalid"));
+        }
         SessionResponse session = new SessionResponse();
         session.setEmployeeId(user.getEmployeeId());
         session.setEmail(user.getEmail());
-        session.setRoles(user.getRoles());
-        session.setPermissions(user.getPermissions());
-        session.setUserLevel(user.getUserLevel());
-        session.setCompanyId(user.getCompanyId());
-        session.setAccessedPlatforms(user.getAccessedPlatforms());
-        session.setOrganizations(user.getOrganizations());
+        session.setRoles(existingUser.getRoles());
+        session.setPermissions(existingUser.getPermissions());
+        session.setUserLevel(existingUser.getUserLevel());
+        session.setCompanyId(existingUser.getCompanyId());
+        session.setAccessedPlatforms(existingUser.getAccessedPlatforms());
+        session.setOrganizations(existingUser.getOrganizations());
 
         return ResponseEntity.ok(session);
     }
