@@ -1,47 +1,60 @@
 package com.talentboozt.s_backend.Service._private;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.stereotype.Service;
+
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class RateLimiterService {
 
-    private final ConcurrentHashMap<String, RequestCounter> requestCounters = new ConcurrentHashMap<>();
-    private static final int MAX_REQUESTS_PER_MINUTE = 200;
+    private static final long WINDOW_SIZE_MS = 60_000;
 
-    public boolean checkRateLimit(String ipAddress) {
-        long currentTimeMillis = System.currentTimeMillis();
-        RequestCounter counter = requestCounters.computeIfAbsent(ipAddress, k -> new RequestCounter());
+    private final Cache<String, RequestCounter> cache = Caffeine.newBuilder()
+            .expireAfterAccess(2, TimeUnit.MINUTES)
+            .maximumSize(100_000) // Tune as per expected traffic
+            .build();
 
-        // Clean up old requests that are outside of the time window
-        counter.cleanup(currentTimeMillis);
+    public boolean checkRateLimit(String key, String endpointCategory) {
+        int limit = switch (endpointCategory) {
+            case "analytics" -> 1000;
+            case "auth" -> 10;
+            case "user" -> 60;
+            case "public" -> 100;
+            default -> 200;
+        };
 
-        if (counter.getCount() >= MAX_REQUESTS_PER_MINUTE) {
-            return false; // Too many requests
+        long now = System.currentTimeMillis();
+        RequestCounter counter = cache.get(key, k -> new RequestCounter());
+        counter.cleanup(now);
+
+        if (counter.getCount() >= limit) {
+            return false;
         }
 
-        counter.increment();
+        counter.increment(now);
         return true;
     }
 
     private static class RequestCounter {
-        private static final long WINDOW_SIZE = 60000; // 1 minute window
-        private final AtomicInteger count = new AtomicInteger(0);
-        private long lastRequestTime = System.currentTimeMillis();
+        private final Queue<Long> timestamps = new ConcurrentLinkedQueue<>();
 
-        public void increment() {
-            count.incrementAndGet();
+        public void increment(long now) {
+            timestamps.add(now);
         }
 
         public int getCount() {
-            return count.get();
+            return timestamps.size();
         }
 
-        public void cleanup(long currentTimeMillis) {
-            if (currentTimeMillis - lastRequestTime > WINDOW_SIZE) {
-                count.set(0); // Reset count after 1 minute window
+        public void cleanup(long now) {
+            while (!timestamps.isEmpty() && (now - timestamps.peek() > WINDOW_SIZE_MS)) {
+                timestamps.poll();
             }
-            lastRequestTime = currentTimeMillis;
         }
     }
 }

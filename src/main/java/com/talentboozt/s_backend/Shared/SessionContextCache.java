@@ -12,8 +12,8 @@ public class SessionContextCache {
 
     public SessionContextCache() {
         this.cache = Caffeine.newBuilder()
-                .expireAfterWrite(2, TimeUnit.HOURS)
-                .maximumSize(10_000)
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .maximumSize(50_000)
                 .build();
     }
 
