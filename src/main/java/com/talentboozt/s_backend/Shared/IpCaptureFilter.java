@@ -76,9 +76,15 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         }
 
         // Check rate-limiting: If the user/IP exceeds the limit, we handle it accordingly
-        boolean allowed = rateLimiterService.checkRateLimit(ipAddress);
+        String uri = request.getRequestURI();
+        String category = categorizeEndpoint(uri); // custom function
+        String rateLimitKey = userId.equals("Anonymous") ? ipAddress : ipAddress + ":" + userId;
+        boolean allowed = rateLimiterService.checkRateLimit(rateLimitKey, category);
         if (!allowed) {
             response.setStatus(429); // 429 Too Many Requests
+            response.setHeader("Retry-After", "60");
+            response.setHeader("X-RateLimit-Limit", "200");
+            response.setHeader("X-RateLimit-Remaining", "0");
             return;
         }
 
@@ -105,6 +111,14 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private String categorizeEndpoint(String uri) {
+        if (uri.startsWith("/api/event/track")) return "analytics";
+        if (uri.startsWith("/api/auth")) return "auth";
+        if (uri.startsWith("/api/user")) return "user";
+        if (uri.startsWith("/api/public")) return "public";
+        return "default";
     }
 
     // Helper method to extract JWT from the Authorization header
