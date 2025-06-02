@@ -22,10 +22,10 @@ public class RateLimiterService {
     public boolean checkRateLimit(String key, String endpointCategory) {
         int limit = switch (endpointCategory) {
             case "analytics" -> 1000;
-            case "auth" -> 10;
+            case "auth" -> 100;
             case "user" -> 60;
-            case "public" -> 100;
-            default -> 200;
+            case "public" -> 200;
+            default -> 300;
         };
 
         long now = System.currentTimeMillis();
