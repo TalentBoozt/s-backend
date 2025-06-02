@@ -164,4 +164,8 @@ public class CredentialsService {
             credentialsRepository.save(credentials1);
         }
     }
+
+    public long getUserCountByLevel(String userLevel) {
+        return credentialsRepository.countByUserLevel(userLevel);
+    }
 }
