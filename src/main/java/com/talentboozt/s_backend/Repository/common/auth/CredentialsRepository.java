@@ -20,4 +20,6 @@ public interface CredentialsRepository extends MongoRepository<CredentialsModel,
     long count();
 
     long countByDisabledTrue();
+
+    long countByUserLevel(String userLevel);
 }

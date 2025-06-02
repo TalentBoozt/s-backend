@@ -31,6 +31,11 @@ public class CredentialsController {
         return credentialsService.getAllCredentials();
     }
 
+    @GetMapping("/getUserCountByLevel/{level}")
+    public long getUserCountByLevel(@PathVariable String level) {
+        return credentialsService.getUserCountByLevel(level);
+    }
+
     @GetMapping("/get/{id}")
     public Optional<CredentialsModel> getCredentials(@RequestHeader("Authorization") String token, @PathVariable String id) {
         String extractToken = token.substring(7);
