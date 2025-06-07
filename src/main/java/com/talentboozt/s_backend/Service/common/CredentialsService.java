@@ -3,9 +3,11 @@ package com.talentboozt.s_backend.Service.common;
 import com.talentboozt.s_backend.Model.COM_JOB_PORTAL.CompanyModel;
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
 import com.talentboozt.s_backend.Model.EndUser.EmployeeModel;
+import com.talentboozt.s_backend.Model.common.auth.RoleModel;
 import com.talentboozt.s_backend.Repository.COM_JOB_PORTAL.CompanyRepository;
 import com.talentboozt.s_backend.Repository.common.auth.CredentialsRepository;
 import com.talentboozt.s_backend.Repository.EndUser.EmployeeRepository;
+import com.talentboozt.s_backend.Service.common.auth.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,9 @@ public class CredentialsService {
 
     @Autowired
     private CompanyRepository companyRepository;
+
+    @Autowired
+    private RoleService roleService;
 
     public CredentialsModel addCredentials(CredentialsModel credentials, String platform, String referrer) {
         Optional<CredentialsModel> optionalCredentials = Optional.ofNullable(credentialsRepository.findByEmail(credentials.getEmail()));
@@ -43,8 +48,31 @@ public class CredentialsService {
             if (credentials.getRoles() == null) credentials.setRoles(new ArrayList<>());
             if (credentials.getOrganizations() == null) credentials.setOrganizations(new ArrayList<>());
 
+            Set<String> userRoles = new HashSet<>(credentials.getRoles());
+            Set<String> userPermissions = new HashSet<>();
+            for (String roleName : userRoles) {
+                Optional<RoleModel> role = roleService.getRoleByName(roleName);
+                if (role.isPresent()){
+                    RoleModel optRole = role.get();
+                    if (optRole.getPermissions() != null) {
+                        userPermissions.addAll(optRole.getPermissions());
+                    }
+                }
+                if (role.isEmpty()) {
+                    RoleModel newRole = new RoleModel();
+                    newRole.setName(roleName);
+                    newRole.setPermissions(new ArrayList<>());
+                    newRole.setDescription("Default role for " + roleName);
+                    RoleModel savedRole = roleService.addRole(newRole);
+
+                    userRoles.add(savedRole.getName());
+                    userPermissions.addAll(savedRole.getPermissions());
+                }
+            }
+
             credentials.setAccessedPlatforms(new ArrayList<>(Set.of(platform))); // Ensures uniqueness
-            credentials.setRoles(new ArrayList<>(Set.of(credentials.getRole()))); // Ensures uniqueness
+            credentials.setRoles(new ArrayList<>(userRoles));
+            credentials.setPermissions(new ArrayList<>(userPermissions));
 
             // Create EmployeeModel and set initial profile completion
             EmployeeModel emp = new EmployeeModel();
