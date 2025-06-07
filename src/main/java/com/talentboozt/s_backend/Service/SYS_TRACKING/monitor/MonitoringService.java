@@ -9,6 +9,7 @@ import com.talentboozt.s_backend.Repository.common.LoginRepository;
 import com.talentboozt.s_backend.Repository.common.auth.CredentialsRepository;
 import com.talentboozt.s_backend.Repository.common.auth.PermissionRepository;
 import com.talentboozt.s_backend.Repository.common.auth.RoleRepository;
+import com.talentboozt.s_backend.Utils.EncryptionUtility;
 import eu.bitwalker.useragentutils.OperatingSystem;
 import eu.bitwalker.useragentutils.UserAgent;
 import lombok.RequiredArgsConstructor;
@@ -300,7 +301,34 @@ public class MonitoringService {
                 Aggregation.match(Criteria.where("ipCount").gt(1))
         );
 
-        return mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
+        List<Document> results = mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
+
+        // Decrypt IPs and replace the list
+        for (Document doc : results) {
+            List<String> encryptedIps = (List<String>) doc.get("uniqueIps");
+
+            List<String> decryptedIps = encryptedIps.stream()
+                    .map(this::decryptIpAddress)
+                    .collect(Collectors.toList());
+
+            // Optionally convert to newline-separated string
+            doc.put("uniqueIps", String.join("\n", decryptedIps));
+
+            // Optionally replace encrypted list with decrypted one
+//            doc.put("uniqueIpsString", decryptedIps);
+        }
+
+        return results;
+    }
+
+    /** Helper method to decrypt IP addresses */
+    public String decryptIpAddress(String encryptedIp) {
+        try {
+            return EncryptionUtility.decrypt(encryptedIp);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Unknown";
+        }
     }
 
     /** Suspicious 4: Geolocation anomaly per user */

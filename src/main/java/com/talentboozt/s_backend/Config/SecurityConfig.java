@@ -94,7 +94,8 @@ public class SecurityConfig {
                                 "/stripe/**", "/public/**", "/sso/**",
                                 "/api/auth/**", "/oauth2/**", "/oauth/**",
                                 "/sitemap.xml", "/api/event/**", "/api/monitoring/**",
-                                "/api/security/**"
+                                "/api/security/**", "/api/v2/github/**", "/api/v2/facebook/**",
+                                "/api/v2/linkedin/**", "/callback/google/**"
                         ).permitAll()
 //                        .requestMatchers("/actuator/**").permitAll() // for testing
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
