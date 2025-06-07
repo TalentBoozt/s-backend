@@ -23,6 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("User not found");
         }
 
-        return new User(credentials.getEmail(), credentials.getPassword(), Collections.emptyList());
+        String password = credentials.getPassword() != null ? credentials.getPassword() : "";
+        return new User(credentials.getEmail(), password, Collections.emptyList());
     }
 }
