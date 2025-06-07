@@ -8,9 +8,11 @@ import com.talentboozt.s_backend.Service.common.CredentialsService;
 import com.talentboozt.s_backend.Service.common.JwtService;
 import com.talentboozt.s_backend.Service.common.KeyService;
 import com.talentboozt.s_backend.Utils.JwtUtil;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +29,8 @@ public class AuthController {
     private final JwtService jwtService;
     private final KeyService keyService;
     private final JwtUtil jwtUtil;
+
+    private final int COOKIE_EXPIRATION = 60 * 60 * 24 * 7;
 
     public AuthController(CredentialsService credentialsService, JwtService jwtService, KeyService keyService, JwtUtil jwtUtil) {
         this.credentialsService = credentialsService;
@@ -140,7 +144,7 @@ public class AuthController {
     }
 
     @PostMapping("/social-login-process/{platform}")
-    public ResponseEntity<?> socialLoginProcess(@RequestBody CredentialsModel credentials, @PathVariable String platform) {
+    public ResponseEntity<?> socialLoginProcess(@RequestBody CredentialsModel credentials, @PathVariable String platform, HttpServletResponse response) {
         CredentialsModel savedUser = credentialsService.addCredentials(credentials, platform, credentials.getReferrerId());
 
         JwtUserPayload userPayload = new JwtUserPayload();
@@ -158,16 +162,27 @@ public class AuthController {
         String accessToken = jwtService.generateToken(userPayload);
         String refreshToken = jwtService.generateRefreshToken(userPayload);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("accessToken", accessToken);
-        response.put("refreshToken", refreshToken);
-        response.put("user", savedUser);
+        ResponseCookie cookie = ResponseCookie.from("TB_SESSION", accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talentboozt.com")
+                .path("/")
+                .maxAge(COOKIE_EXPIRATION)
+                .build();
 
-        return ResponseEntity.ok(response);
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("accessToken", accessToken);
+        responseBody.put("refreshToken", refreshToken);
+        responseBody.put("user", savedUser);
+
+        return ResponseEntity.ok(responseBody);
     }
 
     @GetMapping("/getTokens/{email}")
-    public ResponseEntity<?> getCredentialsByEmail(@PathVariable String email) {
+    public ResponseEntity<?> getCredentialsByEmail(@PathVariable String email, HttpServletResponse response) {
         CredentialsModel credentials = credentialsService.getCredentialsByEmail(email);
         if (credentials == null) return null;
 
@@ -181,11 +196,22 @@ public class AuthController {
         String accessToken = jwtService.generateToken(userPayload);
         String refreshToken = jwtService.generateRefreshToken(userPayload);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("accessToken", accessToken);
-        response.put("refreshToken", refreshToken);
+        ResponseCookie cookie = ResponseCookie.from("TB_SESSION", accessToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talentboozt.com")
+                .path("/")
+                .maxAge(COOKIE_EXPIRATION)
+                .build();
 
-        return ResponseEntity.ok(response);
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("accessToken", accessToken);
+        responseBody.put("refreshToken", refreshToken);
+
+        return ResponseEntity.ok(responseBody);
     }
 }
 
