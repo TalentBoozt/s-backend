@@ -9,6 +9,7 @@ import com.talentboozt.s_backend.Utils.EncryptionUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
@@ -95,7 +96,7 @@ public class SecurityConfig {
                                 "/api/auth/**", "/oauth2/**", "/oauth/**",
                                 "/sitemap.xml", "/api/event/**", "/api/monitoring/**",
                                 "/api/security/**", "/api/v2/github/**", "/api/v2/facebook/**",
-                                "/api/v2/linkedin/**", "/callback/google/**"
+                                "/api/v2/linkedin/**", "/callback/google/**", "/api/v2/cmp_job-apply/addViewer/**"
                         ).permitAll()
 //                        .requestMatchers("/actuator/**").permitAll() // for testing
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -143,11 +144,23 @@ public class SecurityConfig {
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("Stripe-Signature", "X-Demo-Mode", "X-Timezone-Mismatch", "Retry-After", "X-RateLimit-Limit", "X-RateLimit-Remaining"));
+        configuration.setExposedHeaders(List.of("Stripe-Signature", "X-Demo-Mode", "X-Timezone-Mismatch"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    @Bean
+    @Order(1)
+    public SecurityFilterChain captchaSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/api/security/verify-captcha")
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+
+        return http.build();
     }
 
     @Bean

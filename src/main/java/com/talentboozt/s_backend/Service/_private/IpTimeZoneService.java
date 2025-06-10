@@ -3,12 +3,17 @@ package com.talentboozt.s_backend.Service._private;
 import com.talentboozt.s_backend.Shared.IpGeoData;
 import com.talentboozt.s_backend.Shared.SessionContext;
 import com.talentboozt.s_backend.Shared.SessionContextCache;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class IpTimeZoneService {
@@ -18,18 +23,33 @@ public class IpTimeZoneService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    private static final Logger logger = LoggerFactory.getLogger(IpTimeZoneService.class);
+
+    private final Cache<String, IpGeoData> ipCache = Caffeine.newBuilder()
+            .expireAfterWrite(12, TimeUnit.HOURS)
+            .maximumSize(100_000)
+            .build();
+
     public IpGeoData getTimeZoneForIp(String ipAddress) {
         if (ipAddress.startsWith("192.168.") || ipAddress.startsWith("10.") || ipAddress.startsWith("127.")) {
-            System.out.println("Skipping reserved IP: " + ipAddress);
             return null;
         }
+
+        // ✅ Check the cache first
+        IpGeoData cached = ipCache.getIfPresent(ipAddress);
+        if (cached != null) {
+            return cached;
+        }
+
         try {
-            String url = "http://ip-api.com/json/" + ipAddress + "?fields=status,message,timezone,country,countryCode,regionName,city,isp,proxy";
+            String url = "http://ip-api.com/json/" + ipAddress +
+                    "?fields=status,message,timezone,country,countryCode,regionName,city,isp,proxy";
+
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
             Map body = response.getBody();
 
-            if ("success".equalsIgnoreCase((String) body.get("status"))) {
-                return new IpGeoData(
+            if (body != null && "success".equalsIgnoreCase((String) body.get("status"))) {
+                IpGeoData geo = new IpGeoData(
                         (String) body.get("timezone"),
                         (String) body.get("country"),
                         (String) body.get("countryCode"),
@@ -38,14 +58,18 @@ public class IpTimeZoneService {
                         (String) body.get("isp"),
                         (boolean) body.get("proxy")
                 );
+
+                // ✅ Cache it
+                ipCache.put(ipAddress, geo);
+                return geo;
             } else {
-                System.out.println("IP lookup failed: " + body.get("message"));
-                return null;
+                logger.warn("IP lookup failed: {}", body.get("message"));
             }
         } catch (Exception e) {
-            System.err.println("Failed to fetch IP geo data: " + e.getMessage());
-            return null;
+            logger.error("Geo IP fetch error", e);
         }
+
+        return null;
     }
 
     public void enrichSessionWithTimeZone(String sessionId, String userAgent, String ipAddress, boolean vpn) {
