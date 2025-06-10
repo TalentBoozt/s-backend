@@ -83,8 +83,6 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         if (!allowed) {
             response.setStatus(429); // 429 Too Many Requests
             response.setHeader("Retry-After", "60");
-            response.setHeader("X-RateLimit-Limit", "200");
-            response.setHeader("X-RateLimit-Remaining", "0");
             return;
         }
 
