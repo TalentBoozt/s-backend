@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.Controller.COM_COURSES;
 
 import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
+import com.talentboozt.s_backend.DTO.COM_COURSES.MaterialsDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
 import com.talentboozt.s_backend.Model.COM_COURSES.CourseModel;
 import com.talentboozt.s_backend.Model.EndUser.EmployeeModel;
@@ -99,5 +100,35 @@ public class CourseController {
     public ResponseEntity<Map<String, Integer>> getCoursesOverviewByCompanyId(@PathVariable String companyId) {
         Map<String, Integer> courseOverview = courseService.getCoursesOverviewByCompanyId(companyId);
         return ResponseEntity.ok(courseOverview);
+    }
+
+    @PutMapping("/update-publicity/{courseId}")
+    public CourseModel updatePublicity(@PathVariable String courseId) {
+        return courseService.updatePublicity(courseId);
+    }
+
+    @PostMapping("/add/material/{courseId}")
+    public CourseModel addMaterial(@PathVariable String courseId, @RequestBody MaterialsDTO materials) {
+        return courseService.addMaterial(courseId, materials);
+    }
+
+    @PutMapping("/update/material/{courseId}/{id}")
+    public CourseModel updateMaterial(@PathVariable String courseId, @PathVariable String id, @RequestBody MaterialsDTO materials) {
+        return courseService.updateMaterial(courseId, id, materials);
+    }
+
+    @DeleteMapping("/delete/material/{courseId}/{id}")
+    public void deleteMaterial(@PathVariable String courseId, @PathVariable String id) {
+        courseService.deleteMaterial(courseId, id);
+    }
+
+    @GetMapping("/get/materials/{courseId}")
+    public List<MaterialsDTO> getMaterials(@PathVariable String courseId) {
+        return courseService.getMaterials(courseId);
+    }
+
+    @GetMapping("/get/material/{courseId}/{id}")
+    public MaterialsDTO getMaterial(@PathVariable String courseId, @PathVariable String id) {
+        return courseService.getMaterial(courseId, id);
     }
 }
