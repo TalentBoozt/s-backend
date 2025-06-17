@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.Service.COM_COURSES;
 
 import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
+import com.talentboozt.s_backend.DTO.COM_COURSES.MaterialsDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
 import com.talentboozt.s_backend.Model.COM_COURSES.CourseModel;
 import com.talentboozt.s_backend.Model.EndUser.EmployeeModel;
@@ -253,5 +254,79 @@ public class CourseService {
 
         // Convert total minutes to hours
         return totalMinutes; // Return the total training hours
+    }
+
+    public CourseModel updatePublicity(String courseId) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null) {
+            course.setPublicity(!course.isPublicity());
+            return courseRepository.save(course);
+        }
+        return null;
+    }
+
+    public CourseModel addMaterial(String courseId, MaterialsDTO materials) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null) {
+            List<MaterialsDTO> materialsList = course.getMaterials();
+            if (materialsList == null) {
+                materialsList = new java.util.ArrayList<>();
+            }
+            materialsList.add(materials);
+            course.setMaterials(materialsList);
+            return courseRepository.save(course);
+        }
+        return null;
+    }
+
+    public CourseModel updateMaterial(String courseId, String id, MaterialsDTO materials) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null) {
+            List<MaterialsDTO> materialsList = course.getMaterials();
+            for (int i = 0; i < materialsList.size(); i++) {
+                if (materialsList.get(i).getId().equals(id)) {
+                    materialsList.set(i, materials);
+                    course.setMaterials(materialsList);
+                    return courseRepository.save(course);
+                }
+            }
+        }
+        return null;
+    }
+
+    public void deleteMaterial(String courseId, String id) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null) {
+            List<MaterialsDTO> materialsList = course.getMaterials();
+            for (int i = 0; i < materialsList.size(); i++) {
+                if (materialsList.get(i).getId().equals(id)) {
+                    materialsList.remove(i);
+                    course.setMaterials(materialsList);
+                    courseRepository.save(course);
+                    return;
+                }
+            }
+        }
+    }
+
+    public List<MaterialsDTO> getMaterials(String courseId) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null) {
+            return course.getMaterials();
+        }
+        return null;
+    }
+
+    public MaterialsDTO getMaterial(String courseId, String id) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null) {
+            List<MaterialsDTO> materialsList = course.getMaterials();
+            for (MaterialsDTO materialsDTO : materialsList) {
+                if (materialsDTO.getId().equals(id)) {
+                    return materialsDTO;
+                }
+            }
+        }
+        return null;
     }
 }

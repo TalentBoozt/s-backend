@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.Model.COM_COURSES;
 
 import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
+import com.talentboozt.s_backend.DTO.COM_COURSES.MaterialsDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,4 +46,6 @@ public class CourseModel {
     private String toTime;
     private String courseStatus;
     private String paymentMethod;
+    private boolean publicity;
+    private List<MaterialsDTO> materials;
 }
