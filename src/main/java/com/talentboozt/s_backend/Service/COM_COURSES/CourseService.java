@@ -329,4 +329,41 @@ public class CourseService {
         }
         return null;
     }
+
+    public MaterialsDTO incrementMaterialView(String courseId, String id) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null) {
+            List<MaterialsDTO> materialsList = course.getMaterials();
+            for (MaterialsDTO materialsDTO : materialsList) {
+                if (materialsDTO.getId().equals(id)) {
+                    materialsDTO.setViewCount(materialsDTO.getViewCount() + 1);
+                    return materialsDTO;
+                }
+            }
+        }
+        return null;
+    }
+
+    public MaterialsDTO updateMaterialVisibility(String courseId, String id, String status) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null) {
+            List<MaterialsDTO> materialsList = course.getMaterials();
+            for (MaterialsDTO materialsDTO : materialsList) {
+                if (materialsDTO.getId().equals(id)) {
+                    materialsDTO.setVisibility(status);
+                    return materialsDTO;
+                }
+            }
+        }
+        return null;
+    }
+
+    public CourseModel updateCourseStatus(String courseId, String status) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null) {
+            course.setCourseStatus(status);
+            return courseRepository.save(course);
+        }
+        return null;
+    }
 }
