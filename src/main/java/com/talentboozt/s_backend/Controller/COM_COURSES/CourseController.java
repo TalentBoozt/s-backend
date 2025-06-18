@@ -102,6 +102,11 @@ public class CourseController {
         return ResponseEntity.ok(courseOverview);
     }
 
+    @PutMapping("/update-status/{courseId}/{status}")
+    public CourseModel updateStatus(@PathVariable String courseId, @PathVariable String status) {
+        return courseService.updateCourseStatus(courseId, status);
+    }
+
     @PutMapping("/update-publicity/{courseId}")
     public CourseModel updatePublicity(@PathVariable String courseId) {
         return courseService.updatePublicity(courseId);
@@ -130,5 +135,15 @@ public class CourseController {
     @GetMapping("/get/material/{courseId}/{id}")
     public MaterialsDTO getMaterial(@PathVariable String courseId, @PathVariable String id) {
         return courseService.getMaterial(courseId, id);
+    }
+
+    @PutMapping("/increment/material-view/{courseId}/{id}")
+    public MaterialsDTO incrementMaterialView(@PathVariable String courseId, @PathVariable String id) {
+        return courseService.incrementMaterialView(courseId, id);
+    }
+
+    @PutMapping("/visibility/material/{courseId}/{id}/{status}")
+    public MaterialsDTO updateMaterialVisibility(@PathVariable String courseId, @PathVariable String id, @PathVariable String status) {
+        return courseService.updateMaterialVisibility(courseId, id, status);
     }
 }

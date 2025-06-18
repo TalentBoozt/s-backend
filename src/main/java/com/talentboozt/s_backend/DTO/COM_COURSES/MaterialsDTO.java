@@ -13,4 +13,8 @@ public class MaterialsDTO {
     private String type; // pdf, video
     private String url; // file url
     private String category; // book, assignment, recording
+    private String visibility; // public, participant, only-me
+    private String uploadDate; // upload date (timestamp)
+    private String updateDate; // update date (timestamp) if updated
+    private int viewCount;
 }
