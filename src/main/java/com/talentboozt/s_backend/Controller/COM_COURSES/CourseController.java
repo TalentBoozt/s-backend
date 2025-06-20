@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.Controller.COM_COURSES;
 import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.MaterialsDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
+import com.talentboozt.s_backend.DTO.COM_COURSES.QuizDTO;
 import com.talentboozt.s_backend.Model.COM_COURSES.CourseModel;
 import com.talentboozt.s_backend.Model.EndUser.EmployeeModel;
 import com.talentboozt.s_backend.Model.PLAT_COURSES.EmpCoursesModel;
@@ -145,5 +146,30 @@ public class CourseController {
     @PutMapping("/visibility/material/{courseId}/{id}/{status}")
     public MaterialsDTO updateMaterialVisibility(@PathVariable String courseId, @PathVariable String id, @PathVariable String status) {
         return courseService.updateMaterialVisibility(courseId, id, status);
+    }
+
+    @PostMapping("/add/quiz/{courseId}")
+    public CourseModel addQuiz(@PathVariable String courseId, @RequestBody QuizDTO quiz) {
+        return courseService.addQuiz(courseId, quiz);
+    }
+
+    @PutMapping("/update/quiz/{courseId}/{quizId}")
+    public CourseModel updateQuiz(@PathVariable String courseId, @PathVariable String quizId, @RequestBody QuizDTO quiz) {
+        return courseService.updateQuiz(courseId, quizId, quiz);
+    }
+
+    @DeleteMapping("/delete/quiz/{courseId}/{quizId}")
+    public void deleteQuiz(@PathVariable String courseId, @PathVariable String quizId) {
+        courseService.deleteQuiz(courseId, quizId);
+    }
+
+    @GetMapping("/get/quizzes/{courseId}")
+    public List<QuizDTO> getQuizzes(@PathVariable String courseId) {
+        return courseService.getQuizzes(courseId);
+    }
+
+    @GetMapping("/get/quiz/{courseId}/{quizId}")
+    public QuizDTO getQuiz(@PathVariable String courseId, @PathVariable String quizId) {
+        return courseService.getQuiz(courseId, quizId);
     }
 }
