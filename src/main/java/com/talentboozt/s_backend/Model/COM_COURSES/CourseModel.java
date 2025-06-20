@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.Model.COM_COURSES;
 import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.MaterialsDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
+import com.talentboozt.s_backend.DTO.COM_COURSES.QuizDTO;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
@@ -48,4 +49,6 @@ public class CourseModel {
     private String paymentMethod;
     private boolean publicity;
     private List<MaterialsDTO> materials;
+    @Field("quizzes")
+    private List<QuizDTO> quizzes;
 }

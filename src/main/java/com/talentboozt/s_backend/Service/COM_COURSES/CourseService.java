@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.Service.COM_COURSES;
 import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.MaterialsDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
+import com.talentboozt.s_backend.DTO.COM_COURSES.QuizDTO;
 import com.talentboozt.s_backend.Model.COM_COURSES.CourseModel;
 import com.talentboozt.s_backend.Model.EndUser.EmployeeModel;
 import com.talentboozt.s_backend.Model.PLAT_COURSES.EmpCoursesModel;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -363,6 +365,50 @@ public class CourseService {
         if (course != null) {
             course.setCourseStatus(status);
             return courseRepository.save(course);
+        }
+        return null;
+    }
+
+    public CourseModel addQuiz(String courseId, QuizDTO quiz) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null) {
+            if (course.getQuizzes() == null) course.setQuizzes(new ArrayList<>());
+            course.getQuizzes().add(quiz);
+            return courseRepository.save(course);
+        }
+        return null;
+    }
+
+    public CourseModel updateQuiz(String courseId, String quizId, QuizDTO quiz) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null && course.getQuizzes() != null) {
+            for (int i = 0; i < course.getQuizzes().size(); i++) {
+                if (course.getQuizzes().get(i).getId().equals(quizId)) {
+                    course.getQuizzes().set(i, quiz);
+                    return courseRepository.save(course);
+                }
+            }
+        }
+        return null;
+    }
+
+    public void deleteQuiz(String courseId, String quizId) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null && course.getQuizzes() != null) {
+            course.getQuizzes().removeIf(q -> q.getId().equals(quizId));
+            courseRepository.save(course);
+        }
+    }
+
+    public List<QuizDTO> getQuizzes(String courseId) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        return (course != null) ? course.getQuizzes() : null;
+    }
+
+    public QuizDTO getQuiz(String courseId, String quizId) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null && course.getQuizzes() != null) {
+            return course.getQuizzes().stream().filter(q -> q.getId().equals(quizId)).findFirst().orElse(null);
         }
         return null;
     }
