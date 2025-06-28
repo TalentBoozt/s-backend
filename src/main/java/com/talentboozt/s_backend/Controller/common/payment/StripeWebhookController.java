@@ -10,6 +10,7 @@ import com.talentboozt.s_backend.Repository.common.payment.InvoiceRepository;
 import com.talentboozt.s_backend.Repository.common.payment.PaymentMethodRepository;
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CmpPostedJobsService;
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CompanyService;
+import com.talentboozt.s_backend.Service.PLAT_COURSES.EmpCoursesService;
 import com.talentboozt.s_backend.Service.common.CredentialsService;
 import com.talentboozt.s_backend.Service.common.payment.*;
 import com.talentboozt.s_backend.Utils.ConfigUtility;
@@ -67,6 +68,9 @@ public class StripeWebhookController {
 
     @Autowired
     private PrePaymentService prePaymentService;
+
+    @Autowired
+    private EmpCoursesService empCoursesService;
 
     private static final Logger logger = LoggerFactory.getLogger(StripeWebhookController.class);
 
@@ -151,6 +155,32 @@ public class StripeWebhookController {
 
             if ("course".equals(purchaseType)) {
 //                handleCoursePurchase(session);
+                Map<String, String> metadata = session.getMetadata();
+                Customer customer = Customer.retrieve(session.getCustomer());
+
+                CustomerUpdateParams updateParams = CustomerUpdateParams.builder()
+                        .putMetadata("user_id", metadata.get("user_id"))
+                        .putMetadata("course_id", metadata.get("course_id"))
+                        .putMetadata("installment_id", metadata.get("installment_id"))
+                        .build();
+
+                customer.update(updateParams);
+
+                String userId = session.getMetadata().get("user_id");
+                String courseId = session.getMetadata().get("course_id");
+                String installmentId = session.getMetadata().get("installment_id");
+
+                if (userId == null || courseId == null || installmentId == null) {
+                    logger.warn("Missing required metadata: user_id, course_id or installment_id");
+                    return;
+                }
+                try {
+                    createOrder(userId, courseId, installmentId);
+                    createBillingHistory(userId, session.getId(), session, "course");
+                    createPaymentMethod(userId, session, "course");
+                } catch (StripeException e) {
+                    logger.error("Error creating order for user: {}", userId, e);
+                }
             } else if ("subscription".equals(purchaseType)) {
                 Map<String, String> metadata = session.getMetadata();
                 Customer customer = Customer.retrieve(session.getCustomer());
@@ -172,8 +202,8 @@ public class StripeWebhookController {
                 }
                 try {
                     createSubscription(companyId, planName, session);
-                    createBillingHistory(companyId, session.getId(), session);
-                    createPaymentMethod(companyId, session);
+                    createBillingHistory(companyId, session.getId(), session, "subscription");
+                    createPaymentMethod(companyId, session, "subscription");
                     updateCompanyStatus(companyId, session);
                 } catch (StripeException e) {
                     logger.error("Error creating subscription for company: {}", companyId, e);
@@ -312,6 +342,10 @@ public class StripeWebhookController {
         }
     }
 
+    private void createOrder(String userId, String courseId, String installmentId) throws StripeException {
+        empCoursesService.updateInstallmentPayment(userId, courseId, installmentId, "paid");
+    }
+
     private void createSubscription(String companyId, String planName, Session subscriptionSession) throws StripeException {
         Subscription subscription = Subscription.retrieve(subscriptionSession.getSubscription());
 
@@ -327,7 +361,7 @@ public class StripeWebhookController {
         subscriptionService.updateSubscription(companyId, subscriptionsModel);
     }
 
-    private void createBillingHistory(String companyId, String invoiceId, Session session) throws StripeException {
+    private void createBillingHistory(String companyId, String invoiceId, Session session, String productType) throws StripeException {
         PaymentIntent paymentIntent = new PaymentIntent();
         if (session.getPaymentIntent() == null && session.getMode().equals("subscription")) {
             Subscription subscription = Subscription.retrieve(session.getSubscription());
@@ -355,7 +389,11 @@ public class StripeWebhookController {
         }
 
         BillingHistoryModel billingHistory = new BillingHistoryModel();
-        billingHistory.setCompanyId(companyId);
+        if ("course".equals(productType)) {
+            billingHistory.setUserId(companyId);
+        } else if ("subscription".equals(productType)) {
+            billingHistory.setCompanyId(companyId);
+        }
         billingHistory.setAmount(String.valueOf(paymentIntent.getAmountReceived()));
         billingHistory.setDate(new Date().toString());
         billingHistory.setInvoice_id(invoiceId);
@@ -363,7 +401,7 @@ public class StripeWebhookController {
         billingHistoryService.save(billingHistory);
     }
 
-    private void createPaymentMethod(String companyId, Session session) throws StripeException {
+    private void createPaymentMethod(String companyId, Session session, String productType) throws StripeException {
         PaymentIntent paymentIntent = new PaymentIntent();
         if (session.getPaymentIntent() == null && session.getMode().equals("subscription")) {
             Subscription subscription = Subscription.retrieve(session.getSubscription());
@@ -393,7 +431,11 @@ public class StripeWebhookController {
         PaymentMethod paymentMethod = PaymentMethod.retrieve(paymentIntent.getPaymentMethod());
 
         PaymentMethodsModel paymentMethodModel = new PaymentMethodsModel();
-        paymentMethodModel.setCompanyId(companyId);
+        if ("course".equals(productType)) {
+            paymentMethodModel.setUserId(companyId);
+        } else if ("subscription".equals(productType)) {
+            paymentMethodModel.setCompanyId(companyId);
+        }
         paymentMethodModel.setType(paymentMethod.getType());
         paymentMethodModel.setLast_four(paymentMethod.getCard().getLast4());
         paymentMethodModel.setExpiry_date(paymentMethod.getCard().getExpMonth() + "/" + paymentMethod.getCard().getExpYear());

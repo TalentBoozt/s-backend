@@ -15,6 +15,7 @@ public class BillingHistoryModel {
     @Id
     private String id;
     private String companyId;
+    private String userId;
     private String amount;
     private String date;
     private String invoice_id;
