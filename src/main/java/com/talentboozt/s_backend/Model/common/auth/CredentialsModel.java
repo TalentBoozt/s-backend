@@ -34,4 +34,5 @@ public class CredentialsModel {
     private List<String> accessedPlatforms; // Tracks where the user has logged in
     private boolean active; // Flag to indicate if the user is active
     private boolean disabled; // Flag to indicate if the user is disabled(banned)
+    private boolean isAmbassador;
 }
