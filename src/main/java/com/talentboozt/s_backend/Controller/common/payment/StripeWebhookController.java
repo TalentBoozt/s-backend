@@ -77,19 +77,27 @@ public class StripeWebhookController {
         return ResponseEntity.ok("Event processed");
     }
 
-    @PostMapping("/create-checkout-session")
-    public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestBody Map<String, Object> data) throws StripeException {
-        String companyId = (String) data.get("companyId");
-        String planName = (String) data.get("planName");
+    @PostMapping("/create-checkout-session/{processType}")
+    public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestBody Map<String, Object> data, @PathVariable String processType) throws StripeException {
+        Session session;
 
-        if (companyId == null || companyId.isEmpty()) {
-            throw new IllegalArgumentException("Company ID is required");
-        }
-        if (planName == null || planName.isEmpty()) {
-            throw new IllegalArgumentException("Plan name is required");
-        }
+        switch (processType.toLowerCase()) {
+            case "subscription":
+                session = stripeService.createSubscriptionSession(data);
+                break;
 
-        Session session = stripeService.createCheckoutSession(companyId, planName);
+            case "course":
+                session = stripeService.createCourseCheckoutSession(data);
+                break;
+
+            // 🔮 Future: Handle coaching, mentorship, etc.
+            // case "coaching":
+            //     session = stripeService.createCoachingCheckoutSession(data);
+            //     break;
+
+            default:
+                throw new IllegalArgumentException("Unsupported checkout process: " + processType);
+        }
 
         Map<String, String> response = new HashMap<>();
         response.put("id", session.getId());
@@ -139,31 +147,37 @@ public class StripeWebhookController {
                 session = Session.retrieve(session.getId());
             }
 
-            Map<String, String> metadata = session.getMetadata();
-            Customer customer = Customer.retrieve(session.getCustomer());
+            String purchaseType = session.getMetadata().get("purchase_type");
 
-            CustomerUpdateParams updateParams = CustomerUpdateParams.builder()
-                    .putMetadata("company_id", metadata.get("company_id"))
-                    .putMetadata("plan_name", metadata.get("plan_name"))
-                    .build();
+            if ("course".equals(purchaseType)) {
+//                handleCoursePurchase(session);
+            } else if ("subscription".equals(purchaseType)) {
+                Map<String, String> metadata = session.getMetadata();
+                Customer customer = Customer.retrieve(session.getCustomer());
 
-            customer.update(updateParams);
+                CustomerUpdateParams updateParams = CustomerUpdateParams.builder()
+                        .putMetadata("company_id", metadata.get("company_id"))
+                        .putMetadata("plan_name", metadata.get("plan_name"))
+                        .build();
+
+                customer.update(updateParams);
 
 
-            String companyId = session.getMetadata().get("company_id");
-            String planName = session.getMetadata().get("plan_name");
+                String companyId = session.getMetadata().get("company_id");
+                String planName = session.getMetadata().get("plan_name");
 
-            if (companyId == null || planName == null) {
-                logger.warn("Missing required metadata: company_id or plan_name");
-                return;
-            }
-            try {
-                createSubscription(companyId, planName, session);
-                createBillingHistory(companyId, session.getId(), session);
-                createPaymentMethod(companyId, session);
-                updateCompanyStatus(companyId, session);
-            } catch (StripeException e) {
-                logger.error("Error creating subscription for company: {}", companyId, e);
+                if (companyId == null || planName == null) {
+                    logger.warn("Missing required metadata: company_id or plan_name");
+                    return;
+                }
+                try {
+                    createSubscription(companyId, planName, session);
+                    createBillingHistory(companyId, session.getId(), session);
+                    createPaymentMethod(companyId, session);
+                    updateCompanyStatus(companyId, session);
+                } catch (StripeException e) {
+                    logger.error("Error creating subscription for company: {}", companyId, e);
+                }
             }
 
         } catch (Exception e) {

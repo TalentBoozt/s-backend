@@ -1,5 +1,8 @@
 package com.talentboozt.s_backend.Controller.COM_COURSES;
 
+import com.stripe.exception.StripeException;
+import com.stripe.model.Price;
+import com.stripe.model.Product;
 import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.MaterialsDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
@@ -8,6 +11,7 @@ import com.talentboozt.s_backend.Model.COM_COURSES.CourseModel;
 import com.talentboozt.s_backend.Model.EndUser.EmployeeModel;
 import com.talentboozt.s_backend.Model.PLAT_COURSES.EmpCoursesModel;
 import com.talentboozt.s_backend.Service.COM_COURSES.CourseService;
+import com.talentboozt.s_backend.Service.common.payment.StripeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +25,9 @@ public class CourseController {
 
     @Autowired
     private CourseService courseService;
+
+    @Autowired
+    private StripeService stripeService;
 
     @GetMapping("/all")
     public List<CourseModel> getAllCourses() {
@@ -171,5 +178,39 @@ public class CourseController {
     @GetMapping("/get/quiz/{courseId}/{quizId}")
     public QuizDTO getQuiz(@PathVariable String courseId, @PathVariable String quizId) {
         return courseService.getQuiz(courseId, quizId);
+    }
+
+    @PostMapping("/create/stripe/product/{courseName}")
+    public InstallmentDTO createProduct(@RequestBody InstallmentDTO installment, @PathVariable String courseName) throws StripeException {
+        Product product = stripeService.createProduct(
+                courseName,
+                installment.getName() + " for " + courseName + " course."
+        );
+
+        String currency;
+        switch (installment.getCurrency()) {
+            case "€": currency = "eur"; break;
+            case "£": currency = "gbp"; break;
+            case "RS": currency = "lkr"; break;
+            case "¥": currency = "jpy"; break;
+            case "₹": currency = "inr"; break;
+            default: currency = "usd";
+        }
+
+        long priceInSmallestUnit;
+        if ("jpy".equals(currency)) {
+            // No decimal support in JPY
+            priceInSmallestUnit = Long.parseLong(installment.getPrice());
+        } else {
+            // Multiply by 100 for other currencies
+            double price = Double.parseDouble(installment.getPrice());
+            priceInSmallestUnit = Math.round(price * 100);
+        }
+
+        Price price = stripeService.createPriceForCourse(product.getId(), priceInSmallestUnit, currency);
+
+        installment.setProductId(product.getId());
+        installment.setPriceId(price.getId());
+        return installment;
     }
 }
