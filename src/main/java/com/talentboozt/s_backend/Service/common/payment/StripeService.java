@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.Service.common.payment;
 
+import com.stripe.model.Price;
 import com.talentboozt.s_backend.Utils.ConfigUtility;
 import com.stripe.exception.InvalidRequestException;
 import com.stripe.exception.StripeException;
@@ -89,6 +90,14 @@ public class StripeService {
             throw new IllegalStateException("Missing Stripe config value for: " + key);
         }
         return value;
+    }
+
+    public Price createCustomPrice(String productId, Long amountInCents, String currency) throws StripeException {
+        Map<String, Object> params = new HashMap<>();
+        params.put("unit_amount", amountInCents);
+        params.put("currency", currency);
+        params.put("product", productId);
+        return Price.create(params);
     }
 }
 
