@@ -80,6 +80,7 @@ public class StripeService {
     public Session createCourseCheckoutSession(Map<String, Object> data) throws StripeException {
         String userId = (String) data.get("userId");
         String courseId = (String) data.get("courseId");
+        String installmentId = (String) data.get("installmentId");
         String couponCode = (String) data.get("couponCode"); // optional
         String productId = (String) data.get("productId");
         String priceId = (String) data.get("priceId"); // already saved from course creation
@@ -89,6 +90,7 @@ public class StripeService {
                 "purchase_type", "course",
                 "user_id", userId,
                 "course_id", courseId,
+                "installment_id", installmentId,
                 "product_id", productId,
                 "price_id", priceId,
                 "price_type", priceType,
