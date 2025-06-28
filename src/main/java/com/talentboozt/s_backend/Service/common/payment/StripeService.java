@@ -1,12 +1,9 @@
 package com.talentboozt.s_backend.Service.common.payment;
 
-import com.stripe.model.Price;
+import com.stripe.model.*;
 import com.talentboozt.s_backend.Utils.ConfigUtility;
 import com.stripe.exception.InvalidRequestException;
 import com.stripe.exception.StripeException;
-import com.stripe.model.Customer;
-import com.stripe.model.Invoice;
-import com.stripe.model.Subscription;
 import com.stripe.model.checkout.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,45 +40,69 @@ public class StripeService {
         return Invoice.retrieve(invoiceId);
     }
 
-    public Session createCheckoutSession(String companyId, String planName) throws StripeException {
-        Map<String, String> PLAN_PRICE_MAP = new HashMap<>();
-        PLAN_PRICE_MAP.put("Basic", getRequiredProperty("STRIPE_TEST_PRICE_ID"));
-        PLAN_PRICE_MAP.put("Pro", getRequiredProperty("STRIPE_PRO_PRICE_ID"));
-        PLAN_PRICE_MAP.put("Pro-Onetime", getRequiredProperty("STRIPE_PRO_ONETIME_PRICE_ID"));
-        PLAN_PRICE_MAP.put("Premium", getRequiredProperty("STRIPE_PREMIUM_PRICE_ID"));
-        PLAN_PRICE_MAP.put("Premium-Onetime", getRequiredProperty("STRIPE_PREMIUM_ONETIME_PRICE_ID"));
+    public Session createSubscriptionSession(Map<String, Object> data) throws StripeException {
+        String companyId = (String) data.get("companyId");
+        String planName = (String) data.get("planName");
+
+        Map<String, String> PLAN_PRICE_MAP = Map.of(
+                "Basic", getRequiredProperty("STRIPE_TEST_PRICE_ID"),
+                "Pro", getRequiredProperty("STRIPE_PRO_PRICE_ID"),
+                "Pro-Onetime", getRequiredProperty("STRIPE_PRO_ONETIME_PRICE_ID"),
+                "Premium", getRequiredProperty("STRIPE_PREMIUM_PRICE_ID"),
+                "Premium-Onetime", getRequiredProperty("STRIPE_PREMIUM_ONETIME_PRICE_ID")
+        );
 
         String priceId = PLAN_PRICE_MAP.get(planName);
-        if (priceId == null) {
-            throw new IllegalArgumentException("Invalid plan name: " + planName);
-        }
+        if (priceId == null) throw new IllegalArgumentException("Invalid plan: " + planName);
 
-        boolean isOneTimePayment = planName.endsWith("-Onetime");
-        String sessionMode = isOneTimePayment ? "payment" : "subscription";
+        boolean isOneTime = planName.endsWith("-Onetime");
 
         Map<String, Object> metadata = Map.of(
+                "purchase_type", "subscription",
                 "company_id", companyId,
                 "plan_name", planName
         );
 
-        Map<String, Object> subscriptionData = new HashMap<>();
-        subscriptionData.put("metadata", metadata);
+        Map<String, Object> params = new HashMap<>();
+        params.put("line_items", List.of(Map.of("price", priceId, "quantity", 1)));
+        params.put("mode", isOneTime ? "payment" : "subscription");
+        params.put("metadata", metadata);
+        params.put("success_url", configUtility.getProperty("STRIPE_SUCCESS_URL"));
+        params.put("cancel_url", configUtility.getProperty("STRIPE_CANCEL_URL"));
+
+        if (!isOneTime) {
+            params.put("subscription_data", Map.of("metadata", metadata));
+        }
+
+        return Session.create(params);
+    }
+
+    public Session createCourseCheckoutSession(Map<String, Object> data) throws StripeException {
+        String userId = (String) data.get("userId");
+        String courseId = (String) data.get("courseId");
+        String couponCode = (String) data.get("couponCode"); // optional
+        String productId = (String) data.get("productId");
+        String priceId = (String) data.get("priceId"); // already saved from course creation
+        String priceType = (String) data.get("priceType"); // e.g. "default", "discounted"
+
+        Map<String, Object> metadata = Map.of(
+                "purchase_type", "course",
+                "user_id", userId,
+                "course_id", courseId,
+                "product_id", productId,
+                "price_id", priceId,
+                "price_type", priceType,
+                "coupon_code", couponCode != null ? couponCode : ""
+        );
 
         Map<String, Object> params = new HashMap<>();
         params.put("line_items", List.of(Map.of("price", priceId, "quantity", 1)));
-        params.put("mode", sessionMode);
-        params.put("subscription_data", subscriptionData);
+        params.put("mode", "payment");
+        params.put("metadata", metadata);
         params.put("success_url", configUtility.getProperty("STRIPE_SUCCESS_URL"));
         params.put("cancel_url", configUtility.getProperty("STRIPE_CANCEL_URL"));
-        params.put("metadata", metadata);
 
-        try {
-            return Session.create(params);
-        } catch (InvalidRequestException e) {
-            throw new RuntimeException("Stripe error: " + e.getMessage(), e);
-        } catch (StripeException e) {
-            throw new RuntimeException("Unexpected Stripe error occurred: ", e);
-        }
+        return Session.create(params);
     }
 
     private String getRequiredProperty(String key) {
@@ -92,12 +113,36 @@ public class StripeService {
         return value;
     }
 
+    public Product createProduct(String courseName, String courseDescription) throws StripeException {
+        Map<String, Object> params = Map.of(
+                "name", courseName,
+                "description", courseDescription
+        );
+        return Product.create(params);
+    }
+
+    public Price createPriceForCourse(String productId, Long amountInCents, String currency) throws StripeException {
+        Map<String, Object> params = Map.of(
+                "unit_amount", amountInCents,
+                "currency", currency,
+                "product", productId
+        );
+        return Price.create(params);
+    }
+
     public Price createCustomPrice(String productId, Long amountInCents, String currency) throws StripeException {
         Map<String, Object> params = new HashMap<>();
         params.put("unit_amount", amountInCents);
         params.put("currency", currency);
         params.put("product", productId);
         return Price.create(params);
+    }
+
+    public void archivePrice(String priceId) throws StripeException {
+        Price price = Price.retrieve(priceId);
+        Map<String, Object> params = new HashMap<>();
+        params.put("active", false);
+        price.update(params);
     }
 }
 
