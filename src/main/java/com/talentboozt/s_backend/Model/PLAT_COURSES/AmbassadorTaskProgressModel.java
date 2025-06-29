@@ -27,4 +27,6 @@ public class AmbassadorTaskProgressModel {
     private Instant completedAt;
 
     private String rewardStatus; // NOT_ISSUED, ISSUED, REDEEMED
+    private boolean rewarded;
+    private Instant rewardedAt;
 }

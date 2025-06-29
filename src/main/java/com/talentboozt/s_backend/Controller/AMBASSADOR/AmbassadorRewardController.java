@@ -23,6 +23,11 @@ public class AmbassadorRewardController {
         return ambassadorRewardService.getAmbassadorRewards(ambassadorId);
     }
 
+    @GetMapping("/get/all")
+    public Iterable<AmbassadorRewardModel> getAllAmbassadorRewards() {
+        return ambassadorRewardService.getAllAmbassadorRewards();
+    }
+
     @GetMapping("/get/{id}")
     public AmbassadorRewardModel getAmbassadorReward(@PathVariable String id) {
         return ambassadorRewardService.getAmbassadorReward(id);
@@ -36,6 +41,11 @@ public class AmbassadorRewardController {
     @PutMapping("/update/{id}")
     public AmbassadorRewardModel updateAmbassadorReward(@PathVariable String id, @RequestBody AmbassadorRewardModel ambassadorRewardModel) {
         return ambassadorRewardService.updateAmbassadorReward(id, ambassadorRewardModel);
+    }
+
+    @PutMapping("/{id}/reward")
+    public AmbassadorRewardModel markAsShipped(@PathVariable String id) {
+        return ambassadorRewardService.markAsShipped(id);
     }
 
     @DeleteMapping("/delete/{id}")
