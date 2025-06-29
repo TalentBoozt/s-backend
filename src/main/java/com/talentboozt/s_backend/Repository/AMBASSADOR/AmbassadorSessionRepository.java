@@ -5,4 +5,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface AmbassadorSessionRepository extends MongoRepository<AmbassadorSessionModel, String> {
     Iterable<AmbassadorSessionModel> findByAmbassadorId(String id);
+
+    int countByAmbassadorIdAndType(String id, String hosted);
 }

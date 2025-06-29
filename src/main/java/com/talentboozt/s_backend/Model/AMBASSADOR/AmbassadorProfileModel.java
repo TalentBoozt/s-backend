@@ -18,8 +18,18 @@ public class AmbassadorProfileModel {
     @Id
     private String id;
 
-    @Indexed(unique = true)
-    private String employeeId; // Link to EmployeeModel
+    // ✅ Application Info
+    private String name;
+    private String email;
+    private String motivation;
+    private String profileLink;
+    private boolean consentGiven;
+    private Instant appliedAt;
+    private String applicationStatus; // REQUESTED, REVIEWING, ACCEPTED, REJECTED
+
+    // ✅ Assigned after approval
+    @Indexed(unique = true, sparse = true)
+    private String employeeId; // Assigned when application is accepted
 
     private String level; // BRONZE, GOLD, PLATINUM
 
@@ -30,15 +40,13 @@ public class AmbassadorProfileModel {
     private int trainingSessionsAttended;
 
     private boolean active;
-
     private Instant joinedAt;
     private Instant lastActivity;
 
     private List<String> badges; // Optional - e.g., ["EARLY_BIRD", "TOP_HOST"]
-
     private String referralCode; // e.g., "john-doe123"
 
-    private String status; // ACTIVE, SUSPENDED, etc.
+    private String status; // ACTIVE, SUSPENDED, REQUESTED, REJECTED, etc.
     private String interviewNote;
     private List<String> badgeHistory; // track earned dates
     private Map<String, Object> perks; // discountPercent, freeCourseCount, etc.

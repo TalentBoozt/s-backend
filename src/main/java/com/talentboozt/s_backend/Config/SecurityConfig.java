@@ -96,7 +96,8 @@ public class SecurityConfig {
                                 "/api/auth/**", "/oauth2/**", "/oauth/**",
                                 "/sitemap.xml", "/api/event/**", "/api/monitoring/**",
                                 "/api/security/**", "/api/v2/github/**", "/api/v2/facebook/**",
-                                "/api/v2/linkedin/**", "/callback/google/**", "/api/v2/cmp_job-apply/addViewer/**"
+                                "/api/v2/linkedin/**", "/callback/google/**", "/api/v2/cmp_job-apply/addViewer/**",
+                                "/api/v2/ambassador/**"
                         ).permitAll()
 //                        .requestMatchers("/actuator/**").permitAll() // for testing
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

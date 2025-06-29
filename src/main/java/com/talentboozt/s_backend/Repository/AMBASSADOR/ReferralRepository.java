@@ -9,4 +9,6 @@ public interface ReferralRepository extends MongoRepository<ReferralModel, Strin
     List<ReferralModel> findAllByReferralCode(String referralCode);
 
     List<ReferralModel> findAllByAmbassadorId(String ambassadorId);
+
+    int countByAmbassadorId(String id);
 }

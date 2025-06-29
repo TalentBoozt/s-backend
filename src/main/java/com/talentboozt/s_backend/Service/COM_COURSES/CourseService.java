@@ -332,30 +332,32 @@ public class CourseService {
         return null;
     }
 
-    public MaterialsDTO incrementMaterialView(String courseId, String id) {
+    public CourseModel incrementMaterialView(String courseId, String id) {
         CourseModel course = courseRepository.findById(courseId).orElse(null);
         if (course != null) {
             List<MaterialsDTO> materialsList = course.getMaterials();
             for (MaterialsDTO materialsDTO : materialsList) {
                 if (materialsDTO.getId().equals(id)) {
                     materialsDTO.setViewCount(materialsDTO.getViewCount() + 1);
-                    return materialsDTO;
                 }
             }
+            course.setMaterials(materialsList);
+            return courseRepository.save(course);
         }
         return null;
     }
 
-    public MaterialsDTO updateMaterialVisibility(String courseId, String id, String status) {
+    public CourseModel updateMaterialVisibility(String courseId, String id, String status) {
         CourseModel course = courseRepository.findById(courseId).orElse(null);
         if (course != null) {
             List<MaterialsDTO> materialsList = course.getMaterials();
             for (MaterialsDTO materialsDTO : materialsList) {
                 if (materialsDTO.getId().equals(id)) {
                     materialsDTO.setVisibility(status);
-                    return materialsDTO;
                 }
             }
+            course.setMaterials(materialsList);
+            return courseRepository.save(course);
         }
         return null;
     }

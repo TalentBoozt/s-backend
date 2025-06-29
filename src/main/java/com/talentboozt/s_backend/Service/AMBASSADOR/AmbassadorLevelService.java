@@ -11,10 +11,14 @@ public class AmbassadorLevelService {
         int purchases = profile.getCoursePurchasesByReferrals();
         int sessions = profile.getHostedSessions();
 
-        if (referrals >= 25 && purchases >= 15 && sessions >= 5) {
+        if (referrals >= 100 && purchases >= 75 && sessions >= 50) {
             return "PLATINUM";
-        } else if (referrals >= 10 && purchases >= 5 && sessions >= 2) {
+        } else if (referrals >= 75 && purchases >= 50 && sessions >= 30) {
+            return "DIAMOND";
+        } else if (referrals >= 50 && purchases >= 20 && sessions >= 15) {
             return "GOLD";
+        } else if (referrals >= 25 && purchases >= 10 && sessions >= 5) {
+            return "SILVER";
         } else {
             return "BRONZE";
         }
