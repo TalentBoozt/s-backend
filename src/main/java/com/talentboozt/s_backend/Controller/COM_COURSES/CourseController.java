@@ -146,12 +146,12 @@ public class CourseController {
     }
 
     @PutMapping("/increment/material-view/{courseId}/{id}")
-    public MaterialsDTO incrementMaterialView(@PathVariable String courseId, @PathVariable String id) {
+    public CourseModel incrementMaterialView(@PathVariable String courseId, @PathVariable String id) {
         return courseService.incrementMaterialView(courseId, id);
     }
 
     @PutMapping("/visibility/material/{courseId}/{id}/{status}")
-    public MaterialsDTO updateMaterialVisibility(@PathVariable String courseId, @PathVariable String id, @PathVariable String status) {
+    public CourseModel updateMaterialVisibility(@PathVariable String courseId, @PathVariable String id, @PathVariable String status) {
         return courseService.updateMaterialVisibility(courseId, id, status);
     }
 
