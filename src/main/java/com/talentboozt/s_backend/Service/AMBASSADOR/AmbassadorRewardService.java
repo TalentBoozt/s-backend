@@ -60,4 +60,17 @@ public class AmbassadorRewardService {
     public void deleteAmbassadorReward(String id) {
         ambassadorRewardRepository.deleteById(id);
     }
+
+    public Iterable<AmbassadorRewardModel> getAllAmbassadorRewards() {
+        return ambassadorRewardRepository.findAll();
+    }
+
+    public AmbassadorRewardModel markAsShipped(String id) {
+        Optional<AmbassadorRewardModel> ambassadorRewardModel = ambassadorRewardRepository.findById(id);
+        if (ambassadorRewardModel.isPresent()) {
+            ambassadorRewardModel.get().setStatus("SHIPPED");
+            return ambassadorRewardRepository.save(ambassadorRewardModel.get());
+        }
+        return null;
+    }
 }

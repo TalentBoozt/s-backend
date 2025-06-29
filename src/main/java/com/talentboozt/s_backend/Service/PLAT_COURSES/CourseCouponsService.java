@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -48,16 +49,28 @@ public class CourseCouponsService {
     }
 
     public CourseCouponsModel activateCoupon(String couponId, String userId) {
-        CourseCouponsModel coupon = couponRepo.findById(couponId).orElseThrow();
-        if (coupon.getStatus() == CourseCouponsModel.Status.UNLOCKED && coupon.getUserId().equals(userId)) {
-            Instant now = Instant.now();
-            coupon.setStatus(CourseCouponsModel.Status.ACTIVE);
-            coupon.setRedeemedAt(now);
-            coupon.setExpiresAt(now.plusMillis(coupon.getValidityInMillis()));
-            coupon.setToken(UUID.randomUUID().toString());
-            return couponRepo.save(coupon);
+        CourseCouponsModel coupon = couponRepo.findById(couponId)
+                .orElseThrow(() -> new NoSuchElementException("Coupon not found"));
+
+        if (!userId.equals(coupon.getUserId())) {
+            throw new IllegalStateException("Unauthorized: Not the owner of this coupon");
         }
-        return coupon;
+
+        if (coupon.getStatus() == CourseCouponsModel.Status.ACTIVE) {
+            throw new IllegalStateException("Coupon is already active");
+        }
+
+        if (coupon.getStatus() != CourseCouponsModel.Status.UNLOCKED) {
+            throw new IllegalStateException("Coupon must be in UNLOCKED state to activate");
+        }
+
+        Instant now = Instant.now();
+        coupon.setStatus(CourseCouponsModel.Status.ACTIVE);
+        coupon.setRedeemedAt(now); // Using as activation time
+        coupon.setExpiresAt(now.plusMillis(coupon.getValidityInMillis()));
+        coupon.setToken(UUID.randomUUID().toString());
+
+        return couponRepo.save(coupon);
     }
 
     public CourseCouponsModel redeemCoupon(CouponRedemptionRequest request) {
@@ -80,5 +93,9 @@ public class CourseCouponsService {
         coupon.setExpiredAt(Instant.now());
 
         return couponRepo.save(coupon);
+    }
+
+    public void deleteCourseCoupon(String id) {
+        couponRepo.deleteById(id);
     }
 }
