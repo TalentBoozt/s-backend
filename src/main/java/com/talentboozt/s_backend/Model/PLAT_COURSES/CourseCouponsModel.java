@@ -37,6 +37,7 @@ public class CourseCouponsModel {
     private Instant redeemedAt;
     private Instant expiresAt;          // Optional: fixed expiration date
     private Status status;              // Enum: CREATED, UNLOCKED, ACTIVE, REDEEMED, EXPIRED
+    private String level;               // BRONZE, SILVER, GOLD (optional)
 
     // Usage scope
     private List<String> applicableCourseIds; // Null or empty = all courses

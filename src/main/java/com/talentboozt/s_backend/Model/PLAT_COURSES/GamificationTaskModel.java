@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
+import java.util.Map;
 
 @Setter
 @Getter
@@ -24,9 +25,13 @@ public class GamificationTaskModel {
     private int targetValue;          // e.g., 5 referrals
     private String rewardType;        // COUPON, VOUCHER, BADGE, SWAG
     private String rewardId;          // Optional (e.g., couponId or rewardConfigId)
+    private Map<String, Object> rewardMetadata; // Optional
 
     private boolean recurring;        // true = can repeat monthly etc.
     private int frequencyInDays;      // if recurring, cooldown period
 
     private Instant createdAt;
+
+    private int priority = 0;     // 0 = lowest, higher = more important
+    private String groupKey;      // Optional: e.g., "JULY_PROMO" or "LEVEL1"
 }

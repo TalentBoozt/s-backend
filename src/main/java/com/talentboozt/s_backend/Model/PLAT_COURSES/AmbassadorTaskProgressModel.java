@@ -19,14 +19,16 @@ public class AmbassadorTaskProgressModel {
     @Indexed
     private String ambassadorId;
     private String taskId;
+    private String taskType;
 
     private int progressValue;
     private boolean completed;
 
     private Instant startedAt;
     private Instant completedAt;
+    private Instant lastResetAt;
 
-    private String rewardStatus; // NOT_ISSUED, ISSUED, REDEEMED
-    private boolean rewarded;
+    private String rewardStatus = "NOT_ISSUED"; // or enum
+    private boolean rewarded = false;
     private Instant rewardedAt;
 }
