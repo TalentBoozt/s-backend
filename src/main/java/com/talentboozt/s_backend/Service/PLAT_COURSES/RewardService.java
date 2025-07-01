@@ -2,10 +2,15 @@ package com.talentboozt.s_backend.Service.PLAT_COURSES;
 
 import com.talentboozt.s_backend.Model.AMBASSADOR.AmbassadorProfileModel;
 import com.talentboozt.s_backend.Model.AMBASSADOR.AmbassadorRewardModel;
+import com.talentboozt.s_backend.Model.AMBASSADOR.BadgeModel;
+import com.talentboozt.s_backend.Model.AMBASSADOR.SwagModel;
 import com.talentboozt.s_backend.Model.PLAT_COURSES.AmbassadorTaskProgressModel;
 import com.talentboozt.s_backend.Model.PLAT_COURSES.CourseCouponsModel;
 import com.talentboozt.s_backend.Model.PLAT_COURSES.GamificationTaskModel;
+import com.talentboozt.s_backend.Repository.AMBASSADOR.AmbassadorProfileRepository;
 import com.talentboozt.s_backend.Repository.AMBASSADOR.AmbassadorRewardRepository;
+import com.talentboozt.s_backend.Repository.AMBASSADOR.BadgeRepository;
+import com.talentboozt.s_backend.Repository.AMBASSADOR.SwagRepository;
 import com.talentboozt.s_backend.Repository.PLAT_COURSES.CourseCouponsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +18,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -23,6 +29,15 @@ public class RewardService {
 
     @Autowired
     private AmbassadorRewardRepository rewardRepo;
+
+    @Autowired
+    private AmbassadorProfileRepository ambassadorRepo;
+
+    @Autowired
+    private BadgeRepository badgeRepo;
+
+    @Autowired
+    private SwagRepository swagRepo;
 
     @Autowired
     private RewardAuditService auditService;
@@ -41,7 +56,10 @@ public class RewardService {
 
         switch (task.getRewardType()) {
             case "COUPON" -> issueCouponReward(ambassador, task, progress);
-            case "BADGE", "SWAG", "DISCOUNT" -> issueGenericReward(ambassador, task.getRewardType(), task.getId());
+            case "BADGE" -> issueBadgeReward(ambassador, task, progress);
+            case "SWAG" -> issueSwagReward(ambassador, task, progress);
+            case "POINTS" -> addPointsReward(ambassador, task, progress);
+            case "DISCOUNT" -> issueGenericReward(ambassador, task.getRewardType(), task.getId());
         }
 
         progress.setRewarded(true);
@@ -99,5 +117,84 @@ public class RewardService {
         reward.setIssuedAt(Instant.now());
 
         rewardRepo.save(reward);
+    }
+
+    private void issueBadgeReward(AmbassadorProfileModel ambassador, GamificationTaskModel task, AmbassadorTaskProgressModel progress) {
+        String badgeId = Optional.ofNullable(task.getRewardMetadata())
+                .map(m -> m.get("badgeId"))
+                .map(Object::toString)
+                .orElse(task.getId());
+
+        if (badgeRepo.existsByAmbassadorIdAndBadgeId(ambassador.getId(), badgeId)) return;
+
+        BadgeModel badge = new BadgeModel();
+        badge.setAmbassadorId(ambassador.getId());
+        badge.setTaskId(task.getId());
+        badge.setBadgeId(badgeId);
+        badge.setTitle(task.getTitle());
+        badge.setDescription(task.getDescription());
+        badge.setEarnedAt(Instant.now());
+
+        badgeRepo.save(badge);
+
+        auditService.record(
+                ambassador,
+                task,
+                "BADGE",
+                badge.getBadgeId(),
+                badge.getTitle(),
+                "ISSUED",
+                "Badge reward issued for task"
+        );
+    }
+
+    private void issueSwagReward(AmbassadorProfileModel ambassador, GamificationTaskModel task, AmbassadorTaskProgressModel progress) {
+        String swagType = Optional.ofNullable(task.getRewardMetadata())
+                .map(m -> m.get("swagType"))
+                .map(Object::toString)
+                .orElse("unknown");
+
+        if (swagRepo.existsByAmbassadorIdAndTaskId(ambassador.getId(), task.getId())) return;
+
+        SwagModel swag = new SwagModel();
+        swag.setAmbassadorId(ambassador.getId());
+        swag.setTaskId(task.getId());
+        swag.setSwagType(swagType);
+        swag.setStatus("PENDING");
+        swag.setRequestedAt(Instant.now());
+
+        swagRepo.save(swag);
+
+        auditService.record(
+                ambassador,
+                task,
+                "SWAG",
+                swag.getId(),
+                swag.getSwagType(),
+                "ISSUED",
+                "Swag reward issued for task"
+        );
+    }
+
+    private void addPointsReward(AmbassadorProfileModel ambassador, GamificationTaskModel task, AmbassadorTaskProgressModel progress) {
+        int points = Optional.ofNullable(task.getRewardMetadata())
+                .map(m -> m.get("points"))
+                .map(Object::toString)
+                .map(Integer::parseInt)
+                .orElse(0);
+
+        ambassador.setPoints(ambassador.getPoints() + points);
+        ambassador.setLastPointEarnedAt(Instant.now());
+        ambassadorRepo.save(ambassador);
+
+        auditService.record(
+                ambassador,
+                task,
+                "POINTS",
+                String.valueOf(points),
+                "Points",
+                "ISSUED",
+                "Points added for completed task"
+        );
     }
 }
