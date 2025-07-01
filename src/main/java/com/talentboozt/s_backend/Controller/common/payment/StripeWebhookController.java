@@ -11,6 +11,7 @@ import com.talentboozt.s_backend.Repository.common.payment.PaymentMethodReposito
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CmpPostedJobsService;
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CompanyService;
 import com.talentboozt.s_backend.Service.PLAT_COURSES.EmpCoursesService;
+import com.talentboozt.s_backend.Service.SYS_TRACKING.StripeAuditLogService;
 import com.talentboozt.s_backend.Service.common.CredentialsService;
 import com.talentboozt.s_backend.Service.common.payment.*;
 import com.talentboozt.s_backend.Utils.ConfigUtility;
@@ -72,7 +73,8 @@ public class StripeWebhookController {
     @Autowired
     private EmpCoursesService empCoursesService;
 
-    private static final Logger logger = LoggerFactory.getLogger(StripeWebhookController.class);
+    @Autowired
+    private StripeAuditLogService auditLogService;
 
     @PostMapping("/stripe-events")
     public ResponseEntity<String> handleStripeEvent(@RequestBody String payload) {
@@ -106,6 +108,8 @@ public class StripeWebhookController {
         Map<String, String> response = new HashMap<>();
         response.put("id", session.getId());
         response.put("url", session.getUrl());
+
+        auditLogService.logCustom("checkout.session.created", "Created checkout session for type: " + processType + ", sessionId: " + session.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -116,15 +120,17 @@ public class StripeWebhookController {
 
         try {
             Event event = Webhook.constructEvent(payload, sigHeader, configUtility.getProperty("STRIPE_WEBHOOK_SECRET"));
+            auditLogService.logEvent(event, payload);
             handleEvent(event);
+            auditLogService.markProcessed(event.getId());
             return ResponseEntity.ok("Webhook processed successfully");
         } catch (Exception e) {
-            logger.error("Error processing webhook: {}", e.getMessage(), e);
+            auditLogService.markFailed("unknown", e.getMessage(), true);
             return ResponseEntity.badRequest().body("Webhook error: " + e.getMessage());
         }
     }
 
-    private void handleEvent(Event event) {
+    public void handleEvent(Event event) {
         Map<String, Consumer<Event>> eventHandlers = Map.of(
                 "checkout.session.completed", this::handleCheckoutSessionCompleted,
                 "invoice.payment_succeeded", this::handleInvoicePaymentSucceeded,
@@ -137,13 +143,14 @@ public class StripeWebhookController {
 
         Consumer<Event> handler = eventHandlers.getOrDefault(event.getType(), this::handleUnhandledEvent);
         handler.accept(event);
+        auditLogService.logEvent(event, "Routing Stripe event: " + event.getType());
     }
 
     private void handleCheckoutSessionCompleted(Event event) {
         try {
             Session session = (Session) event.getDataObjectDeserializer().getObject().orElse(null);
             if (session == null || session.getMetadata() == null) {
-                logger.warn("Session or metadata is null");
+                auditLogService.markFailed(event.getId(), "Session or metadata is null", true);
                 return;
             }
 
@@ -154,35 +161,45 @@ public class StripeWebhookController {
             String purchaseType = session.getMetadata().get("purchase_type");
 
             if ("course".equals(purchaseType)) {
-//                handleCoursePurchase(session);
                 Map<String, String> metadata = session.getMetadata();
-                Customer customer = Customer.retrieve(session.getCustomer());
 
-                CustomerUpdateParams updateParams = CustomerUpdateParams.builder()
-                        .putMetadata("user_id", metadata.get("user_id"))
-                        .putMetadata("course_id", metadata.get("course_id"))
-                        .putMetadata("installment_id", metadata.get("installment_id"))
-                        .build();
+                if (session.getCustomer() != null) {
+                    Customer customer = Customer.retrieve(session.getCustomer());
 
-                customer.update(updateParams);
+                    CustomerUpdateParams updateParams = CustomerUpdateParams.builder()
+                            .putMetadata("user_id", metadata.get("user_id"))
+                            .putMetadata("course_id", metadata.get("course_id"))
+                            .putMetadata("installment_id", metadata.get("installment_id"))
+                            .build();
+
+                    customer.update(updateParams);
+                    auditLogService.logEvent(event, "Updated customer metadata for user_id: " + metadata.get("user_id"));
+                } else {
+                    auditLogService.markFailed(event.getId(), "Session has no customer ID (one-time course purchase?)", false);
+                }
 
                 String userId = session.getMetadata().get("user_id");
                 String courseId = session.getMetadata().get("course_id");
                 String installmentId = session.getMetadata().get("installment_id");
 
                 if (userId == null || courseId == null || installmentId == null) {
-                    logger.warn("Missing required metadata: user_id, course_id or installment_id");
+                    auditLogService.markFailed(event.getId(), "Missing required metadata: user_id, course_id or installment_id", true);
                     return;
                 }
                 try {
-                    createOrder(userId, courseId, installmentId);
                     createBillingHistory(userId, session.getId(), session, "course");
                     createPaymentMethod(userId, session, "course");
+                    updateCourseInstallmentPayment(userId, courseId, installmentId);
+                    auditLogService.markProcessed(event.getId());
                 } catch (StripeException e) {
-                    logger.error("Error creating order for user: {}", userId, e);
+                    auditLogService.markFailed(event.getId(), "Error creating order for user: " + userId, true);
                 }
             } else if ("subscription".equals(purchaseType)) {
                 Map<String, String> metadata = session.getMetadata();
+                if (session.getCustomer() == null) {
+                    auditLogService.markFailed(event.getId(), "Session has no customer ID (one-time subscription purchase?)", true);
+                    return;
+                }
                 Customer customer = Customer.retrieve(session.getCustomer());
 
                 CustomerUpdateParams updateParams = CustomerUpdateParams.builder()
@@ -191,13 +208,13 @@ public class StripeWebhookController {
                         .build();
 
                 customer.update(updateParams);
-
+                auditLogService.logEvent(event, "Updated customer metadata for company_id: " + metadata.get("company_id"));
 
                 String companyId = session.getMetadata().get("company_id");
                 String planName = session.getMetadata().get("plan_name");
 
                 if (companyId == null || planName == null) {
-                    logger.warn("Missing required metadata: company_id or plan_name");
+                    auditLogService.markFailed(event.getId(), "Missing required metadata: company_id or plan_name", true);
                     return;
                 }
                 try {
@@ -205,46 +222,49 @@ public class StripeWebhookController {
                     createBillingHistory(companyId, session.getId(), session, "subscription");
                     createPaymentMethod(companyId, session, "subscription");
                     updateCompanyStatus(companyId, session);
+                    auditLogService.markProcessed(event.getId());
                 } catch (StripeException e) {
-                    logger.error("Error creating subscription for company: {}", companyId, e);
+                    auditLogService.markFailed(event.getId(), "Error creating subscription for company: " + companyId, true);
                 }
             }
 
         } catch (Exception e) {
-            logger.error("Error handling checkout.session.completed: {}", e.getMessage(), e);
+            auditLogService.markFailed(event.getId(), "Error handling checkout.session.completed: " + e.getMessage(), true);
         }
     }
 
     private void handleInvoiceCreated(Event event) {
         Invoice invoice = (Invoice) event.getDataObjectDeserializer().getObject().orElse(null);
         if (invoice == null) {
-            logger.warn("Invoice object is null");
+            auditLogService.markFailed(event.getId(), "Invoice object is null", true);
             return;
         }
         try {
             createInvoice(invoice);
+            auditLogService.markProcessed(event.getId());
         } catch (StripeException e) {
-            logger.error("Error creating invoice: {}", e.getMessage(), e);
+            auditLogService.markFailed(event.getId(), "Error creating invoice: " + e.getMessage(), true);
         }
     }
 
     private void handleInvoiceUpdated(Event event) {
         Invoice invoice = (Invoice) event.getDataObjectDeserializer().getObject().orElse(null);
         if (invoice == null) {
-            logger.warn("Invoice object is null");
+            auditLogService.markFailed(event.getId(), "Invoice object is null", true);
             return;
         }
         try {
             updateInvoice(invoice);
+            auditLogService.markProcessed(event.getId());
         } catch (StripeException e) {
-            logger.error("Error updating invoice: {}", e.getMessage(), e);
+            auditLogService.markFailed(event.getId(), "Error updating invoice: " + e.getMessage(), true);
         }
     }
 
     private void handleInvoicePaymentSucceeded(Event event) {
         Invoice invoice = (Invoice) event.getDataObjectDeserializer().getObject().orElse(null);
         if (invoice == null) {
-            logger.warn("Invoice object is null");
+            auditLogService.markFailed(event.getId(), "Invoice object is null", true);
             return;
         }
         String subscriptionId = invoice.getSubscription();
@@ -252,22 +272,24 @@ public class StripeWebhookController {
 
         // Update subscription billing history
         subscriptionService.updateBillingHistory(subscriptionId, amountPaid, "Paid");
+        auditLogService.logEvent(event, "Updated subscription billing history for subscriptionId: " + subscriptionId);
     }
 
     private void handleInvoicePaymentFailed(Event event) {
         Invoice invoice = (Invoice) event.getDataObjectDeserializer().getObject().orElse(null);
         if (invoice == null) {
-            logger.warn("Invoice object is null");
+            auditLogService.markFailed(event.getId(), "Invoice object is null", true);
             return;
         }
         String subscriptionId = invoice.getSubscription();
 
         // Update subscription as inactive
         subscriptionService.markAsInactive(subscriptionId);
+        auditLogService.logEvent(event, "Marked subscription as inactive for subscriptionId: " + subscriptionId);
     }
 
     private void handleUnhandledEvent(Event event) {
-        logger.info("Unhandled event type: {}", event.getType());
+        auditLogService.markFailed(event.getId(), "Unhandled event type: " + event.getType(), false);
     }
 
     private void createInvoice(Invoice invoice) throws StripeException {
@@ -284,7 +306,7 @@ public class StripeWebhookController {
         }
 
         if (companyId == null) {
-            logger.warn("Missing required metadata: company_id");
+            auditLogService.markFailed(invoice.getId(), "Missing required metadata: company_id", true);
             return;
         }
 
@@ -321,7 +343,7 @@ public class StripeWebhookController {
         }
 
         if (companyId == null) {
-            logger.warn("Missing required metadata: company_id");
+            auditLogService.markFailed(invoice.getId(), "Missing required metadata: company_id", true);
             return;
         }
 
@@ -342,7 +364,7 @@ public class StripeWebhookController {
         }
     }
 
-    private void createOrder(String userId, String courseId, String installmentId) throws StripeException {
+    private void updateCourseInstallmentPayment(String userId, String courseId, String installmentId) throws StripeException {
         empCoursesService.updateInstallmentPayment(userId, courseId, installmentId, "paid");
     }
 
@@ -374,17 +396,17 @@ public class StripeWebhookController {
                 if (paymentIntentId != null) {
                     paymentIntent = PaymentIntent.retrieve(paymentIntentId);
                 } else {
-                    logger.warn("PaymentIntent is null in latest invoice");
+                    auditLogService.markFailed(invoiceId, "PaymentIntent is null in latest invoice", true);
                 }
             } else {
-                logger.warn("Subscription does not contain latest invoice");
+                auditLogService.markFailed(invoiceId, "Subscription does not contain latest invoice", true);
             }
         } else {
             paymentIntent = PaymentIntent.retrieve(session.getPaymentIntent());
         }
 
         if (paymentIntent == null) {
-            logger.warn("PaymentIntent is null");
+            auditLogService.markFailed(invoiceId, "PaymentIntent is null", true);
             return;
         }
 
@@ -414,17 +436,17 @@ public class StripeWebhookController {
                 if (paymentIntentId != null) {
                     paymentIntent = PaymentIntent.retrieve(paymentIntentId);
                 } else {
-                    logger.warn("PaymentIntent is null in latest invoice");
+                    auditLogService.markFailed("unknown", "PaymentIntent is null in latest invoice", true);
                 }
             } else {
-                logger.warn("Subscription does not contain latest invoice");
+                auditLogService.markFailed("unknown", "Subscription does not contain latest invoice", true);
             }
         } else {
             paymentIntent = PaymentIntent.retrieve(session.getPaymentIntent());
         }
 
         if (paymentIntent == null) {
-            logger.warn("PaymentIntent is null");
+            auditLogService.markFailed("unknown", "PaymentIntent is null", true);
             return;
         }
 
@@ -455,17 +477,17 @@ public class StripeWebhookController {
                 if (paymentIntentId != null) {
                     paymentIntent = PaymentIntent.retrieve(paymentIntentId);
                 } else {
-                    logger.warn("PaymentIntent is null in latest invoice");
+                    auditLogService.markFailed("unknown", "PaymentIntent is null in latest invoice", true);
                 }
             } else {
-                logger.warn("Subscription does not contain latest invoice");
+                auditLogService.markFailed("unknown", "Subscription does not contain latest invoice", true);
             }
         } else {
             paymentIntent = PaymentIntent.retrieve(session.getPaymentIntent());
         }
 
         if (paymentIntent == null) {
-            logger.warn("PaymentIntent is null");
+            auditLogService.markFailed("unknown", "PaymentIntent is null", true);
             return;
         }
         PaymentMethod paymentMethod = PaymentMethod.retrieve(paymentIntent.getPaymentMethod());
@@ -484,7 +506,7 @@ public class StripeWebhookController {
         String companyId;
         Subscription subscription = (Subscription) event.getDataObjectDeserializer().getObject().orElse(null);
         if (subscription == null) {
-            logger.warn("Subscription object is null");
+            auditLogService.markFailed("unknown", "Subscription object is null", true);
             return;
         }
 
@@ -501,7 +523,7 @@ public class StripeWebhookController {
             subscriptionService.updateSubscription(companyId, subscriptionsModel);
 
         } catch (StripeException e) {
-            logger.error(e.getMessage());
+            auditLogService.markFailed("unknown", e.getMessage(), true);
         }
     }
 
@@ -513,7 +535,7 @@ public class StripeWebhookController {
         } else if (subscription.getMetadata() != null && subscription.getMetadata().containsKey("company_id")) {
             companyId = subscription.getMetadata().get("company_id");
         } else {
-            logger.warn("Missing required metadata: company_id");
+            auditLogService.markFailed("unknown", "Missing required metadata: company_id", true);
             return companyId;
         }
         return companyId;
@@ -522,10 +544,10 @@ public class StripeWebhookController {
     private void handleSubscriptionDeleted(Event event) {
         Subscription subscription = (Subscription) event.getDataObjectDeserializer().getObject().orElse(null);
         if (subscription == null) {
-            logger.warn("Subscription object is null");
+            auditLogService.markFailed("unknown", "Subscription object is null", true);
             return;
         }
         subscriptionService.markAsInactive(subscription.getId());
+        auditLogService.logEvent(event, "Subscription deleted for subscriptionId: " + subscription.getId());
     }
 }
-
