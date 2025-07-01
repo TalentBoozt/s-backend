@@ -3,7 +3,9 @@ package com.talentboozt.s_backend.Service.common;
 import com.talentboozt.s_backend.DTO.common.LocationCordDTO;
 import com.talentboozt.s_backend.DTO.common.LoginMetaDTO;
 import com.talentboozt.s_backend.Model.common.Login;
+import com.talentboozt.s_backend.Repository.AMBASSADOR.AmbassadorProfileRepository;
 import com.talentboozt.s_backend.Repository.common.LoginRepository;
+import com.talentboozt.s_backend.Service.AMBASSADOR.AmbassadorPointService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,12 @@ public class LoginService {
 
     @Autowired
     private LoginRepository loginRepository;
+
+    @Autowired
+    private AmbassadorPointService pointService;
+
+    @Autowired
+    private AmbassadorProfileRepository ambassadorRepo;
 
     // Record daily login
     public void recordLogin(String userId, LoginMetaDTO metadata) {
@@ -41,6 +49,8 @@ public class LoginService {
             metadata.setLocation(new LocationCordDTO());
         }
 
+        boolean isNewLogin = false;
+
         // Find login record by user ID
         Optional<Login> optionalLogin = loginRepository.findByUserId(userId);
         if (optionalLogin.isPresent()) {
@@ -51,7 +61,7 @@ public class LoginService {
                 login.getLoginDates().add(todayStr);
                 login.getMetaData().add(metadata);
                 loginRepository.save(login);
-                return;
+                isNewLogin = true;
             }
 
             if (userId.equals("unknown")) {
@@ -70,6 +80,11 @@ public class LoginService {
             newLogin.setMetaData(newMetaData);
             newLogin.setLoginDates(dates);
             loginRepository.save(newLogin);
+            isNewLogin = true;
+        }
+
+        if (isNewLogin) {
+            pointService.handleDailyLogin(userId);
         }
     }
 

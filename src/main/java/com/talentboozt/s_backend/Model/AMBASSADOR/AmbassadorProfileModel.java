@@ -50,4 +50,10 @@ public class AmbassadorProfileModel {
     private String interviewNote;
     private List<String> badgeHistory; // track earned dates
     private Map<String, Object> perks; // discountPercent, freeCourseCount, etc.
+
+    private int points = 0;
+    private Instant lastPointEarnedAt;
+    private int totalLogins = 0;
+    private int consecutiveLoginDays = 0;
+    private Instant lastLoginDate;
 }
