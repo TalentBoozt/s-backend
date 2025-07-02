@@ -16,6 +16,9 @@ public class ModuleDTO {
     private String date;
     private String start;
     private String end;
+    private String utcStart;
+    private String utcEnd;
+    private String trainerTimezone;
     private String paid;
     private String meetingLink;
     private String status;

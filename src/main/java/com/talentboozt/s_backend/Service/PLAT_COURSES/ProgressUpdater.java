@@ -8,6 +8,7 @@ import com.talentboozt.s_backend.Repository.AMBASSADOR.AmbassadorSessionReposito
 import com.talentboozt.s_backend.Repository.AMBASSADOR.ReferralRepository;
 import com.talentboozt.s_backend.Repository.PLAT_COURSES.CourseCouponsRepository;
 import com.talentboozt.s_backend.Repository.PLAT_COURSES.TaskProgressRepository;
+import com.talentboozt.s_backend.Service.AMBASSADOR.AmbassadorPointService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,9 @@ public class ProgressUpdater {
 
     @Autowired
     private RewardService rewardService;
+
+    @Autowired
+    private AmbassadorPointService pointService;
 
     @Transactional
     public void updateProgressForTask(AmbassadorProfileModel ambassador, GamificationTaskModel task) {
@@ -67,6 +71,10 @@ public class ProgressUpdater {
             progress.setCompleted(true);
             progress.setCompletedAt(Instant.now());
             progress.setRewardStatus("NOT_ISSUED");
+
+            if (task.getPoints() > 0) {
+                pointService.addPoints(ambassadorId, task.getPoints(), "COMPLETED_TASK: "+task.getTitle(), taskId);
+            }
         }
 
         // If eligible for reward

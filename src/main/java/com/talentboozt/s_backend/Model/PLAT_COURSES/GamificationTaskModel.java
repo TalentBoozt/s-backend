@@ -34,4 +34,5 @@ public class GamificationTaskModel {
 
     private int priority = 0;     // 0 = lowest, higher = more important
     private String groupKey;      // Optional: e.g., "JULY_PROMO" or "LEVEL1"
+    private int points = 0;       // points count for completing task
 }

@@ -45,6 +45,9 @@ public class CourseModel {
     private String startDate;
     private String fromTime;
     private String toTime;
+    private String utcStart;  // UTC ISO string
+    private String utcEnd;
+    private String trainerTimezone;
     private String courseStatus;
     private String paymentMethod;
     private boolean publicity;
