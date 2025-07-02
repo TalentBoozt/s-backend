@@ -8,6 +8,8 @@ import com.stripe.model.checkout.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,8 @@ public class StripeService {
     public Session createSubscriptionSession(Map<String, Object> data) throws StripeException {
         String companyId = (String) data.get("companyId");
         String planName = (String) data.get("planName");
+        String referrer = (String) data.get("referrer");
+        String encodedReferrer = URLEncoder.encode(referrer, StandardCharsets.UTF_8);
 
         Map<String, String> PLAN_PRICE_MAP = Map.of(
                 "Basic", getRequiredProperty("STRIPE_TEST_PRICE_ID"),
@@ -67,8 +71,8 @@ public class StripeService {
         params.put("line_items", List.of(Map.of("price", priceId, "quantity", 1)));
         params.put("mode", isOneTime ? "payment" : "subscription");
         params.put("metadata", metadata);
-        params.put("success_url", configUtility.getProperty("STRIPE_SUCCESS_URL"));
-        params.put("cancel_url", configUtility.getProperty("STRIPE_CANCEL_URL"));
+        params.put("success_url", configUtility.getProperty("STRIPE_SUCCESS_URL") + "?referrer=" + encodedReferrer);
+        params.put("cancel_url", configUtility.getProperty("STRIPE_CANCEL_URL") + "?referrer=" + encodedReferrer);
 
         if (!isOneTime) {
             params.put("subscription_data", Map.of("metadata", metadata));
@@ -85,6 +89,8 @@ public class StripeService {
         String productId = (String) data.get("productId");
         String priceId = (String) data.get("priceId"); // already saved from course creation
         String priceType = (String) data.get("priceType"); // e.g. "default", "discounted"
+        String referrer = (String) data.get("referrer");
+        String encodedReferrer = URLEncoder.encode(referrer, StandardCharsets.UTF_8);
 
         Map<String, Object> metadata = Map.of(
                 "purchase_type", "course",
@@ -101,8 +107,8 @@ public class StripeService {
         params.put("line_items", List.of(Map.of("price", priceId, "quantity", 1)));
         params.put("mode", "payment");
         params.put("metadata", metadata);
-        params.put("success_url", configUtility.getProperty("STRIPE_SUCCESS_URL"));
-        params.put("cancel_url", configUtility.getProperty("STRIPE_CANCEL_URL"));
+        params.put("success_url", configUtility.getProperty("STRIPE_SUCCESS_URL") + "?referrer=" + encodedReferrer);
+        params.put("cancel_url", configUtility.getProperty("STRIPE_CANCEL_URL") + "?referrer=" + encodedReferrer);
 
         return Session.create(params);
     }
