@@ -52,9 +52,15 @@ public class QuizSubmissionController {
         return ResponseEntity.ok(service.getAttempts(employeeId, quizId));
     }
 
-    @GetMapping("/leaderboard")
-    public ResponseEntity<List<LeaderboardEntry>> getLeaderboard(
-            @RequestParam String quizId, @RequestParam(defaultValue = "10") int top) {
-        return ResponseEntity.ok(service.getLeaderboard(quizId, top));
+    @GetMapping("/leaderboard/quiz/{quizId}")
+    public ResponseEntity<List<LeaderboardEntry>> getQuizLeaderboard(@PathVariable String quizId,
+                                                                     @RequestParam(defaultValue = "10") int topN) {
+        return ResponseEntity.ok(service.getLeaderboard(quizId, topN));
+    }
+
+    @GetMapping("/leaderboard/course/{courseId}")
+    public ResponseEntity<List<LeaderboardEntry>> getCourseLeaderboard(@PathVariable String courseId,
+                                                                       @RequestParam(defaultValue = "10") int topN) {
+        return ResponseEntity.ok(service.getCourseLeaderboard(courseId, topN));
     }
 }

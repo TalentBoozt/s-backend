@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class QuizSubmissionService {
@@ -73,5 +74,47 @@ public class QuizSubmissionService {
             if (map.size() >= topN) break;
         }
         return new ArrayList<>(map.values());
+    }
+
+    public List<LeaderboardEntry> getCourseLeaderboard(String courseId, int topN) {
+        List<QuizAttempt> attempts = attemptRepo.findByCourseId(courseId);
+        Map<String, List<QuizAttempt>> groupedByEmployee = new HashMap<>();
+
+        // Group attempts by employee and keep only best per quiz
+        for (QuizAttempt attempt : attempts) {
+            groupedByEmployee.computeIfAbsent(attempt.getEmployeeId(), k -> new ArrayList<>()).add(attempt);
+        }
+
+        List<LeaderboardEntry> leaderboard = new ArrayList<>();
+
+        for (Map.Entry<String, List<QuizAttempt>> entry : groupedByEmployee.entrySet()) {
+            String employeeId = entry.getKey();
+            Map<String, QuizAttempt> bestAttemptsPerQuiz = new HashMap<>();
+
+            for (QuizAttempt a : entry.getValue()) {
+                bestAttemptsPerQuiz.compute(a.getQuizId(), (quizId, existing) -> {
+                    if (existing == null || a.getScore() > existing.getScore()) {
+                        return a;
+                    }
+                    return existing;
+                });
+            }
+
+            double totalScore = bestAttemptsPerQuiz.values().stream()
+                    .mapToDouble(QuizAttempt::getScore)
+                    .sum();
+
+            String latestSubmission = bestAttemptsPerQuiz.values().stream()
+                    .map(QuizAttempt::getSubmittedAt)
+                    .max(String::compareTo) // Assuming ISO format
+                    .orElse("");
+
+            leaderboard.add(new LeaderboardEntry(employeeId, totalScore, latestSubmission));
+        }
+
+        // Sort by score descending
+        leaderboard.sort((a, b) -> Double.compare(b.getBestScore(), a.getBestScore()));
+
+        return leaderboard.stream().limit(topN).collect(Collectors.toList());
     }
 }
