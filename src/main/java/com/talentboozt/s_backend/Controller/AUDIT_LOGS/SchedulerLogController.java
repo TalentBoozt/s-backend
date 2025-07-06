@@ -3,12 +3,14 @@ package com.talentboozt.s_backend.Controller.AUDIT_LOGS;
 import com.talentboozt.s_backend.Model.AUDIT_LOGS.SchedulerLogModel;
 import com.talentboozt.s_backend.Repository.AUDIT_LOGS.SchedulerLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/monitoring/scheduler")
@@ -25,5 +27,21 @@ public class SchedulerLogController {
     @GetMapping("/all")
     public List<SchedulerLogModel> getAllLogs() {
         return repo.findAll();
+    }
+
+    @GetMapping("/scheduler")
+    public Map<String, Object> getSchedulerLogs(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String jobName,
+            @RequestParam(required = false) String status
+    ) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "runAt"));
+        Page<SchedulerLogModel> logs = repo.search(jobName, status, pageable);
+
+        return Map.of(
+                "items", logs.getContent(),
+                "total", logs.getTotalElements()
+        );
     }
 }
