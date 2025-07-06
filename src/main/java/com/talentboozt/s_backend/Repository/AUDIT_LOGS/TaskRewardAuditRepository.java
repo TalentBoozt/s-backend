@@ -1,6 +1,6 @@
-package com.talentboozt.s_backend.Repository.PLAT_COURSES;
+package com.talentboozt.s_backend.Repository.AUDIT_LOGS;
 
-import com.talentboozt.s_backend.Model.PLAT_COURSES.TaskRewardAuditModel;
+import com.talentboozt.s_backend.Model.AUDIT_LOGS.TaskRewardAuditModel;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

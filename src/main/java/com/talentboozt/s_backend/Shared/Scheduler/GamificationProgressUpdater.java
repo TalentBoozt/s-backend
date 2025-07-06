@@ -5,7 +5,7 @@ import com.talentboozt.s_backend.Model.PLAT_COURSES.GamificationTaskModel;
 import com.talentboozt.s_backend.Repository.AMBASSADOR.AmbassadorProfileRepository;
 import com.talentboozt.s_backend.Repository.PLAT_COURSES.GamificationTaskRepository;
 import com.talentboozt.s_backend.Service.PLAT_COURSES.ProgressUpdater;
-import com.talentboozt.s_backend.Service.SYS_TRACKING.SchedulerLoggerService;
+import com.talentboozt.s_backend.Service.AUDIT_LOGS.SchedulerLoggerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

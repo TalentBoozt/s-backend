@@ -1,7 +1,7 @@
-package com.talentboozt.s_backend.Controller.SYS_TRACKING;
+package com.talentboozt.s_backend.Controller.AUDIT_LOGS;
 
-import com.talentboozt.s_backend.Model.SYS_TRACKING.SchedulerLogModel;
-import com.talentboozt.s_backend.Repository.SYS_TRACKING.SchedulerLogRepository;
+import com.talentboozt.s_backend.Model.AUDIT_LOGS.SchedulerLogModel;
+import com.talentboozt.s_backend.Repository.AUDIT_LOGS.SchedulerLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

@@ -2,11 +2,14 @@ package com.talentboozt.s_backend.Service._private;
 
 import com.talentboozt.s_backend.Model._private.UserActivity;
 import com.talentboozt.s_backend.Repository._private.UserActivityRepository;
+import com.talentboozt.s_backend.Service.AUDIT_LOGS.ClientActAuditLogService;
 import com.talentboozt.s_backend.Utils.EncryptionUtility;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -21,6 +24,12 @@ public class UserActivityService {
 
     @Autowired
     private UserActivityRepository repository;
+
+    @Autowired
+    private ClientActAuditLogService clientActAuditLogService;
+
+    @Value("${audit.expire-after-days:30}")
+    private long expireAfterDays;
 
     public void logUserActivity(String userId, String ipAddress, String endpointAccessed) {
         try {
@@ -40,9 +49,10 @@ public class UserActivityService {
                 activity.setTimestamp(LocalDateTime.now());
             }
             activity.setLastActive(LocalDateTime.now());
+            activity.setExpiresAt(Instant.now().plus(expireAfterDays, ChronoUnit.DAYS));
             repository.save(activity);
         } catch (Exception e) {
-            System.err.println("Error logging activity: " + e.getMessage());
+            clientActAuditLogService.log(userId, ipAddress, null, "Error logging user activity", "UserActivityService", Map.of("error", e.getMessage()));
         }
     }
 
@@ -57,8 +67,6 @@ public class UserActivityService {
 
     public List<Map<String, String>> getAllUserActivities() {
         List<UserActivity> activities = repository.findAll();
-
-//        activities.forEach(activity -> System.out.println("Fetched Activity: " + activity));
 
         return activities.stream().map(activity -> {
             Map<String, String> data = new HashMap<>();
