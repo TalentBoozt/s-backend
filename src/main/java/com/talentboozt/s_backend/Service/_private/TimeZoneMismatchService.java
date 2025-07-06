@@ -27,8 +27,10 @@ public class TimeZoneMismatchService {
         ZoneId zoneId = ZoneId.of(ipTimeZone.getTimezone());
         int serverOffsetMinutes = ZonedDateTime.now(zoneId).getOffset().getTotalSeconds() / 60;
 
-        return Math.abs(serverOffsetMinutes + clientOffsetMinutes) > 5;
-        // Note: client offset is NEGATIVE behind UTC (e.g., UTC+5:30 = -330)
+        int clientOffsetAbs = Math.abs(clientOffsetMinutes); // Client sends negative for UTC+
+        int difference = Math.abs(serverOffsetMinutes - clientOffsetAbs);
+        return difference > 5;
+        // Note: clientOffsetMinutes is negative when ahead of UTC (e.g., UTC+5:30 = -330)
     }
 }
 

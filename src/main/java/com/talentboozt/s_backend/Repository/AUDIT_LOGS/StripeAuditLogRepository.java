@@ -1,6 +1,6 @@
-package com.talentboozt.s_backend.Repository.SYS_TRACKING;
+package com.talentboozt.s_backend.Repository.AUDIT_LOGS;
 
-import com.talentboozt.s_backend.Model.SYS_TRACKING.StripeAuditLog;
+import com.talentboozt.s_backend.Model.AUDIT_LOGS.StripeAuditLog;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

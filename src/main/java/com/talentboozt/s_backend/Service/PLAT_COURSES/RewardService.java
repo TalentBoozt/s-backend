@@ -12,6 +12,7 @@ import com.talentboozt.s_backend.Repository.AMBASSADOR.AmbassadorRewardRepositor
 import com.talentboozt.s_backend.Repository.AMBASSADOR.BadgeRepository;
 import com.talentboozt.s_backend.Repository.AMBASSADOR.SwagRepository;
 import com.talentboozt.s_backend.Repository.PLAT_COURSES.CourseCouponsRepository;
+import com.talentboozt.s_backend.Service.AUDIT_LOGS.RewardAuditService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

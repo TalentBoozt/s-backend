@@ -28,33 +28,21 @@ public class RateLimiterService {
             default -> 300;
         };
 
-        long now = System.currentTimeMillis();
         RequestCounter counter = cache.get(key, k -> new RequestCounter());
-        counter.cleanup(now);
-
-        if (counter.getCount() >= limit) {
-            return false;
-        }
-
-        counter.increment(now);
-        return true;
+        return counter.tryAcquire(limit);
     }
 
     private static class RequestCounter {
-        private final Queue<Long> timestamps = new ConcurrentLinkedQueue<>();
+        private final AtomicInteger count = new AtomicInteger(0);
+        private volatile long windowStart = System.currentTimeMillis();
 
-        public void increment(long now) {
-            timestamps.add(now);
-        }
-
-        public int getCount() {
-            return timestamps.size();
-        }
-
-        public void cleanup(long now) {
-            while (!timestamps.isEmpty() && (now - timestamps.peek() > WINDOW_SIZE_MS)) {
-                timestamps.poll();
+        public synchronized boolean tryAcquire(int limit) {
+            long now = System.currentTimeMillis();
+            if (now - windowStart > WINDOW_SIZE_MS) {
+                count.set(0);
+                windowStart = now;
             }
+            return count.incrementAndGet() <= limit;
         }
     }
 }

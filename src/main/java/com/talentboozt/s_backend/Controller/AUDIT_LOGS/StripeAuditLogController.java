@@ -1,7 +1,7 @@
-package com.talentboozt.s_backend.Controller.SYS_TRACKING;
+package com.talentboozt.s_backend.Controller.AUDIT_LOGS;
 
-import com.talentboozt.s_backend.Model.SYS_TRACKING.StripeAuditLog;
-import com.talentboozt.s_backend.Repository.SYS_TRACKING.StripeAuditLogRepository;
+import com.talentboozt.s_backend.Model.AUDIT_LOGS.StripeAuditLog;
+import com.talentboozt.s_backend.Repository.AUDIT_LOGS.StripeAuditLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

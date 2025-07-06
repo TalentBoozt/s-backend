@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.Shared.Scheduler;
 
 import com.talentboozt.s_backend.Service.AMBASSADOR.LeaderboardService;
-import com.talentboozt.s_backend.Service.SYS_TRACKING.SchedulerLoggerService;
+import com.talentboozt.s_backend.Service.AUDIT_LOGS.SchedulerLoggerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

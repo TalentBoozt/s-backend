@@ -4,10 +4,12 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 import org.springframework.data.mongodb.core.mapping.FieldType;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Getter
@@ -29,4 +31,6 @@ public class UserActivity {
     private String country;
     private boolean suspectedVpn;
     private boolean suspectedBot;
+    @Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private Instant expiresAt;
 }

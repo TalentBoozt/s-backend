@@ -1,8 +1,9 @@
-package com.talentboozt.s_backend.Service.SYS_TRACKING;
+package com.talentboozt.s_backend.Service.AUDIT_LOGS;
 
-import com.talentboozt.s_backend.Model.SYS_TRACKING.SchedulerLogModel;
-import com.talentboozt.s_backend.Repository.SYS_TRACKING.SchedulerLogRepository;
+import com.talentboozt.s_backend.Model.AUDIT_LOGS.SchedulerLogModel;
+import com.talentboozt.s_backend.Repository.AUDIT_LOGS.SchedulerLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -14,13 +15,16 @@ public class SchedulerLoggerService {
     @Autowired
     private SchedulerLogRepository logRepo;
 
+    @Value("${audit.expire-after-days:30}")
+    private long expireAfterDays;
+
     public void log(String jobName, String status, String message) {
         SchedulerLogModel log = new SchedulerLogModel();
         log.setJobName(jobName);
         log.setRunAt(Instant.now());
         log.setStatus(status);
         log.setMessage(message != null ? message : "");
-        log.setExpireAt(Instant.now().plus(30, ChronoUnit.DAYS));
+        log.setExpireAt(Instant.now().plus(expireAfterDays, ChronoUnit.DAYS));
         logRepo.save(log);
     }
 }

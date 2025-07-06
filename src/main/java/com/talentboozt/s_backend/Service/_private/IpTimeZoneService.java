@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.Service._private;
 
+import com.talentboozt.s_backend.Service.AUDIT_LOGS.ClientActAuditLogService;
 import com.talentboozt.s_backend.Shared.IpGeoData;
 import com.talentboozt.s_backend.Shared.SessionContext;
 import com.talentboozt.s_backend.Shared.SessionContextCache;
@@ -21,9 +22,10 @@ public class IpTimeZoneService {
     @Autowired
     private SessionContextCache sessionContextCache;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private ClientActAuditLogService clientActAuditLogService;
 
-    private static final Logger logger = LoggerFactory.getLogger(IpTimeZoneService.class);
+    private final RestTemplate restTemplate = new RestTemplate();
 
     private final Cache<String, IpGeoData> ipCache = Caffeine.newBuilder()
             .expireAfterWrite(12, TimeUnit.HOURS)
@@ -63,10 +65,10 @@ public class IpTimeZoneService {
                 ipCache.put(ipAddress, geo);
                 return geo;
             } else {
-                logger.warn("IP lookup failed: {}", body.get("message"));
+                clientActAuditLogService.log("Anonymous", ipAddress, null, "IP_LOOKUP_FAILED", "IpTimeZoneService", Map.of("message", body.get("message")));
             }
         } catch (Exception e) {
-            logger.error("Geo IP fetch error", e);
+            clientActAuditLogService.log("Anonymous", ipAddress, null, "IP_LOOKUP_FAILED", "IpTimeZoneService", Map.of("error", e.getMessage()));
         }
 
         return null;
@@ -100,6 +102,9 @@ public class IpTimeZoneService {
                 context.setUserAgent(userAgent);
                 context.setSuspectedBot(isBot(userAgent));
                 context.setSuspectedVpn(vpn);
+                sessionContextCache.store(sessionId, context);
+            } else {
+                context = new SessionContext(ipAddress, country, timezone, countryCode, regionName, city, isp, proxy, vpn, isBot(userAgent), userAgent);
                 sessionContextCache.store(sessionId, context);
             }
         }

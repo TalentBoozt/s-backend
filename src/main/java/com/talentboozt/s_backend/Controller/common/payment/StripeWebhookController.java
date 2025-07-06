@@ -11,7 +11,7 @@ import com.talentboozt.s_backend.Repository.common.payment.PaymentMethodReposito
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CmpPostedJobsService;
 import com.talentboozt.s_backend.Service.COM_JOB_PORTAL.CompanyService;
 import com.talentboozt.s_backend.Service.PLAT_COURSES.EmpCoursesService;
-import com.talentboozt.s_backend.Service.SYS_TRACKING.StripeAuditLogService;
+import com.talentboozt.s_backend.Service.AUDIT_LOGS.StripeAuditLogService;
 import com.talentboozt.s_backend.Service.common.CredentialsService;
 import com.talentboozt.s_backend.Service.common.payment.*;
 import com.talentboozt.s_backend.Utils.ConfigUtility;
@@ -19,8 +19,6 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

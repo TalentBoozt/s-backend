@@ -89,6 +89,11 @@ public class JwtService {
                 .parseClaimsJws(encodedToken)
                 .getBody();
 
+        Date expiration = claims.getExpiration();
+        if (expiration.before(new Date())) {
+            throw new ExpiredJwtException(null, claims, "Token is expired");
+        }
+
         CredentialsModel user = new CredentialsModel();
         user.setEmployeeId((String) claims.get("userId"));
         user.setEmail((String) claims.get("sub"));

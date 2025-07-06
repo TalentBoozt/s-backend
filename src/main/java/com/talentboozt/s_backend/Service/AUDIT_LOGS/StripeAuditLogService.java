@@ -1,9 +1,10 @@
-package com.talentboozt.s_backend.Service.SYS_TRACKING;
+package com.talentboozt.s_backend.Service.AUDIT_LOGS;
 
 import com.stripe.model.Event;
-import com.talentboozt.s_backend.Model.SYS_TRACKING.StripeAuditLog;
-import com.talentboozt.s_backend.Repository.SYS_TRACKING.StripeAuditLogRepository;
+import com.talentboozt.s_backend.Model.AUDIT_LOGS.StripeAuditLog;
+import com.talentboozt.s_backend.Repository.AUDIT_LOGS.StripeAuditLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -19,6 +20,9 @@ public class StripeAuditLogService {
     @Autowired
     private StripeAuditLogRepository auditLogRepository;
 
+    @Value("${audit.expire-after-days:30}")
+    private long expireAfterDays;
+
     public void logEvent(Event event, String rawPayload) {
         StripeAuditLog log = new StripeAuditLog();
         log.setEventId(event.getId());
@@ -28,7 +32,7 @@ public class StripeAuditLogService {
         log.setRawPayload(rawPayload);
         log.setStatus("pending");
         log.setCreatedAt(new Date());
-        log.setExpiresAt(Instant.now().plus(30, ChronoUnit.DAYS)); // 30 days TTL
+        log.setExpiresAt(Instant.now().plus(expireAfterDays, ChronoUnit.DAYS)); // 30 days TTL
         auditLogRepository.save(log);
     }
 
@@ -63,7 +67,7 @@ public class StripeAuditLogService {
         log.setRawPayload(message);
         log.setStatus("info");
         log.setCreatedAt(new Date());
-        log.setExpiresAt(Instant.now().plus(30, ChronoUnit.DAYS)); // 30 days TTL
+        log.setExpiresAt(Instant.now().plus(expireAfterDays, ChronoUnit.DAYS)); // 30 days TTL
         auditLogRepository.save(log);
     }
 }

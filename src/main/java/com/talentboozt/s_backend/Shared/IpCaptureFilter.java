@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.Shared;
 
 import com.talentboozt.s_backend.Model.common.auth.CredentialsModel;
+import com.talentboozt.s_backend.Service.AUDIT_LOGS.ClientActAuditLogService;
 import com.talentboozt.s_backend.Service._private.IpTimeZoneService;
 import com.talentboozt.s_backend.Service._private.RateLimiterService;
 import com.talentboozt.s_backend.Service._private.TimeZoneMismatchService;
@@ -19,6 +20,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class IpCaptureFilter extends OncePerRequestFilter {
@@ -33,19 +36,26 @@ public class IpCaptureFilter extends OncePerRequestFilter {
     private IpTimeZoneService ipTimeZoneService;
     @Autowired
     private TimeZoneMismatchService timeZoneMisMatchService;
+    @Autowired
+    private ClientActAuditLogService clientActAuditLogService;
 
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("Proxy-Client-IP");
+        if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+            return ip.split(",")[0].trim(); // Use first IP
         }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getHeader("WL-Proxy-Client-IP");
+
+        ip = request.getHeader("Proxy-Client-IP");
+        if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+            return ip;
         }
-        if (ip == null || ip.isEmpty() || "unknown".equalsIgnoreCase(ip)) {
-            ip = request.getRemoteAddr();
+
+        ip = request.getHeader("WL-Proxy-Client-IP");
+        if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+            return ip;
         }
-        return ip != null ? ip : "0.0.0.0";
+
+        return request.getRemoteAddr() != null ? request.getRemoteAddr() : "0.0.0.0";
     }
 
     @Override
@@ -70,9 +80,15 @@ public class IpCaptureFilter extends OncePerRequestFilter {
                 CredentialsModel user = jwtService.getUserFromToken(token);
                 userId = user.getEmployeeId(); // Use the userId from the JWT token
             } catch (Exception e) {
-                // Log and proceed with "anonymous" in case of any issues with the token
-                System.out.println("Error extracting user from JWT: " + e.getMessage());
+                Map<String, Object> detail = new HashMap<>();
+                detail.put("token", token);
+                detail.put("error", e.getMessage());
+                clientActAuditLogService.log("Anonymous", ipAddress, null, "INVALID_JWT", "IpCaptureFilter", detail);
             }
+        } else if (token != null) {
+            clientActAuditLogService.log("Anonymous", ipAddress, null, "INVALID_OR_EXPIRED_JWT", "IpCaptureFilter", Map.of("token", token));
+        } else {
+            clientActAuditLogService.log("Anonymous", ipAddress, null, "ANONYMOUS_ACCESS", "IpCaptureFilter", Map.of("uri", endpointAccessed));
         }
 
         // Check rate-limiting: If the user/IP exceeds the limit, we handle it accordingly
@@ -81,6 +97,13 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         String rateLimitKey = userId.equals("Anonymous") ? ipAddress : ipAddress + ":" + userId;
         boolean allowed = rateLimiterService.checkRateLimit(rateLimitKey, category);
         if (!allowed) {
+            Map<String, Object> detail = new HashMap<>();
+            detail.put("category", category);
+            detail.put("ipAddress", ipAddress);
+            detail.put("userId", userId);
+            detail.put("uri", uri);
+            detail.put("rateLimitKey", rateLimitKey);
+            clientActAuditLogService.log(userId, ipAddress, null, "RATE_LIMIT_EXCEEDED", "IpCaptureFilter", detail);
             response.setStatus(429); // 429 Too Many Requests
             response.setHeader("Retry-After", "60");
             return;
@@ -95,6 +118,14 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         Integer offset = extractOffsetFromRequest(request);
         boolean captcha = captchaVerified(request);
 
+        if (captcha) {
+            clientActAuditLogService.log(userId, ipAddress, sessionId, "CAPTCHA_PREVIOUSLY_VERIFIED", "IpCaptureFilter", Map.of("userAgent", userAgent));
+        }
+
+        if (offset == null) {
+            clientActAuditLogService.log(userId, ipAddress, sessionId, "OFFSET_NOT_PROVIDED", "IpCaptureFilter", Map.of("userAgent", userAgent));
+        }
+
         // Detect timezone mismatch
         boolean isTimeZoneMismatch = false;
         if (offset != null) {
@@ -105,18 +136,33 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         ipTimeZoneService.enrichSessionWithTimeZone(sessionId, userAgent, ipAddress, isTimeZoneMismatch);
 
         if (isTimeZoneMismatch && !captcha) {
+            Map<String, Object> detail = new HashMap<>();
+            detail.put("clientOffset", offset);
+            detail.put("vpnDetected", isTimeZoneMismatch);
+            detail.put("captchaVerified", false);
+            detail.put("userAgent", extractUserAgentFromRequest(request));
+
+            clientActAuditLogService.log(userId, ipAddress, sessionId, "TIMEZONE_MISMATCH", "IpCaptureFilter", detail);
             response.setHeader("X-Timezone-Mismatch", "true");
         }
 
         filterChain.doFilter(request, response);
     }
 
+    private static final Map<String, String> CATEGORY_MAP = Map.of(
+            "/api/event/track", "analytics",
+            "/api/auth", "auth",
+            "/api/user", "user",
+            "/api/public", "public"
+    );
+
     private String categorizeEndpoint(String uri) {
-        if (uri.startsWith("/api/event/track")) return "analytics";
-        if (uri.startsWith("/api/auth")) return "auth";
-        if (uri.startsWith("/api/user")) return "user";
-        if (uri.startsWith("/api/public")) return "public";
-        return "default";
+        return CATEGORY_MAP.entrySet()
+                .stream()
+                .filter(entry -> uri.startsWith(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse("default");
     }
 
     // Helper method to extract JWT from the Authorization header
@@ -158,10 +204,8 @@ public class IpCaptureFilter extends OncePerRequestFilter {
             Boolean verified = (Boolean) session.getAttribute("captchaVerified");
             Instant verifiedAt = (Instant) session.getAttribute("captchaVerifiedAt");
 
-            if (Boolean.TRUE.equals(verified) && verifiedAt != null) {
-                Duration age = Duration.between(verifiedAt, Instant.now());
-                return age.toMinutes() < 30; // only valid for 30 minutes
-            }
+            return Boolean.TRUE.equals(verified) && verifiedAt != null &&
+                    Instant.now().isBefore(verifiedAt.plus(Duration.ofMinutes(60)));
         }
         return false;
     }

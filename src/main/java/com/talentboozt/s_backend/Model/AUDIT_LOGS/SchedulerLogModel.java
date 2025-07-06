@@ -1,4 +1,4 @@
-package com.talentboozt.s_backend.Model.SYS_TRACKING;
+package com.talentboozt.s_backend.Model.AUDIT_LOGS;
 
 import lombok.Getter;
 import lombok.Setter;
