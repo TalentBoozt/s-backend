@@ -28,7 +28,7 @@ public class CourseModel {
     private String level;
     private String currency;
     private String price;
-    private boolean isOnetimePayment;
+    private boolean onetimePayment;
     @Field("installment")
     private List<InstallmentDTO> installment;
     private String duration;
