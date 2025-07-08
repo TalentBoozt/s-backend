@@ -46,12 +46,7 @@ public class CourseService {
     }
 
     public CourseModel createCourse(CourseModel course) {
-        System.out.println(course.isOnetimePayment());
-        for (int i = 0; i < course.getModules().size(); i++) {
-            System.out.println(course.getModules().get(i).isOnetimePayment());
-        }
-        return course;
-//        return courseRepository.save(course);
+        return courseRepository.save(course);
     }
 
     public CourseModel updateCourse(String id, CourseModel course) {
