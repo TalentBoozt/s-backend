@@ -28,6 +28,7 @@ public class CourseModel {
     private String level;
     private String currency;
     private String price;
+    private boolean isOnetimePayment;
     @Field("installment")
     private List<InstallmentDTO> installment;
     private String duration;

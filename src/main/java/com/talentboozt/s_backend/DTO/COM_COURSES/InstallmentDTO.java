@@ -12,6 +12,7 @@ public class InstallmentDTO {
     private String name;
     private String currency;
     private String price;
+    private String discountedPrice;
     private String paymentLink;
     private String productId;
     private String priceId;
