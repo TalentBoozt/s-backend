@@ -22,5 +22,5 @@ public class ModuleDTO {
     private String paid;
     private String meetingLink;
     private String status;
-    private boolean isOnetimePayment;
+    private boolean onetimePayment;
 }
