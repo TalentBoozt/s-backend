@@ -81,7 +81,7 @@ public class StripeService {
         return Session.create(params);
     }
 
-    public Session createCourseCheckoutSession(Map<String, Object> data) throws StripeException {
+    public Session createCourseCheckoutSession(Map<String, Object> data, String type) throws StripeException {
         String userId = (String) data.get("userId");
         String courseId = (String) data.get("courseId");
         String installmentId = (String) data.get("installmentId");
@@ -93,7 +93,7 @@ public class StripeService {
         String encodedReferrer = URLEncoder.encode(referrer, StandardCharsets.UTF_8);
 
         Map<String, Object> metadata = Map.of(
-                "purchase_type", "course",
+                "purchase_type", type,
                 "user_id", userId,
                 "course_id", courseId,
                 "installment_id", installmentId,

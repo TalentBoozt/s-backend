@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.Service.COM_COURSES;
 
+import com.stripe.exception.StripeException;
 import com.talentboozt.s_backend.DTO.COM_COURSES.InstallmentDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.MaterialsDTO;
 import com.talentboozt.s_backend.DTO.COM_COURSES.ModuleDTO;
@@ -10,15 +11,13 @@ import com.talentboozt.s_backend.Model.PLAT_COURSES.EmpCoursesModel;
 import com.talentboozt.s_backend.Repository.COM_COURSES.CourseRepository;
 import com.talentboozt.s_backend.Repository.EndUser.EmployeeRepository;
 import com.talentboozt.s_backend.Repository.PLAT_COURSES.EmpCoursesRepository;
+import com.talentboozt.s_backend.Service.common.payment.StripeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +31,9 @@ public class CourseService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private StripeService stripeService;
 
     public List<CourseModel> getAllCourses() {
         return courseRepository.findAll();
@@ -78,7 +80,13 @@ public class CourseService {
         return null;
     }
 
-    public void deleteCourse(String id) {
+    public void deleteCourse(String id) throws StripeException {
+        Optional<CourseModel> course = courseRepository.findById(id);
+        if (course.isPresent()) {
+            for (InstallmentDTO i: course.get().getInstallment()) {
+                if (i.getPriceId() != null) stripeService.archivePrice(i.getPriceId());
+            }
+        }
         courseRepository.deleteById(id);
     }
 
@@ -141,12 +149,13 @@ public class CourseService {
         return null;
     }
 
-    public void deleteInstallment(String courseId, String installmentId) {
+    public void deleteInstallment(String courseId, String installmentId) throws StripeException {
         CourseModel course = courseRepository.findById(courseId).orElse(null);
         if (course != null) {
             List<InstallmentDTO> installmentList = course.getInstallment();
             for (int i = 0; i < installmentList.size(); i++) {
                 if (installmentList.get(i).getId().equals(installmentId)) {
+                    if (installmentList.get(i).getPriceId() != null) stripeService.archivePrice(installmentList.get(i).getPriceId());
                     installmentList.remove(i);
                     course.setInstallment(installmentList);
                     courseRepository.save(course);
@@ -411,6 +420,20 @@ public class CourseService {
         CourseModel course = courseRepository.findById(courseId).orElse(null);
         if (course != null && course.getQuizzes() != null) {
             return course.getQuizzes().stream().filter(q -> q.getId().equals(quizId)).findFirst().orElse(null);
+        }
+        return null;
+    }
+
+    public CourseModel updateQuizVisibility(String courseId, String quizId, String status) {
+        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        if (course != null) {
+            List<QuizDTO> quizzes = course.getQuizzes();
+            for (QuizDTO quiz : quizzes) {
+                if (quiz.getId().equals(quizId)) {
+                    quiz.setVisibility(status);
+                    return courseRepository.save(course);
+                }
+            }
         }
         return null;
     }

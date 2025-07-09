@@ -128,14 +128,44 @@ public class EmpCoursesService {
                                 i.setPaid(status);
                                 if (status.equals("pending")) i.setRequestDate(LocalDateTime.now().toString());
                                 if (status.equals("paid") || status.equals("cancelled")) i.setPaymentDate(LocalDateTime.now().toString());
-                                return empCoursesRepository.save(empCoursesModel);
                             }
                         }
+                        for (ModuleDTO m : c.getModules()) {
+                            if (m.getInstallmentId().equals(installmentId)) {
+                                m.setPaid("true");
+                            }
+                        }
+                        return empCoursesRepository.save(empCoursesModel);
                     }
                 }
             }
         }
         throw new RuntimeException("Employee not found for id: " + employeeId);
+    }
+
+    public void updateFullCoursePayment(String userId, String courseId, String installmentId, String paid) {
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(userId);
+        if (!empCoursesList.isEmpty()) {
+            EmpCoursesModel empCoursesModel = empCoursesList.get(0);
+            List<CourseEnrollment> courses = empCoursesModel.getCourses();
+            if (courses != null) {
+                for (CourseEnrollment c : courses) {
+                    if (c.getCourseId().equals(courseId)) {
+                        for (InstallmentDTO i : c.getInstallment()) {
+                            if (i.getId().equals(installmentId)) {
+                                i.setPaid(paid);
+                                if (paid.equals("pending")) i.setRequestDate(LocalDateTime.now().toString());
+                                if (paid.equals("paid") || paid.equals("cancelled")) i.setPaymentDate(LocalDateTime.now().toString());
+                            }
+                        }
+                        for (ModuleDTO m : c.getModules()) {
+                            m.setPaid("true");
+                        }
+                        empCoursesRepository.save(empCoursesModel);
+                    }
+                }
+            }
+        }
     }
 
     public EmpCoursesModel updateEnrollmentStatus(String employeeId, String courseId, String status) {
