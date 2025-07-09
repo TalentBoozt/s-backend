@@ -55,7 +55,7 @@ public class CourseController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public void deleteCourse(@PathVariable String id) {
+    public void deleteCourse(@PathVariable String id) throws StripeException {
         courseService.deleteCourse(id);
     }
 
@@ -80,7 +80,7 @@ public class CourseController {
     }
 
     @DeleteMapping("/delete-installment/{courseId}/{installmentId}")
-    public void deleteInstallment(@PathVariable String courseId, @PathVariable String installmentId) {
+    public void deleteInstallment(@PathVariable String courseId, @PathVariable String installmentId) throws StripeException {
         courseService.deleteInstallment(courseId, installmentId);
     }
 
@@ -163,6 +163,11 @@ public class CourseController {
     @PutMapping("/update/quiz/{courseId}/{quizId}")
     public CourseModel updateQuiz(@PathVariable String courseId, @PathVariable String quizId, @RequestBody QuizDTO quiz) {
         return courseService.updateQuiz(courseId, quizId, quiz);
+    }
+
+    @PutMapping("/visibility/quiz/{courseId}/{quizId}/{status}")
+    public CourseModel updateQuizVisibility(@PathVariable String courseId, @PathVariable String quizId, @PathVariable String status) {
+        return courseService.updateQuizVisibility(courseId, quizId, status);
     }
 
     @DeleteMapping("/delete/quiz/{courseId}/{quizId}")

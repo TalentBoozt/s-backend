@@ -91,7 +91,11 @@ public class StripeWebhookController {
                 break;
 
             case "course":
-                session = stripeService.createCourseCheckoutSession(data);
+                session = stripeService.createCourseCheckoutSession(data, "course");
+                break;
+
+            case "course-onetime":
+                session = stripeService.createCourseCheckoutSession(data, "course-onetime");
                 break;
 
             // 🔮 Future: Handle coaching, mentorship, etc.
@@ -188,6 +192,40 @@ public class StripeWebhookController {
                     createBillingHistory(userId, session.getId(), session, "course");
                     createPaymentMethod(userId, session, "course");
                     updateCourseInstallmentPayment(userId, courseId, installmentId);
+                    auditLogService.markProcessed(event.getId());
+                } catch (StripeException e) {
+                    auditLogService.markFailed(event.getId(), "Error creating order for user: " + userId, true);
+                }
+            } else if ("course-onetime".equals(purchaseType)) {
+                Map<String, String> metadata = session.getMetadata();
+
+                if (session.getCustomer() != null) {
+                    Customer customer = Customer.retrieve(session.getCustomer());
+
+                    CustomerUpdateParams updateParams = CustomerUpdateParams.builder()
+                            .putMetadata("user_id", metadata.get("user_id"))
+                            .putMetadata("course_id", metadata.get("course_id"))
+                            .putMetadata("installment_id", metadata.get("installment_id"))
+                            .build();
+
+                    customer.update(updateParams);
+                    auditLogService.logEvent(event, "Updated customer metadata for user_id: " + metadata.get("user_id"));
+                } else {
+                    auditLogService.markFailed(event.getId(), "Session has no customer ID (one-time course purchase?)", false);
+                }
+
+                String userId = session.getMetadata().get("user_id");
+                String courseId = session.getMetadata().get("course_id");
+                String installmentId = session.getMetadata().get("installment_id");
+
+                if (userId == null || courseId == null || installmentId == null) {
+                    auditLogService.markFailed(event.getId(), "Missing required metadata: user_id, course_id or installment_id", true);
+                    return;
+                }
+                try {
+                    createBillingHistory(userId, session.getId(), session, "course");
+                    createPaymentMethod(userId, session, "course");
+                    updateFullCoursePayment(userId, courseId, installmentId);
                     auditLogService.markProcessed(event.getId());
                 } catch (StripeException e) {
                     auditLogService.markFailed(event.getId(), "Error creating order for user: " + userId, true);
@@ -364,6 +402,10 @@ public class StripeWebhookController {
 
     private void updateCourseInstallmentPayment(String userId, String courseId, String installmentId) throws StripeException {
         empCoursesService.updateInstallmentPayment(userId, courseId, installmentId, "paid");
+    }
+
+    private void updateFullCoursePayment(String userId, String courseId, String installmentId) throws StripeException {
+        empCoursesService.updateFullCoursePayment(userId, courseId, installmentId, "paid");
     }
 
     private void createSubscription(String companyId, String planName, Session subscriptionSession) throws StripeException {
