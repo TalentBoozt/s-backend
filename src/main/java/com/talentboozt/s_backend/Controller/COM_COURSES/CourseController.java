@@ -196,7 +196,7 @@ public class CourseController {
         switch (installment.getCurrency()) {
             case "€": currency = "eur"; break;
             case "£": currency = "gbp"; break;
-            case "RS": currency = "lkr"; break;
+            case "Rs": currency = "lkr"; break;
             case "¥": currency = "jpy"; break;
             case "₹": currency = "inr"; break;
             default: currency = "usd";
