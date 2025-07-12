@@ -1,0 +1,12 @@
+package com.talentboozt.s_backend.domains.plat_courses.repository;
+
+import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
+import org.springframework.data.mongodb.repository.MongoRepository;
+
+import java.util.List;
+
+public interface EmpCoursesRepository extends MongoRepository<EmpCoursesModel, String> {
+    List<EmpCoursesModel> findByEmployeeId(String employeeId);
+    void deleteByEmployeeId(String employeeId);
+    List<EmpCoursesModel> findByCoursesCourseId(String courseId);
+}
