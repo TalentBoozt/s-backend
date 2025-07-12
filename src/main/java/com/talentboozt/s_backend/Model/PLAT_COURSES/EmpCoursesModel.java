@@ -19,6 +19,10 @@ public class EmpCoursesModel {
     @Id
     private String id;
     private String employeeId;
+    private String employeeName;
+    private String email;
+    private String phone;
+    private String timezone;
     @Field("courses")
     private List<CourseEnrollment> courses;
 }
