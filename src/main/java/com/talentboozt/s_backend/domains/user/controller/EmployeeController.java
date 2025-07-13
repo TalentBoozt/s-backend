@@ -3,9 +3,11 @@ package com.talentboozt.s_backend.domains.user.controller;
 import com.talentboozt.s_backend.domains.plat_job_portal.dto.FavJobDTO;
 import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
 import com.talentboozt.s_backend.domains.user.service.EmployeeService;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -76,7 +78,7 @@ public class EmployeeController {
     }
 
     @PutMapping("/update/saved-job/status/{empId}")
-    public EmployeeModel changeFavoriteJobStatus(@PathVariable String empId, @RequestBody FavJobDTO jobDto) {
+    public EmployeeModel changeFavoriteJobStatus(@PathVariable String empId, @RequestBody FavJobDTO jobDto) throws IOException {
         return employeeService.changeFavoriteJobStatus(empId, jobDto);
     }
 

@@ -8,7 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 
 @RestController
 public class TokenController {
@@ -29,13 +29,13 @@ public class TokenController {
     }
 
     @PostMapping("/api/v2/send-access-token/{email}")
-    public ResponseEntity<ApiResponse> sendAccessToken(@PathVariable String email) throws UnsupportedEncodingException {
+    public ResponseEntity<ApiResponse> sendAccessToken(@PathVariable String email) throws IOException {
         emailService.sendInterviewPreparationQuestionAccess(email);
         return ResponseEntity.ok(new ApiResponse("Email sent successfully"));
     }
 
     @PostMapping("/api/v2/send-notification-token/{email}")
-    public ResponseEntity<ApiResponse> sendResetPassword(@PathVariable String email) throws UnsupportedEncodingException {
+    public ResponseEntity<ApiResponse> sendResetPassword(@PathVariable String email) throws IOException {
         emailService.sendNotificationToken(email);
         return ResponseEntity.ok(new ApiResponse("Email sent successfully"));
     }

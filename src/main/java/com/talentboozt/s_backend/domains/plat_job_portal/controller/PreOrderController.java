@@ -2,10 +2,12 @@ package com.talentboozt.s_backend.domains.plat_job_portal.controller;
 
 import com.talentboozt.s_backend.domains.plat_job_portal.model.PreOrderModel;
 import com.talentboozt.s_backend.domains.plat_job_portal.service.PreOrderService;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -16,7 +18,7 @@ public class PreOrderController {
     private PreOrderService preOrderService;
 
     @PostMapping("/add")
-    public PreOrderModel addPreOrder(@RequestBody PreOrderModel preOrderModel) {
+    public PreOrderModel addPreOrder(@RequestBody PreOrderModel preOrderModel) throws MessagingException, IOException {
         return preOrderService.addPreOrder(preOrderModel);
     }
 

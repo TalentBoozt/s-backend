@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("/api/v2/email")
 public class EmailController {
@@ -23,25 +25,25 @@ public class EmailController {
     }
 
     @PostMapping("/contact-us")
-    public ResponseEntity<ApiResponse> contactUs(@RequestBody ContactUsDTO contactUsDTO) {
+    public ResponseEntity<ApiResponse> contactUs(@RequestBody ContactUsDTO contactUsDTO) throws IOException {
         emailService.contactUs(contactUsDTO);
         return ResponseEntity.ok(new ApiResponse("Email sent successfully"));
     }
 
     @PostMapping("/personal-contact")
-    public ResponseEntity<ApiResponse> personalContact(@RequestBody PersonalContactDTO personalContactDTO) {
+    public ResponseEntity<ApiResponse> personalContact(@RequestBody PersonalContactDTO personalContactDTO) throws IOException {
         emailService.personalContact(personalContactDTO);
         return ResponseEntity.ok(new ApiResponse("Email sent successfully"));
     }
 
     @PostMapping("/bank-payment")
-    public ResponseEntity<ApiResponse> bankPayment(@RequestBody BankPaymentDTO bankPaymentDTO) {
+    public ResponseEntity<ApiResponse> bankPayment(@RequestBody BankPaymentDTO bankPaymentDTO) throws IOException {
         emailService.bankPayment(bankPaymentDTO);
         return ResponseEntity.ok(new ApiResponse("Email sent successfully"));
     }
 
     @PostMapping("/cv-request")
-    public ResponseEntity<ApiResponse> requestResume(@RequestBody CVRequestDTO cvRequestDTO) {
+    public ResponseEntity<ApiResponse> requestResume(@RequestBody CVRequestDTO cvRequestDTO) throws IOException {
         emailService.requestResume(cvRequestDTO);
         return ResponseEntity.ok(new ApiResponse("Email sent successfully"));
     }
