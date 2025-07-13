@@ -5,6 +5,7 @@ import com.talentboozt.s_backend.shared.mail.repository.NewsLetterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Optional;
 
 @Service
@@ -16,7 +17,7 @@ public class NewsLatterService {
     @Autowired
     private EmailService emailService;
 
-    public void subscribeNewsLatter(NewsLatterModel newsLatterModel) {
+    public void subscribeNewsLatter(NewsLatterModel newsLatterModel) throws IOException {
         Optional<NewsLatterModel> model = newsLetterRepository.findByEmail(newsLatterModel.getEmail());
 
         emailService.subscribedNewsLatter(newsLatterModel.getEmail());

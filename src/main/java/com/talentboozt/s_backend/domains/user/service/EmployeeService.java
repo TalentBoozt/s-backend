@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -236,7 +237,7 @@ public class EmployeeService {
         }
     }
 
-    public EmployeeModel changeFavoriteJobStatus(String empId, FavJobDTO jobDto) {
+    public EmployeeModel changeFavoriteJobStatus(String empId, FavJobDTO jobDto) throws IOException {
         Optional<EmployeeModel> employeeModel = employeeRepository.findById(empId);
         if (employeeModel.isPresent()) {
             EmployeeModel employee = employeeModel.get();

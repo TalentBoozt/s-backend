@@ -12,15 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.io.IOException;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.zone.ZoneRulesException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class CourseReminderScheduler {
@@ -78,7 +78,7 @@ public class CourseReminderScheduler {
                                     logAuditService.logAudit(emp, enrollment, module, offset, "SKIPPED", "Already sent");
                                 }
                             }
-                        } catch (DateTimeParseException | ZoneRulesException | NullPointerException ex) {
+                        } catch (DateTimeParseException | ZoneRulesException | NullPointerException | IOException ex) {
                             // Log and skip if malformed date/timezone
                             logAuditService.logAudit(emp, enrollment, module, offset, "FAILED", ex.getMessage());
                         }
@@ -88,7 +88,7 @@ public class CourseReminderScheduler {
         }
     }
 
-    private void sendReminderEmail(EmpCoursesModel emp, CourseEnrollment course, ModuleDTO module, String reminderType) {
+    private void sendReminderEmail(EmpCoursesModel emp, CourseEnrollment course, ModuleDTO module, String reminderType) throws IOException {
         ZonedDateTime localTime = ZonedDateTime.ofInstant(
                 Instant.parse(module.getUtcStart()), ZoneId.of(emp.getTimezone())
         );
@@ -96,16 +96,16 @@ public class CourseReminderScheduler {
         String formattedTime = localTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm z"));
 
         String subject = "Reminder: Upcoming Course Module - " + module.getName();
-        String body = "Hi " + emp.getEmployeeName() + ",\n\n"
-                + "This is a " + reminderType + " reminder for your upcoming module:\n\n"
-                + "Course: " + course.getCourseName() + "\n"
-                + "Module: " + module.getName() + "\n"
-                + "Start Time: " + formattedTime + "\n"
-                + "Meeting Link: " + module.getMeetingLink() + "\n\n"
-                + "Good luck and see you there!\n\n"
-                + "- Your Course Team";
+        Map<String, String> variables = new HashMap<>();
+        variables.put("employeeName", emp.getEmployeeName());
+        variables.put("reminderType", reminderType);
+        variables.put("courseName", course.getCourseName());
+        variables.put("moduleName", module.getName());
+        variables.put("startTime", formattedTime);
+        variables.put("meetingLink", module.getMeetingLink());
+        variables.put("year", String.valueOf(Year.now().getValue()));
 
-        emailService.sendSimpleEmail(emp.getEmail(), subject, body);
+        emailService.sendCourseReminderEmail(emp.getEmail(), subject, variables);
     }
 
     private void logReminderSent(String empId, String courseId, String moduleId, String type) {

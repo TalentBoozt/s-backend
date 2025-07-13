@@ -1,9 +1,8 @@
 package com.talentboozt.s_backend.shared.mail.service;
 
-import com.talentboozt.s_backend.shared.mail.dto.BankPaymentDTO;
-import com.talentboozt.s_backend.shared.mail.dto.CVRequestDTO;
-import com.talentboozt.s_backend.shared.mail.dto.ContactUsDTO;
-import com.talentboozt.s_backend.shared.mail.dto.PersonalContactDTO;
+import com.talentboozt.s_backend.shared.mail.cfg.EmailQueueService;
+import com.talentboozt.s_backend.shared.mail.cfg.EmailTemplateLoader;
+import com.talentboozt.s_backend.shared.mail.dto.*;
 import com.talentboozt.s_backend.shared.security.service.ValidateTokenService;
 import com.talentboozt.s_backend.shared.utils.ConfigUtility;
 import jakarta.mail.Message;
@@ -15,15 +14,20 @@ import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Year;
+import java.util.Map;
 
 @Service
 public class EmailService {
     private final JavaMailSender javaMailSender;
+    private final EmailTemplateLoader emailTemplateLoader;
 
     @Autowired
     ConfigUtility configUtil;
@@ -32,8 +36,12 @@ public class EmailService {
     ValidateTokenService validateTokenService;
 
     @Autowired
-    public EmailService(JavaMailSender javaMailSender) {
+    private EmailQueueService emailQueueService;
+
+    @Autowired
+    public EmailService(JavaMailSender javaMailSender, EmailTemplateLoader emailTemplateLoader) {
         this.javaMailSender = javaMailSender;
+        this.emailTemplateLoader = emailTemplateLoader;
     }
 
     public void sendSimpleEmail(String to, String subject, String text) {
@@ -54,13 +62,17 @@ public class EmailService {
         Transport.send(message);
     }
 
-    public void sendPasswordResetEmail(String toEmail, String resetToken) {
+    public void sendPasswordResetEmail(String toEmail, String resetToken) throws IOException {
         String subject = "Password Reset Request";
         String resetUrl = configUtil.getProperty("PASSWORD_REST_URL") + resetToken;
-        String body = "Dear User,\n\nYou requested to reset your password. Please click the following link to reset it:\n"
-                + resetUrl + "\n\nThis link will expire in 30 minutes.\n\nIf you did not request this, please ignore this email.";
+        Map<String, String> variables = Map.of(
+                "resetLink", resetUrl,
+                "year", String.valueOf(Year.now().getValue())
+        );
 
-        sendSimpleEmail(toEmail, subject, body);
+        String htmlContent = emailTemplateLoader.loadTemplate("password-reset.html", variables);
+        EmailJob job = new EmailJob(toEmail, subject, htmlContent);
+        emailQueueService.queueEmail(job);
     }
 
     public void contactMe(String email) {
@@ -71,80 +83,161 @@ public class EmailService {
         sendSimpleEmail(to, subject, body);
     }
 
-    public void contactUs(ContactUsDTO contactUsDTO) {
+    public void contactUs(ContactUsDTO contactUsDTO) throws IOException {
         String to = configUtil.getProperty("CONTACT_ME_EMAIL");
         String mailSubject = contactUsDTO.getSubject() + " - " + contactUsDTO.getName();
-        String body = "Name: " + contactUsDTO.getName() + "\nEmail: " + contactUsDTO.getEmail() + "\n\n" + contactUsDTO.getMessage();
+        Map<String, String> variables = Map.of(
+                "name", contactUsDTO.getName(),
+                "email", contactUsDTO.getEmail(),
+                "subject", contactUsDTO.getSubject(),
+                "message", contactUsDTO.getMessage(),
+                "year", String.valueOf(Year.now().getValue())
+        );
 
-        sendSimpleEmail(to, mailSubject, body);
+        String htmlContent = emailTemplateLoader.loadTemplate("contact-us.html", variables);
+        EmailJob job = new EmailJob(to, mailSubject, htmlContent);
+        emailQueueService.queueEmail(job);
     }
 
-    public void personalContact(PersonalContactDTO personalContactDTO) {
+    public void personalContact(PersonalContactDTO personalContactDTO) throws IOException {
         String to = personalContactDTO.getToEmail();
         String mailSubject = personalContactDTO.getSubject() + " - " + personalContactDTO.getName();
-        String body = "Dear Valued User,\n\n" + "You have received a new message from " + personalContactDTO.getName() + ".\n\n" + personalContactDTO.getMessage() + "\nContact Sender: " + personalContactDTO.getFromEmail() + "\n\nBest regards,\nTeam Talent Boozt.";
+        Map<String, String> variables = Map.of(
+                "name", personalContactDTO.getName(),
+                "fromEmail", personalContactDTO.getFromEmail(),
+                "toEmail", personalContactDTO.getToEmail(),
+                "subject", personalContactDTO.getSubject(),
+                "message", personalContactDTO.getMessage(),
+                "year", String.valueOf(Year.now().getValue())
+        );
 
-        sendSimpleEmail(to, mailSubject, body);
+        String htmlContent = emailTemplateLoader.loadTemplate("personal-contact.html", variables);
+        EmailJob job = new EmailJob(to, mailSubject, htmlContent);
+        emailQueueService.queueEmail(job);
     }
 
-    public void sendRejectionNotification(String to, String candidateName) {
+    public void sendRejectionNotification(String to, String candidateName) throws IOException {
         String subject = "Application Status";
-        String body = "Dear " + candidateName + ",\n\nWe appreciate your interest in using Talent Boozt. Unfortunately, you applied company has decided to move forward with other candidates at this time. \nBut don't stop now. You can apply unlimited jobs free of charge from Talent Boozt. We wish you the best of luck in your future endeavors.\n\nBest regards,\nTeam Talent Boozt.";
-        sendSimpleEmail(to, subject, body);
+        Map<String, String> variables = Map.of(
+                "candidateName", candidateName,
+                "year", String.valueOf(Year.now().getValue())
+        );
+
+        String htmlContent = emailTemplateLoader.loadTemplate("rejection-notice.html", variables);
+        EmailJob job = new EmailJob(to, subject, htmlContent);
+        emailQueueService.queueEmail(job);
     }
 
-    public void sendSelectionNotification(String to, String candidateName) {
+    public void sendSelectionNotification(String to, String candidateName) throws IOException {
         String subject = "Application Status";
-        String body = "Dear " + candidateName + ",\n\nWe are happy to inform your application was selected in first round. Applied company will contact you shortly.\n\nBest regards,\nTeam Talent Boozt.";
-        sendSimpleEmail(to, subject, body);
+        Map<String, String> variables = Map.of(
+                "candidateName", candidateName,
+                "year", String.valueOf(Year.now().getValue())
+        );
+
+        String htmlContent = emailTemplateLoader.loadTemplate("selection-notice.html", variables);
+        EmailJob job = new EmailJob(to, subject, htmlContent);
+        emailQueueService.queueEmail(job);
     }
 
-    public void subscribedNewsLatter(String to) {
+    public void subscribedNewsLatter(String to) throws IOException {
         String subject = "Talent Boozt Newsletter";
-        String body = "Dear valuable user,\n\nWe are happy to inform you that you have subscribed to our newsletter. We promise not to spam your inbox :) \n\nBest regards,\nTeam Talent Boozt.";
-        sendSimpleEmail(to, subject, body);
+        Map<String, String> variables = Map.of(
+                "name", "Team Talent Boozt",
+                "year", String.valueOf(Year.now().getValue())
+        );
+
+        String htmlContent = emailTemplateLoader.loadTemplate("newsletter.html", variables);
+        EmailJob job = new EmailJob(to, subject, htmlContent);
+        emailQueueService.queueEmail(job);
     }
 
-    public void sendInterviewPreparationQuestionAccess(String to) throws UnsupportedEncodingException {
+    public void sendInterviewPreparationQuestionAccess(String to) throws IOException {
         String userName = to.split("@")[0];
         String token = validateTokenService.generateToken(userName);
         String link = "https://talentboozt.com/private/interview-questions?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
         String subject = "Your Interview Question Access Link";
-        String body = "Dear " + userName +",\n\n" + "Click on the link below to access the interview preparation questions. \n\n" + link + "\nNote: This link will expire in 24 hours and only be used once(if you reload the page the link will be expired). Don't share this link with anyone.\nIf you did not request this, please ignore this email.\n\nThank You.\nBest regards,\nTeam Talent Boozt.";
 
-        sendSimpleEmail(to, subject, body);
+        Map<String, String> variables = Map.of(
+                "username", userName,
+                "accessLink", link,
+                "year", String.valueOf(Year.now().getValue())
+        );
+
+        String htmlContent = emailTemplateLoader.loadTemplate("interview-access.html", variables);
+        EmailJob job = new EmailJob(to, subject, htmlContent);
+        emailQueueService.queueEmail(job);
     }
 
-    public void sendNotificationToken(String to) throws UnsupportedEncodingException {
+    public void sendNotificationToken(String to) throws IOException {
         String userName = to.split("@")[0];
         String token = validateTokenService.generateToken(userName);
         String link = "https://talentboozt.com/private/system-notifications?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
         String subject = "Your System Notification Management Link";
-        String body = "Dear " + userName +",\n\n" + "Click on the link below to access the system notification management panel. \n\n" + link + "\nNote: This link will expire in 24 hours and only be used once(if you reload the page the link will be expired). Don't share this link with anyone.\nIf you did not request this, please ignore this email.\n\nThank You.\nBest regards,\nTeam Talent Boozt.";
 
-        sendSimpleEmail(to, subject, body);
+        Map<String, String> variables = Map.of(
+                "userName", userName,
+                "notificationLink", link,
+                "year", String.valueOf(Year.now().getValue())
+        );
+
+        String htmlContent = emailTemplateLoader.loadTemplate("system-token.html", variables);
+        EmailJob job = new EmailJob(to, subject, htmlContent);
+        emailQueueService.queueEmail(job);
     }
 
-    public void sendPreOrderSuccess(String to) {
+    public void sendPreOrderSuccess(String to) throws IOException {
         String subject = "Pre-Order Success";
-        String body = "Dear valuable user,\n\nYou have successfully placed your pre-order. If you have any further questions, please don't hesitate to contact us.\n\nPlease ignore this mail if it does not apply to you. \n\nThank You.\nBest regards,\nTeam Talent Boozt.";
-        sendSimpleEmail(to, subject, body);
+        Map<String, String> variables = Map.of(
+                "name", "Team Talent Boozt",
+                "year", String.valueOf(Year.now().getValue())
+        );
+
+        String htmlContent = emailTemplateLoader.loadTemplate("pre-order.html", variables);
+        EmailJob job = new EmailJob(to, subject, htmlContent);
+        emailQueueService.queueEmail(job);
     }
 
-    public void bankPayment(BankPaymentDTO bankPaymentDTO) {
+    public void bankPayment(BankPaymentDTO bankPaymentDTO) throws IOException {
         String to = configUtil.getProperty("CONTACT_ME_EMAIL");
         String mailSubject = "Bank Payment Request - " + bankPaymentDTO.getName();
-        String message = bankPaymentDTO.getCompanyId()+" Requested Bank Payment! \n\nSlip Url: " + bankPaymentDTO.getSlipUrl();
-        String body = "Name: " + bankPaymentDTO.getName() + "\nCountry: " + bankPaymentDTO.getCountry() + "\nPhone: " + bankPaymentDTO.getPhone() + "\n\n" + message;
 
-        sendSimpleEmail(to, mailSubject, body);
+        Map<String, String> variables = Map.of(
+                "name", bankPaymentDTO.getName(),
+                "country", bankPaymentDTO.getCountry(),
+                "phone", bankPaymentDTO.getPhone(),
+                "companyId", bankPaymentDTO.getCompanyId(),
+                "slipUrl", bankPaymentDTO.getSlipUrl(),
+                "year", String.valueOf(Year.now().getValue())
+        );
+
+        String htmlContent = emailTemplateLoader.loadTemplate("bank-payment.html", variables);
+        EmailJob job = new EmailJob(to, mailSubject, htmlContent);
+        emailQueueService.queueEmail(job);
     }
 
-    public void requestResume(CVRequestDTO cvRequestDTO) {
+    public void requestResume(CVRequestDTO cvRequestDTO) throws IOException {
         String to = configUtil.getProperty("CONTACT_ME_EMAIL");
         String mailSubject = "CV Request - " + cvRequestDTO.getName();
-        String body = "Name: " + cvRequestDTO.getName() + "\nEmail: " + cvRequestDTO.getEmail() + "\nDOB:" + cvRequestDTO.getDob() + "\nCareer Stage: " + cvRequestDTO.getCareerStage() + "\nJob Title: " + cvRequestDTO.getJobTitle() + "\nJob Link: " + cvRequestDTO.getLink() + "\n\n" + cvRequestDTO.getMessage();
+        Map<String, String> variables = Map.of(
+                "name", cvRequestDTO.getName(),
+                "email", cvRequestDTO.getEmail(),
+                "dob", cvRequestDTO.getDob(),
+                "careerStage", cvRequestDTO.getCareerStage(),
+                "jobTitle", cvRequestDTO.getJobTitle(),
+                "link", cvRequestDTO.getLink(),
+                "message", cvRequestDTO.getMessage(),
+                "year", String.valueOf(Year.now().getValue())
+        );
 
-        sendSimpleEmail(to, mailSubject, body);
+        String htmlContent = emailTemplateLoader.loadTemplate("cv-request.html", variables);
+        EmailJob job = new EmailJob(to, mailSubject, htmlContent);
+        emailQueueService.queueEmail(job);
+    }
+
+    public void sendCourseReminderEmail(String to, String subject, Map<String, String> variables) throws IOException {
+        String htmlContent = emailTemplateLoader.loadTemplate("course-reminder.html", variables);
+        EmailJob job = new EmailJob(to, subject, htmlContent);
+        emailQueueService.queueEmail(job);
     }
 }
