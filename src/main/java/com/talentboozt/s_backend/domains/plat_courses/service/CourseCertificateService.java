@@ -1,0 +1,129 @@
+package com.talentboozt.s_backend.domains.plat_courses.service;
+
+import com.talentboozt.s_backend.domains.plat_courses.dto.CertificateDTO;
+import com.talentboozt.s_backend.domains.plat_courses.dto.CourseEnrollment;
+import com.talentboozt.s_backend.domains.plat_courses.model.CourseCertificateModel;
+import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
+import com.talentboozt.s_backend.domains.plat_courses.repository.CourseCertificateRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.EmpCoursesRepository;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.*;
+
+@Service
+public class CourseCertificateService {
+
+    private final CourseCertificateRepository courseCertificateRepository;
+    private final EmpCoursesRepository empCoursesRepository;
+    private final EmpCoursesService empCoursesService;
+    private final CertificateProcessorService certificateProcessorService;
+
+    public CourseCertificateService(EmpCoursesService empCoursesService, CourseCertificateRepository courseCertificateRepository,
+                                    EmpCoursesRepository empCoursesRepository, CertificateProcessorService certificateProcessorService) {
+        this.courseCertificateRepository = courseCertificateRepository;
+        this.empCoursesRepository = empCoursesRepository;
+        this.empCoursesService = empCoursesService;
+        this.certificateProcessorService = certificateProcessorService;
+    }
+
+    public CourseCertificateModel addCertificate(CourseCertificateModel certificate) {
+        if (certificate == null || certificate.getCourseId() == null || certificate.getEmployeeId().isEmpty()) {
+            return null;
+        }
+        List<EmpCoursesModel> empCoursesList = empCoursesService.getEmpCoursesByEmployeeId(certificate.getEmployeeId());
+        if (!empCoursesList.isEmpty()) {
+            EmpCoursesModel empCoursesModel = empCoursesList.get(0);
+            List<CourseEnrollment> courses = empCoursesModel.getCourses();
+            if (courses != null) {
+                for (CourseEnrollment course : courses) {
+                    if (course.getCourseId().equals(certificate.getCourseId())) {
+                        course.setStatus("completed");
+
+                        CertificateDTO certDTO = buildTrainerCertificate(course);
+                        if (course.getCertificates() == null) {
+                            course.setCertificates(new ArrayList<>());
+                        }
+                        course.getCertificates().add(certDTO);
+
+                        certificateProcessorService.processToIssueCertificate(course, certDTO, certificate.getEmployeeId(), certificate.getCourseId());
+
+                        empCoursesRepository.save(empCoursesModel);
+                    }
+                }
+            }
+        }
+        return courseCertificateRepository.save(certificate);
+    }
+
+    private CertificateDTO buildTrainerCertificate(CourseEnrollment course) {
+        CertificateDTO certificate = new CertificateDTO();
+        certificate.setCertificateId(UUID.randomUUID().toString());
+        certificate.setType(certificate.getType());
+        certificate.setUrl(certificate.getUrl());
+        certificate.setIssuedBy(course.getOrganizer());
+        certificate.setIssuedDate(LocalDateTime.now().toString());
+        certificate.setDelivered(false);
+        certificate.setFileName(certificate.getFileName());
+        certificate.setDescription(certificate.getDescription());
+        return certificate;
+    }
+
+    public Iterable<CourseCertificateModel> getAllCertificates() {
+        return courseCertificateRepository.findAll();
+    }
+
+    public CourseCertificateModel getCertificate(String id) {
+        return courseCertificateRepository.findById(id).orElse(null);
+    }
+
+    public Iterable<CourseCertificateModel> getCertificatesByCourseId(String courseId) {
+        Optional<List<CourseCertificateModel>> certificates = courseCertificateRepository.findAllByCourseId(courseId);
+        return certificates.orElse(null);
+    }
+
+    public Iterable<CourseCertificateModel> getCertificatesByEmployeeId(String employeeId) {
+        Optional<List<CourseCertificateModel>> certificates = courseCertificateRepository.findAllByEmployeeId(employeeId);
+        return certificates.orElse(null);
+    }
+
+    public CourseCertificateModel getCertificatesByCertificateId(String certificateId) {
+        Optional<CourseCertificateModel> certificate = courseCertificateRepository.findByCertificateId(certificateId);
+        return certificate.orElse(null);
+    }
+
+    public Iterable<CourseCertificateModel> getCertificatesByType(String type) {
+        Optional<List<CourseCertificateModel>> certificates = courseCertificateRepository.findAllByType(type);
+        return certificates.orElse(null);
+    }
+
+    public Iterable<CourseCertificateModel> getCertificatesByDelivered(boolean delivered) {
+        Optional<List<CourseCertificateModel>> certificates = courseCertificateRepository.findAllByDelivered(delivered);
+        return certificates.orElse(null);
+    }
+
+    public CourseCertificateModel updateSystemCertificate(String id, CourseCertificateModel certificate) { // after user generates the certificate from frontend
+        if (certificate == null) {
+            return null;
+        }
+        CourseCertificateModel existingCertificate = courseCertificateRepository.findById(id).orElse(null);
+        if (existingCertificate == null) {
+            return null;
+        }
+        if (!Objects.equals(existingCertificate.getEmployeeId(), certificate.getEmployeeId()) ||
+                !Objects.equals(existingCertificate.getCourseId(), certificate.getCourseId()) ||
+                !Objects.equals(existingCertificate.getCertificateId(), certificate.getCertificateId())) {
+            return null;
+        }
+        existingCertificate.setUrl(certificate.getUrl());
+        existingCertificate.setDelivered(true);
+        existingCertificate.setFileName(certificate.getFileName());
+
+        CertificateDTO certDTO = new CertificateDTO();
+        certDTO.setUrl(certificate.getUrl());
+        certDTO.setDelivered(true);
+        certDTO.setFileName(certificate.getFileName());
+        certificateProcessorService.proceedToUpdateSystemCert(certDTO);
+        return courseCertificateRepository.save(existingCertificate);
+    }
+}

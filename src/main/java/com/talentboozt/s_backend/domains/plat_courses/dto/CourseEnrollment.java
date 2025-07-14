@@ -19,4 +19,5 @@ public class CourseEnrollment {
     private String status;  // e.g., "enrolled", "completed", etc.
     private List<InstallmentDTO> installment;
     private List<ModuleDTO> modules;
+    private List<CertificateDTO> certificates;
 }

@@ -240,4 +240,10 @@ public class EmailService {
         EmailJob job = new EmailJob(to, subject, htmlContent);
         emailQueueService.queueEmail(job);
     }
+
+    public void sendCourseCompletionEmail(String to, String subject, Map<String, String> variables) throws IOException {
+        String htmlContent = emailTemplateLoader.loadTemplate("course-completion.html", variables);
+        EmailJob job = new EmailJob(to, subject, htmlContent);
+        emailQueueService.queueEmail(job);
+    }
 }
