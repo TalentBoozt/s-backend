@@ -14,7 +14,6 @@ import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
 import com.talentboozt.s_backend.shared.security.service.JwtService;
 import com.talentboozt.s_backend.domains.user.model.*;
 import com.talentboozt.s_backend.domains.user.service.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -28,53 +27,45 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping("/api/v2/batch")
 public class BatchController {
 
-    @Autowired
-    private EmployeeService employeeService;
+    private final EmployeeService employeeService;
+    private final EmpContactService empContactService;
+    private final EmpEducationService empEducationService;
+    private final EmpSkillsService empSkillsService;
+    private final EmpExperiencesService empExperiencesService;
+    private final EmpProjectsService empProjectsService;
+    private final EmpCertificatesService empCertificatesService;
+    private final EmpFollowersService empFollowersService;
+    private final EmpFollowingService empFollowingService;
+    private final EmpCoursesService empCoursesService;
+    private final CredentialsService credentialsService;
+    private final CmpPostedJobsService cmpPostedJobsService;
+    private final CompanyService companyService;
+    private final CmpSocialService cmpSocialService;
+    private final CourseService courseService;
+    private final JwtService jwtService;
 
-    @Autowired
-    private EmpContactService empContactService;
-
-    @Autowired
-    private EmpEducationService empEducationService;
-
-    @Autowired
-    private EmpSkillsService empSkillsService;
-
-    @Autowired
-    private EmpExperiencesService empExperiencesService;
-
-    @Autowired
-    private EmpProjectsService empProjectsService;
-
-    @Autowired
-    private EmpCertificatesService empCertificatesService;
-
-    @Autowired
-    private EmpFollowersService empFollowersService;
-
-    @Autowired
-    private EmpFollowingService empFollowingService;
-
-    @Autowired
-    private EmpCoursesService empCoursesService;
-
-    @Autowired
-    private CredentialsService credentialsService;
-
-    @Autowired
-    private CmpPostedJobsService cmpPostedJobsService;
-
-    @Autowired
-    private CompanyService companyService;
-
-    @Autowired
-    private CmpSocialService cmpSocialService;
-
-    @Autowired
-    private CourseService courseService;
-
-    @Autowired
-    private JwtService jwtService;
+    public BatchController(EmployeeService employeeService, EmpContactService empContactService, EmpEducationService empEducationService,
+            EmpSkillsService empSkillsService, EmpExperiencesService empExperiencesService, EmpProjectsService empProjectsService,
+            EmpCertificatesService empCertificatesService, EmpFollowersService empFollowersService, EmpFollowingService empFollowingService,
+            EmpCoursesService empCoursesService, CredentialsService credentialsService, CmpPostedJobsService cmpPostedJobsService,
+            CompanyService companyService, CmpSocialService cmpSocialService, CourseService courseService, JwtService jwtService) {
+        this.employeeService = employeeService;
+        this.empContactService = empContactService;
+        this.empEducationService = empEducationService;
+        this.empSkillsService = empSkillsService;
+        this.empExperiencesService = empExperiencesService;
+        this.empProjectsService = empProjectsService;
+        this.empCertificatesService = empCertificatesService;
+        this.empFollowersService = empFollowersService;
+        this.empFollowingService = empFollowingService;
+        this.empCoursesService = empCoursesService;
+        this.credentialsService = credentialsService;
+        this.cmpPostedJobsService = cmpPostedJobsService;
+        this.companyService = companyService;
+        this.cmpSocialService = cmpSocialService;
+        this.courseService = courseService;
+        this.jwtService = jwtService;
+    }
 
     @GetMapping("/getEmployee/{id}")
     public Map<String, Object> getEmployee(@RequestHeader("Authorization") String token, @PathVariable String id) {
