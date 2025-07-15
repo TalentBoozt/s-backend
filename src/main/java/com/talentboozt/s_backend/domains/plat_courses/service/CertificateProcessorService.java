@@ -101,10 +101,20 @@ public class CertificateProcessorService {
 
         EmpCoursesModel coursesModel = optional.get();
 
+        if (coursesModel.getCourses() == null) {
+            coursesModel.setCourses(new ArrayList<>());
+        }
+
         for (CourseEnrollment course : coursesModel.getCourses()) {
-            if (course.getCourseId().equals(courseId)) {
+            if (courseId != null && courseId.equals(course.getCourseId())) {
+                if (course.getCertificates() == null) {
+                    course.setCertificates(new ArrayList<>());
+                }
+
                 for (CertificateDTO cert : course.getCertificates()) {
-                    if (cert.getCertificateId().equals(certificateDTO.getCertificateId())) {
+                    if (certificateDTO.getCertificateId() != null &&
+                            certificateDTO.getCertificateId().equals(cert.getCertificateId())) {
+
                         cert.setUrl(certificateDTO.getUrl());
                         cert.setDelivered(true);
                         cert.setFileName(certificateDTO.getFileName());
