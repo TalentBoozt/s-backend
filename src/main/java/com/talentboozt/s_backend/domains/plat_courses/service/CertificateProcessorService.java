@@ -89,8 +89,13 @@ public class CertificateProcessorService {
         });
     }
 
-    public void proceedToUpdateSystemCert(CertificateDTO certificateDTO) {
-        EmpCertificatesModel empCertificatesModel = new EmpCertificatesModel();
+    public void proceedToUpdateSystemCert(CertificateDTO certificateDTO, String employeeId) {
+        EmpCertificatesModel empCertificatesModel = empCertificatesService.getByEmployeeId(employeeId);
+        if (empCertificatesModel == null) {
+            empCertificatesModel = new EmpCertificatesModel();
+            empCertificatesModel.setEmployeeId(employeeId);
+            empCertificatesModel.setCertificates(new ArrayList<>());
+        }
         EmpCertificatesDTO cert = new EmpCertificatesDTO();
         cert.setCertificateUrl(certificateDTO.getUrl());
         empCertificatesModel.setCertificates(List.of(cert));

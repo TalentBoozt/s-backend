@@ -50,6 +50,9 @@ public class EmpCertificatesService {
             if (profileCompleted == null) {
                 profileCompleted = new HashMap<>();
             }
+            if (profileCompleted.get("certificates")) {
+                return certificatesModel;
+            }
             profileCompleted.put("certificates", true);
             existingEmployee.setProfileCompleted(profileCompleted);
 
