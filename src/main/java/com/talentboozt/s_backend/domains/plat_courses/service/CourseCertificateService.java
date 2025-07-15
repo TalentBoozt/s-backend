@@ -142,9 +142,15 @@ public class CourseCertificateService {
         existingCertificate.setFileName(certificate.getFileName());
 
         CertificateDTO certDTO = new CertificateDTO();
+        certDTO.setCertificateId(certificate.getCertificateId());
+        certDTO.setType(certificate.getType());
         certDTO.setUrl(certificate.getUrl());
+        certDTO.setIssuedBy(certificate.getIssuedBy());
+        certDTO.setIssuedDate(certificate.getIssuedDate());
+        certDTO.setDescription(certificate.getDescription());
         certDTO.setDelivered(true);
         certDTO.setFileName(certificate.getFileName());
+        certDTO.setLinkedinShared(false);
         certificateProcessorService.proceedToUpdateSystemCert(certDTO, certificate.getEmployeeId(), certificate.getCourseId());
         return courseCertificateRepository.save(existingCertificate);
     }
