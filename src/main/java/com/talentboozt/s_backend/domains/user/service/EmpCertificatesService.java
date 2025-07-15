@@ -139,7 +139,7 @@ public class EmpCertificatesService {
             model.getCertificates().add(newCert);
         }
 
-        addEmpCertificates(model);
+        empCertificatesRepository.save(model);
     }
 
     @Async
