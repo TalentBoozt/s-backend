@@ -145,7 +145,7 @@ public class CourseCertificateService {
         certDTO.setUrl(certificate.getUrl());
         certDTO.setDelivered(true);
         certDTO.setFileName(certificate.getFileName());
-        certificateProcessorService.proceedToUpdateSystemCert(certDTO, certificate.getEmployeeId());
+        certificateProcessorService.proceedToUpdateSystemCert(certDTO, certificate.getEmployeeId(), certificate.getCourseId());
         return courseCertificateRepository.save(existingCertificate);
     }
 }
