@@ -21,7 +21,7 @@ public class EmpCertificatesService {
     @Autowired
     private EmployeeRepository employeeRepository;
 
-    public List<EmpCertificatesModel> getEmpCertificatesByEmployeeId(String employeeId) { return empCertificatesRepository.findByEmployeeId(employeeId); }
+    public List<EmpCertificatesModel> getEmpCertificatesByEmployeeId(String employeeId) { return empCertificatesRepository.findAllByEmployeeId(employeeId); }
 
     public EmpCertificatesModel addEmpCertificates(EmpCertificatesModel empCertificates) {
         List<EmpCertificatesModel> empCertificatesList = getEmpCertificatesByEmployeeId(empCertificates.getEmployeeId());
@@ -119,6 +119,6 @@ public class EmpCertificatesService {
     }
 
     public EmpCertificatesModel getByEmployeeId(String employeeId) {
-        return empCertificatesRepository.findByEmployeeId(employeeId).get(0);
+        return empCertificatesRepository.findByEmployeeId(employeeId).orElse(null);
     }
 }
