@@ -56,4 +56,9 @@ public class CourseCertificateController {
     public CourseCertificateModel updateSystemCertificate(@PathVariable String id, @RequestBody CourseCertificateModel certificate) {
         return courseCertificateService.updateSystemCertificate(id, certificate);
     }
+
+    @PutMapping("/update/certificate/{id}")
+    public CourseCertificateModel updateSystemCertificateByCertificateId(@PathVariable String id, @RequestBody CourseCertificateModel certificate) {
+        return courseCertificateService.updateSystemCertificateByCertificateId(id, certificate);
+    }
 }
