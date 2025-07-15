@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.user.service;
 
+import com.talentboozt.s_backend.domains.plat_courses.dto.CertificateDTO;
 import com.talentboozt.s_backend.domains.user.dto.EmpCertificatesDTO;
 import com.talentboozt.s_backend.domains.user.model.EmpCertificatesModel;
 import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
@@ -113,6 +114,32 @@ public class EmpCertificatesService {
             return certificatesModel;
         }
         throw new RuntimeException("Employee not found for id: " + employeeId);
+    }
+
+    public void updateCertificate(String employeeId, CertificateDTO certificateDTO) {
+        EmpCertificatesModel model = getByEmployeeId(employeeId);
+
+        if (model == null) {
+            model = new EmpCertificatesModel();
+            model.setEmployeeId(employeeId);
+            model.setCertificates(new ArrayList<>());
+        }
+        boolean updated = false;
+        for (EmpCertificatesDTO cert : model.getCertificates()) {
+            if (cert.getCertificateId().equals(certificateDTO.getCertificateId())) {
+                cert.setCertificateUrl(certificateDTO.getUrl());
+                updated = true;
+                break;
+            }
+        }
+        if (!updated) {
+            EmpCertificatesDTO newCert = new EmpCertificatesDTO();
+            newCert.setCertificateId(certificateDTO.getCertificateId());
+            newCert.setCertificateUrl(certificateDTO.getUrl());
+            model.getCertificates().add(newCert);
+        }
+
+        addEmpCertificates(model);
     }
 
     @Async
