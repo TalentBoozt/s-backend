@@ -12,6 +12,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -191,7 +194,11 @@ public class EmpCoursesService {
                             if (course.getCertificates() == null) {
                                 course.setCertificates(new ArrayList<>());
                             }
-                            course.getCertificates().add(certDTO);
+                            boolean exists = course.getCertificates().stream()
+                                    .anyMatch(c -> c.getCertificateId().equals(certDTO.getCertificateId()));
+                            if (!exists) {
+                                course.getCertificates().add(certDTO);
+                            }
 
                             certificateProcessorService.processToIssueCertificate(course, certDTO, employeeId, courseId);
                         }
@@ -210,7 +217,8 @@ public class EmpCoursesService {
         certificate.setType("system");
         certificate.setUrl(""); // To be set from frontend
         certificate.setIssuedBy("Talentboozt");
-        certificate.setIssuedDate(LocalDateTime.now().toString());
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+        certificate.setIssuedDate(OffsetDateTime.now(ZoneOffset.UTC).format(formatter));
         certificate.setDelivered(false);
         certificate.setFileName(""); // To be set from frontend
         certificate.setDescription("System-generated certificate for " + course.getCourseName());

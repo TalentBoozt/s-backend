@@ -6,9 +6,14 @@ import com.talentboozt.s_backend.domains.plat_courses.model.CourseCertificateMod
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
 import com.talentboozt.s_backend.domains.plat_courses.repository.CourseCertificateRepository;
 import com.talentboozt.s_backend.domains.plat_courses.repository.EmpCoursesRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -44,7 +49,11 @@ public class CourseCertificateService {
                         if (course.getCertificates() == null) {
                             course.setCertificates(new ArrayList<>());
                         }
-                        course.getCertificates().add(certDTO);
+                        boolean exists = course.getCertificates().stream()
+                                .anyMatch(c -> c.getCertificateId().equals(certDTO.getCertificateId()));
+                        if (!exists) {
+                            course.getCertificates().add(certDTO);
+                        }
 
                         certificateProcessorService.processToIssueCertificate(course, certDTO, certificate.getEmployeeId(), certificate.getCourseId());
 
@@ -62,7 +71,8 @@ public class CourseCertificateService {
         certificate.setType(certificate.getType());
         certificate.setUrl(certificate.getUrl());
         certificate.setIssuedBy(course.getOrganizer());
-        certificate.setIssuedDate(LocalDateTime.now().toString());
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+        certificate.setIssuedDate(OffsetDateTime.now(ZoneOffset.UTC).format(formatter));
         certificate.setDelivered(false);
         certificate.setFileName(certificate.getFileName());
         certificate.setDescription(certificate.getDescription());
@@ -104,16 +114,28 @@ public class CourseCertificateService {
 
     public CourseCertificateModel updateSystemCertificate(String id, CourseCertificateModel certificate) { // after user generates the certificate from frontend
         if (certificate == null) {
-            return null;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Certificate not found");
         }
         CourseCertificateModel existingCertificate = courseCertificateRepository.findById(id).orElse(null);
+        return updateSysCert(existingCertificate, certificate);
+    }
+
+    public CourseCertificateModel updateSystemCertificateByCertificateId(String certificateId, CourseCertificateModel certificate) {
+        if (certificate == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Certificate not found");
+        }
+        CourseCertificateModel existingCertificate = courseCertificateRepository.findByCertificateId(certificateId).orElse(null);
+        return updateSysCert(existingCertificate, certificate);
+    }
+
+    private CourseCertificateModel updateSysCert(CourseCertificateModel existingCertificate, CourseCertificateModel certificate) {
         if (existingCertificate == null) {
-            return null;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Certificate not found");
         }
         if (!Objects.equals(existingCertificate.getEmployeeId(), certificate.getEmployeeId()) ||
                 !Objects.equals(existingCertificate.getCourseId(), certificate.getCourseId()) ||
                 !Objects.equals(existingCertificate.getCertificateId(), certificate.getCertificateId())) {
-            return null;
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Required fields do not match");
         }
         existingCertificate.setUrl(certificate.getUrl());
         existingCertificate.setDelivered(true);

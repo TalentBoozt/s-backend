@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,8 +39,12 @@ public class CertificateProcessorService {
 
     public void processToIssueCertificate(CourseEnrollment course, CertificateDTO certDTO, String employeeId, String courseId) {
         // 1. Add to emp_certificates
-        EmpCertificatesModel empCertificatesModel = new EmpCertificatesModel();
-        empCertificatesModel.setEmployeeId(employeeId);
+        EmpCertificatesModel empCertificatesModel = empCertificatesService.getByEmployeeId(employeeId);
+        if (empCertificatesModel == null) {
+            empCertificatesModel = new EmpCertificatesModel();
+            empCertificatesModel.setEmployeeId(employeeId);
+            empCertificatesModel.setCertificates(new ArrayList<>());
+        }
 
         EmpCertificatesDTO cert = new EmpCertificatesDTO();
         cert.setId(certDTO.getCertificateId());
@@ -49,7 +54,7 @@ public class CertificateProcessorService {
         cert.setCertificateId(certDTO.getCertificateId());
         cert.setCertificateUrl(certDTO.getUrl());
 
-        empCertificatesModel.setCertificates(List.of(cert));
+        empCertificatesModel.getCertificates().add(cert);
         empCertificatesService.addEmpCertificates(empCertificatesModel);
 
         // 2. Add to course_certificates

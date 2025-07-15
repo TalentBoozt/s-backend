@@ -117,4 +117,8 @@ public class EmpCertificatesService {
         List<EmpCertificatesModel> empCertificates = getEmpCertificatesByEmployeeId(employeeId);
         return CompletableFuture.completedFuture(empCertificates);
     }
+
+    public EmpCertificatesModel getByEmployeeId(String employeeId) {
+        return empCertificatesRepository.findByEmployeeId(employeeId).get(0);
+    }
 }
