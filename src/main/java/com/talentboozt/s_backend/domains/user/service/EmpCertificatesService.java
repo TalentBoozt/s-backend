@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 public class EmpCertificatesService {
@@ -122,22 +123,33 @@ public class EmpCertificatesService {
         if (model == null) {
             model = new EmpCertificatesModel();
             model.setEmployeeId(employeeId);
-            model.setCertificates(new ArrayList<>());
+            model.setCertificates(new ArrayList<>(
+                    model.getCertificates().stream()
+                            .collect(Collectors.toMap(
+                                    EmpCertificatesDTO::getCertificateId,
+                                    cert -> cert,
+                                    (existing, replacement) -> existing // or replacement
+                            ))
+                            .values()
+            ));
         }
-        boolean updated = false;
+
+        Map<String, EmpCertificatesDTO> certMap = new HashMap<>();
         for (EmpCertificatesDTO cert : model.getCertificates()) {
-            if (cert.getCertificateId().equals(certificateDTO.getCertificateId())) {
-                cert.setCertificateUrl(certificateDTO.getUrl());
-                updated = true;
-                break;
-            }
+            certMap.put(cert.getCertificateId(), cert);
         }
-        if (!updated) {
+
+        EmpCertificatesDTO existing = certMap.get(certificateDTO.getCertificateId());
+        if (existing != null) {
+            existing.setCertificateUrl(certificateDTO.getUrl());
+        } else {
             EmpCertificatesDTO newCert = new EmpCertificatesDTO();
             newCert.setCertificateId(certificateDTO.getCertificateId());
             newCert.setCertificateUrl(certificateDTO.getUrl());
-            model.getCertificates().add(newCert);
+            certMap.put(certificateDTO.getCertificateId(), newCert);
         }
+
+        model.setCertificates(new ArrayList<>(certMap.values()));
 
         empCertificatesRepository.save(model);
     }
