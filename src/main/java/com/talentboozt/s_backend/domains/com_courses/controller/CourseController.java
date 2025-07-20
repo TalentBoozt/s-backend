@@ -3,11 +3,11 @@ package com.talentboozt.s_backend.domains.com_courses.controller;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Price;
 import com.stripe.model.Product;
-import com.talentboozt.s_backend.domains.com_courses.dto.InstallmentDTO;
-import com.talentboozt.s_backend.domains.com_courses.dto.MaterialsDTO;
-import com.talentboozt.s_backend.domains.com_courses.dto.ModuleDTO;
-import com.talentboozt.s_backend.domains.com_courses.dto.QuizDTO;
+import com.talentboozt.s_backend.domains.com_courses.dto.*;
+import com.talentboozt.s_backend.domains.com_courses.model.CourseBatchModel;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
+import com.talentboozt.s_backend.domains.com_courses.service.CourseBatchService;
+import com.talentboozt.s_backend.domains.com_courses.service.CourseMapperService;
 import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
 import com.talentboozt.s_backend.domains.com_courses.service.CourseService;
@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -23,80 +24,181 @@ import java.util.Map;
 @RequestMapping("/api/v2/course")
 public class CourseController {
 
-    @Autowired
-    private CourseService courseService;
+    private final CourseService courseService;
+    private final StripeService stripeService;
+    private final CourseBatchService courseBatchService;
+    private final CourseMapperService courseMapper;
 
-    @Autowired
-    private StripeService stripeService;
+    public CourseController(
+            CourseService courseService,
+            StripeService stripeService,
+            CourseBatchService courseBatchService,
+            CourseMapperService courseMapper
+    ) {
+        this.courseService = courseService;
+        this.stripeService = stripeService;
+        this.courseBatchService = courseBatchService;
+        this.courseMapper = courseMapper;
+    }
 
     @GetMapping("/all")
-    public List<CourseModel> getAllCourses() {
-        return courseService.getAllCourses();
+    public List<CourseResponseDTO> getAllCourses() {
+        List<CourseResponseDTO> responseDTOS =  new ArrayList<>();
+        List<CourseModel> courses = courseService.getAllCourses();
+        for (CourseModel course : courses) {
+            CourseBatchModel batch = courseBatchService.getLatestBatchByCourseId(course.getId());
+            responseDTOS.add(courseMapper.toResponseDTO(course, batch));
+        }
+        return responseDTOS;
     }
 
     @GetMapping("/company/{companyId}")
-    public List<CourseModel> getCoursesByCompanyId(@PathVariable String companyId) {
-        return courseService.getCoursesByCompanyId(companyId);
+    public List<CourseResponseDTO> getCoursesByCompanyId(
+            @PathVariable String companyId
+    ) {
+        List<CourseResponseDTO> responseDTOS = new ArrayList<>();
+        List<CourseModel> courses = courseService.getCoursesByCompanyId(companyId);
+        for (CourseModel course : courses) {
+            CourseBatchModel batch = courseBatchService.getLatestBatchByCourseId(course.getId());
+            responseDTOS.add(courseMapper.toResponseDTO(course, batch));
+        }
+        return responseDTOS;
     }
 
     @GetMapping("/get/{id}")
-    public CourseModel getCourseById(@PathVariable String id) {
-        return courseService.getCourseById(id);
+    public CourseResponseDTO getCourseById(
+            @PathVariable String id,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseModel course = courseService.getCourseById(id);
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(id);
+
+        return courseMapper.toResponseDTO(course, batch);
     }
 
     @PostMapping("/add")
-    public CourseModel addCourse(@RequestBody CourseModel course) {
+    public CourseResponseDTO addCourse(@RequestBody CourseModel course) {
         return courseService.createCourse(course);
     }
 
     @PutMapping("/update/{id}")
-    public CourseModel updateCourse(@PathVariable String id, @RequestBody CourseModel course) {
-        return courseService.updateCourse(id, course);
+    public CourseResponseDTO updateCourse(
+            @PathVariable String id,
+            @RequestBody CourseModel course,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(id);
+        return courseService.updateCourse(id, course, batch.getId());
     }
 
     @DeleteMapping("/delete/{id}")
-    public void deleteCourse(@PathVariable String id) throws StripeException {
-        courseService.deleteCourse(id);
+    public ResponseEntity<?> deleteCourse(
+            @PathVariable String id,
+            @RequestParam(required = false) String batchId
+    ) throws StripeException {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(id);
+        courseService.deleteCourse(id, batch.getId());
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/update-module/{courseId}")
-    public CourseModel updateModule(@PathVariable String courseId, @RequestBody ModuleDTO module) {
-        return courseService.updateModule(courseId, module);
+    public CourseResponseDTO updateModule(
+            @PathVariable String courseId,
+            @RequestBody ModuleDTO module,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.updateModule(courseId, module, batch);
     }
 
     @DeleteMapping("/delete-module/{courseId}/{moduleId}")
-    public void deleteModule(@PathVariable String courseId, @PathVariable String moduleId) {
-        courseService.deleteModule(courseId, moduleId);
+    public void deleteModule(
+            @PathVariable String courseId,
+            @PathVariable String moduleId,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        courseService.deleteModule(courseId, moduleId, batch.getId());
     }
 
     @PostMapping("/add-module/{courseId}")
-    public CourseModel addModule(@PathVariable String courseId, @RequestBody ModuleDTO module) {
-        return courseService.addModule(courseId, module);
+    public CourseResponseDTO addModule(
+            @PathVariable String courseId,
+            @RequestBody ModuleDTO module,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.addModule(courseId, module, batch);
     }
 
     @PutMapping("/update-installment/{courseId}")
-    public CourseModel updateInstallment(@PathVariable String courseId, @RequestBody InstallmentDTO installment) {
-        return courseService.updateInstallment(courseId, installment);
+    public CourseResponseDTO updateInstallment(
+            @PathVariable String courseId,
+            @RequestBody InstallmentDTO installment,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.updateInstallment(courseId, installment, batch);
     }
 
     @DeleteMapping("/delete-installment/{courseId}/{installmentId}")
-    public void deleteInstallment(@PathVariable String courseId, @PathVariable String installmentId) throws StripeException {
-        courseService.deleteInstallment(courseId, installmentId);
+    public void deleteInstallment(
+            @PathVariable String courseId,
+            @PathVariable String installmentId,
+            @RequestParam(required = false) String batchId
+    ) throws StripeException {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        courseService.deleteInstallment(courseId, installmentId, batch.getId());
     }
 
     @PostMapping("/add-installment/{courseId}")
-    public CourseModel addInstallment(@PathVariable String courseId, @RequestBody InstallmentDTO installment) {
-        return courseService.addInstallment(courseId, installment);
+    public CourseResponseDTO addInstallment(
+            @PathVariable String courseId,
+            @RequestBody InstallmentDTO installment,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.addInstallment(courseId, installment, batch);
     }
 
     @GetMapping("/get/{courseId}/users")
-    public List<EmployeeModel> getUsersEnrolledInCourse(@PathVariable String courseId) {
-        return courseService.getUsersEnrolledInCourse(courseId);
+    public List<EmployeeModel> getUsersEnrolledInCourse(
+            @PathVariable String courseId,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.getUsersEnrolledInCourse(courseId, batch.getId());
     }
 
     @GetMapping("/get/{courseId}/enrolls")
-    public List<EmpCoursesModel> getEnrollesInCourse(@PathVariable String courseId) {
-        return courseService.getEnrolls(courseId);
+    public List<EmpCoursesModel> getEnrollesInCourse(
+            @PathVariable String courseId,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.getEnrolls(courseId, batch.getId());
     }
 
     @GetMapping("/get/categories")
@@ -111,78 +213,184 @@ public class CourseController {
     }
 
     @PutMapping("/update-status/{courseId}/{status}")
-    public CourseModel updateStatus(@PathVariable String courseId, @PathVariable String status) {
-        return courseService.updateCourseStatus(courseId, status);
+    public CourseResponseDTO updateStatus(
+            @PathVariable String courseId,
+            @PathVariable String status,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.updateCourseStatus(courseId, status, batch);
     }
 
     @PutMapping("/update-publicity/{courseId}")
-    public CourseModel updatePublicity(@PathVariable String courseId) {
-        return courseService.updatePublicity(courseId);
+    public CourseResponseDTO updatePublicity(
+            @PathVariable String courseId,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.updatePublicity(courseId, batch);
     }
 
     @PostMapping("/add/material/{courseId}")
-    public CourseModel addMaterial(@PathVariable String courseId, @RequestBody MaterialsDTO materials) {
-        return courseService.addMaterial(courseId, materials);
+    public CourseResponseDTO addMaterial(
+            @PathVariable String courseId,
+            @RequestBody MaterialsDTO materials,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.addMaterial(courseId, materials, batch);
     }
 
     @PutMapping("/update/material/{courseId}/{id}")
-    public CourseModel updateMaterial(@PathVariable String courseId, @PathVariable String id, @RequestBody MaterialsDTO materials) {
-        return courseService.updateMaterial(courseId, id, materials);
+    public CourseResponseDTO updateMaterial(
+            @PathVariable String courseId,
+            @PathVariable String id,
+            @RequestBody MaterialsDTO materials,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.updateMaterial(courseId, id, materials, batch);
     }
 
     @DeleteMapping("/delete/material/{courseId}/{id}")
-    public void deleteMaterial(@PathVariable String courseId, @PathVariable String id) {
-        courseService.deleteMaterial(courseId, id);
+    public void deleteMaterial(
+            @PathVariable String courseId,
+            @PathVariable String id,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        courseService.deleteMaterial(courseId, id, batch);
     }
 
     @GetMapping("/get/materials/{courseId}")
-    public List<MaterialsDTO> getMaterials(@PathVariable String courseId) {
-        return courseService.getMaterials(courseId);
+    public List<MaterialsDTO> getMaterials(
+            @PathVariable String courseId,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.getMaterials(courseId, batch);
     }
 
     @GetMapping("/get/material/{courseId}/{id}")
-    public MaterialsDTO getMaterial(@PathVariable String courseId, @PathVariable String id) {
-        return courseService.getMaterial(courseId, id);
+    public MaterialsDTO getMaterial(
+            @PathVariable String courseId,
+            @PathVariable String id,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.getMaterial(courseId, id, batch);
     }
 
     @PutMapping("/increment/material-view/{courseId}/{id}")
-    public CourseModel incrementMaterialView(@PathVariable String courseId, @PathVariable String id) {
-        return courseService.incrementMaterialView(courseId, id);
+    public CourseResponseDTO incrementMaterialView(
+            @PathVariable String courseId,
+            @PathVariable String id,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.incrementMaterialView(courseId, id, batch);
     }
 
     @PutMapping("/visibility/material/{courseId}/{id}/{status}")
-    public CourseModel updateMaterialVisibility(@PathVariable String courseId, @PathVariable String id, @PathVariable String status) {
-        return courseService.updateMaterialVisibility(courseId, id, status);
+    public CourseResponseDTO updateMaterialVisibility(
+            @PathVariable String courseId,
+            @PathVariable String id,
+            @PathVariable String status,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.updateMaterialVisibility(courseId, id, status, batch);
     }
 
     @PostMapping("/add/quiz/{courseId}")
-    public CourseModel addQuiz(@PathVariable String courseId, @RequestBody QuizDTO quiz) {
-        return courseService.addQuiz(courseId, quiz);
+    public CourseResponseDTO addQuiz(
+            @PathVariable String courseId,
+            @RequestBody QuizDTO quiz,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.addQuiz(courseId, quiz, batch);
     }
 
     @PutMapping("/update/quiz/{courseId}/{quizId}")
-    public CourseModel updateQuiz(@PathVariable String courseId, @PathVariable String quizId, @RequestBody QuizDTO quiz) {
-        return courseService.updateQuiz(courseId, quizId, quiz);
+    public CourseResponseDTO updateQuiz(
+            @PathVariable String courseId,
+            @PathVariable String quizId,
+            @RequestBody QuizDTO quiz,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.updateQuiz(courseId, quizId, quiz, batch);
     }
 
     @PutMapping("/visibility/quiz/{courseId}/{quizId}/{status}")
-    public CourseModel updateQuizVisibility(@PathVariable String courseId, @PathVariable String quizId, @PathVariable String status) {
-        return courseService.updateQuizVisibility(courseId, quizId, status);
+    public CourseResponseDTO updateQuizVisibility(
+            @PathVariable String courseId,
+            @PathVariable String quizId,
+            @PathVariable String status,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.updateQuizVisibility(courseId, quizId, status, batch);
     }
 
     @DeleteMapping("/delete/quiz/{courseId}/{quizId}")
-    public void deleteQuiz(@PathVariable String courseId, @PathVariable String quizId) {
-        courseService.deleteQuiz(courseId, quizId);
+    public void deleteQuiz(
+            @PathVariable String courseId,
+            @PathVariable String quizId,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        courseService.deleteQuiz(courseId, quizId, batch);
     }
 
     @GetMapping("/get/quizzes/{courseId}")
-    public List<QuizDTO> getQuizzes(@PathVariable String courseId) {
-        return courseService.getQuizzes(courseId);
+    public List<QuizDTO> getQuizzes(
+            @PathVariable String courseId,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.getQuizzes(courseId, batch);
     }
 
     @GetMapping("/get/quiz/{courseId}/{quizId}")
-    public QuizDTO getQuiz(@PathVariable String courseId, @PathVariable String quizId) {
-        return courseService.getQuiz(courseId, quizId);
+    public QuizDTO getQuiz(
+            @PathVariable String courseId,
+            @PathVariable String quizId,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.getQuiz(courseId, quizId, batch);
     }
 
     @PostMapping("/create/stripe/product/{courseName}")

@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.audit_logs.controller;
 
-import com.talentboozt.s_backend.domains.audit_logs.model.ClientActAuditLog;
-import com.talentboozt.s_backend.domains.audit_logs.repository.ClientActAuditLogRepository;
+import com.talentboozt.s_backend.domains.audit_logs.model.AsyncUpdateAuditLog;
+import com.talentboozt.s_backend.domains.audit_logs.repository.AsyncUpdateAuditLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,25 +16,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/monitoring/client-act-audit-log")
-public class ClientActAuditLogController {
+@RequestMapping("/api/monitoring/async-audit-log")
+public class AsyncUpdateAuditController {
 
     @Autowired
-    ClientActAuditLogRepository clientActAuditLogRepository;
+    private AsyncUpdateAuditLogRepository asyncUpdateAuditLogRepository;
 
     @GetMapping("/all")
-    public Iterable<ClientActAuditLog> getAllLogs() {
-        return clientActAuditLogRepository.findAll();
+    public Iterable<AsyncUpdateAuditLog> getAllLogs() {
+        return asyncUpdateAuditLogRepository.findAll();
     }
 
-    @GetMapping("/client")
-    public Map<String, Object> getClientLogs(
+    @GetMapping("/count")
+    public long getLogCount() {
+        return asyncUpdateAuditLogRepository.count();
+    }
+
+    @GetMapping("/latest")
+    public AsyncUpdateAuditLog getLatestLog() {
+        return asyncUpdateAuditLogRepository.findTopByOrderByCreatedAtDesc();
+    }
+
+    @GetMapping("/paginated")
+    public Map<String, Object> getPaginatedLogs(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String filter
     ) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "timestamp"));
-        Page<ClientActAuditLog> logPage = clientActAuditLogRepository.searchWithFilter(filter, pageable);
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<AsyncUpdateAuditLog> logPage = asyncUpdateAuditLogRepository.searchWithFilter(filter, pageable);
 
         Map<String, Object> response = new HashMap<>();
         response.put("items", logPage.getContent());
