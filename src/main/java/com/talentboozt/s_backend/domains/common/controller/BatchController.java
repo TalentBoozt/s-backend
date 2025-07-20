@@ -1,5 +1,7 @@
 package com.talentboozt.s_backend.domains.common.controller;
 
+import com.talentboozt.s_backend.domains.com_courses.model.CourseBatchModel;
+import com.talentboozt.s_backend.domains.com_courses.service.CourseBatchService;
 import com.talentboozt.s_backend.domains.com_job_portal.model.CmpPostedJobsModel;
 import com.talentboozt.s_backend.domains.com_job_portal.model.CmpSocialModel;
 import com.talentboozt.s_backend.domains.com_job_portal.model.CompanyModel;
@@ -43,12 +45,14 @@ public class BatchController {
     private final CmpSocialService cmpSocialService;
     private final CourseService courseService;
     private final JwtService jwtService;
+    private final CourseBatchService courseBatchService;
 
     public BatchController(EmployeeService employeeService, EmpContactService empContactService, EmpEducationService empEducationService,
             EmpSkillsService empSkillsService, EmpExperiencesService empExperiencesService, EmpProjectsService empProjectsService,
             EmpCertificatesService empCertificatesService, EmpFollowersService empFollowersService, EmpFollowingService empFollowingService,
             EmpCoursesService empCoursesService, CredentialsService credentialsService, CmpPostedJobsService cmpPostedJobsService,
-            CompanyService companyService, CmpSocialService cmpSocialService, CourseService courseService, JwtService jwtService) {
+            CompanyService companyService, CmpSocialService cmpSocialService, CourseService courseService, JwtService jwtService,
+            CourseBatchService courseBatchService) {
         this.employeeService = employeeService;
         this.empContactService = empContactService;
         this.empEducationService = empEducationService;
@@ -65,6 +69,7 @@ public class BatchController {
         this.cmpSocialService = cmpSocialService;
         this.courseService = courseService;
         this.jwtService = jwtService;
+        this.courseBatchService = courseBatchService;
     }
 
     @GetMapping("/getEmployee/{id}")
@@ -169,10 +174,16 @@ public class BatchController {
     }
 
     @GetMapping("/getParticipants/{id}")
-    public Map<String, Object> getParticipant(@PathVariable String id) {
+    public Map<String, Object> getParticipant(
+            @PathVariable String id,
+            @RequestParam(required = false) String batchId
+    ) {
         Map<String, Object> response = new HashMap<>();
-        response.put("user", courseService.getUsersEnrolledInCourse(id));
-        response.put("enrolls", courseService.getEnrolls(id));
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(id);
+        response.put("user", courseService.getUsersEnrolledInCourse(id, batch.getId()));
+        response.put("enrolls", courseService.getEnrolls(id, batch.getId()));
         return response;
     }
 

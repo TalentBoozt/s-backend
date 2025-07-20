@@ -12,6 +12,7 @@ import java.util.List;
 public class CourseEnrollment {
     private String courseId;
     private String courseName;
+    private String batchId;
     private String overview;
     private String image;
     private String organizer;

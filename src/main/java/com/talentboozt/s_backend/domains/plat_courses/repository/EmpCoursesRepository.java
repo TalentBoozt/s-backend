@@ -10,5 +10,6 @@ public interface EmpCoursesRepository extends MongoRepository<EmpCoursesModel, S
     List<EmpCoursesModel> findAllByEmployeeId(String employeeId);
     void deleteByEmployeeId(String employeeId);
     List<EmpCoursesModel> findByCoursesCourseId(String courseId);
+    List<EmpCoursesModel> findByCoursesCourseIdAndCoursesBatchId(String batchId, String courseId);
     Optional<EmpCoursesModel> findByEmployeeId(String employeeId);
 }
