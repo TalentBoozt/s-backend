@@ -56,10 +56,10 @@ public class CourseService {
     }
 
     public CourseResponseDTO createCourse(CourseModel course) {
-        CourseBatchModel latestBatch = setBatchDetails(new CourseBatchModel(), course);
+        CourseModel courseModel = courseRepository.save(course);
+        CourseBatchModel latestBatch = setBatchDetails(new CourseBatchModel(), courseModel);
         latestBatch.setBatchName(generateBatchName(course.getName()));
 
-        CourseModel courseModel = courseRepository.save(course);
         CourseBatchModel savedBatch = courseBatchService.saveBatch(latestBatch);
         return courseMapper.toResponseDTO(courseModel, savedBatch);
     }

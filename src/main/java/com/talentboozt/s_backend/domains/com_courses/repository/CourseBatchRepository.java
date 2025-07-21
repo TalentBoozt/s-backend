@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface CourseBatchRepository extends MongoRepository<CourseBatchModel, String> {
     List<CourseBatchModel> findByCourseId(String courseId);
     Optional<CourseBatchModel> findTopByCourseIdOrderByStartDateDesc(String id);
+    boolean existsByCourseId(String id);
 }
