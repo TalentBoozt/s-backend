@@ -6,6 +6,7 @@ import com.stripe.model.Product;
 import com.talentboozt.s_backend.domains.com_courses.dto.*;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseBatchModel;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
+import com.talentboozt.s_backend.domains.com_courses.service.CourseBatchMigrationService;
 import com.talentboozt.s_backend.domains.com_courses.service.CourseBatchService;
 import com.talentboozt.s_backend.domains.com_courses.service.CourseMapperService;
 import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
@@ -28,17 +29,20 @@ public class CourseController {
     private final StripeService stripeService;
     private final CourseBatchService courseBatchService;
     private final CourseMapperService courseMapper;
+    private final CourseBatchMigrationService migrationService;
 
     public CourseController(
             CourseService courseService,
             StripeService stripeService,
             CourseBatchService courseBatchService,
-            CourseMapperService courseMapper
+            CourseMapperService courseMapper,
+            CourseBatchMigrationService migrationService
     ) {
         this.courseService = courseService;
         this.stripeService = stripeService;
         this.courseBatchService = courseBatchService;
         this.courseMapper = courseMapper;
+        this.migrationService = migrationService;
     }
 
     @GetMapping("/all")
@@ -425,5 +429,11 @@ public class CourseController {
         installment.setProductId(product.getId());
         installment.setPriceId(price.getId());
         return installment;
+    }
+
+    @PostMapping("/backfill-batches")
+    public ResponseEntity<String> backfillBatches() {
+        migrationService.backfillMissingBatches();
+        return ResponseEntity.ok("Batch migration completed.");
     }
 }

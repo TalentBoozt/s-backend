@@ -17,7 +17,10 @@ public class CourseBatchService {
 
     public CourseBatchModel getLatestBatchByCourseId(String id) {
         return courseBatchRepository.findTopByCourseIdOrderByStartDateDesc(id)
-                .orElseThrow(() -> new RuntimeException("No batches found for course with id: " + id));
+                .orElseGet(() -> {
+                    System.out.println("No batch found for course ID: "+ id);
+                    return null;
+                });
     }
 
     public CourseBatchModel saveBatch(CourseBatchModel courseBatch) {
