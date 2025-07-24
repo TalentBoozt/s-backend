@@ -85,6 +85,20 @@ public class CourseService {
         return courseMapper.toResponseDTO(courseModel, updatedBatch);
     }
 
+    public CourseResponseDTO updateCourseWithNewBatch(String courseId, CourseModel course) {
+        if (!courseRepository.existsById(courseId)) {
+            throw new RuntimeException("Course not found with id: " + courseId);
+        }
+        course.setId(courseId);
+        CourseModel courseModel = courseRepository.save(course);
+        CourseBatchModel latestBatch = setBatchDetails(new CourseBatchModel(), courseModel);
+        latestBatch.setBatchName(generateBatchName(course.getName()));
+
+        CourseBatchModel savedBatch = courseBatchService.saveBatch(latestBatch);
+        empCoursesAsyncUpdater.updateEnrolledUsersOnCourseChange(courseId, savedBatch.getId(), courseModel, savedBatch);
+        return courseMapper.toResponseDTO(courseModel, savedBatch);
+    }
+
     public void deleteCourse(String id, String batchId) throws StripeException {
         if (batchId != null && !batchId.isEmpty()) {
             CourseBatchModel batch = courseBatchService.getById(batchId);

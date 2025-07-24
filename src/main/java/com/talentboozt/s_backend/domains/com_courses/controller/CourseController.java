@@ -99,6 +99,14 @@ public class CourseController {
         return courseService.updateCourse(id, course, batch.getId());
     }
 
+    @PutMapping("/update-new-batch/{id}")
+    public CourseResponseDTO updateCourseWithNewBatch(
+            @PathVariable String id,
+            @RequestBody CourseModel course
+    ) {
+        return courseService.updateCourseWithNewBatch(id, course);
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<?> deleteCourse(
             @PathVariable String id,
