@@ -68,6 +68,7 @@ public class CourseService {
         if (!courseRepository.existsById(id)) {
             throw new RuntimeException("Course not found with id: " + id);
         }
+        course.setId(id);
         CourseModel courseModel = courseRepository.save(course);
         CourseBatchModel updatedBatch = null;
 
