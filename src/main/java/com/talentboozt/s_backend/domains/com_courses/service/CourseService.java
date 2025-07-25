@@ -457,10 +457,10 @@ public class CourseService {
     public CourseResponseDTO updatePublicity(String courseId, CourseBatchModel batch) {
         CourseModel course = courseRepository.findById(courseId).orElse(null);
         if (batch.getId() != null && !batch.getId().isEmpty()) {
-            if (course != null && !batch.getCourseId().equals(courseId)) {
+            if (course != null && batch.getCourseId().equals(courseId)) {
                 course.setPublicity(!course.isPublicity());
                 CourseModel updatedCourse = courseRepository.save(course);
-                batch.setPublicity(!batch.isPublicity());
+                batch.setPublicity(updatedCourse.isPublicity());
                 CourseBatchModel updatedBatch = courseBatchService.updateBatch(batch);
 
                 return courseMapper.toResponseDTO(updatedCourse, updatedBatch);
