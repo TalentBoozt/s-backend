@@ -59,7 +59,7 @@ public class IpCaptureFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
         String endpointAccessed = request.getRequestURI();
 
         // Skip logging for actuator metrics endpoint
@@ -86,9 +86,9 @@ public class IpCaptureFilter extends OncePerRequestFilter {
                 clientActAuditLogService.log("Anonymous", ipAddress, null, "INVALID_JWT", "IpCaptureFilter", detail);
             }
         } else if (token != null) {
-            clientActAuditLogService.log("Anonymous", ipAddress, null, "INVALID_OR_EXPIRED_JWT", "IpCaptureFilter", Map.of("token", token));
+            clientActAuditLogService.log("Anonymous", ipAddress, null, "INVALID_OR_EXPIRED_JWT", "IpCaptureFilter", safeMapOf("token", token));
         } else {
-            clientActAuditLogService.log("Anonymous", ipAddress, null, "ANONYMOUS_ACCESS", "IpCaptureFilter", Map.of("uri", endpointAccessed));
+            clientActAuditLogService.log("Anonymous", ipAddress, null, "ANONYMOUS_ACCESS", "IpCaptureFilter", safeMapOf("uri", endpointAccessed));
         }
 
         // Check rate-limiting: If the user/IP exceeds the limit, we handle it accordingly
@@ -119,11 +119,11 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         boolean captcha = captchaVerified(request);
 
         if (captcha) {
-            clientActAuditLogService.log(userId, ipAddress, sessionId, "CAPTCHA_PREVIOUSLY_VERIFIED", "IpCaptureFilter", Map.of("userAgent", userAgent));
+            clientActAuditLogService.log(userId, ipAddress, sessionId, "CAPTCHA_PREVIOUSLY_VERIFIED", "IpCaptureFilter", safeMapOf("userAgent", userAgent));
         }
 
         if (offset == null) {
-            clientActAuditLogService.log(userId, ipAddress, sessionId, "OFFSET_NOT_PROVIDED", "IpCaptureFilter", Map.of("userAgent", userAgent));
+            clientActAuditLogService.log(userId, ipAddress, sessionId, "OFFSET_NOT_PROVIDED", "IpCaptureFilter", safeMapOf("userAgent", userAgent));
         }
 
         // Detect timezone mismatch
@@ -208,5 +208,11 @@ public class IpCaptureFilter extends OncePerRequestFilter {
                     Instant.now().isBefore(verifiedAt.plus(Duration.ofMinutes(60)));
         }
         return false;
+    }
+
+    public static Map<String, Object> safeMapOf(String key, Object value) {
+        Map<String, Object> map = new HashMap<>();
+        map.put(key, value != null ? value : "unknown");
+        return map;
     }
 }
