@@ -16,7 +16,7 @@ public class CourseBatchService {
     }
 
     public CourseBatchModel getLatestBatchByCourseId(String id) {
-        return courseBatchRepository.findTopByCourseIdOrderByStartDateDesc(id)
+        return courseBatchRepository.findTopByCourseIdOrderByStartDateDescIdDesc(id)
                 .orElseGet(() -> {
                     System.out.println("No batch found for course ID: "+ id);
                     return null;
