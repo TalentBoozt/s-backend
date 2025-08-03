@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.sys_tracking.model;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -74,4 +75,6 @@ public class TrackingEvent {
     private Integer timezoneOffset;
     private boolean suspectedVpn;
     private boolean suspectedBot;
+    @Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private Instant expiresAt;
 }

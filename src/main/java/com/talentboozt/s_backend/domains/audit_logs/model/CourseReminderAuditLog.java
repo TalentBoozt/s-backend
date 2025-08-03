@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.audit_logs.model;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -34,5 +35,7 @@ public class CourseReminderAuditLog {
 
     private String message; // Optional note (e.g., "email missing", "invalid timezone")
     private Instant timestamp; // When this log was recorded
+    @Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private Instant expiresAt;
 }
 

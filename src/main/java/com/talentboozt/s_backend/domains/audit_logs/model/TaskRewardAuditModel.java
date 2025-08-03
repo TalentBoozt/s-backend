@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.audit_logs.model;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -26,4 +27,6 @@ public class TaskRewardAuditModel {
     private String note;           // Optional debug message or context
 
     private Instant issuedAt;
+    @Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private Instant expiresAt;
 }
