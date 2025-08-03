@@ -45,6 +45,7 @@ public class CourseReminderAuditLogService {
         }
 
         log.setTimestamp(Instant.now());
+        log.setExpiresAt(Instant.now().plusSeconds(60 * 60 * 24 * 3)); // 3 days expiration
         auditLogRepo.save(log);
     }
 

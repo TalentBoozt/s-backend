@@ -113,6 +113,7 @@ public class TrackingController {
                 "timezone_name", "timezone_offset", "downlink", "effectiveType", "rtt"
         ));
         event.setCustomData(custom.isEmpty() ? null : custom);
+        event.setExpiresAt(Instant.now().plusSeconds(60 * 60 * 24 * 7)); // 7 days TTL
 
         eventRepository.save(event);
     }

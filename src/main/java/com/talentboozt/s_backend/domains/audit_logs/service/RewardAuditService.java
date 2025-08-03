@@ -32,6 +32,7 @@ public class RewardAuditService {
         audit.setStatus(status);
         audit.setNote(note);
         audit.setIssuedAt(Instant.now());
+        audit.setExpiresAt(Instant.now().plusSeconds(60 * 60 * 24 * 7)); // 7 days expiration
 
         auditRepo.save(audit);
     }
