@@ -121,15 +121,20 @@ public class AmbassadorProfileService {
     public AmbassadorProfileModel promoteAmbassador(String id) {
         Optional<AmbassadorProfileModel> ambassadorProfile = ambassadorProfileRepository.findById(id);
         if (ambassadorProfile.isPresent()) {
-            AmbassadorProfileModel ambassadorProfile1 = ambassadorProfile.get();
-            switch (ambassadorProfile1.getLevel()) {
-                case "BRONZE" -> ambassadorProfile1.setLevel("SILVER");
-                case "SILVER" -> ambassadorProfile1.setLevel("GOLD");
-                case "GOLD" -> ambassadorProfile1.setLevel("DIAMOND");
-                case "DIAMOND" -> ambassadorProfile1.setLevel("PLATINUM");
+            AmbassadorProfileModel profile = ambassadorProfile.get();
+
+            // Check if the level is not already at the highest level (PLATINUM)
+            if (!profile.getLevel().equals("PLATINUM")) {
+                switch (profile.getLevel()) {
+                    case "BRONZE" -> profile.setLevel("SILVER");
+                    case "SILVER" -> profile.setLevel("GOLD");
+                    case "GOLD" -> profile.setLevel("DIAMOND");
+                    case "DIAMOND" -> profile.setLevel("PLATINUM");
+                }
+                profile.setLastActivity(Instant.now());
+                profile = ambassadorProfileRepository.save(profile);
             }
-            ambassadorProfile1.setLastActivity(Instant.now());
-            return ambassadorProfileRepository.save(ambassadorProfile1);
+            return profile;
         }
         return null;
     }
@@ -137,15 +142,19 @@ public class AmbassadorProfileService {
     public AmbassadorProfileModel demoteAmbassador(String id) {
         Optional<AmbassadorProfileModel> ambassadorProfile = ambassadorProfileRepository.findById(id);
         if (ambassadorProfile.isPresent()) {
-            AmbassadorProfileModel ambassadorProfile1 = ambassadorProfile.get();
-            switch (ambassadorProfile1.getLevel()) {
-                case "SILVER" -> ambassadorProfile1.setLevel("BRONZE");
-                case "GOLD" -> ambassadorProfile1.setLevel("SILVER");
-                case "DIAMOND" -> ambassadorProfile1.setLevel("GOLD");
-                case "PLATINUM" -> ambassadorProfile1.setLevel("DIAMOND");
+            AmbassadorProfileModel profile = ambassadorProfile.get();
+            // Check if the level is not already at the lowest level (BRONZE)
+            if (!profile.getLevel().equals("BRONZE")) {
+                switch (profile.getLevel()) {
+                    case "SILVER" -> profile.setLevel("BRONZE");
+                    case "GOLD" -> profile.setLevel("SILVER");
+                    case "DIAMOND" -> profile.setLevel("GOLD");
+                    case "PLATINUM" -> profile.setLevel("DIAMOND");
+                }
+                profile.setLastActivity(Instant.now());
+                profile = ambassadorProfileRepository.save(profile);
             }
-            ambassadorProfile1.setLastActivity(Instant.now());
-            return ambassadorProfileRepository.save(ambassadorProfile1);
+            return profile;
         }
         return null;
     }

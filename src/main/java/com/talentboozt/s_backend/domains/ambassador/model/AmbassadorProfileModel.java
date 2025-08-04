@@ -1,6 +1,8 @@
 package com.talentboozt.s_backend.domains.ambassador.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -12,6 +14,8 @@ import java.util.Map;
 
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 
 @Document(collection = "ambassador_profiles")
 public class AmbassadorProfileModel {
