@@ -84,7 +84,7 @@ public class SecurityConfig {
                                 request.getRequestURI().startsWith("/actuator/") && !request.getRequestURI().equals("/actuator/env")
                         ).permitAll()
                         .requestMatchers(
-                                "/stripe/**", "/public/**", "/sso/**",
+                                "/stripe/**", "/public/**", "/sso/**", "/docs/**",
                                 "/api/auth/**", "/oauth2/**", "/oauth/**",
                                 "/sitemap.xml", "/api/event/**", "/api/monitoring/**",
                                 "/api/security/**", "/api/v2/github/**", "/api/v2/facebook/**",
