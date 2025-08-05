@@ -36,6 +36,8 @@ public class SchedulerLogController {
             @RequestParam(required = false) String jobName,
             @RequestParam(required = false) String status
     ) {
+        if (page < 1) page = 1;
+        if (size < 1) size = 10;
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "runAt"));
         Page<SchedulerLogModel> logs = repo.search(jobName, status, pageable);
 
