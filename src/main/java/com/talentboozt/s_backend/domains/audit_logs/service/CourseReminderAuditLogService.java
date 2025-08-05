@@ -8,6 +8,7 @@ import com.talentboozt.s_backend.domains.audit_logs.repository.CourseReminderAud
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -15,12 +16,15 @@ import java.time.ZonedDateTime;
 @Service
 public class CourseReminderAuditLogService {
 
-    @Autowired
-    private CourseReminderAuditLogRepository auditLogRepo;
+    private final CourseReminderAuditLogRepository auditLogRepo;
+
+    public CourseReminderAuditLogService(CourseReminderAuditLogRepository auditLogRepo) {
+        this.auditLogRepo = auditLogRepo;
+    }
 
     public void logAudit(EmpCoursesModel emp, CourseEnrollment course, ModuleDTO module, long offset, String status, String message) {
         CourseReminderAuditLog log = new CourseReminderAuditLog();
-        log.setEmployeeId(emp.getId());
+        log.setEmployeeId(emp.getEmployeeId());
         log.setEmployeeName(emp.getEmployeeName());
         log.setEmail(emp.getEmail());
         log.setTimezone(emp.getTimezone());

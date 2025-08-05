@@ -39,6 +39,8 @@ public class StripeAuditLogController {
             @RequestParam(required = false) String eventType,
             @RequestParam(required = false) String status
     ) {
+        if (page < 1) page = 1;
+        if (size < 1) size = 10;
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<StripeAuditLog> logs = stripeAuditLogRepository.search(eventType, status, pageable);
 

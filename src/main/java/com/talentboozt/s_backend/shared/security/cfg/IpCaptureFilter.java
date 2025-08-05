@@ -26,18 +26,23 @@ import java.util.Map;
 @Component
 public class IpCaptureFilter extends OncePerRequestFilter {
 
-    @Autowired
-    private UserActivityService userActivityService;
-    @Autowired
-    private RateLimiterService rateLimiterService;
-    @Autowired
-    private JwtService jwtService;
-    @Autowired
-    private IpTimeZoneService ipTimeZoneService;
-    @Autowired
-    private TimeZoneMismatchService timeZoneMisMatchService;
-    @Autowired
-    private ClientActAuditLogService clientActAuditLogService;
+    private final UserActivityService userActivityService;
+    private final RateLimiterService rateLimiterService;
+    private final JwtService jwtService;
+    private final IpTimeZoneService ipTimeZoneService;
+    private final TimeZoneMismatchService timeZoneMisMatchService;
+    private final ClientActAuditLogService clientActAuditLogService;
+
+    public IpCaptureFilter(UserActivityService userActivityService, RateLimiterService rateLimiterService, JwtService jwtService,
+                           IpTimeZoneService ipTimeZoneService, TimeZoneMismatchService timeZoneMisMatchService,
+                           ClientActAuditLogService clientActAuditLogService) {
+        this.userActivityService = userActivityService;
+        this.rateLimiterService = rateLimiterService;
+        this.jwtService = jwtService;
+        this.ipTimeZoneService = ipTimeZoneService;
+        this.timeZoneMisMatchService = timeZoneMisMatchService;
+        this.clientActAuditLogService = clientActAuditLogService;
+    }
 
     private String getClientIp(HttpServletRequest request) {
         String ip = request.getHeader("X-Forwarded-For");

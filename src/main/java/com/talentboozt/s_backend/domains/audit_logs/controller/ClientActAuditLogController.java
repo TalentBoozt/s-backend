@@ -33,6 +33,8 @@ public class ClientActAuditLogController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String filter
     ) {
+        if (page < 1) page = 1;
+        if (size < 1) size = 10;
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "timestamp"));
         Page<ClientActAuditLog> logPage = clientActAuditLogRepository.searchWithFilter(filter, pageable);
 

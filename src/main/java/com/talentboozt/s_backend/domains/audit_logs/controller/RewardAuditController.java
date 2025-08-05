@@ -36,6 +36,8 @@ public class RewardAuditController {
             @RequestParam(required = false) String ambassadorId,
             @RequestParam(required = false) String status
     ) {
+        if (page < 1) page = 1;
+        if (size < 1) size = 10;
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "issuedAt"));
         Page<TaskRewardAuditModel> logs = auditRepo.search(ambassadorId, status, pageable);
 

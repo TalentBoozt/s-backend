@@ -21,12 +21,12 @@ public class ClientActAuditLogService {
     @Autowired
     private ClientActAuditLogRepository auditLogRepository;
 
-    private final BlockingQueue<ClientActAuditLog> auditQueue = new LinkedBlockingQueue<>(10_000); // max cap to prevent overload
+    protected final BlockingQueue<ClientActAuditLog> auditQueue = new LinkedBlockingQueue<>(10_000); // max cap to prevent overload
 
     private long flushInterval = 5; // default fallback
     private int batchSize = 50;
 
-    private ScheduledExecutorService scheduler;
+    protected ScheduledExecutorService scheduler;
 
     @Value("${audit.flush-interval-s:5}")
     public void setFlushInterval(long interval) {
@@ -55,7 +55,7 @@ public class ClientActAuditLogService {
         }
     }
 
-    private void flushLogs() {
+    protected void flushLogs() {
         try {
             List<ClientActAuditLog> batch = new ArrayList<>(batchSize);
             auditQueue.drainTo(batch, batchSize);
