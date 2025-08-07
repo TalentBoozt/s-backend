@@ -37,11 +37,16 @@ public class MonitoringService {
 
     public DashboardOverviewDTO getOverview(String trackingId, Instant from, Instant to) {
         long activeNow = activityRepo.countByLastActiveAfter(Instant.now().minusSeconds(300));
-        long dailyUsers = loginRepo.countDistinctUserIdByLoginDatesContaining(LocalDate.now().toString());
+        long dailyUsers = countUniqueUsersByDate(LocalDate.now().toString());
         long sessions = eventRepo.countDistinctSessionIdByTrackingIdAndTimestampBetween(trackingId, from, to);
         long errors = eventRepo.countByTrackingIdAndErrorMessageNotNullAndTimestampBetween(trackingId, from, to);
 
         return new DashboardOverviewDTO(activeNow, dailyUsers, sessions, errors);
+    }
+
+    public long countUniqueUsersByDate(String date) {
+        Document result = loginRepo.countDistinctUserIdByEventDate(date);
+        return result != null ? result.getInteger("uniqueUserCount", 0) : 0;
     }
 
     public List<TimeSeriesPoint> getPageViews(String trackingId, Instant from, Instant to) {
