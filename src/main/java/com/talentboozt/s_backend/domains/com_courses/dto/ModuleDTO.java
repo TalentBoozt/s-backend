@@ -27,4 +27,9 @@ public class ModuleDTO {
     private String meetingLink;
     private String status;
     private boolean onetimePayment;
+
+    // mock for test
+    public ModuleDTO(String id) {
+        this.id = id;
+    }
 }
