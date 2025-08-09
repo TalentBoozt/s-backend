@@ -26,4 +26,9 @@ public class EmpCoursesModel {
     private String timezone;
     @Field("courses")
     private List<CourseEnrollment> courses;
+
+    // mock for test
+    public EmpCoursesModel(String id) {
+        this.id = id;
+    }
 }

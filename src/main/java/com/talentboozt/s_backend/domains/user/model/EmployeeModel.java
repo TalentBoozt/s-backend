@@ -49,6 +49,15 @@ public class EmployeeModel {
     private String expectedSalaryRange;
     private String currentExperience;
     private String keywords;
+
+    public EmployeeModel() {
+        // Default constructor
+    }
+
+    // mock for test
+    public EmployeeModel(String id) {
+        this.id = id;
+    }
 }
 
 // {
