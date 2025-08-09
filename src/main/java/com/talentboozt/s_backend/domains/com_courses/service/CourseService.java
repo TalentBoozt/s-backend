@@ -380,6 +380,30 @@ public class CourseService {
         return empCoursesRepository.findByCoursesCourseIdAndCoursesBatchId(courseId, batchId);
     }
 
+    public List<EmpCoursesModel> getEnrollsSummary(String courseId, String batchId) {
+        List<EmpCoursesModel> enrollments;
+        if (batchId == null || batchId.isEmpty()) {
+            enrollments = empCoursesRepository.findByCoursesCourseId(courseId);
+        } else {
+            enrollments = empCoursesRepository.findByCoursesCourseIdAndCoursesBatchId(courseId, batchId);
+        }
+        return setEnrollSummary(enrollments);
+    }
+    private List<EmpCoursesModel> setEnrollSummary(List<EmpCoursesModel> enrollments) {
+        List<EmpCoursesModel> newEnrollments = new ArrayList<>();
+        for (EmpCoursesModel enrollment : enrollments) {
+            enrollment.setId(enrollment.getId());
+            enrollment.setEmployeeId(enrollment.getEmployeeId());
+            enrollment.setEmployeeName(enrollment.getEmployeeName());
+            enrollment.setEmail(enrollment.getEmail());
+            enrollment.setPhone(enrollment.getPhone());
+            enrollment.setTimezone(enrollment.getTimezone());
+            enrollment.setCourses(null);
+            newEnrollments.add(enrollment);
+        }
+        return newEnrollments;
+    }
+
     public List<String> getCategories() {
         return courseRepository.findAll().stream()
                 .map(CourseModel::getCategory)

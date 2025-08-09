@@ -7,7 +7,6 @@ import com.stripe.model.Product;
 import com.talentboozt.s_backend.domains.com_courses.dto.*;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseBatchModel;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
-import com.talentboozt.s_backend.domains.com_courses.service.CourseBatchMigrationService;
 import com.talentboozt.s_backend.domains.com_courses.service.CourseBatchService;
 import com.talentboozt.s_backend.domains.com_courses.service.CourseMapperService;
 import com.talentboozt.s_backend.domains.com_courses.service.CourseService;
@@ -43,9 +42,6 @@ class CourseControllerTest {
 
     @Mock
     private CourseMapperService courseMapper;
-
-    @Mock
-    private CourseBatchMigrationService migrationService;
 
     @InjectMocks
     private CourseController courseController;
@@ -328,6 +324,29 @@ class CourseControllerTest {
 
         verify(courseBatchService).getById(batchId);
         verify(courseService).getEnrolls(courseId, mockBatch.getId());
+    }
+
+    @Test
+    void getEnrollsSummaryInCourse_returnsListOfEnrollments() {
+        String courseId = "course1";
+        String batchId = "batch1";
+
+        when(courseBatchService.getById(batchId)).thenReturn(mockBatch);
+        List<EmpCoursesModel> mockUsers = List.of(
+            new EmpCoursesModel("user1"),
+            new EmpCoursesModel("user2")
+        );
+
+        when(courseService.getEnrollsSummary(courseId, mockBatch.getId())).thenReturn(mockUsers);
+
+        List<EmpCoursesModel> result = courseController.getEnrollesInCourseSummary(courseId, batchId);
+
+        assertNotNull(result);
+        assertEquals(2, result.size());
+        assertTrue(result.get(0).getId().equals("user1") || result.get(0).getId().equals("user2"));
+
+        verify(courseBatchService).getById(batchId);
+        verify(courseService).getEnrollsSummary(courseId, mockBatch.getId());
     }
 
     @Test
