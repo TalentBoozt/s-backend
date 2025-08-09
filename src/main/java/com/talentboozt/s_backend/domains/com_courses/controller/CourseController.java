@@ -213,6 +213,17 @@ public class CourseController {
         return courseService.getEnrolls(courseId, batch.getId());
     }
 
+    @GetMapping("/get/{courseId}/enrolls/summary")
+    public List<EmpCoursesModel> getEnrollesInCourseSummary(
+            @PathVariable String courseId,
+            @RequestParam(required = false) String batchId
+    ) {
+        CourseBatchModel batch = (batchId != null)
+                ? courseBatchService.getById(batchId)
+                : courseBatchService.getLatestBatchByCourseId(courseId);
+        return courseService.getEnrollsSummary(courseId, batch.getId());
+    }
+
     @GetMapping("/get/categories")
     public List<String> getCategories() {
         return courseService.getCategories();

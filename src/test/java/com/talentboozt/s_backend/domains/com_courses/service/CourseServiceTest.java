@@ -577,6 +577,30 @@ class CourseServiceTest {
     }
 
     @Test
+    void getEnrollsSummary_withBatchId_returnsEnrollments() {
+        when(empCoursesRepository.findByCoursesCourseIdAndCoursesBatchId("course1", "batch1")).thenReturn(List.of(mockEmpCourse));
+
+        List<EmpCoursesModel> result = courseService.getEnrollsSummary("course1", "batch1");
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("user1", result.get(0).getEmployeeId());
+        verify(empCoursesRepository).findByCoursesCourseIdAndCoursesBatchId("course1", "batch1");
+    }
+
+    @Test
+    void getEnrollsSummary_withoutBatchId_returnsAllEnrollments() {
+        when(empCoursesRepository.findByCoursesCourseId("course1")).thenReturn(List.of(mockEmpCourse));
+
+        List<EmpCoursesModel> result = courseService.getEnrollsSummary("course1", null);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("user1", result.get(0).getEmployeeId());
+        verify(empCoursesRepository).findByCoursesCourseId("course1");
+    }
+
+    @Test
     void getCategories_returnsDistinctCategories() {
         mockCourse.setCategory("Programming");
         when(courseRepository.findAll()).thenReturn(List.of(mockCourse));
