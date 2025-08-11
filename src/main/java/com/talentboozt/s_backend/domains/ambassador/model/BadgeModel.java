@@ -11,7 +11,7 @@ import java.time.Instant;
 @Getter
 @Setter
 
-@Document("ambassador_badges")
+@Document(collection = "ambassador_badges")
 @CompoundIndex(name = "unique_badge", def = "{'ambassadorId': 1, 'badgeId': 1}", unique = true)
 public class BadgeModel {
     @Id

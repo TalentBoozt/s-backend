@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.shared.security.cfg;
 
+import com.talentboozt.s_backend.domains.ai_tool.service.CreditService;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.audit_logs.service.ClientActAuditLogService;
 import com.talentboozt.s_backend.shared.security.service.IpTimeZoneService;
@@ -13,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -32,16 +32,18 @@ public class IpCaptureFilter extends OncePerRequestFilter {
     private final IpTimeZoneService ipTimeZoneService;
     private final TimeZoneMismatchService timeZoneMisMatchService;
     private final ClientActAuditLogService clientActAuditLogService;
+    private final CreditService creditService;
 
     public IpCaptureFilter(UserActivityService userActivityService, RateLimiterService rateLimiterService, JwtService jwtService,
                            IpTimeZoneService ipTimeZoneService, TimeZoneMismatchService timeZoneMisMatchService,
-                           ClientActAuditLogService clientActAuditLogService) {
+                           ClientActAuditLogService clientActAuditLogService, CreditService creditService) {
         this.userActivityService = userActivityService;
         this.rateLimiterService = rateLimiterService;
         this.jwtService = jwtService;
         this.ipTimeZoneService = ipTimeZoneService;
         this.timeZoneMisMatchService = timeZoneMisMatchService;
         this.clientActAuditLogService = clientActAuditLogService;
+        this.creditService = creditService;
     }
 
     private String getClientIp(HttpServletRequest request) {
@@ -112,6 +114,17 @@ public class IpCaptureFilter extends OncePerRequestFilter {
             response.setStatus(429); // 429 Too Many Requests
             response.setHeader("Retry-After", "60");
             return;
+        }
+
+        if (uri.startsWith("/api/ai/")) {
+            if (!creditService.hasCredits(rateLimitKey)) {
+                response.setStatus(429);
+                response.setHeader("Remaining-Credits", creditService.getRemainingCredits(rateLimitKey).toString());
+                response.getWriter().write("Daily AI credit limit reached. Try again tomorrow.");
+                return;
+            }
+            creditService.useCredit(rateLimitKey);
+            response.setHeader("Remaining-Credits", creditService.getRemainingCredits(rateLimitKey).toString());
         }
 
         // Log the activity
