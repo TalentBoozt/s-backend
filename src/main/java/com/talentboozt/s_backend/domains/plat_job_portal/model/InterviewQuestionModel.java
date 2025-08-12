@@ -1,8 +1,6 @@
 package com.talentboozt.s_backend.domains.plat_job_portal.model;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -11,6 +9,8 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
+@AllArgsConstructor
 
 @Document(collection = "portal_interviewQuestion")
 public class InterviewQuestionModel {
@@ -22,6 +22,8 @@ public class InterviewQuestionModel {
 
     @Getter
     @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
     public static class Question {
         private String id;
         private String question;

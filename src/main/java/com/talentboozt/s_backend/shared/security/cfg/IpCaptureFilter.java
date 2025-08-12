@@ -10,6 +10,7 @@ import com.talentboozt.s_backend.domains._private.service.UserActivityService;
 import com.talentboozt.s_backend.shared.security.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -78,7 +79,7 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         String ipAddress = getClientIp(request);
 
         // Extract JWT token from Authorization header
-        String token = extractJwtFromRequest(request);
+        String token = jwtService.extractTokenFromHeaderOrCookie(request);
 
         String userId = "Anonymous";
         if (token != null && jwtService.validateToken(token)) {
@@ -181,15 +182,6 @@ public class IpCaptureFilter extends OncePerRequestFilter {
                 .map(Map.Entry::getValue)
                 .findFirst()
                 .orElse("default");
-    }
-
-    // Helper method to extract JWT from the Authorization header
-    private String extractJwtFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // Extract token after "Bearer "
-        }
-        return null; // No token found
     }
 
     // Helper method to extract session ID from request headers or cookies

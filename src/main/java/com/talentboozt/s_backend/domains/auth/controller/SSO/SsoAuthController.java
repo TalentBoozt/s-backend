@@ -5,12 +5,14 @@ import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
 import com.talentboozt.s_backend.shared.security.service.JwtService;
 import com.talentboozt.s_backend.domains.auth.service.AuthService;
+import com.talentboozt.s_backend.shared.utils.JwtUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,16 +24,17 @@ import java.util.Map;
 @RequestMapping("/sso")
 public class SsoAuthController {
 
-    @Autowired
-    private AuthService authService; // Your existing auth service logic (reuse)
+    private final AuthService authService; // Your existing auth service logic (reuse)
+    private final JwtService jwtService; // Service to create and validate JWTs
+    private final CredentialsRepository credentialsRepository;
+    private final JwtUtil jwtUtil;
 
-    @Autowired
-    private JwtService jwtService; // Service to create and validate JWTs
-
-    @Autowired
-    private CredentialsRepository credentialsRepository;
-
-    private final int COOKIE_EXPIRATION = 60 * 60 * 24 * 7; // 7 days
+    public SsoAuthController(AuthService authService, JwtService jwtService, CredentialsRepository credentialsRepository, JwtUtil jwtUtil) {
+        this.authService = authService;
+        this.jwtService = jwtService;
+        this.credentialsRepository = credentialsRepository;
+        this.jwtUtil = jwtUtil;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
@@ -41,21 +44,31 @@ public class SsoAuthController {
             return ResponseEntity.status(401).body(new MessageResponse("Invalid credentials"));
         }
 
-        String token = jwtService.generateToken(authResponse.getUser());
+        String accessToken = jwtService.generateToken(authResponse.getUser());
         String refreshToken = jwtService.generateRefreshToken(authResponse.getUser());
 
-        ResponseCookie cookie = ResponseCookie.from("TB_SESSION", token)
+        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", accessToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
                 .domain(".talentboozt.com")
                 .path("/")
-                .maxAge(COOKIE_EXPIRATION)
+                .maxAge(3600) // 1 hour
                 .build();
 
-        response.addHeader("Set-Cookie", cookie.toString());
+        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talentboozt.com")
+                .path("/")
+                .maxAge(2592000) // 30 days
+                .build();
 
-        return ResponseEntity.ok(new RedirectResponse(authResponse.getRedirectUri(), token, refreshToken));
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+        return ResponseEntity.ok(new RedirectResponse(authResponse.getRedirectUri(), accessToken, refreshToken));
     }
 
     @PostMapping("/register")
@@ -66,47 +79,111 @@ public class SsoAuthController {
             return ResponseEntity.status(400).body(new MessageResponse("Registration failed"));
         }
 
-        String token = jwtService.generateToken(authResponse.getUser());
+        String accessToken = jwtService.generateToken(authResponse.getUser());
         String refreshToken = jwtService.generateRefreshToken(authResponse.getUser());
 
-        ResponseCookie cookie = ResponseCookie.from("TB_SESSION", token)
+        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", accessToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
                 .domain(".talentboozt.com")
                 .path("/")
-                .maxAge(COOKIE_EXPIRATION)
+                .maxAge(3600) // 1 hour
                 .build();
 
-        response.addHeader("Set-Cookie", cookie.toString());
+        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talentboozt.com")
+                .path("/")
+                .maxAge(2592000) // 30 days
+                .build();
 
-        return ResponseEntity.ok(new RedirectResponse(authResponse.getRedirectUri(), token, refreshToken));
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+        return ResponseEntity.ok(new RedirectResponse(authResponse.getRedirectUri(), accessToken, refreshToken));
     }
 
     @GetMapping("/session")
-    public ResponseEntity<?> validateSession(HttpServletRequest request) {
-        String token = null;
+    public ResponseEntity<?> validateSession(HttpServletRequest request, HttpServletResponse response) {
+        String accessToken = null;
+        String refreshToken = null;
 
-        Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
                 if ("TB_SESSION".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
+                    accessToken = cookie.getValue();
+                } else if ("TB_REFRESH".equals(cookie.getName())) {
+                    refreshToken = cookie.getValue();
                 }
             }
         }
 
-        if (token == null || !jwtService.validateToken(token)) {
+        CredentialsModel user = null;
+
+        // 1. Try validating access token first
+        if (accessToken != null && jwtService.validateToken(accessToken)) {
+            user = jwtService.getUserFromToken(accessToken);
+        }
+
+        // 2. If access token is invalid or missing, try refreshing with refresh token
+        if (user == null && refreshToken != null && jwtService.validateToken(refreshToken)) {
+            String email = jwtUtil.extractUsername(refreshToken);
+            CredentialsModel dbUser = credentialsRepository.findByEmail(email);
+
+            if (dbUser != null) {
+                JwtUserPayload payload = new JwtUserPayload();
+                payload.setUserId(dbUser.getEmployeeId());
+                payload.setEmail(dbUser.getEmail());
+                payload.setUserLevel(dbUser.getUserLevel());
+                payload.setRoles(dbUser.getRoles());
+                payload.setPermissions(dbUser.getPermissions());
+
+                // Rotate tokens
+                String newAccessToken = jwtService.generateToken(payload);
+                String newRefreshToken = jwtService.generateRefreshToken(payload);
+
+                // Set new cookies
+                ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", newAccessToken)
+                        .httpOnly(true)
+                        .secure(true)
+                        .sameSite("None")
+                        .domain(".talentboozt.com")
+                        .path("/")
+                        .maxAge(3600) // 1 hour
+                        .build();
+
+                ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", newRefreshToken)
+                        .httpOnly(true)
+                        .secure(true)
+                        .sameSite("None")
+                        .domain(".talentboozt.com")
+                        .path("/")
+                        .maxAge(2592000) // 30 days
+                        .build();
+
+                response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+                response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+                user = dbUser; // now session can continue
+                accessToken = newAccessToken;
+            }
+        }
+
+        // 3. Still no user? Then session is invalid
+        if (user == null) {
             return ResponseEntity.status(401).body(new MessageResponse("Session invalid"));
         }
 
-        CredentialsModel user = jwtService.getUserFromToken(token);
+        // 4. Return session info
         CredentialsModel existingUser = credentialsRepository.findByEmail(user.getEmail());
 
         if (existingUser == null) {
             return ResponseEntity.status(401).body(new MessageResponse("Session invalid"));
         }
+
         SessionResponse session = new SessionResponse();
         session.setEmployeeId(user.getEmployeeId());
         session.setEmail(user.getEmail());
@@ -122,16 +199,26 @@ public class SsoAuthController {
 
     @GetMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
-        ResponseCookie expiredCookie = ResponseCookie.from("TB_SESSION", "")
+        ResponseCookie expiredAccess = ResponseCookie.from("TB_SESSION", "")
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
                 .domain(".talentboozt.com")
                 .path("/")
-                .maxAge(0) // Expire immediately
+                .maxAge(0)
                 .build();
 
-        response.addHeader("Set-Cookie", expiredCookie.toString());
+        ResponseCookie expiredRefresh = ResponseCookie.from("TB_REFRESH", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talentboozt.com")
+                .path("/")
+                .maxAge(0)
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, expiredAccess.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, expiredRefresh.toString());
 
         return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
     }

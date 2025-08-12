@@ -16,6 +16,8 @@ import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
 import com.talentboozt.s_backend.shared.security.service.JwtService;
 import com.talentboozt.s_backend.domains.user.model.*;
 import com.talentboozt.s_backend.domains.user.service.*;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -73,14 +75,14 @@ public class BatchController {
     }
 
     @GetMapping("/getEmployee/{id}")
-    public Map<String, Object> getEmployee(@RequestHeader("Authorization") String token, @PathVariable String id) {
+    public Map<String, Object> getEmployee(HttpServletRequest request, @PathVariable String id) {
+        String extractedToken = jwtService.extractTokenFromHeaderOrCookie(request);
         Map<String, Object> errorResponse = new HashMap<>();
-        if (token == null) {
+        if (extractedToken == null) {
             errorResponse.put("message", "Private key not found.");
             errorResponse.put("status", 401);
             return errorResponse;
         }
-        String extractedToken = token.substring(7);
         if (!jwtService.validateToken(extractedToken)) {
             errorResponse.put("message", "Invalid or expired token.");
             errorResponse.put("status", 401);
@@ -103,14 +105,14 @@ public class BatchController {
     }
 
     @GetMapping("/async/getEmployee/{id}")
-    public CompletableFuture<Map<String, Object>> getEmployeeAsync(@RequestHeader("Authorization") String token, @PathVariable String id) throws ExecutionException, InterruptedException {
+    public CompletableFuture<Map<String, Object>> getEmployeeAsync(HttpServletRequest request, @PathVariable String id) throws ExecutionException, InterruptedException {
         CompletableFuture<Map<String, Object>> errorResponse = CompletableFuture.completedFuture(new HashMap<>());
-        if (token == null) {
+        String extractedToken = jwtService.extractTokenFromHeaderOrCookie(request);
+        if (extractedToken == null) {
             errorResponse.get().put("message", "Private key not found.");
             errorResponse.get().put("status", 401);
             return errorResponse;
         }
-        String extractedToken = token.substring(7);
         if (!jwtService.validateToken(extractedToken)) {
 
             errorResponse.get().put("message", "Invalid or expired token.");

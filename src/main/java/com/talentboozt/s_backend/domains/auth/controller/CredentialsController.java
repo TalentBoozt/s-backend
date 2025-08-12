@@ -3,6 +3,8 @@ package com.talentboozt.s_backend.domains.auth.controller;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
 import com.talentboozt.s_backend.shared.security.service.JwtService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,8 +27,8 @@ public class CredentialsController {
     }
 
     @GetMapping("/getAll")
-    public Iterable<CredentialsModel> getAllCredentials(@RequestHeader("Authorization") String token) {
-        String extractToken = token.substring(7);
+    public Iterable<CredentialsModel> getAllCredentials(HttpServletRequest request) {
+        String extractToken = jwtService.extractTokenFromHeaderOrCookie(request);
         if (!jwtService.validateToken(extractToken)) return null;
         return credentialsService.getAllCredentials();
     }
@@ -37,22 +39,22 @@ public class CredentialsController {
     }
 
     @GetMapping("/get/{id}")
-    public Optional<CredentialsModel> getCredentials(@RequestHeader("Authorization") String token, @PathVariable String id) {
-        String extractToken = token.substring(7);
+    public Optional<CredentialsModel> getCredentials(HttpServletRequest request, @PathVariable String id) {
+        String extractToken = jwtService.extractTokenFromHeaderOrCookie(request);
         if (!jwtService.validateToken(extractToken)) return Optional.empty();
         return credentialsService.getCredentials(id);
     }
 
     @GetMapping("/getByEmail/{email}")
-    public CredentialsModel getCredentialsByEmail(@RequestHeader("Authorization") String token, @PathVariable String email) {
-        String extractToken = token.substring(7);
+    public CredentialsModel getCredentialsByEmail(HttpServletRequest request, @PathVariable String email) {
+        String extractToken = jwtService.extractTokenFromHeaderOrCookie(request);
         if (!jwtService.validateToken(extractToken)) return null;
         return credentialsService.getCredentialsByEmail(email);
     }
 
     @GetMapping("/getByEmployeeId/{employeeId}")
-    public Optional<CredentialsModel> getCredentialsByEmployeeId(@RequestHeader("Authorization") String token, @PathVariable String employeeId) {
-        String extractToken = token.substring(7);
+    public Optional<CredentialsModel> getCredentialsByEmployeeId(HttpServletRequest request, @PathVariable String employeeId) {
+        String extractToken = jwtService.extractTokenFromHeaderOrCookie(request);
         if (!jwtService.validateToken(extractToken)) return Optional.empty();
         return credentialsService.getCredentialsByEmployeeId(employeeId);
     }
