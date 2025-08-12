@@ -10,6 +10,7 @@ import com.talentboozt.s_backend.shared.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -161,16 +162,26 @@ public class AuthController {
         String accessToken = jwtService.generateToken(userPayload);
         String refreshToken = jwtService.generateRefreshToken(userPayload);
 
-        ResponseCookie cookie = ResponseCookie.from("TB_SESSION", accessToken)
+        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", accessToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
                 .domain(".talentboozt.com")
                 .path("/")
-                .maxAge(COOKIE_EXPIRATION)
+                .maxAge(3600) // 1 hour
                 .build();
 
-        response.addHeader("Set-Cookie", cookie.toString());
+        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talentboozt.com")
+                .path("/")
+                .maxAge(2592000) // 30 days
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("accessToken", accessToken);
@@ -195,16 +206,26 @@ public class AuthController {
         String accessToken = jwtService.generateToken(userPayload);
         String refreshToken = jwtService.generateRefreshToken(userPayload);
 
-        ResponseCookie cookie = ResponseCookie.from("TB_SESSION", accessToken)
+        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", accessToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
                 .domain(".talentboozt.com")
                 .path("/")
-                .maxAge(COOKIE_EXPIRATION)
+                .maxAge(3600) // 1 hour
                 .build();
 
-        response.addHeader("Set-Cookie", cookie.toString());
+        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", refreshToken)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talentboozt.com")
+                .path("/")
+                .maxAge(2592000) // 30 days
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
 
         Map<String, Object> responseBody = new HashMap<>();
         responseBody.put("accessToken", accessToken);
