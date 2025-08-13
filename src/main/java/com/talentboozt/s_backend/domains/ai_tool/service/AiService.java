@@ -30,7 +30,9 @@ public class AiService {
                 You are a career coach.
                 Dream Job: %s
                 Return JSON with:
-                educationPaths, skillsToDevelop, qualifications, immediateSteps.
+                educationPaths, skillsToDevelop, qualifications, 
+                requiredExperiencesWithAverageYears (as a list of maps with experience name and average years), 
+                immediateSteps.
                 Keep answers short and practical.
                 """.formatted(req.getDreamJob());
 
