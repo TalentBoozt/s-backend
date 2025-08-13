@@ -27,13 +27,20 @@ public class AiService {
 
     public RoadmapResponse getRoadmap(RoadmapRequest req) {
         String prompt = """
-                You are a career coach.
-                Dream Job: %s
-                Return JSON with:
-                educationPaths, skillsToDevelop, qualifications, 
-                requiredExperiencesWithAverageYears (as a list of maps with experience name and average years), 
-                immediateSteps.
-                Keep answers short and practical.
+                    You are a career coach.
+                    Dream Job: %s
+                    Return the following in JSON format:
+                    - educationPaths (list of strings)
+                    - skillsToDevelop (list of strings)
+                    - qualifications (list of strings)
+                    - requiredExperiencesWithAverageYears (list of objects, where each object has: 
+                        - experienceName (string)
+                        - averageYears (integer, if a range is provided, return the average value)
+                    - immediateSteps (list of strings)
+                    
+                    For "requiredExperiencesWithAverageYears", if a range like "3-5 years" is mentioned, 
+                    please return the **average value** (for example, return 4 years instead of "3-5 years").
+                    Keep the answers short and practical.
                 """.formatted(req.getDreamJob());
 
         return openAiClient.callStructuredApi(prompt, RoadmapResponse.class);
