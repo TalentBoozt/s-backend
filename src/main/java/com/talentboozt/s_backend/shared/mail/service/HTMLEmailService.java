@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.shared.mail.service;
 
+import com.talentboozt.s_backend.shared.utils.EmailValidator;
 import jakarta.activation.DataSource;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -19,12 +20,18 @@ public class HTMLEmailService {
     }
 
     public void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
+        if (!EmailValidator.isValid(to)) {
+            throw new IllegalArgumentException("Invalid email format: " + to);
+        }
         sendHtmlEmailWithAttachment(to, subject, htmlContent, null, null);
     }
 
     public void sendHtmlEmailWithAttachment(String to, String subject, String htmlContent,
                                             String attachmentName, DataSource attachmentDataSource)
             throws MessagingException {
+        if (!EmailValidator.isValid(to)) {
+            throw new IllegalArgumentException("Invalid email format: " + to);
+        }
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 

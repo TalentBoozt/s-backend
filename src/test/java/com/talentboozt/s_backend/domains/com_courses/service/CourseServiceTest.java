@@ -16,6 +16,7 @@ import com.talentboozt.s_backend.domains.plat_courses.repository.EmpCoursesRepos
 import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
 import com.talentboozt.s_backend.domains.user.repository.EmployeeRepository;
 import com.talentboozt.s_backend.shared.async.EmpCoursesAsyncUpdater;
+import com.talentboozt.s_backend.shared.mail.service.EmailService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,6 +24,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
 import java.util.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,6 +51,9 @@ class CourseServiceTest {
     @Mock
     private EmpCoursesAsyncUpdater empCoursesAsyncUpdater;
 
+    @Mock
+    private EmailService emailService;
+
     @InjectMocks
     private CourseService courseService;
 
@@ -71,6 +76,9 @@ class CourseServiceTest {
         mockCourse.setCategory("Programming");
         mockCourse.setCourseStatus("ongoing");
         mockCourse.setPublicity(true);
+        CourseMissedNotify notify1 = new CourseMissedNotify("email1@gmail.com", "batch1", "2023-08-01");
+        CourseMissedNotify notify2 = new CourseMissedNotify("email2@gmail.com", "batch1", "2023-08-01");
+        mockCourse.setNotifiers(List.of(notify1, notify2));
 
         mockBatch = new CourseBatchModel();
         mockBatch.setId("batch1");
@@ -216,11 +224,13 @@ class CourseServiceTest {
     }
 
     @Test
-    void updateCourseWithNewBatch_createsNewBatch() {
+    void updateCourseWithNewBatch_createsNewBatch() throws IOException {
         when(courseRepository.existsById("course1")).thenReturn(true);
         when(courseRepository.save(mockCourse)).thenReturn(mockCourse);
         when(courseBatchService.saveBatch(any(CourseBatchModel.class))).thenReturn(mockBatch);
         when(courseMapper.toResponseDTO(mockCourse, mockBatch)).thenReturn(mockDTO);
+
+        doNothing().when(emailService).sendCourseBatchStartEmail(anyString(), anyString(), anyMap());
 
         CourseResponseDTO result = courseService.updateCourseWithNewBatch("course1", mockCourse);
 

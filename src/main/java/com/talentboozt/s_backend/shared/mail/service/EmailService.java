@@ -5,6 +5,7 @@ import com.talentboozt.s_backend.shared.mail.cfg.EmailTemplateLoader;
 import com.talentboozt.s_backend.shared.mail.dto.*;
 import com.talentboozt.s_backend.shared.security.service.ValidateTokenService;
 import com.talentboozt.s_backend.shared.utils.ConfigUtility;
+import com.talentboozt.s_backend.shared.utils.EmailValidator;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
@@ -29,14 +30,17 @@ public class EmailService {
     private final JavaMailSender javaMailSender;
     private final EmailTemplateLoader emailTemplateLoader;
 
-    @Autowired
-    ConfigUtility configUtil;
-
-    @Autowired
-    ValidateTokenService validateTokenService;
-
-    @Autowired
+    private ConfigUtility configUtil;
+    private ValidateTokenService validateTokenService;
     private EmailQueueService emailQueueService;
+
+    public EmailService(JavaMailSender javaMailSender, EmailTemplateLoader emailTemplateLoader, ConfigUtility configUtil, ValidateTokenService validateTokenService, EmailQueueService emailQueueService) {
+        this.javaMailSender = javaMailSender;
+        this.emailTemplateLoader = emailTemplateLoader;
+        this.configUtil = configUtil;
+        this.validateTokenService = validateTokenService;
+        this.emailQueueService = emailQueueService;
+    }
 
     @Autowired
     public EmailService(JavaMailSender javaMailSender, EmailTemplateLoader emailTemplateLoader) {
@@ -45,6 +49,10 @@ public class EmailService {
     }
 
     public void sendSimpleEmail(String to, String subject, String text) {
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(to);
         message.setSubject(subject);
@@ -63,6 +71,10 @@ public class EmailService {
     }
 
     public void sendPasswordResetEmail(String toEmail, String resetToken) throws IOException {
+        if (!EmailValidator.isValid(toEmail)) {
+            System.out.println("Invalid email skipped: " + toEmail);
+            return;
+        }
         String subject = "Password Reset Request";
         String resetUrl = configUtil.getProperty("PASSWORD_REST_URL") + resetToken;
         Map<String, String> variables = Map.of(
@@ -111,12 +123,21 @@ public class EmailService {
                 "year", String.valueOf(Year.now().getValue())
         );
 
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
+
         String htmlContent = emailTemplateLoader.loadTemplate("personal-contact.html", variables);
         EmailJob job = new EmailJob(to, mailSubject, htmlContent);
         emailQueueService.queueEmail(job);
     }
 
     public void sendRejectionNotification(String to, String candidateName) throws IOException {
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
         String subject = "Application Status";
         Map<String, String> variables = Map.of(
                 "candidateName", candidateName,
@@ -129,6 +150,10 @@ public class EmailService {
     }
 
     public void sendSelectionNotification(String to, String candidateName) throws IOException {
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
         String subject = "Application Status";
         Map<String, String> variables = Map.of(
                 "candidateName", candidateName,
@@ -141,6 +166,10 @@ public class EmailService {
     }
 
     public void subscribedNewsLatter(String to) throws IOException {
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
         String subject = "Talent Boozt Newsletter";
         Map<String, String> variables = Map.of(
                 "name", "Team Talent Boozt",
@@ -153,6 +182,10 @@ public class EmailService {
     }
 
     public void sendInterviewPreparationQuestionAccess(String to) throws IOException {
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
         String userName = to.split("@")[0];
         String token = validateTokenService.generateToken(userName);
         String link = "https://talentboozt.com/private/interview-questions?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
@@ -170,6 +203,10 @@ public class EmailService {
     }
 
     public void sendNotificationToken(String to) throws IOException {
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
         String userName = to.split("@")[0];
         String token = validateTokenService.generateToken(userName);
         String link = "https://talentboozt.com/private/system-notifications?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
@@ -187,6 +224,10 @@ public class EmailService {
     }
 
     public void sendPreOrderSuccess(String to) throws IOException {
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
         String subject = "Pre-Order Success";
         Map<String, String> variables = Map.of(
                 "name", "Team Talent Boozt",
@@ -235,13 +276,31 @@ public class EmailService {
         emailQueueService.queueEmail(job);
     }
 
+    public void sendCourseBatchStartEmail(String to, String subject, Map<String, String> variables) throws IOException {
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
+        String htmlContent = emailTemplateLoader.loadTemplate("course-batch-start.html", variables);
+        EmailJob job = new EmailJob(to, subject, htmlContent);
+        emailQueueService.queueEmail(job);
+    }
+
     public void sendCourseReminderEmail(String to, String subject, Map<String, String> variables) throws IOException {
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
         String htmlContent = emailTemplateLoader.loadTemplate("course-reminder.html", variables);
         EmailJob job = new EmailJob(to, subject, htmlContent);
         emailQueueService.queueEmail(job);
     }
 
     public void sendCourseCompletionEmail(String to, String subject, Map<String, String> variables) throws IOException {
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
         String htmlContent = emailTemplateLoader.loadTemplate("course-completion.html", variables);
         EmailJob job = new EmailJob(to, subject, htmlContent);
         emailQueueService.queueEmail(job);

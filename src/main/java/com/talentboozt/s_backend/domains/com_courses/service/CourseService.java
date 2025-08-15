@@ -11,8 +11,10 @@ import com.talentboozt.s_backend.domains.com_courses.repository.CourseRepository
 import com.talentboozt.s_backend.domains.user.repository.EmployeeRepository;
 import com.talentboozt.s_backend.domains.plat_courses.repository.EmpCoursesRepository;
 import com.talentboozt.s_backend.domains.payment.service.StripeService;
+import com.talentboozt.s_backend.shared.mail.service.EmailService;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -29,11 +31,12 @@ public class CourseService {
     private final CourseBatchService courseBatchService;
     private final CourseMapperService courseMapper;
     private final EmpCoursesAsyncUpdater empCoursesAsyncUpdater;
+    private final EmailService emailService;
 
     public CourseService(CourseRepository courseRepository, EmpCoursesRepository empCoursesRepository,
                          EmployeeRepository employeeRepository, StripeService stripeService,
                          CourseBatchService courseBatchService, CourseMapperService courseMapper,
-                         EmpCoursesAsyncUpdater empCoursesAsyncUpdater) {
+                         EmpCoursesAsyncUpdater empCoursesAsyncUpdater, EmailService emailService) {
         this.courseRepository = courseRepository;
         this.empCoursesRepository = empCoursesRepository;
         this.employeeRepository = employeeRepository;
@@ -41,6 +44,7 @@ public class CourseService {
         this.courseBatchService = courseBatchService;
         this.courseMapper = courseMapper;
         this.empCoursesAsyncUpdater = empCoursesAsyncUpdater;
+        this.emailService = emailService;
     }
 
     public List<CourseModel> getAllCourses() {
@@ -85,7 +89,7 @@ public class CourseService {
         return courseMapper.toResponseDTO(courseModel, updatedBatch);
     }
 
-    public CourseResponseDTO updateCourseWithNewBatch(String courseId, CourseModel course) {
+    public CourseResponseDTO updateCourseWithNewBatch(String courseId, CourseModel course) throws IOException {
         if (!courseRepository.existsById(courseId)) {
             throw new RuntimeException("Course not found with id: " + courseId);
         }
@@ -95,6 +99,20 @@ public class CourseService {
         latestBatch.setBatchName(generateBatchName(course.getName()));
 
         CourseBatchModel savedBatch = courseBatchService.saveBatch(latestBatch);
+
+        for (CourseMissedNotify n: course.getNotifiers()) {
+            Map<String, String> variables = Map.of(
+                    "courseName", Optional.ofNullable(course.getName()).map(Object::toString).orElse(""),
+                    "batchName", Optional.ofNullable(savedBatch.getBatchName()).map(Object::toString).orElse(""),
+                    "courseId", Optional.ofNullable(course.getId()).map(Object::toString).orElse(""),
+                    "batchId", Optional.ofNullable(savedBatch.getId()).map(Object::toString).orElse(""),
+                    "startDate", Optional.ofNullable(savedBatch.getStartDate()).map(Object::toString).orElse(""),
+                    "requestedDate", Optional.ofNullable(n.getDate()).map(Object::toString).orElse("")
+            );
+
+            emailService.sendCourseBatchStartEmail(n.getEmail(), "New Batch of " + course.getName() + " is Live – You Requested This on " + n.getDate(), variables);
+        }
+
         empCoursesAsyncUpdater.updateEnrolledUsersOnCourseChange(courseId, savedBatch.getId(), courseModel, savedBatch);
         return courseMapper.toResponseDTO(courseModel, savedBatch);
     }

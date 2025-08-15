@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -103,7 +104,7 @@ public class CourseController {
     public CourseResponseDTO updateCourseWithNewBatch(
             @PathVariable String id,
             @RequestBody CourseModel course
-    ) {
+    ) throws IOException {
         return courseService.updateCourseWithNewBatch(id, course);
     }
 
