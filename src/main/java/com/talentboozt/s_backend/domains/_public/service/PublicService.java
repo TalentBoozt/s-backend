@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains._public.service;
 import com.talentboozt.s_backend.domains.com_courses.dto.CourseMissedNotify;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
 import com.talentboozt.s_backend.domains.com_courses.repository.CourseRepository;
+import com.talentboozt.s_backend.domains.common.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ public class PublicService {
         this.courseRepository = courseRepository;
     }
 
-    public ResponseEntity<?> addNewBatchNotification(String courseId, CourseMissedNotify courseMissedNotify) {
+    public ResponseEntity<ApiResponse> addNewBatchNotification(String courseId, CourseMissedNotify courseMissedNotify) {
         Optional<CourseModel> course = courseRepository.findById(courseId);
         if (course.isPresent()) {
             CourseModel courseModel = course.get();
@@ -27,14 +28,14 @@ public class PublicService {
             }
             for (CourseMissedNotify n : courseModel.getNotifiers()) {
                 if (n.getEmail().equals(courseMissedNotify.getEmail())) {
-                    return ResponseEntity.badRequest().body("Notification already exists.");
+                    return ResponseEntity.badRequest().body(new ApiResponse("Notification already exists"));
                 }
             }
             courseModel.getNotifiers().add(courseMissedNotify);
             courseRepository.save(courseModel);
-            return ResponseEntity.ok().body("Notification added successfully.");
+            return ResponseEntity.ok().body(new ApiResponse("Notification added successfully."));
         } else {
-            return ResponseEntity.badRequest().body("Course not found.");
+            return ResponseEntity.badRequest().body(new ApiResponse("Course not found"));
         }
     }
 }
