@@ -25,9 +25,14 @@ public class PublicService {
             if (courseModel.getNotifiers() == null) {
                 courseModel.setNotifiers(new ArrayList<>());
             }
+            for (CourseMissedNotify n : courseModel.getNotifiers()) {
+                if (n.getEmail().equals(courseMissedNotify.getEmail())) {
+                    return ResponseEntity.badRequest().body("Notification already exists.");
+                }
+            }
             courseModel.getNotifiers().add(courseMissedNotify);
             courseRepository.save(courseModel);
-            return ResponseEntity.ok("Notification added successfully.");
+            return ResponseEntity.ok().body("Notification added successfully.");
         } else {
             return ResponseEntity.badRequest().body("Course not found.");
         }
