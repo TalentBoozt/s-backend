@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.ambassador.service;
 
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
 import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorProfileRepository;
+import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -83,12 +84,13 @@ public class AmbassadorProfileService {
             ambassadorProfile.setLastActivity(Instant.now());
             AmbassadorProfileModel savedAmbassadorProfile = ambassadorProfileRepository.save(ambassadorProfile);
 
-            credentialsRepository.findByEmployeeId(savedAmbassadorProfile.getEmployeeId()).ifPresent(credentials -> {
-                credentials.setActive(true);
-                credentials.setAmbassador(true);
-                credentials.setAmbassadorId(savedAmbassadorProfile.getId());
-                credentialsRepository.save(credentials);
-            });
+            CredentialsModel credentialsModel = credentialsRepository.findByEmployeeId(savedAmbassadorProfile.getEmployeeId()).orElse(null);
+            if (credentialsModel != null) {
+                credentialsModel.setAmbassador(true);
+                credentialsModel.setAmbassadorId(savedAmbassadorProfile.getId());
+                credentialsModel.setActive(true);
+                credentialsRepository.save(credentialsModel);
+            }
             return ambassadorProfile;
         }
         return null;

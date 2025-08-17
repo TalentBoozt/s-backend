@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.ambassador.service;
 
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
 import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorProfileRepository;
+import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
+import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -18,6 +20,9 @@ class AmbassadorProfileServiceTest {
 
     @Mock
     private AmbassadorProfileRepository ambassadorProfileRepository;
+
+    @Mock
+    private CredentialsRepository credentialsRepository;
 
     @InjectMocks
     private AmbassadorProfileService ambassadorProfileService;
@@ -68,10 +73,21 @@ class AmbassadorProfileServiceTest {
         profile.setId(id);
         profile.setStatus("REQUESTED");
         profile.setApplicationStatus("REQUESTED");
+        profile.setEmployeeId("emp123");
 
-        // Mock the findById and save methods
+        CredentialsModel credentials = new CredentialsModel();
+        credentials.setId("cred123");
+        credentials.setEmployeeId("emp123");
+
+        // Mock repository methods
         when(ambassadorProfileRepository.findById(id)).thenReturn(Optional.of(profile));
         when(ambassadorProfileRepository.save(any(AmbassadorProfileModel.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        when(credentialsRepository.findByEmployeeId(anyString()))
+                .thenReturn(Optional.of(credentials));
+
+        when(credentialsRepository.save(any(CredentialsModel.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // Call the method under test
@@ -83,8 +99,9 @@ class AmbassadorProfileServiceTest {
         assertTrue(result.isActive());
         assertNotNull(result.getJoinedAt());
 
-        // Verifying that the save method was called
+        // Verify saves
         verify(ambassadorProfileRepository).save(profile);
+        verify(credentialsRepository).save(credentials);
     }
 
     @Test
