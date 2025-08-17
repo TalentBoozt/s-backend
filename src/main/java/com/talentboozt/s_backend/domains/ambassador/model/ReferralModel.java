@@ -26,6 +26,7 @@ public class ReferralModel {
 
     private Instant referredAt;
 
+    private String courseId;        // Optional: if this referral is for a specific course
     private String referredPlatform; // e.g., "LearningPlatform"
     private boolean courseEnrolled;
     private Instant enrolledAt;
