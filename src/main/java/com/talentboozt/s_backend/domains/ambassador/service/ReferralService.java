@@ -35,6 +35,7 @@ public class ReferralService {
             referral.setReferredUserId(referralModel.getReferredUserId());
             referral.setReferredAt(referralModel.getReferredAt());
             referral.setReferredPlatform(referralModel.getReferredPlatform());
+            referral.setCourseId(referralModel.getCourseId());
             referral.setCourseEnrolled(referralModel.isCourseEnrolled());
             referral.setEnrolledAt(referralModel.getEnrolledAt());
             return referralRepository.save(referral);

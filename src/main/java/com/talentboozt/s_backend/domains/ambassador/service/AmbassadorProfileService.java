@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.ambassador.service;
 
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
 import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorProfileRepository;
+import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,8 @@ public class AmbassadorProfileService {
     private AmbassadorProfileRepository ambassadorProfileRepository;
     @Autowired
     private AmbassadorLevelService ambassadorLevelService;
+    @Autowired
+    private CredentialsRepository credentialsRepository;
 
     public AmbassadorProfileModel applyAmbassador(AmbassadorProfileModel request) {
         AmbassadorProfileModel profile = new AmbassadorProfileModel();
@@ -78,7 +81,15 @@ public class AmbassadorProfileService {
             ambassadorProfile.setActive(true);
             ambassadorProfile.setJoinedAt(Instant.now());
             ambassadorProfile.setLastActivity(Instant.now());
-            return ambassadorProfileRepository.save(ambassadorProfile);
+            AmbassadorProfileModel savedAmbassadorProfile = ambassadorProfileRepository.save(ambassadorProfile);
+
+            credentialsRepository.findByEmployeeId(savedAmbassadorProfile.getEmployeeId()).ifPresent(credentials -> {
+                credentials.setActive(true);
+                credentials.setAmbassador(true);
+                credentials.setAmbassadorId(savedAmbassadorProfile.getId());
+                credentialsRepository.save(credentials);
+            });
+            return ambassadorProfile;
         }
         return null;
     }
