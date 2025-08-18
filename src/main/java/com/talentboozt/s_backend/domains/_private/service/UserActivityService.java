@@ -6,9 +6,13 @@ import com.talentboozt.s_backend.domains.audit_logs.service.ClientActAuditLogSer
 import com.talentboozt.s_backend.shared.utils.EncryptionUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Pageable;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -65,8 +69,9 @@ public class UserActivityService {
         }
     }
 
-    public List<Map<String, String>> getAllUserActivities() {
-        List<UserActivity> activities = repository.findAll();
+    public List<Map<String, String>> getUserActivities(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
+        Page<UserActivity> activities = repository.findAll(pageable);
 
         return activities.stream().map(activity -> {
             Map<String, String> data = new HashMap<>();
@@ -97,8 +102,10 @@ public class UserActivityService {
         return repository.countActiveUsers(activeSince);
     }
 
-    public Map<String, Long> getActivityOverTime(String interval) {
-        List<UserActivity> activities = repository.findAll();
+    public Map<String, Long> getActivityOverTime(String interval, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("timestamp").descending());
+        Page<UserActivity> activities = repository.findAll(pageable);
+
         DateTimeFormatter formatter = interval.equals("hourly") ?
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH") :
                 DateTimeFormatter.ofPattern("yyyy-MM-dd");

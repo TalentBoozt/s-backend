@@ -60,18 +60,20 @@ public class MetricsController {
     }
 
     @GetMapping(value = "/user-activities", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Map<String, String>>> getUserActivity() {
-        List<Map<String, String>> activity = userActivityService.getAllUserActivities();
+    public ResponseEntity<List<Map<String, String>>> getUserActivity(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
+        List<Map<String, String>> activity = userActivityService.getUserActivities(page, size);
         return ResponseEntity.ok(activity);
-//        try {
-//            List<Map<String, String>> activity = userActivityService.getAllUserActivities();
-//            return ResponseEntity.ok(activity);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            List<Map<String, String>> error = new ArrayList<>();
-//            error.add(Map.of("error", e.getMessage()));
-//            return ResponseEntity.status(500).body(error);
-//        }
+    }
+
+    @GetMapping("/activity-trends")
+    public ResponseEntity<Map<String, Long>> getActivityTrends(
+            @RequestParam(defaultValue = "hourly") String interval,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size) {
+        Map<String, Long> trends = userActivityService.getActivityOverTime(interval, page, size);
+        return ResponseEntity.ok(trends);
     }
 
     @DeleteMapping("/delete/user-activities")
@@ -83,13 +85,6 @@ public class MetricsController {
     public ResponseEntity<Long> getActiveUsers() {
         long activeUsers = userActivityService.getActiveUserCount();
         return ResponseEntity.ok(activeUsers);
-    }
-
-    @GetMapping("/activity-trends")
-    public ResponseEntity<Map<String, Long>> getActivityTrends(
-            @RequestParam(defaultValue = "hourly") String interval) {
-        Map<String, Long> trends = userActivityService.getActivityOverTime(interval);
-        return ResponseEntity.ok(trends);
     }
 }
 
