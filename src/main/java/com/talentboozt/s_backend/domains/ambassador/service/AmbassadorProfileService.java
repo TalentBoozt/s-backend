@@ -9,18 +9,27 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class AmbassadorProfileService {
 
-    @Autowired
-    private AmbassadorProfileRepository ambassadorProfileRepository;
-    @Autowired
-    private AmbassadorLevelService ambassadorLevelService;
-    @Autowired
-    private CredentialsRepository credentialsRepository;
+    private final AmbassadorProfileRepository ambassadorProfileRepository;
+    private final AmbassadorLevelService ambassadorLevelService;
+    private final CredentialsRepository credentialsRepository;
+
+    public AmbassadorProfileService(AmbassadorProfileRepository ambassadorProfileRepository, AmbassadorLevelService ambassadorLevelService, CredentialsRepository credentialsRepository) {
+        this.ambassadorProfileRepository = ambassadorProfileRepository;
+        this.ambassadorLevelService = ambassadorLevelService;
+        this.credentialsRepository = credentialsRepository;
+    }
 
     public AmbassadorProfileModel applyAmbassador(AmbassadorProfileModel request) {
+        AmbassadorProfileModel existingProfile = ambassadorProfileRepository.findByEmail(request.getEmail());
+        if (existingProfile != null) {
+            // If a profile with the same email already exists, return it
+            return existingProfile;
+        }
         AmbassadorProfileModel profile = new AmbassadorProfileModel();
         profile.setName(request.getName());
         profile.setEmail(request.getEmail());
@@ -28,6 +37,7 @@ public class AmbassadorProfileService {
         profile.setProfileLink(request.getProfileLink());
         profile.setConsentGiven(request.isConsentGiven());
         profile.setEmployeeId(request.getEmployeeId());
+        profile.setReferralCode(generateReferralCode(request.getName()));
         profile.setAppliedAt(Instant.now());
         profile.setLevel("BRONZE");
         profile.setApplicationStatus("REQUESTED");
@@ -170,5 +180,11 @@ public class AmbassadorProfileService {
             return profile;
         }
         return null;
+    }
+
+    private String generateReferralCode(String name) {
+        String prefix = name.replaceAll("[^A-Za-z]", "").substring(0, Math.min(3, name.length())).toUpperCase();
+        String randomPart = UUID.randomUUID().toString().replaceAll("-", "").substring(0, 6).toUpperCase();
+        return prefix + randomPart;
     }
 }

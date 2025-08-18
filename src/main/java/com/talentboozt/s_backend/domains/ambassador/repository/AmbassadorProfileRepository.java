@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface AmbassadorProfileRepository extends MongoRepository<AmbassadorProfileModel, String> {
     Optional<AmbassadorProfileModel> findByEmployeeId(String userId);
+
+    AmbassadorProfileModel findByEmail(String email);
 }
