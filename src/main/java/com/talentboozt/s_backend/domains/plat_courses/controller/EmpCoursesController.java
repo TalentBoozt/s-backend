@@ -1,6 +1,8 @@
 package com.talentboozt.s_backend.domains.plat_courses.controller;
 
 import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
+import com.talentboozt.s_backend.domains.plat_courses.dto.CertificateDetailsDTO;
+import com.talentboozt.s_backend.domains.plat_courses.dto.PaymentDetailsDTO;
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
 import com.talentboozt.s_backend.domains.plat_courses.service.EmpCoursesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,11 @@ public class EmpCoursesController {
 
     @Autowired
     private EmpCoursesService empCoursesService;
+
+    @GetMapping("/get-all")
+    public List<EmpCoursesModel> getAllEmpCourses() {
+        return empCoursesService.getAllEmpCourses();
+    }
 
     @GetMapping("/getByEmployeeId/{employeeId}")
     public List<EmpCoursesModel> getAllEmpCoursesByEmployeeId(@PathVariable String employeeId) {
@@ -59,5 +66,15 @@ public class EmpCoursesController {
     @DeleteMapping("/delete-single/{employeeId}/{courseId}")
     public EmpCoursesModel deleteEmpCourse(@PathVariable String employeeId, @PathVariable String courseId) {
         return empCoursesService.deleteEmpCourse(employeeId, courseId);
+    }
+
+    @GetMapping("/get/all-payments")
+    public List<PaymentDetailsDTO> getAllPayments() {
+        return empCoursesService.getAllPaymentDetails();
+    }
+
+    @GetMapping("/get/all-certificates")
+    public List<CertificateDetailsDTO> getAllCertificates() throws IOException {
+        return empCoursesService.getAllCertificateDetails();
     }
 }
