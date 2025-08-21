@@ -3,8 +3,10 @@ package com.talentboozt.s_backend.domains.plat_courses.service;
 import com.talentboozt.s_backend.domains.com_courses.dto.InstallmentDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.ModuleDTO;
 import com.talentboozt.s_backend.domains.plat_courses.dto.CertificateDTO;
+import com.talentboozt.s_backend.domains.plat_courses.dto.CertificateDetailsDTO;
 import com.talentboozt.s_backend.domains.plat_courses.dto.CourseEnrollment;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
+import com.talentboozt.s_backend.domains.plat_courses.dto.PaymentDetailsDTO;
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
 import com.talentboozt.s_backend.domains.plat_courses.repository.EmpCoursesRepository;
 import org.springframework.lang.NonNull;
@@ -23,6 +25,10 @@ public class EmpCoursesService {
 
     private final EmpCoursesRepository empCoursesRepository;
     private final CertificateProcessorService certificateProcessorService;
+
+    public List<EmpCoursesModel> getAllEmpCourses() {
+        return empCoursesRepository.findAll();
+    }
 
     public EmpCoursesService(EmpCoursesRepository empCoursesRepository, CertificateProcessorService certificateProcessorService) {
         this.empCoursesRepository = empCoursesRepository;
@@ -223,6 +229,87 @@ public class EmpCoursesService {
         certificate.setFileName(""); // To be set from frontend
         certificate.setDescription("System-generated certificate for " + course.getCourseName());
         return certificate;
+    }
+
+    public List<PaymentDetailsDTO> getAllPaymentDetails() {
+        List<PaymentDetailsDTO> payments = new ArrayList<>();
+
+        for (EmpCoursesModel user : empCoursesRepository.findAll()) {
+            if (user.getCourses() == null) continue;
+
+            for (CourseEnrollment course : user.getCourses()) {
+                List<InstallmentDTO> installments = course.getInstallment();
+
+                if (installments == null || installments.isEmpty()) {
+                    // Free course or no installment defined
+                    payments.add(new PaymentDetailsDTO(
+                            user.getId(),
+                            user.getEmployeeName(),
+                            user.getEmail(),
+                            course.getCourseId(),
+                            course.getCourseName(),
+                            null,
+                            "FREE Course",
+                            "0",
+                            "USD",
+                            "paid",
+                            "N/A",
+                            course.getEnrollmentDate()
+                    ));
+                } else {
+                    for (InstallmentDTO inst : installments) {
+                        payments.add(new PaymentDetailsDTO(
+                                user.getId(),
+                                user.getEmployeeName(),
+                                user.getEmail(),
+                                course.getCourseId(),
+                                course.getCourseName(),
+                                inst.getId(),
+                                inst.getName(),
+                                inst.getPrice(),
+                                inst.getCurrency(),
+                                inst.getPaid(),
+                                inst.getPaymentMethod(),
+                                inst.getPaymentDate()
+                        ));
+                    }
+                }
+            }
+        }
+        return payments;
+    }
+
+    public List<CertificateDetailsDTO> getAllCertificateDetails() {
+        List<CertificateDetailsDTO> result = new ArrayList<>();
+
+        for (EmpCoursesModel user : empCoursesRepository.findAll()) {
+            if (user.getCourses() == null) continue;
+
+            for (CourseEnrollment course : user.getCourses()) {
+                List<CertificateDTO> certificates = course.getCertificates();
+
+                if (certificates == null || certificates.isEmpty()) continue;
+
+                for (CertificateDTO cert : certificates) {
+                    result.add(new CertificateDetailsDTO(
+                            user.getId(),
+                            user.getEmployeeName(),
+                            user.getEmail(),
+                            course.getCourseId(),
+                            course.getCourseName(),
+                            cert.getCertificateId(),
+                            cert.getFileName(),
+                            cert.getType(),
+                            cert.getUrl(),
+                            cert.getIssuedBy(),
+                            cert.getIssuedDate(),
+                            cert.isDelivered(),
+                            cert.isLinkedinShared()
+                    ));
+                }
+            }
+        }
+        return result;
     }
 
     @Async

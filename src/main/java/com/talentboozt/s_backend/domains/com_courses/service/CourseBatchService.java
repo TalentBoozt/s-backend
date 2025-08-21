@@ -5,6 +5,8 @@ import com.talentboozt.s_backend.domains.com_courses.repository.CourseBatchRepos
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class CourseBatchService {
     @Autowired
@@ -39,5 +41,13 @@ public class CourseBatchService {
             throw new RuntimeException("Batch not found with id: " + batchId);
         }
         courseBatchRepository.deleteById(batchId);
+    }
+
+    public List<CourseBatchModel> getAllCourseBatches() {
+        return courseBatchRepository.findAll();
+    }
+
+    public List<CourseBatchModel> getCourseBatchesByCourseId(String courseId) {
+        return courseBatchRepository.findByCourseId(courseId);
     }
 }
