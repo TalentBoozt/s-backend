@@ -66,7 +66,7 @@ public class CourseCouponsController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/validate-coupon")
+    @GetMapping("/validate-coupon")
     public ResponseEntity<?> validateCoupon(@RequestParam String installmentId,
                                             @RequestParam String userId,
                                             @RequestParam String courseId,
