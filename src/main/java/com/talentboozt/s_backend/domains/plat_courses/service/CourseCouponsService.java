@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.plat_courses.service;
 
+import com.talentboozt.s_backend.domains.plat_courses.cfg.CouponValidationException;
 import com.talentboozt.s_backend.domains.plat_courses.dto.CouponRedemptionRequest;
 import com.talentboozt.s_backend.domains.plat_courses.model.CourseCouponsModel;
 import com.talentboozt.s_backend.domains.plat_courses.repository.CourseCouponsRepository;
@@ -50,18 +51,18 @@ public class CourseCouponsService {
 
     public CourseCouponsModel activateCoupon(String couponId, String userId) {
         CourseCouponsModel coupon = couponRepo.findById(couponId)
-                .orElseThrow(() -> new NoSuchElementException("Coupon not found"));
+                .orElseThrow(() -> new CouponValidationException("Coupon not found", "COUPON_NOT_FOUND"));
 
         if (!userId.equals(coupon.getUserId())) {
-            throw new IllegalStateException("Unauthorized: Not the owner of this coupon");
+            throw new CouponValidationException("Unauthorized: Not the owner of this coupon", "UNAUTHORIZED");
         }
 
         if (coupon.getStatus() == CourseCouponsModel.Status.ACTIVE) {
-            throw new IllegalStateException("Coupon is already active");
+            throw new CouponValidationException("Coupon already active", "COUPON_ALREADY_ACTIVE");
         }
 
         if (coupon.getStatus() != CourseCouponsModel.Status.UNLOCKED) {
-            throw new IllegalStateException("Coupon must be in UNLOCKED state to activate");
+            throw new CouponValidationException("Coupon must be in UNLOCKED state to activate", "COUPON_NOT_UNLOCKED");
         }
 
         Instant now = Instant.now();
@@ -75,19 +76,32 @@ public class CourseCouponsService {
 
     public CourseCouponsModel redeemCoupon(CouponRedemptionRequest request) {
         CourseCouponsModel coupon = couponRepo.findByToken(request.getToken())
-                .orElseThrow(() -> new RuntimeException("Invalid token"));
-
-        if (!coupon.getUserId().equals(request.getUserId())) {
-            throw new RuntimeException("Unauthorized user for this coupon.");
-        }
+                .orElseThrow(() -> new CouponValidationException("Coupon not found", "COUPON_NOT_FOUND"));
 
         if (coupon.getStatus() != CourseCouponsModel.Status.ACTIVE ||
                 coupon.getExpiresAt().isBefore(Instant.now())) {
-            throw new RuntimeException("Coupon expired or not active.");
+            throw new CouponValidationException("Coupon expired or not active", "COUPON_EXPIRED");
         }
 
-        coupon.setStatus(CourseCouponsModel.Status.REDEEMED);
-        coupon.setRedeemedBy(request.getUserId());
+        if (!coupon.isPublicity()) {
+            // Private coupon: must match userId and mark as redeemed
+            if (!coupon.getUserId().equals(request.getUserId())) {
+                throw new CouponValidationException("Unauthorized: Not the owner of this coupon", "UNAUTHORIZED");
+            }
+            coupon.setStatus(CourseCouponsModel.Status.REDEEMED);
+            coupon.setRedeemedBy(request.getUserId());
+            coupon.setRedeemedAt(Instant.now());
+        } else {
+            // Public coupon: allow multiple redemptions
+            int current = coupon.getCurrentRedemptions();
+            int max = coupon.getMaxRedemptions();
+            if (max > 0 && current >= max) {
+                throw new CouponValidationException("Coupon usage limit reached.", "COUPON_USAGE_LIMIT");
+            }
+
+            coupon.setCurrentRedemptions(current + 1);
+        }
+
         coupon.setRedeemedForCourseId(request.getCourseId());
         coupon.setRedeemedForInstallmentId(request.getInstallmentId());
         coupon.setExpiredAt(Instant.now());
@@ -97,5 +111,52 @@ public class CourseCouponsService {
 
     public void deleteCourseCoupon(String id) {
         couponRepo.deleteById(id);
+    }
+
+    public CourseCouponsModel findValidCouponByCode(String code, String userId, String courseId, String installmentId) {
+        CourseCouponsModel coupon = couponRepo.findByCode(code)
+                .orElseThrow(() -> new CouponValidationException("Coupon not found", "COUPON_NOT_FOUND"));
+
+        // 1. Check status
+        if (coupon.getStatus() != CourseCouponsModel.Status.ACTIVE) {
+            throw new CouponValidationException("Coupon is not active.", "COUPON_INACTIVE");
+        }
+
+        // 2. Expiration check
+        if (coupon.getExpiresAt() != null && coupon.getExpiresAt().isBefore(Instant.now())) {
+            throw new CouponValidationException("Coupon expired.", "COUPON_EXPIRED");
+        }
+
+        // 3. Check if it's private and belongs to the user
+        if (!coupon.isPublicity()) {
+            if (!userId.equals(coupon.getUserId())) {
+                throw new CouponValidationException("You do not own this coupon.", "COUPON_UNAUTHORIZED");
+            }
+
+            if (coupon.getRedeemedAt() != null) {
+                throw new CouponValidationException("Coupon already redeemed.", "COUPON_ALREADY_USED");
+            }
+
+        } else {
+            // 4. For public coupons: enforce redemption limits
+            if (coupon.getMaxRedemptions() > 0 && coupon.getCurrentRedemptions() >= coupon.getMaxRedemptions()) {
+                throw new CouponValidationException("Coupon usage limit reached.", "COUPON_USAGE_LIMIT");
+            }
+        }
+
+        // 5. Validate course ID
+        List<String> applicableCourses = coupon.getApplicableCourseIds();
+        if (applicableCourses != null && !applicableCourses.isEmpty()) {
+            if (!applicableCourses.contains(courseId)) {
+                throw new CouponValidationException("Coupon not valid for this course.", "COUPON_INVALID_COURSE");
+            }
+        }
+
+        // 6. Validate installment rules
+        if (!coupon.isApplicableForInstallment() && installmentId != null) {
+            throw new CouponValidationException("Coupon not allowed for installments.", "COUPON_NOT_FOR_INSTALLMENT");
+        }
+
+        return coupon;
     }
 }
