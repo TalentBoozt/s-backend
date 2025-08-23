@@ -25,7 +25,7 @@ public class RateLimiterService {
             case "auth" -> 100;
             case "user" -> 60;
             case "public" -> 200;
-            case "coupon-validation" -> 5;
+            case "coupon-validation" -> 25;
             default -> 300;
         };
 
