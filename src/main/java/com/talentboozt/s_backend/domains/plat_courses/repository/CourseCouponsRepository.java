@@ -12,4 +12,5 @@ public interface CourseCouponsRepository extends MongoRepository<CourseCouponsMo
     List<CourseCouponsModel> findByStatus(CourseCouponsModel.Status status);
     List<CourseCouponsModel> findByTaskIdAndStatus(String id, CourseCouponsModel.Status status);
     boolean existsByUserIdAndTaskId(String employeeId, String id);
+    Optional<CourseCouponsModel> findByCode(String code);
 }

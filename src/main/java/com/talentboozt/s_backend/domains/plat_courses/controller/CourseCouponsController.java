@@ -65,4 +65,12 @@ public class CourseCouponsController {
         courseCouponsService.deleteCourseCoupon(id);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/validate-coupon")
+    public ResponseEntity<?> validateCoupon(@RequestParam String installmentId,
+                                            @RequestParam String userId,
+                                            @RequestParam String courseId,
+                                            @RequestParam String couponCode) {
+        return ResponseEntity.ok(courseCouponsService.findValidCouponByCode(couponCode, userId, courseId, installmentId));
+    }
 }

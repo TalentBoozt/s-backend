@@ -172,7 +172,8 @@ public class IpCaptureFilter extends OncePerRequestFilter {
             "/api/event/track", "analytics",
             "/api/auth", "auth",
             "/api/user", "user",
-            "/api/public", "public"
+            "/api/public", "public",
+            "/api/v2/courses/coupons/validate-coupon", "coupon-validation"
     );
 
     private String categorizeEndpoint(String uri) {
