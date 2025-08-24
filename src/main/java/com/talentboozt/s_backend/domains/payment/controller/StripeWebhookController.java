@@ -190,12 +190,22 @@ public class StripeWebhookController {
                 }
                 try {
                     createBillingHistory(userId, session.getId(), session, "course");
-                    createPaymentMethod(userId, session, "course");
-                    updateCourseInstallmentPayment(userId, courseId, installmentId);
-                    auditLogService.markProcessed(event.getId());
-                } catch (StripeException e) {
-                    auditLogService.markFailed(event.getId(), "Error creating order for user: " + userId, true);
+                } catch (Exception e) {
+                    auditLogService.markFailed(event.getId(), "createBillingHistory failed: " + e.getMessage(), true);
                 }
+
+                try {
+                    createPaymentMethod(userId, session, "course");
+                } catch (Exception e) {
+                    auditLogService.markFailed(event.getId(), "createPaymentMethod failed: " + e.getMessage(), true);
+                }
+
+                try {
+                    updateCourseInstallmentPayment(userId, courseId, installmentId);
+                } catch (Exception e) {
+                    auditLogService.markFailed(event.getId(), "updateCourseInstallmentPayment failed: " + e.getMessage(), true);
+                }
+                auditLogService.markProcessed(event.getId());
             } else if ("course-onetime".equals(purchaseType)) {
                 Map<String, String> metadata = session.getMetadata();
 
@@ -224,12 +234,22 @@ public class StripeWebhookController {
                 }
                 try {
                     createBillingHistory(userId, session.getId(), session, "course");
-                    createPaymentMethod(userId, session, "course");
-                    updateFullCoursePayment(userId, courseId, installmentId);
-                    auditLogService.markProcessed(event.getId());
-                } catch (StripeException e) {
-                    auditLogService.markFailed(event.getId(), "Error creating order for user: " + userId, true);
+                } catch (Exception e) {
+                    auditLogService.markFailed(event.getId(), "createBillingHistory failed: " + e.getMessage(), true);
                 }
+
+                try {
+                    createPaymentMethod(userId, session, "course");
+                } catch (Exception e) {
+                    auditLogService.markFailed(event.getId(), "createPaymentMethod failed: " + e.getMessage(), true);
+                }
+
+                try {
+                    updateFullCoursePayment(userId, courseId, installmentId);
+                } catch (Exception e) {
+                    auditLogService.markFailed(event.getId(), "updateCourseInstallmentPayment failed: " + e.getMessage(), true);
+                }
+                auditLogService.markProcessed(event.getId());
             } else if ("subscription".equals(purchaseType)) {
                 Map<String, String> metadata = session.getMetadata();
                 if (session.getCustomer() == null) {
