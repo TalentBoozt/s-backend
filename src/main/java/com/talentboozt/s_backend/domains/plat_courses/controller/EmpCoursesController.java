@@ -28,6 +28,11 @@ public class EmpCoursesController {
         return empCoursesService.getEmpCoursesByEmployeeId(employeeId);
     }
 
+    @GetMapping("/get-course/{employeeId}/{courseId}")
+    public EmpCoursesModel getEmpCourseByEmployeeIdAndCourseId(@PathVariable String employeeId, @PathVariable String courseId) {
+        return empCoursesService.getEmpCourseByEmployeeIdAndCourseId(employeeId, courseId);
+    }
+
     @PostMapping("/add")
     public EmpCoursesModel addEmpCourses(@RequestBody EmpCoursesModel empCourses) {
         return empCoursesService.addEmpCourses(empCourses);

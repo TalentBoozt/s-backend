@@ -317,4 +317,20 @@ public class EmpCoursesService {
         List<EmpCoursesModel> empCourses = getEmpCoursesByEmployeeId(employeeId);
         return CompletableFuture.completedFuture(empCourses);
     }
+
+    public EmpCoursesModel getEmpCourseByEmployeeIdAndCourseId(String employeeId, String courseId) {
+        List<EmpCoursesModel> empCourses = getEmpCoursesByEmployeeId(employeeId);
+        if (!empCourses.isEmpty()) {
+            EmpCoursesModel empCoursesModel = empCourses.get(0);
+            List<CourseEnrollment> courses = empCoursesModel.getCourses();
+            if (courses != null) {
+                for (CourseEnrollment course : courses) {
+                    if (course.getCourseId().equals(courseId)) {
+                        return empCoursesModel;
+                    }
+                }
+            }
+        }
+        throw new RuntimeException("Employee not found for id: " + employeeId);
+    }
 }
