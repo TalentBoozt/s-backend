@@ -30,10 +30,11 @@ public class EmailService {
     private final JavaMailSender javaMailSender;
     private final EmailTemplateLoader emailTemplateLoader;
 
-    private ConfigUtility configUtil;
-    private ValidateTokenService validateTokenService;
-    private EmailQueueService emailQueueService;
+    private final ConfigUtility configUtil;
+    private final ValidateTokenService validateTokenService;
+    private final EmailQueueService emailQueueService;
 
+    @Autowired
     public EmailService(JavaMailSender javaMailSender, EmailTemplateLoader emailTemplateLoader, ConfigUtility configUtil, ValidateTokenService validateTokenService, EmailQueueService emailQueueService) {
         this.javaMailSender = javaMailSender;
         this.emailTemplateLoader = emailTemplateLoader;
@@ -42,11 +43,11 @@ public class EmailService {
         this.emailQueueService = emailQueueService;
     }
 
-    @Autowired
-    public EmailService(JavaMailSender javaMailSender, EmailTemplateLoader emailTemplateLoader) {
-        this.javaMailSender = javaMailSender;
-        this.emailTemplateLoader = emailTemplateLoader;
-    }
+//    @Autowired
+//    public EmailService(JavaMailSender javaMailSender, EmailTemplateLoader emailTemplateLoader) {
+//        this.javaMailSender = javaMailSender;
+//        this.emailTemplateLoader = emailTemplateLoader;
+//    }
 
     public void sendSimpleEmail(String to, String subject, String text) {
         if (!EmailValidator.isValid(to)) {
