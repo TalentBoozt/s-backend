@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.common.repository;
 
 import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.LoginLocationAggregateDTO;
 import com.talentboozt.s_backend.domains.common.model.Login;
+import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.UniqueUserCountDTO;
 import org.bson.Document;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -20,7 +21,7 @@ public interface LoginRepository extends MongoRepository<Login, String> {
             "{ $group: { _id: '$userId' } }",
             "{ $count: 'uniqueUserCount' }"
     })
-    Document countDistinctUserIdByEventDate(String date);
+    UniqueUserCountDTO countDistinctUserIdByEventDate(String date);
 
     @Aggregation(pipeline = {
             "{ $unwind: '$events' }",

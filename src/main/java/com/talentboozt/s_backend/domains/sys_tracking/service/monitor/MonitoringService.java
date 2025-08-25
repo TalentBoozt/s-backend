@@ -45,8 +45,8 @@ public class MonitoringService {
     }
 
     public long countUniqueUsersByDate(String date) {
-        Document result = loginRepo.countDistinctUserIdByEventDate(date);
-        return result != null ? result.getInteger("uniqueUserCount", 0) : 0;
+        UniqueUserCountDTO  result = loginRepo.countDistinctUserIdByEventDate(date);
+        return result != null ? result.getUniqueUserCount() : 0;
     }
 
     public List<TimeSeriesPoint> getPageViews(String trackingId, Instant from, Instant to) {
