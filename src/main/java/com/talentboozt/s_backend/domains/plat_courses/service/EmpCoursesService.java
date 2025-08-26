@@ -160,7 +160,7 @@ public class EmpCoursesService {
         throw new RuntimeException("Employee not found for id: " + employeeId);
     }
 
-    public void updateFullCoursePayment(String userId, String courseId, String installmentId, String paid) {
+    public EmpCoursesModel updateFullCoursePayment(String userId, String courseId, String installmentId, String paid) {
         List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(userId);
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
@@ -178,11 +178,12 @@ public class EmpCoursesService {
                         for (ModuleDTO m : c.getModules()) {
                             m.setPaid("true");
                         }
-                        empCoursesRepository.save(empCoursesModel);
+                        return empCoursesRepository.save(empCoursesModel);
                     }
                 }
             }
         }
+        throw new RuntimeException("Employee not found for id: " + userId);
     }
 
     public EmpCoursesModel updateEnrollmentStatus(String employeeId, String courseId, String status) {

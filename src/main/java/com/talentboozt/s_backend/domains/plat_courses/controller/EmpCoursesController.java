@@ -58,6 +58,11 @@ public class EmpCoursesController {
         return empCoursesService.updateInstallmentPayment(employeeId, courseId, installmentId, status);
     }
 
+    @PutMapping("/update-full-payment/{employeeId}/{courseId}/{installmentId}/{status}")
+    public EmpCoursesModel updateFullPayment(@PathVariable String employeeId, @PathVariable String courseId, @PathVariable String installmentId, @PathVariable String status) {
+        return empCoursesService.updateFullCoursePayment(employeeId, courseId, installmentId, status);
+    }
+
     @PutMapping("/update-enrollment-status/{employeeId}/{courseId}/{status}")
     public EmpCoursesModel updateEnrollmentStatus(@PathVariable String employeeId, @PathVariable String courseId, @PathVariable String status) {
         return empCoursesService.updateEnrollmentStatus(employeeId, courseId, status);

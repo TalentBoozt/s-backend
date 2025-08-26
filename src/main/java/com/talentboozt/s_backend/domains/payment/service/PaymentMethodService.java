@@ -25,5 +25,9 @@ public class PaymentMethodService {
     public PaymentMethodsModel save(PaymentMethodsModel paymentMethodModel) {
         return paymentMethodRepository.save(paymentMethodModel);
     }
+
+    public boolean existsBySessionId(String id) {
+        return paymentMethodRepository.existsBySessionId(id);
+    }
 }
 

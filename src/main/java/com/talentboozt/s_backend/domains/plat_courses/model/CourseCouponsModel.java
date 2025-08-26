@@ -15,6 +15,7 @@ import java.util.List;
 public class CourseCouponsModel {
     @Id
     private String id;
+    private String stripeCouponId;
 
     // Ownership & access
     private String userId;              // User who earned or owns the coupon
