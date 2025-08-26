@@ -20,5 +20,9 @@ public class BillingHistoryService {
     public BillingHistoryModel save(BillingHistoryModel billingHistory) {
         return billingHistoryRepository.save(billingHistory);
     }
+
+    public boolean existsBySessionId(String id) {
+        return billingHistoryRepository.existsBySessionId(id);
+    }
 }
 

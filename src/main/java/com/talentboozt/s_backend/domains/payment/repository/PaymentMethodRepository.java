@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface PaymentMethodRepository extends MongoRepository<PaymentMethodsModel, String> {
     List<PaymentMethodsModel> findByCompanyId(String companyId);
+
+    boolean existsBySessionId(String id);
 }

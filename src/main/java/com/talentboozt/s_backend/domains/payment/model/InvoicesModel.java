@@ -27,4 +27,5 @@ public class InvoicesModel {
     private String invoice_pdf;
     private String hosted_invoice_url;
     private String status;
+    private String sessionId;
 }

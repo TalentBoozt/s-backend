@@ -19,5 +19,6 @@ public class PaymentMethodsModel {
     private String type; //paypal, stripe, credit card
     private String last_four; //last four digits of credit card for security purposes
     private String expiry_date;
+    private String sessionId;
     private String is_default;
 }

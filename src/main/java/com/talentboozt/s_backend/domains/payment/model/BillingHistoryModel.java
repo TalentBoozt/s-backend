@@ -19,5 +19,6 @@ public class BillingHistoryModel {
     private String amount;
     private String date;
     private String invoice_id;
+    private String sessionId;
     private String status;
 }

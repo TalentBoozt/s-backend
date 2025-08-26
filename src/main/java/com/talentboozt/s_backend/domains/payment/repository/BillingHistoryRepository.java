@@ -7,5 +7,7 @@ import java.util.List;
 
 public interface BillingHistoryRepository extends MongoRepository<BillingHistoryModel, String> {
     List<BillingHistoryModel> findByCompanyId(String companyId);
+
+    boolean existsBySessionId(String sessionId);
 }
 
