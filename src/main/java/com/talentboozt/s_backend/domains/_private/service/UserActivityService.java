@@ -116,5 +116,9 @@ public class UserActivityService {
                         Collectors.counting()
                 ));
     }
+
+    public Integer getTotalElements() {
+        return (int) repository.count();
+    }
 }
 

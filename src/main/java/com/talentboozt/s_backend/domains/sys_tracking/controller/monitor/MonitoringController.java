@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.sys_tracking.controller.monitor;
 
+import com.talentboozt.s_backend.domains._private.dto.PagedResponse;
 import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.*;
 import com.talentboozt.s_backend.domains.auth.dto.PermissionRequest;
 import com.talentboozt.s_backend.domains.auth.model.PermissionModel;
@@ -31,7 +32,7 @@ public class MonitoringController {
 
     @GetMapping("/overview")
     public DashboardOverviewDTO getOverview(
-            @RequestParam String trackingId,
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to) {
         Instant fromInstant = from.toInstant();
@@ -41,31 +42,34 @@ public class MonitoringController {
 
     @GetMapping("/page-views")
     public List<TimeSeriesPoint> getPageViews(
-            @RequestParam String trackingId,
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
-        return monitoringService.getPageViews(trackingId, from, to);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+            @RequestParam(defaultValue = "day") String granularity) {
+        return monitoringService.getPageViews(trackingId, from, to, granularity);
     }
 
     @GetMapping("/page-clicks")
     public List<TimeSeriesPoint> getClicks(
-            @RequestParam String trackingId,
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
-        return monitoringService.getPageClicks(trackingId, from, to);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+            @RequestParam(defaultValue = "day") String granularity) {
+        return monitoringService.getPageClicks(trackingId, from, to, granularity);
     }
 
     @GetMapping("/page-performance")
     public List<TimeSeriesPoint> getPagePerformance(
-            @RequestParam String trackingId,
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED" ) String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
-        return monitoringService.getPagePerformance(trackingId, from, to);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+            @RequestParam(defaultValue = "day") String granularity) {
+        return monitoringService.getPagePerformance(trackingId, from, to, granularity);
     }
 
     @GetMapping("/event-types")
     public List<EventTypeCount> getEventTypes(
-            @RequestParam String trackingId,
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
         return monitoringService.getEventCounts(trackingId, from, to);
@@ -73,41 +77,43 @@ public class MonitoringController {
 
     @GetMapping("/performance")
     public PerformanceMetricsDTO getPerformance(
-            @RequestParam String trackingId,
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
         return monitoringService.getPerformance(trackingId, from, to);
     }
 
     @GetMapping("/sessions")
-    public List<SessionViewDTO> getSessionViews(
-            @RequestParam String trackingId,
+    public PagedResponse<SessionViewDTO> getSessionViews(
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
-        return monitoringService.getSessionViews(trackingId, from, to);
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return monitoringService.getSessionViews(trackingId, from, to, page, size);
     }
 
     @GetMapping("/geo")
     public List<LoginLocationAggregateDTO> getGeoData(
-            @RequestParam String trackingId,
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
         return monitoringService.getGeoLocationCounts(trackingId, from, to);
     }
 
     @GetMapping("/devices/deprecated")
-    public Map<String, Long> getDeviceInfoDeprecated(@RequestParam String trackingId) {
+    public Map<String, Long> getDeviceInfoDeprecated(@RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId) {
         return monitoringService.getDeviceInfo(trackingId);
     }
 
     @GetMapping("/browsers/deprecated")
-    public Map<String, Long> getBrowserStatsDeprecated(@RequestParam String trackingId) {
+    public Map<String, Long> getBrowserStatsDeprecated(@RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId) {
         return monitoringService.getBrowserStats(trackingId);
     }
 
     @GetMapping("/browsers")
     public List<DeviceBrowserStatDTO> getBrowserStats(
-            @RequestParam String trackingId,
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
         return monitoringService.aggregateBrowserStats(trackingId, from, to);
@@ -115,7 +121,7 @@ public class MonitoringController {
 
     @GetMapping("/devices")
     public List<DeviceBrowserStatDTO> getDeviceStats(
-            @RequestParam String trackingId,
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
         return monitoringService.aggregateDeviceStats(trackingId, from, to);
@@ -123,7 +129,7 @@ public class MonitoringController {
 
     @GetMapping("/screen-sizes")
     public List<ScreenResolutionCount> getScreenSizeStats(
-            @RequestParam String trackingId,
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
         return monitoringService.aggregateScreenResolutions(trackingId, from, to);
@@ -131,7 +137,7 @@ public class MonitoringController {
 
     @GetMapping("/session-details")
     public SessionViewDetail getSessionDetails(
-            @RequestParam String trackingId,
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam String sessionId) throws ChangeSetPersister.NotFoundException {
         return monitoringService.getSessionDetails(trackingId, sessionId);
     }

@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains._private.controller;
 
+import com.talentboozt.s_backend.domains._private.dto.PagedResponse;
 import com.talentboozt.s_backend.shared.security.service.GeoLocationService;
 import com.talentboozt.s_backend.domains._private.service.UserActivityService;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -60,11 +61,11 @@ public class MetricsController {
     }
 
     @GetMapping(value = "/user-activities", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Map<String, String>>> getUserActivity(
+    public ResponseEntity<PagedResponse<Map<String, String>>> getUserActivity(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
         List<Map<String, String>> activity = userActivityService.getUserActivities(page, size);
-        return ResponseEntity.ok(activity);
+        return ResponseEntity.ok(new PagedResponse<>(activity, userActivityService.getTotalElements()));
     }
 
     @GetMapping("/activity-trends")
