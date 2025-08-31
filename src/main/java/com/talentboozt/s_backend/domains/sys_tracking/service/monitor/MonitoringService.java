@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.sys_tracking.service.monitor;
 
+import com.talentboozt.s_backend.domains._private.dto.PagedResponse;
 import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.*;
 import com.talentboozt.s_backend.domains.sys_tracking.model.TrackingEvent;
 import com.talentboozt.s_backend.domains.sys_tracking.repository.TrackingEventRepository;
@@ -49,16 +50,16 @@ public class MonitoringService {
         return result != null ? result.getUniqueUserCount() : 0;
     }
 
-    public List<TimeSeriesPoint> getPageViews(String trackingId, Instant from, Instant to) {
-        return eventRepo.aggregatePageViewsByTime(trackingId, from, to);
+    public List<TimeSeriesPoint> getPageViews(String trackingId, Instant from, Instant to, String granularity) {
+        return eventRepo.aggregatePageViewsByTime(trackingId, from, to, granularity);
     }
 
-    public List<TimeSeriesPoint> getPageClicks(String trackingId, Instant from, Instant to) {
-        return eventRepo.aggregatePageClicksByTime(trackingId, from, to);
+    public List<TimeSeriesPoint> getPageClicks(String trackingId, Instant from, Instant to, String granularity) {
+        return eventRepo.aggregatePageClicksByTime(trackingId, from, to, granularity);
     }
 
-    public List<TimeSeriesPoint> getPagePerformance(String trackingId, Instant from, Instant to) {
-        return eventRepo.aggregatePagePerformanceByTime(trackingId, from, to);
+    public List<TimeSeriesPoint> getPagePerformance(String trackingId, Instant from, Instant to, String granularity) {
+        return eventRepo.aggregatePagePerformanceByTime(trackingId, from, to, granularity);
     }
 
     public List<EventTypeCount> getEventCounts(String trackingId, Instant from, Instant to) {
@@ -69,8 +70,12 @@ public class MonitoringService {
         return eventRepo.aggregatePerformanceMetrics(trackingId, from, to);
     }
 
-    public List<SessionViewDTO> getSessionViews(String trackingId, Instant from, Instant to) {
-        return eventRepo.aggregateSessionViews(trackingId, from, to);
+    public PagedResponse<SessionViewDTO> getSessionViews(String trackingId, Instant from, Instant to, int page, int size) {
+        long total = eventRepo.countDistinctSessionIdByTrackingIdAndTimestampBetween(trackingId, from, to);
+
+        List<SessionViewDTO> items = eventRepo.aggregateSessionViewsPaginated(trackingId, from, to, page * size, size);
+
+        return new PagedResponse<>(items, total);
     }
 
     public List<LoginLocationAggregateDTO> getGeoLocationCounts(String trackingId, Instant from, Instant to) {

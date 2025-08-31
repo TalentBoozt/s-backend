@@ -18,27 +18,27 @@ public interface TrackingEventRepository extends MongoRepository<TrackingEvent, 
 
     @Aggregation(pipeline = {
             "{ $match: { trackingId: ?0, timestamp: { $gte: ?1, $lte: ?2 }, eventType: 'page_view' } }",
-            "{ $group: { _id: { $dateTrunc: { date: '$timestamp', unit: 'hour' } }, count: { $sum: 1 } } }",
+            "{ $group: { _id: { $dateTrunc: { date: '$timestamp', unit: ?3 } }, count: { $sum: 1 } } }",
             "{ $project: { timestamp: '$_id', count: 1, _id: 0 } }",
             "{ $sort: { timestamp: 1 } }"
     })
-    List<TimeSeriesPoint> aggregatePageViewsByTime(String trackingId, Instant from, Instant to);
+    List<TimeSeriesPoint> aggregatePageViewsByTime(String trackingId, Instant from, Instant to, String unit);
 
     @Aggregation(pipeline = {
             "{ $match: { trackingId: ?0, timestamp: { $gte: ?1, $lte: ?2 }, eventType: 'click' } }",
-            "{ $group: { _id: { $dateTrunc: { date: '$timestamp', unit: 'hour' } }, count: { $sum: 1 } } }",
+            "{ $group: { _id: { $dateTrunc: { date: '$timestamp', unit: ?3 } }, count: { $sum: 1 } } }",
             "{ $project: { timestamp: '$_id', count: 1, _id: 0 } }",
             "{ $sort: { timestamp: 1 } }"
     })
-    List<TimeSeriesPoint> aggregatePageClicksByTime(String trackingId, Instant from, Instant to);
+    List<TimeSeriesPoint> aggregatePageClicksByTime(String trackingId, Instant from, Instant to, String unit);
 
     @Aggregation(pipeline = {
             "{ $match: { trackingId: ?0, timestamp: { $gte: ?1, $lte: ?2 }, eventType: 'page_performance' } }",
-            "{ $group: { _id: { $dateTrunc: { date: '$timestamp', unit: 'hour' } }, count: { $sum: 1 } } }",
+            "{ $group: { _id: { $dateTrunc: { date: '$timestamp', unit: ?3 } }, count: { $sum: 1 } } }",
             "{ $project: { timestamp: '$_id', count: 1, _id: 0 } }",
             "{ $sort: { timestamp: 1 } }"
     })
-    List<TimeSeriesPoint> aggregatePagePerformanceByTime(String trackingId, Instant from, Instant to);
+    List<TimeSeriesPoint> aggregatePagePerformanceByTime(String trackingId, Instant from, Instant to, String unit);
 
     @Aggregation(pipeline = {
             "{ $match: { trackingId: ?0, timestamp: { $gte: ?1, $lte: ?2 } } }",
@@ -61,6 +61,16 @@ public interface TrackingEventRepository extends MongoRepository<TrackingEvent, 
             "{ $limit: 10 }"
     })
     List<SessionViewDTO> aggregateSessionViews(String trackingId, Instant from, Instant to);
+
+    @Aggregation(pipeline = {
+            "{ $match: { trackingId: ?0, timestamp: { $gte: ?1, $lte: ?2 } } }",
+            "{ $group: { _id: '$sessionId', userId: { $first: '$userId' }, urls: { $push: '$url' }, duration: { $sum: '$durationMs' }, eventCount: { $sum: 1 } } }",
+            "{ $project: { sessionId: '$_id', userId: 1, urls: 1, duration: 1, eventCount: 1, _id: 0 } }",
+            "{ $sort: { duration: -1 } }",
+            "{ $skip: ?3 }", // offset
+            "{ $limit: ?4 }" // limit
+    })
+    List<SessionViewDTO> aggregateSessionViewsPaginated(String trackingId, Instant from, Instant to, int offset, int limit);
 
     @Aggregation(pipeline = {
             "{ $match: { trackingId: ?0, timestamp: { $gte: ?1, $lte: ?2 } } }",
