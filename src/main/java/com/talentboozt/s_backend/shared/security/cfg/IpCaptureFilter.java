@@ -219,7 +219,7 @@ public class IpCaptureFilter extends OncePerRequestFilter {
             return Boolean.TRUE.equals(verified) && verifiedAt != null &&
                     Instant.now().isBefore(verifiedAt.plus(Duration.ofMinutes(60)));
         }
-        return true;
+        return false;
     }
 
     public static Map<String, Object> safeMapOf(String key, Object value) {
