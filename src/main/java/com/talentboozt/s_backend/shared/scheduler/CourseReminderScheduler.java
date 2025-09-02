@@ -37,56 +37,56 @@ public class CourseReminderScheduler {
     @Autowired
     private CourseReminderAuditLogService logAuditService;
 
-    @Scheduled(fixedRate = 15 * 60 * 1000) // Every 15 minutes
-    public void checkAndSendReminders() {
-        Instant now = Instant.now();
-
-        long[] offsets = {60, 1440}; // 60 mins (1h), 1440 mins (24h)
-
-        for (long offset : offsets) {
-            Instant targetTime = now.plus(offset, ChronoUnit.MINUTES);
-            List<EmpCoursesModel> allEnrolledUsers = empCoursesRepo.findAll();
-
-            for (EmpCoursesModel emp : allEnrolledUsers) {
-                if (emp.getCourses() == null) continue;
-
-                for (CourseEnrollment enrollment : emp.getCourses()) {
-                    if (enrollment.getModules() == null) continue;
-
-                    for (ModuleDTO module : enrollment.getModules()) {
-                        if (module.getUtcStart() == null || module.getMeetingLink() == null) continue;
-
-                        if (emp.getEmail() == null || emp.getTimezone() == null || emp.getEmployeeName() == null) {
-                            logAuditService.logAudit(emp, enrollment, module, offset, "SKIPPED", "Missing required fields");
-                            continue;
-                        }
-
-                        try {
-                            Instant moduleStart = Instant.parse(module.getUtcStart());
-                            if (Math.abs(Duration.between(moduleStart, targetTime).toMinutes()) <= 10) { // ±10 min tolerance
-                                String reminderType = offset == 60 ? "1h" : "24h";
-
-                                boolean alreadySent = reminderLogRepo.existsByEmployeeIdAndModuleIdAndReminderType(
-                                        emp.getId(), module.getId(), reminderType
-                                );
-
-                                if (!alreadySent) {
-                                    sendReminderEmail(emp, enrollment, module, reminderType);
-                                    logReminderSent(emp.getId(), enrollment.getCourseId(), module.getId(), reminderType);
-                                    logAuditService.logAudit(emp, enrollment, module, offset, "SENT", null);
-                                } else {
-                                    logAuditService.logAudit(emp, enrollment, module, offset, "SKIPPED", "Already sent");
-                                }
-                            }
-                        } catch (DateTimeParseException | ZoneRulesException | NullPointerException | IOException ex) {
-                            // Log and skip if malformed date/timezone
-                            logAuditService.logAudit(emp, enrollment, module, offset, "FAILED", ex.getMessage());
-                        }
-                    }
-                }
-            }
-        }
-    }
+//    @Scheduled(fixedRate = 15 * 60 * 1000) // Every 15 minutes
+//    public void checkAndSendReminders() {
+//        Instant now = Instant.now();
+//
+//        long[] offsets = {60, 1440}; // 60 mins (1h), 1440 mins (24h)
+//
+//        for (long offset : offsets) {
+//            Instant targetTime = now.plus(offset, ChronoUnit.MINUTES);
+//            List<EmpCoursesModel> allEnrolledUsers = empCoursesRepo.findAll();
+//
+//            for (EmpCoursesModel emp : allEnrolledUsers) {
+//                if (emp.getCourses() == null) continue;
+//
+//                for (CourseEnrollment enrollment : emp.getCourses()) {
+//                    if (enrollment.getModules() == null) continue;
+//
+//                    for (ModuleDTO module : enrollment.getModules()) {
+//                        if (module.getUtcStart() == null || module.getMeetingLink() == null) continue;
+//
+//                        if (emp.getEmail() == null || emp.getTimezone() == null || emp.getEmployeeName() == null) {
+//                            logAuditService.logAudit(emp, enrollment, module, offset, "SKIPPED", "Missing required fields");
+//                            continue;
+//                        }
+//
+//                        try {
+//                            Instant moduleStart = Instant.parse(module.getUtcStart());
+//                            if (Math.abs(Duration.between(moduleStart, targetTime).toMinutes()) <= 10) { // ±10 min tolerance
+//                                String reminderType = offset == 60 ? "1h" : "24h";
+//
+//                                boolean alreadySent = reminderLogRepo.existsByEmployeeIdAndModuleIdAndReminderType(
+//                                        emp.getId(), module.getId(), reminderType
+//                                );
+//
+//                                if (!alreadySent) {
+//                                    sendReminderEmail(emp, enrollment, module, reminderType);
+//                                    logReminderSent(emp.getId(), enrollment.getCourseId(), module.getId(), reminderType);
+//                                    logAuditService.logAudit(emp, enrollment, module, offset, "SENT", null);
+//                                } else {
+//                                    logAuditService.logAudit(emp, enrollment, module, offset, "SKIPPED", "Already sent");
+//                                }
+//                            }
+//                        } catch (DateTimeParseException | ZoneRulesException | NullPointerException | IOException ex) {
+//                            // Log and skip if malformed date/timezone
+//                            logAuditService.logAudit(emp, enrollment, module, offset, "FAILED", ex.getMessage());
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     private void sendReminderEmail(EmpCoursesModel emp, CourseEnrollment course, ModuleDTO module, String reminderType) throws IOException {
         ZonedDateTime localTime = ZonedDateTime.ofInstant(
