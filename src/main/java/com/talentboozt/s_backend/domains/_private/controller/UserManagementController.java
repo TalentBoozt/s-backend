@@ -4,6 +4,7 @@ import com.talentboozt.s_backend.domains._private.dto.*;
 import com.talentboozt.s_backend.domains._private.service.UserManagementService;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
+import com.talentboozt.s_backend.domains.common.dto.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,7 +68,7 @@ public class UserManagementController {
                     request.getFilterActive()
             );
         } else {
-            usersToUpdate = credentialsRepository.findAllById(request.getUserIds());
+            usersToUpdate = credentialsRepository.findAllByEmployeeIdIn(request.getUserIds());
         }
 
         for (CredentialsModel user : usersToUpdate) {
@@ -77,7 +78,7 @@ public class UserManagementController {
         }
 
         credentialsRepository.saveAll(usersToUpdate);
-        return ResponseEntity.ok("Updated " + usersToUpdate.size() + " users");
+        return ResponseEntity.ok(new ApiResponse("Updated " + usersToUpdate.size() + " users"));
     }
 
 }

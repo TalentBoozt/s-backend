@@ -27,4 +27,6 @@ public interface CredentialsRepository extends MongoRepository<CredentialsModel,
 
     @Query("{ 'email': { $regex: ?0, $options: 'i' } }")
     List<CredentialsModel> searchByEmail(String email);
+
+    List<CredentialsModel> findAllByEmployeeIdIn(List<String> userIds);
 }
