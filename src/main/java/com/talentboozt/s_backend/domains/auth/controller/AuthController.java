@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.auth.controller;
 
+import com.talentboozt.s_backend.domains.auth.service.UserPermissionsService;
 import com.talentboozt.s_backend.domains.common.dto.ErrorResponse;
 import com.talentboozt.s_backend.domains.auth.dto.SSO.JwtUserPayload;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
@@ -29,14 +30,17 @@ public class AuthController {
     private final JwtService jwtService;
     private final KeyService keyService;
     private final JwtUtil jwtUtil;
+    private final UserPermissionsService userPermissionsService;
 
     private final int COOKIE_EXPIRATION = 60 * 60 * 24 * 7;
 
-    public AuthController(CredentialsService credentialsService, JwtService jwtService, KeyService keyService, JwtUtil jwtUtil) {
+    public AuthController(CredentialsService credentialsService, JwtService jwtService, KeyService keyService,
+                          JwtUtil jwtUtil, UserPermissionsService userPermissionsService) {
         this.credentialsService = credentialsService;
         this.jwtService = jwtService;
         this.keyService = keyService;
         this.jwtUtil = jwtUtil;
+        this.userPermissionsService = userPermissionsService;
     }
 
     @PostMapping({"/login", "/login/{platform}"})
@@ -56,7 +60,7 @@ public class AuthController {
             userPayload.setEmail(user.getEmail());
             userPayload.setUserLevel(user.getUserLevel());
             userPayload.setRoles(user.getRoles());
-            userPayload.setPermissions(user.getPermissions());
+            userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
 
             try {
                 // Decrypt stored password
@@ -99,7 +103,7 @@ public class AuthController {
                 userPayload.setEmail(newUser.getEmail());
                 userPayload.setUserLevel(newUser.getUserLevel());
                 userPayload.setRoles(newUser.getRoles());
-                userPayload.setPermissions(newUser.getPermissions());
+                userPayload.setPermissions(userPermissionsService.resolvePermissions(newUser.getRoles()));
 
                 // Generate JWT Token for new user
                 String token = jwtService.generateToken(userPayload);
@@ -130,7 +134,7 @@ public class AuthController {
             userPayload.setEmail(user.getEmail());
             userPayload.setUserLevel(user.getUserLevel());
             userPayload.setRoles(user.getRoles());
-            userPayload.setPermissions(user.getPermissions());
+            userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
 
             // Generate new access token
             String newAccessToken = jwtService.generateToken(userPayload);
@@ -152,7 +156,7 @@ public class AuthController {
         userPayload.setEmail(savedUser.getEmail());
         userPayload.setUserLevel(savedUser.getUserLevel());
         userPayload.setRoles(savedUser.getRoles());
-        userPayload.setPermissions(savedUser.getPermissions());
+        userPayload.setPermissions(userPermissionsService.resolvePermissions(savedUser.getRoles()));
 
         if (savedUser.isDisabled()) {
             return ResponseEntity.status(403).body(new ErrorResponse("Registered user but your account is disabled"));
@@ -201,7 +205,7 @@ public class AuthController {
         userPayload.setEmail(credentials.getEmail());
         userPayload.setUserLevel(credentials.getUserLevel());
         userPayload.setRoles(credentials.getRoles());
-        userPayload.setPermissions(credentials.getPermissions());
+        userPayload.setPermissions(userPermissionsService.resolvePermissions(credentials.getRoles()));
 
         String accessToken = jwtService.generateToken(userPayload);
         String refreshToken = jwtService.generateRefreshToken(userPayload);

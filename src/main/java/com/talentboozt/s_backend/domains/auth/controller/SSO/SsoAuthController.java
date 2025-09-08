@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.auth.controller.SSO;
 import com.talentboozt.s_backend.domains.auth.dto.SSO.*;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
+import com.talentboozt.s_backend.domains.auth.service.UserPermissionsService;
 import com.talentboozt.s_backend.shared.security.service.JwtService;
 import com.talentboozt.s_backend.domains.auth.service.AuthService;
 import com.talentboozt.s_backend.shared.utils.JwtUtil;
@@ -11,14 +12,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/sso")
@@ -28,12 +27,15 @@ public class SsoAuthController {
     private final JwtService jwtService; // Service to create and validate JWTs
     private final CredentialsRepository credentialsRepository;
     private final JwtUtil jwtUtil;
+    private final UserPermissionsService userPermissionsService;
 
-    public SsoAuthController(AuthService authService, JwtService jwtService, CredentialsRepository credentialsRepository, JwtUtil jwtUtil) {
+    public SsoAuthController(AuthService authService, JwtService jwtService, CredentialsRepository credentialsRepository,
+                             JwtUtil jwtUtil, UserPermissionsService userPermissionsService) {
         this.authService = authService;
         this.jwtService = jwtService;
         this.credentialsRepository = credentialsRepository;
         this.jwtUtil = jwtUtil;
+        this.userPermissionsService = userPermissionsService;
     }
 
     @PostMapping("/login")
@@ -188,7 +190,7 @@ public class SsoAuthController {
         session.setEmployeeId(user.getEmployeeId());
         session.setEmail(user.getEmail());
         session.setRoles(existingUser.getRoles());
-        session.setPermissions(existingUser.getPermissions());
+        session.setPermissions(userPermissionsService.resolvePermissions(existingUser.getRoles()));
         session.setUserLevel(existingUser.getUserLevel());
         session.setCompanyId(existingUser.getCompanyId());
         session.setAccessedPlatforms(existingUser.getAccessedPlatforms());
@@ -222,7 +224,6 @@ public class SsoAuthController {
 
         return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
     }
-
 }
 
 @Getter

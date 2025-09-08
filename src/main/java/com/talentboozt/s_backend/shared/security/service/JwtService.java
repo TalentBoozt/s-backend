@@ -2,11 +2,14 @@ package com.talentboozt.s_backend.shared.security.service;
 
 import com.talentboozt.s_backend.domains.auth.dto.SSO.JwtUserPayload;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
+import com.talentboozt.s_backend.domains.auth.service.AuthService;
+import com.talentboozt.s_backend.domains.auth.service.UserPermissionsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SignatureException;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +26,9 @@ public class JwtService {
     @Value("${jwt-token.secret}")
     private String token;
 
+    @Autowired
+    private UserPermissionsService userPermissionsService;
+
     public String generateToken(JwtUserPayload user) {
 
         Key key = Keys.hmacShaKeyFor(token.getBytes());
@@ -31,7 +37,7 @@ public class JwtService {
         claims.put("userId", user.getUserId() == null ? "n/a" : user.getUserId());
         claims.put("userLevel", user.getUserLevel());
         claims.put("roles", user.getRoles());
-        claims.put("permissions", user.getPermissions());
+        claims.put("permissions", userPermissionsService.resolvePermissions(user.getRoles()));
 
         return Jwts.builder()
                 .setClaims(claims)
