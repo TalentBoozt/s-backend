@@ -238,11 +238,15 @@ public class MonitoringService {
         List<CredentialsModel> users = credentialsRepository.findAll();
         List<RoleModel> allRoles = roleService.getAllRoles();
 
-        // Map role name to its permissions
+        // Safely build role → permissions map
         Map<String, List<String>> rolePermissionsMap = allRoles.stream()
-                .collect(Collectors.toMap(RoleModel::getName, RoleModel::getPermissions));
+                .filter(role -> role.getName() != null)
+                .collect(Collectors.toMap(
+                        RoleModel::getName,
+                        role -> Optional.ofNullable(role.getPermissions()).orElse(Collections.emptyList())
+                ));
 
-        // Permission usage map
+        // Count permission usage across all users
         Map<String, Integer> permissionUsageMap = new HashMap<>();
 
         for (CredentialsModel user : users) {
@@ -250,8 +254,8 @@ public class MonitoringService {
 
             Set<String> userPermissions = new HashSet<>();
             for (String role : user.getRoles()) {
-                List<String> rolePermissions = rolePermissionsMap.getOrDefault(role, Collections.emptyList());
-                userPermissions.addAll(rolePermissions);
+                List<String> permissions = rolePermissionsMap.getOrDefault(role, Collections.emptyList());
+                userPermissions.addAll(permissions);
             }
 
             for (String permission : userPermissions) {
@@ -259,7 +263,7 @@ public class MonitoringService {
             }
         }
 
-        // Convert to List<Document> (or custom DTOs if preferred)
+        // Convert to list of Document for Mongo-style results
         List<Document> result = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : permissionUsageMap.entrySet()) {
             Document doc = new Document();
