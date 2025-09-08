@@ -23,6 +23,9 @@ public class AuthService {
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private UserPermissionsService userPermissionsService;
+
     // Add JWTService if you need to generate token inside service level (for flexibility)
 
     public AuthResponse login(String email, String password) {
@@ -37,7 +40,7 @@ public class AuthService {
         userPayload.setEmail(user.getEmail());
         userPayload.setUserLevel(user.getUserLevel());
         userPayload.setRoles(user.getRoles());
-        userPayload.setPermissions(user.getPermissions());
+        userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
 
         // Determine redirect URL based on user or platform type if needed
         String redirectUri = determineRedirectUri(user);

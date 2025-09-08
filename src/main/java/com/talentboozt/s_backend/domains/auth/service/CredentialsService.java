@@ -28,6 +28,9 @@ public class CredentialsService {
     @Autowired
     private RoleService roleService;
 
+    @Autowired
+    private UserPermissionsService userPermissionsService;
+
     public CredentialsModel addCredentials(CredentialsModel credentials, String platform, String referrer) {
         Optional<CredentialsModel> optionalCredentials = Optional.ofNullable(credentialsRepository.findByEmail(credentials.getEmail()));
 
@@ -136,7 +139,12 @@ public class CredentialsService {
     }
 
     public Iterable<CredentialsModel> getAllCredentials() {
-        return credentialsRepository.findAll();
+        List<CredentialsModel> credentials = credentialsRepository.findAll();
+        for (CredentialsModel credential : credentials) {
+            credential.setPassword(null);
+            credential.setPermissions(userPermissionsService.resolvePermissions(credential.getRoles()));
+        }
+        return credentials;
     }
 
     public boolean isExistsByEmail(String email) {
@@ -144,15 +152,32 @@ public class CredentialsService {
     }
 
     public Optional<CredentialsModel> getCredentials(String employeeId) {
-        return credentialsRepository.findByEmployeeId(employeeId);
+        Optional<CredentialsModel> credentials = credentialsRepository.findByEmployeeId(employeeId);
+        if (credentials.isPresent()) {
+            credentials.get().setPassword(null);
+            credentials.get().setPermissions(userPermissionsService.resolvePermissions(credentials.get().getRoles()));
+            return credentials;
+        }
+        return Optional.empty();
     }
 
     public CredentialsModel getCredentialsByEmail(String email) {
-        return credentialsRepository.findByEmail(email);
+        CredentialsModel credentials = credentialsRepository.findByEmail(email);
+        if (credentials != null) {
+            credentials.setPassword(null);
+            credentials.setPermissions(userPermissionsService.resolvePermissions(credentials.getRoles()));
+        }
+        return credentials;
     }
 
     public Optional<CredentialsModel> getCredentialsByEmployeeId(String employeeId) {
-        return credentialsRepository.findByEmployeeId(employeeId);
+        Optional<CredentialsModel> credentials = credentialsRepository.findByEmployeeId(employeeId);
+        if (credentials.isPresent()) {
+            credentials.get().setPassword(null);
+            credentials.get().setPermissions(userPermissionsService.resolvePermissions(credentials.get().getRoles()));
+            return credentials;
+        }
+        return Optional.empty();
     }
 
     public CredentialsModel updateCredentials(String employeeId, CredentialsModel credentials) {

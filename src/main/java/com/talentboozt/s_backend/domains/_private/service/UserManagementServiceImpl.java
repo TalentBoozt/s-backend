@@ -6,6 +6,7 @@ import com.talentboozt.s_backend.domains._private.dto.UserDetailDTO;
 import com.talentboozt.s_backend.domains._private.dto.UserManagementDTO;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
+import com.talentboozt.s_backend.domains.auth.service.UserPermissionsService;
 import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
 import com.talentboozt.s_backend.domains.user.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private UserPermissionsService userPermissionsService;
 
     @Override
     public PagedResponseDTO<UserManagementDTO> getUsers(String search, String role,
@@ -81,7 +85,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         detail.setLastname(creds.getLastname());
         detail.setEmail(creds.getEmail());
         detail.setRoles(creds.getRoles());
-        detail.setPermissions(creds.getPermissions());
+        detail.setPermissions(userPermissionsService.resolvePermissions(creds.getRoles()));
         detail.setActive(creds.isActive());
         detail.setDisabled(creds.isDisabled());
         detail.setAmbassador(creds.isAmbassador());

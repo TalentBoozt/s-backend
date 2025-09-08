@@ -249,4 +249,14 @@ public class MonitoringController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/backfill-roles")
+    public ResponseEntity<String> backfillRoles() {
+        try {
+            monitoringService.backfillMissingRoles();
+            return ResponseEntity.ok("Backfill completed successfully.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+    }
+
 }

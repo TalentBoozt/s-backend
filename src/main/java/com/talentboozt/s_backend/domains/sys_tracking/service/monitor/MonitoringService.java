@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.sys_tracking.service.monitor;
 
 import com.talentboozt.s_backend.domains._private.dto.PagedResponse;
+import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.*;
 import com.talentboozt.s_backend.domains.sys_tracking.model.TrackingEvent;
 import com.talentboozt.s_backend.domains.sys_tracking.repository.TrackingEventRepository;
@@ -18,6 +19,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.*;
 import org.bson.Document;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
 import java.time.*;
@@ -385,4 +388,54 @@ public class MonitoringService {
 
         return mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
     }
+
+    public void backfillMissingRoles() {
+        Query query = new Query();
+        query.addCriteria(new Criteria().orOperator(
+                Criteria.where("roles").exists(false),
+                Criteria.where("roles").is(null),
+                Criteria.where("roles").size(0)
+        ));
+
+        List<CredentialsModel> usersMissingRoles = mongoTemplate.find(query, CredentialsModel.class, "portal_credentials");
+
+        for (CredentialsModel user : usersMissingRoles) {
+            // Determine if this user is a social-auth user
+            boolean isSocialAuth = user.getAccessedPlatforms() != null &&
+                    user.getAccessedPlatforms().size() == 1 &&
+                    "ALL".equals(user.getAccessedPlatforms().get(0));
+
+            boolean isLearner = user.getAccessedPlatforms() != null &&
+                    user.getAccessedPlatforms().contains("TrainingPlatform");
+
+            boolean isTrainer = user.getAccessedPlatforms() != null &&
+                    user.getAccessedPlatforms().contains("TrainingPlatform");
+
+            // Set default role(s) based on logic — here assuming social auth users are "SOCIAL_LOGGER"
+            List<String> defaultRoles = new ArrayList<>();
+            if (isSocialAuth && isLearner) {
+                defaultRoles.addAll(Arrays.asList("CANDIDATE", "LEARNER", "SOCIAL_LOGGER"));
+            } else if (isSocialAuth && isTrainer) {
+                defaultRoles.addAll(Arrays.asList("TRAINER", "SOCIAL_LOGGER"));
+            } else if (isLearner) {
+                defaultRoles.add("LEARNER");
+            } else if (isTrainer) {
+                defaultRoles.add("TRAINER");
+            } else {
+                defaultRoles.add("NOT_SPECIFIED");
+            }
+
+            Update update = new Update().set("roles", defaultRoles);
+
+            // Optionally remove deprecated "role" field
+//            update.unset("role");
+
+            mongoTemplate.updateFirst(
+                    Query.query(Criteria.where("_id").is(user.getId())),
+                    update,
+                    "portal_credentials"
+            );
+        }
+    }
+
 }
