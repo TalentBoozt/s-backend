@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.sys_tracking.service.monitor;
 
 import com.talentboozt.s_backend.domains._private.dto.PagedResponse;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
+import com.talentboozt.s_backend.domains.auth.model.RoleModel;
+import com.talentboozt.s_backend.domains.auth.service.RoleService;
 import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.*;
 import com.talentboozt.s_backend.domains.sys_tracking.model.TrackingEvent;
 import com.talentboozt.s_backend.domains.sys_tracking.repository.TrackingEventRepository;
@@ -37,6 +39,7 @@ public class MonitoringService {
     private final CredentialsRepository credentialsRepository;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+    private final RoleService roleService;
     private final MongoTemplate mongoTemplate;
 
     public DashboardOverviewDTO getOverview(String trackingId, Instant from, Instant to) {
@@ -232,13 +235,40 @@ public class MonitoringService {
     }
 
     public List<Document> getPermissionUsage() {
-        Aggregation agg = Aggregation.newAggregation(
-                Aggregation.unwind("permissions"),
-                Aggregation.group("permissions.name").count().as("count"),
-                Aggregation.project("count").and("_id").as("permission")
-        );
-        AggregationResults<Document> results = mongoTemplate.aggregate(agg, "portal_credentials", Document.class);
-        return results.getMappedResults();
+        List<CredentialsModel> users = credentialsRepository.findAll();
+        List<RoleModel> allRoles = roleService.getAllRoles();
+
+        // Map role name to its permissions
+        Map<String, List<String>> rolePermissionsMap = allRoles.stream()
+                .collect(Collectors.toMap(RoleModel::getName, RoleModel::getPermissions));
+
+        // Permission usage map
+        Map<String, Integer> permissionUsageMap = new HashMap<>();
+
+        for (CredentialsModel user : users) {
+            if (user.getRoles() == null) continue;
+
+            Set<String> userPermissions = new HashSet<>();
+            for (String role : user.getRoles()) {
+                List<String> rolePermissions = rolePermissionsMap.getOrDefault(role, Collections.emptyList());
+                userPermissions.addAll(rolePermissions);
+            }
+
+            for (String permission : userPermissions) {
+                permissionUsageMap.merge(permission, 1, Integer::sum);
+            }
+        }
+
+        // Convert to List<Document> (or custom DTOs if preferred)
+        List<Document> result = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : permissionUsageMap.entrySet()) {
+            Document doc = new Document();
+            doc.put("permission", entry.getKey());
+            doc.put("count", entry.getValue());
+            result.add(doc);
+        }
+
+        return result;
     }
 
     public List<SuspiciousActivityDTO> getSuspiciousActivities() {
