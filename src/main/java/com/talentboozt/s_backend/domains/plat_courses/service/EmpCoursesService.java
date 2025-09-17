@@ -2,11 +2,8 @@ package com.talentboozt.s_backend.domains.plat_courses.service;
 
 import com.talentboozt.s_backend.domains.com_courses.dto.InstallmentDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.ModuleDTO;
-import com.talentboozt.s_backend.domains.plat_courses.dto.CertificateDTO;
-import com.talentboozt.s_backend.domains.plat_courses.dto.CertificateDetailsDTO;
-import com.talentboozt.s_backend.domains.plat_courses.dto.CourseEnrollment;
+import com.talentboozt.s_backend.domains.plat_courses.dto.*;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
-import com.talentboozt.s_backend.domains.plat_courses.dto.PaymentDetailsDTO;
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
 import com.talentboozt.s_backend.domains.plat_courses.repository.EmpCoursesRepository;
 import org.springframework.lang.NonNull;
@@ -39,17 +36,26 @@ public class EmpCoursesService {
         return empCoursesRepository.findAllByEmployeeId(employeeId);
     }
 
-    public EmpCoursesModel addEmpCourses(EmpCoursesModel empCourses) {
+    public EmpCoursesModel addEmpCourses(EmpCoursesModel empCourses, String type) {
         List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(empCourses.getEmployeeId());
         EmpCoursesModel empCoursesModel;
         if (!empCoursesList.isEmpty()) {
             empCoursesModel = empCoursesList.get(0);
             List<CourseEnrollment> courses = empCoursesModel.getCourses();
+            List<RecordedCourseEnrollment> recordedCourses = empCoursesModel.getRecordedCourses();
             if (courses == null) {
                 courses = new ArrayList<>(); // Initialize the courses list if it's null
             }
-            courses.addAll(empCourses.getCourses());
-            empCoursesModel.setCourses(courses);
+            if (recordedCourses == null) {
+                recordedCourses = new ArrayList<>(); // Initialize the recordedCourses list if it's null
+            }
+            if (type.equals("recorded")) {
+                recordedCourses.addAll(empCourses.getRecordedCourses());
+                empCoursesModel.setRecordedCourses(recordedCourses);
+            } else {
+                courses.addAll(empCourses.getCourses());
+                empCoursesModel.setCourses(courses);
+            }
         } else {
             empCoursesModel = empCoursesRepository.save(empCourses);
         }
@@ -64,6 +70,7 @@ public class EmpCoursesService {
         if (empCoursesModel != null) {
             empCoursesModel.setEmployeeId(empCourses.getEmployeeId());
             empCoursesModel.setCourses(empCourses.getCourses());
+            empCoursesModel.setRecordedCourses(empCourses.getRecordedCourses());
             return empCoursesRepository.save(empCoursesModel);
         }
         return null;
@@ -71,15 +78,24 @@ public class EmpCoursesService {
 
     public void deleteEmpCourses(String id) { empCoursesRepository.deleteById(id); }
 
-    public EmpCoursesModel deleteEmpCourse(String employeeId, String courseId) {
+    public EmpCoursesModel deleteEmpCourse(String employeeId, String courseId, String type) {
         List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
             List<CourseEnrollment> courses = empCoursesModel.getCourses();
-            if (courses != null) {
-                courses.removeIf(course -> course.getCourseId().equals(courseId));
-                empCoursesModel.setCourses(courses);
-                return empCoursesRepository.save(empCoursesModel);
+            List<RecordedCourseEnrollment> recordedCourses = empCoursesModel.getRecordedCourses();
+            if (type.equals("recorded")) {
+                if (recordedCourses != null) {
+                    recordedCourses.removeIf(course -> course.getCourseId().equals(courseId));
+                    empCoursesModel.setRecordedCourses(recordedCourses);
+                    return empCoursesRepository.save(empCoursesModel);
+                }
+            } else {
+                if (courses != null) {
+                    courses.removeIf(course -> course.getCourseId().equals(courseId));
+                    empCoursesModel.setCourses(courses);
+                    return empCoursesRepository.save(empCoursesModel);
+                }
             }
             return empCoursesModel;
         }
@@ -197,7 +213,7 @@ public class EmpCoursesService {
                         course.setStatus(status);
 
                         if ("completed".equalsIgnoreCase(status)) {
-                            CertificateDTO certDTO = buildSystemCertificate(course);
+                            CertificateDTO certDTO = buildSystemCertificate(course.getCourseName());
                             if (course.getCertificates() == null) {
                                 course.setCertificates(new ArrayList<>());
                             }
@@ -207,7 +223,7 @@ public class EmpCoursesService {
                                 course.getCertificates().add(certDTO);
                             }
 
-                            certificateProcessorService.processToIssueCertificate(course, certDTO, employeeId, courseId);
+                            certificateProcessorService.processToIssueCertificate(course.getCourseName(), certDTO, employeeId, courseId);
                         }
 
                         return empCoursesRepository.save(empCoursesModel);
@@ -218,7 +234,7 @@ public class EmpCoursesService {
         throw new RuntimeException("Employee not found for id: " + employeeId);
     }
 
-    private CertificateDTO buildSystemCertificate(CourseEnrollment course) {
+    private CertificateDTO buildSystemCertificate(String courseName) {
         CertificateDTO certificate = new CertificateDTO();
         certificate.setCertificateId(UUID.randomUUID().toString());
         certificate.setType("system");
@@ -228,7 +244,7 @@ public class EmpCoursesService {
         certificate.setIssuedDate(OffsetDateTime.now(ZoneOffset.UTC).format(formatter));
         certificate.setDelivered(false);
         certificate.setFileName(""); // To be set from frontend
-        certificate.setDescription("System-generated certificate for " + course.getCourseName());
+        certificate.setDescription("System-generated certificate for " + courseName);
         return certificate;
     }
 
@@ -311,6 +327,100 @@ public class EmpCoursesService {
             }
         }
         return result;
+    }
+
+    public RecordedCourseEnrollment getRecordedCourseByEmployeeIdAndCourseId(String employeeId, String courseId) {
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        if (!empCoursesList.isEmpty()) {
+            List<RecordedCourseEnrollment> recordedCourses = empCoursesList.get(0).getRecordedCourses();
+            if (recordedCourses != null) {
+                for (RecordedCourseEnrollment course : recordedCourses) {
+                    if (course.getCourseId().equals(courseId)) {
+                        return course;
+                    }
+                }
+            }
+        }
+        throw new RuntimeException("Recorded course not found for employeeId: " + employeeId);
+    }
+
+    public EmpCoursesModel updateRecordedCourseProgress(String employeeId, String courseId, CourseProgressDTO courseProgress, List<ModuleProgressDTO> moduleProgress) {
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        if (!empCoursesList.isEmpty()) {
+            EmpCoursesModel model = empCoursesList.get(0);
+            List<RecordedCourseEnrollment> recordedCourses = model.getRecordedCourses();
+            if (recordedCourses != null) {
+                for (RecordedCourseEnrollment course : recordedCourses) {
+                    if (course.getCourseId().equals(courseId)) {
+                        course.setCourseProgress(courseProgress);
+                        course.setModuleProgress(moduleProgress);
+                        return empCoursesRepository.save(model);
+                    }
+                }
+            }
+        }
+        throw new RuntimeException("Recorded course not found for progress update.");
+    }
+
+    public EmpCoursesModel updateRecordedCourseReview(String employeeId, String courseId, ReviewDTO review) {
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        if (!empCoursesList.isEmpty()) {
+            EmpCoursesModel model = empCoursesList.get(0);
+            List<RecordedCourseEnrollment> recordedCourses = model.getRecordedCourses();
+            if (recordedCourses != null) {
+                for (RecordedCourseEnrollment course : recordedCourses) {
+                    if (course.getCourseId().equals(courseId)) {
+                        course.setReview(review);
+                        return empCoursesRepository.save(model);
+                    }
+                }
+            }
+        }
+        throw new RuntimeException("Recorded course not found for review update.");
+    }
+
+    public EmpCoursesModel completeRecordedCourse(String employeeId, String courseId) {
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        if (!empCoursesList.isEmpty()) {
+            EmpCoursesModel model = empCoursesList.get(0);
+            List<RecordedCourseEnrollment> recordedCourses = model.getRecordedCourses();
+            if (recordedCourses != null) {
+                for (RecordedCourseEnrollment course : recordedCourses) {
+                    if (course.getCourseId().equals(courseId)) {
+                        course.setStatus("completed");
+                        CertificateDTO certDTO = buildSystemCertificate(course.getCourseName());
+                        if (course.getCertificates() == null) {
+                            course.setCertificates(new ArrayList<>());
+                        }
+                        boolean exists = course.getCertificates().stream()
+                                .anyMatch(c -> c.getCertificateId().equals(certDTO.getCertificateId()));
+                        if (!exists) {
+                            course.getCertificates().add(certDTO);
+                        }
+                        certificateProcessorService.processToIssueCertificate(course.getCourseName(), certDTO, employeeId, courseId);
+                        return empCoursesRepository.save(model);
+                    }
+                }
+            }
+        }
+        throw new RuntimeException("Recorded course not found to mark as completed.");
+    }
+
+    public EmpCoursesModel updateRecordedCoursePayment(String employeeId, String courseId, String status) {
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        if (!empCoursesList.isEmpty()) {
+            EmpCoursesModel model = empCoursesList.get(0);
+            List<RecordedCourseEnrollment> recordedCourses = model.getRecordedCourses();
+            if (recordedCourses != null) {
+                for (RecordedCourseEnrollment course : recordedCourses) {
+                    if (course.getCourseId().equals(courseId)) {
+                        course.setStatus(status);
+                        return empCoursesRepository.save(model);
+                    }
+                }
+            }
+        }
+        throw new RuntimeException("Recorded course not found for payment update.");
     }
 
     @Async

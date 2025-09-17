@@ -38,7 +38,7 @@ public class CertificateProcessorService {
         this.empCoursesRepository = empCoursesRepository;
     }
 
-    public void processToIssueCertificate(CourseEnrollment course, CertificateDTO certDTO, String employeeId, String courseId) {
+    public void processToIssueCertificate(String courseName, CertificateDTO certDTO, String employeeId, String courseId) {
         // 1. Add to emp_certificates
         EmpCertificatesModel empCertificatesModel = empCertificatesService.getByEmployeeId(employeeId);
         if (empCertificatesModel == null) {
@@ -49,7 +49,7 @@ public class CertificateProcessorService {
 
         EmpCertificatesDTO cert = new EmpCertificatesDTO();
         cert.setId(certDTO.getCertificateId());
-        cert.setName(course.getCourseName());
+        cert.setName(courseName);
         cert.setOrganization(certDTO.getIssuedBy());
         cert.setDate(certDTO.getIssuedDate());
         cert.setCertificateId(certDTO.getCertificateId());
@@ -76,9 +76,9 @@ public class CertificateProcessorService {
         // 3. Send email
         empCoursesRepository.findByEmployeeId(employeeId).ifPresent(empCourses -> {
             String to = empCourses.getEmail();
-            String subject = "🎉 Course Completed: " + course.getCourseName();
+            String subject = "🎉 Course Completed: " + courseName;
             Map<String, String> variables = Map.of(
-                    "courseName", course.getCourseName(),
+                    "courseName", courseName,
                     "courseId", courseId,
                     "year", String.valueOf(Year.now().getValue())
             );

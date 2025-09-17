@@ -1,8 +1,7 @@
 package com.talentboozt.s_backend.domains.plat_courses.controller;
 
 import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
-import com.talentboozt.s_backend.domains.plat_courses.dto.CertificateDetailsDTO;
-import com.talentboozt.s_backend.domains.plat_courses.dto.PaymentDetailsDTO;
+import com.talentboozt.s_backend.domains.plat_courses.dto.*;
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
 import com.talentboozt.s_backend.domains.plat_courses.service.EmpCoursesService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v2/emp-courses")
@@ -34,8 +34,11 @@ public class EmpCoursesController {
     }
 
     @PostMapping("/add")
-    public EmpCoursesModel addEmpCourses(@RequestBody EmpCoursesModel empCourses) {
-        return empCoursesService.addEmpCourses(empCourses);
+    public EmpCoursesModel addEmpCourses(@RequestBody EmpCoursesModel empCourses,
+                                         @RequestParam(required = false) String type) {
+        String courseType; //live, recorded
+        courseType = Objects.requireNonNullElse(type, "live");
+        return empCoursesService.addEmpCourses(empCourses, courseType);
     }
 
     @PutMapping("/update/{id}")
@@ -74,8 +77,12 @@ public class EmpCoursesController {
     }
 
     @DeleteMapping("/delete-single/{employeeId}/{courseId}")
-    public EmpCoursesModel deleteEmpCourse(@PathVariable String employeeId, @PathVariable String courseId) {
-        return empCoursesService.deleteEmpCourse(employeeId, courseId);
+    public EmpCoursesModel deleteEmpCourse(@PathVariable String employeeId,
+                                           @RequestParam(required = false) String type,
+                                           @PathVariable String courseId) {
+        String courseType; //live, recorded
+        courseType = Objects.requireNonNullElse(type, "live");
+        return empCoursesService.deleteEmpCourse(employeeId, courseId, courseType);
     }
 
     @GetMapping("/get/all-payments")
@@ -86,5 +93,39 @@ public class EmpCoursesController {
     @GetMapping("/get/all-certificates")
     public List<CertificateDetailsDTO> getAllCertificates() throws IOException {
         return empCoursesService.getAllCertificateDetails();
+    }
+
+    @GetMapping("/get/rec/{employeeId}/{courseId}")
+    public RecordedCourseEnrollment getRecordedCourseByEmployeeIdAndCourseId(
+            @PathVariable String employeeId,
+            @PathVariable String courseId) {
+        return empCoursesService.getRecordedCourseByEmployeeIdAndCourseId(employeeId, courseId);
+    }
+
+    @PutMapping("/update-rec/{employeeId}/{courseId}")
+    public EmpCoursesModel updateRecordedCourse(
+            @PathVariable String employeeId,
+            @PathVariable String courseId,
+            @RequestBody CourseProgressDTO courseProgress,
+            @RequestBody List<ModuleProgressDTO> moduleProgress) {
+        return empCoursesService.updateRecordedCourseProgress(employeeId, courseId, courseProgress, moduleProgress);
+    }
+
+    @PutMapping("/update-rec-review/{employeeId}/{courseId}")
+    public EmpCoursesModel updateRecordedCourseReview(
+            @PathVariable String employeeId,
+            @PathVariable String courseId,
+            @RequestBody ReviewDTO review) {
+        return empCoursesService.updateRecordedCourseReview(employeeId, courseId, review);
+    }
+
+    @PutMapping("/complete-rec/{employeeId}/{courseId}")
+    public EmpCoursesModel completeRecordedCourse(@PathVariable String employeeId, @PathVariable String courseId) {
+        return empCoursesService.completeRecordedCourse(employeeId, courseId);
+    }
+
+    @PutMapping("/update-rec-payment/{employeeId}/{courseId}/{status}")
+    public EmpCoursesModel updateRecordedCoursePayment(@PathVariable String employeeId, @PathVariable String courseId, @PathVariable String status) {
+        return empCoursesService.updateRecordedCoursePayment(employeeId, courseId, status);
     }
 }

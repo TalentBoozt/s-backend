@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.plat_courses.model;
 
 import com.talentboozt.s_backend.domains.plat_courses.dto.CourseEnrollment;
+import com.talentboozt.s_backend.domains.plat_courses.dto.RecordedCourseEnrollment;
 import lombok.*;
 import org.checkerframework.checker.units.qual.N;
 import org.springframework.data.annotation.Id;
@@ -26,6 +27,8 @@ public class EmpCoursesModel {
     private String timezone;
     @Field("courses")
     private List<CourseEnrollment> courses;
+    @Field("recordedCourses")
+    private List<RecordedCourseEnrollment> recordedCourses;
 
     // mock for test
     public EmpCoursesModel(String id) {

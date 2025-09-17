@@ -55,7 +55,7 @@ public class CourseCertificateService {
                             course.getCertificates().add(certDTO);
                         }
 
-                        certificateProcessorService.processToIssueCertificate(course, certDTO, certificate.getEmployeeId(), certificate.getCourseId());
+                        certificateProcessorService.processToIssueCertificate(course.getCourseName(), certDTO, certificate.getEmployeeId(), certificate.getCourseId());
 
                         empCoursesRepository.save(empCoursesModel);
                     }
