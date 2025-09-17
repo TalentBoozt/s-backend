@@ -17,6 +17,7 @@ public class RecordedCourseEnrollment {
     private String status; // "purchased", "in-progress", "completed"
     private String organizer;
     private String enrollmentDate;
+    private int overallProgress; // 0-100
     private CourseProgressDTO courseProgress;
     private List<ModuleProgressDTO> moduleProgress;
     private ReviewDTO review;

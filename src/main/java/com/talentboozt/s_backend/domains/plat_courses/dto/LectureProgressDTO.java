@@ -12,7 +12,7 @@ import lombok.Setter;
 public class LectureProgressDTO {
     private String lectureId;
     private String lectureTitle;
-    private boolean isWatched;
+    private boolean watched;
     private int watchDuration; // seconds watched
     private int totalDuration; // full length of lecture
     private String lastWatchedAt; // ISO date for resume feature
