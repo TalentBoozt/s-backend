@@ -16,9 +16,12 @@ public class RecModuleDTO {
     private String id;
     private String title;
     private String description;
-    private boolean freePreview;  // Allow preview of the first module or lecture
+
+    private boolean freePreview;
+
     @Field("lectures")
     private List<RecLectureDTO> lectures;
-    private int order;  // To maintain the order of modules
+
+    private int order;
     private String createdAt;
 }

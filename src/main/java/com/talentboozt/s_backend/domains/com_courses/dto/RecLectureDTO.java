@@ -16,10 +16,14 @@ public class RecLectureDTO {
     private String id;
     private String title;
     private String description;
-    private String notes;  // Any notes for the lecture
+
+    private String notes;
+
     @Field("materials")
-    private List<RecMaterialDTO> materials;  // Static files uploaded with lectures
-    private String videoUrl;  // Link to the recorded video
-    private int duration;  // Duration of the lecture
-    private String createdAt;  // Created date of the lecture
+    private List<RecMaterialDTO> materials;
+
+    private String videoUrl;
+    private int duration; // in seconds
+
+    private String createdAt;
 }
