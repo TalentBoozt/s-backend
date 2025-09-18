@@ -123,8 +123,34 @@ public class RecordedCourseProgressService {
                 new ArrayList<>()
         );
     }
-}
 
-//POST /progress/mark-watched	Mark lecture as watched
-//GET /progress/{userId}	Get user’s recorded course progress
-//GET /progress/{userId}/{courseId}	Get specific course progress
+    public RecordedCourseEnrollment getRecordedCoursesProgress(String userId) {
+        List<EmpCoursesModel> users = empCoursesRepository.findAllByEmployeeId(userId);
+        if (users.isEmpty()) throw new RuntimeException("Employee not found");
+
+        EmpCoursesModel user = users.get(0);
+        List<RecordedCourseEnrollment> courses = user.getRecordedCourses();
+
+        if (courses.isEmpty()) {
+            return initRecordedCourseEnrollment(new RecordedCourseModel());
+        } else {
+            return courses.get(0);
+        }
+    }
+
+    public RecordedCourseEnrollment getRecordedCourseProgress(String userId, String courseId) {
+        List<EmpCoursesModel> users = empCoursesRepository.findAllByEmployeeId(userId);
+        if (users.isEmpty()) throw new RuntimeException("Employee not found");
+
+        EmpCoursesModel user = users.get(0);
+        List<RecordedCourseEnrollment> courses = user.getRecordedCourses();
+
+        for (RecordedCourseEnrollment course : courses) {
+            if (course.getCourseId().equals(courseId)) {
+                return course;
+            }
+        }
+
+        return initRecordedCourseEnrollment(new RecordedCourseModel());
+    }
+}
