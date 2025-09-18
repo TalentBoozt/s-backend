@@ -29,7 +29,7 @@ class CourseReminderAuditLogServiceTest {
     @Test
     void logAuditSavesLogWithValidData() {
         // Setup input data
-        EmpCoursesModel emp = new EmpCoursesModel("1", "emp123", "John Doe", "john.doe@example.com", "0123456789", "Asia/Colombo", null);
+        EmpCoursesModel emp = new EmpCoursesModel("1", "emp123", "John Doe", "john.doe@example.com", "0123456789", "Asia/Colombo", null, null);
         CourseEnrollment course = new CourseEnrollment("course123", "Java Basics", "batch123", null, null, null, "2023-10-01T10:00:00Z", "enrolled", null, null, null);
         ModuleDTO module = new ModuleDTO("module123", "Introduction", null, null, null, "2023-10-01", "04:30", "06:00", "2023-10-01T10:00:00Z", "2023-10-01T11:30:00Z", "Asia/Colombo", null, null, null, false);
 
@@ -70,7 +70,7 @@ class CourseReminderAuditLogServiceTest {
 
     @Test
     void logAuditHandlesInvalidTimezoneGracefully() {
-        EmpCoursesModel emp = new EmpCoursesModel("1", "emp123", "John Doe", "john.doe@example.com", "0123456789", "InvalidTimezone", null);
+        EmpCoursesModel emp = new EmpCoursesModel("1", "emp123", "John Doe", "john.doe@example.com", "0123456789", "InvalidTimezone", null, null);
         CourseEnrollment course = new CourseEnrollment("course123", "Java Basics", "batch123", null, null, null, "2023-10-01T10:00:00Z", "enrolled", null, null, null);
         ModuleDTO module = new ModuleDTO("module123", "Introduction", null, null, null, "2023-10-01", "04:30", "06:00", "2023-10-01T10:00:00Z", "2023-10-01T11:30:00Z", "Asia/Colombo", null, null, null, false);
 
@@ -85,7 +85,7 @@ class CourseReminderAuditLogServiceTest {
 
     @Test
     void logAuditHandlesInvalidUtcStartGracefully() {
-        EmpCoursesModel emp = new EmpCoursesModel("1", "emp123", "John Doe", "john.doe@example.com", "0123456789", "Asia/Colombo", null);
+        EmpCoursesModel emp = new EmpCoursesModel("1", "emp123", "John Doe", "john.doe@example.com", "0123456789", "Asia/Colombo", null, null);
         CourseEnrollment course = new CourseEnrollment("course123", "Java Basics", "batch123", null, null, null, null, null, null, null, null);
         ModuleDTO module = new ModuleDTO("module123", "Introduction", null, null, null, null, null, null, "InvalidDate", null, null, null, null, null, false);
 
@@ -100,7 +100,7 @@ class CourseReminderAuditLogServiceTest {
 
     @Test
     void logAuditSetsExpirationTimeCorrectly() {
-        EmpCoursesModel emp = new EmpCoursesModel("1", "emp123", "John Doe", "john.doe@example.com", "0123456789", "Asia/Colombo", null);
+        EmpCoursesModel emp = new EmpCoursesModel("1", "emp123", "John Doe", "john.doe@example.com", "0123456789", "Asia/Colombo", null, null);
         CourseEnrollment course = new CourseEnrollment("course123", "Java Basics", "batch123", null, null, null, null, null, null, null, null);
         ModuleDTO module = new ModuleDTO("module123", "Introduction", null, null, null, null, null, null, "2023-10-01T10:00:00Z", null, null, null, null, null, false);
 
