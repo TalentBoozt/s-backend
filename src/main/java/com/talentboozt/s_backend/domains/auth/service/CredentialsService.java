@@ -164,7 +164,6 @@ public class CredentialsService {
     public CredentialsModel getCredentialsByEmail(String email) {
         CredentialsModel credentials = credentialsRepository.findByEmail(email);
         if (credentials != null) {
-            credentials.setPassword(null);
             credentials.setPermissions(userPermissionsService.resolvePermissions(credentials.getRoles()));
         }
         return credentials;
