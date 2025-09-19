@@ -2,22 +2,25 @@ package com.talentboozt.s_backend.domains.com_courses.service;
 
 import com.talentboozt.s_backend.domains.com_courses.dto.RecLectureDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.RecordedCourseReviewDTO;
+import com.talentboozt.s_backend.domains.com_courses.dto.RejectRecCourseDTO;
 import com.talentboozt.s_backend.domains.com_courses.model.RecordedCourseModel;
 import com.talentboozt.s_backend.domains.com_courses.repository.RecordedCourseRepository;
+import com.talentboozt.s_backend.shared.mail.service.EmailService;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.time.Year;
+import java.util.*;
 
 @Service
 public class RecordedCourseService {
 
     private final RecordedCourseRepository recordedCourseRepository;
+    private final EmailService emailService;
 
-    public RecordedCourseService(RecordedCourseRepository recordedCourseRepository) {
+    public RecordedCourseService(RecordedCourseRepository recordedCourseRepository, EmailService emailService) {
+        this.emailService = emailService;
         this.recordedCourseRepository = recordedCourseRepository;
     }
 
@@ -81,6 +84,10 @@ public class RecordedCourseService {
         return recordedCourseRepository.findByPublishedTrue();
     }
 
+    public List<RecordedCourseModel> getPublishedAndApprovedCourses() {
+        return recordedCourseRepository.findByPublishedTrueAndApprovedTrue();
+    }
+
 
     // Rating / Review Handling
     public double calculateAverageRating(List<RecordedCourseReviewDTO> reviews) {
@@ -112,6 +119,12 @@ public class RecordedCourseService {
         return recordedCourseRepository.save(course);
     }
 
+    public RecordedCourseModel approveCourse(String id) {
+        RecordedCourseModel course = getCourseById(id);
+        course.setApproved(true);
+        return recordedCourseRepository.save(course);
+    }
+
     // Utility
     public int getTotalLectureCount(RecordedCourseModel course) {
         if (course.getModules() == null) return 0;
@@ -126,6 +139,33 @@ public class RecordedCourseService {
                 .flatMap(module -> module.getLectures().stream())
                 .mapToInt(RecLectureDTO::getDuration)
                 .sum();
+    }
+
+    public RecordedCourseModel rejectCourse(String id, RejectRecCourseDTO rejectRecCourseDTO) {
+        RecordedCourseModel course = getCourseById(id);
+        course.setPublished(false);
+        course.setApproved(false);
+        RecordedCourseModel rejectedCourse = recordedCourseRepository.save(course);
+
+        String to = rejectedCourse.getEmail();
+        String subject = "Your Submission to Talent Boozt has been Rejected!";
+        Map<String, String> variables = Map.of(
+                "code", rejectRecCourseDTO.getCode(),
+                "reason", rejectRecCourseDTO.getReason(),
+                "courseId", rejectRecCourseDTO.getCourseId(),
+                "courseName", rejectRecCourseDTO.getCourseName(),
+                "lecturer", rejectedCourse.getLecturer(),
+                "rejectedAt", rejectRecCourseDTO.getRejectedAt(),
+                "year", String.valueOf(Year.now().getValue())
+        );
+
+        try {
+            emailService.sendRecCourseRejectEmail(to, subject, variables);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return rejectedCourse;
     }
 }
 

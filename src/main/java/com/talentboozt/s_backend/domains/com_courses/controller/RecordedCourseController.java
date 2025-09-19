@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.com_courses.controller;
 
 import com.talentboozt.s_backend.domains.com_courses.dto.RecordedCourseReviewDTO;
+import com.talentboozt.s_backend.domains.com_courses.dto.RejectRecCourseDTO;
 import com.talentboozt.s_backend.domains.com_courses.model.RecordedCourseModel;
 import com.talentboozt.s_backend.domains.com_courses.service.RecordedCourseService;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +45,21 @@ public class RecordedCourseController {
     @GetMapping("/get-published")
     public List<RecordedCourseModel> getPublishedCourses() {
         return recordedCourseService.getPublishedCourses();
+    }
+
+    @GetMapping("/get-published-and-approved")
+    public List<RecordedCourseModel> getPublishedAndApprovedCourses() {
+        return recordedCourseService.getPublishedAndApprovedCourses();
+    }
+
+    @PutMapping("/approve/{id}")
+    public RecordedCourseModel approveCourse(@PathVariable String id) {
+        return recordedCourseService.approveCourse(id);
+    }
+
+    @PutMapping("/reject/{id}")
+    public RecordedCourseModel rejectCourse(@PathVariable String id, @RequestBody RejectRecCourseDTO rejectRecCourseDTO) {
+        return recordedCourseService.rejectCourse(id, rejectRecCourseDTO);
     }
 
     @PostMapping("/add-review/{id}")

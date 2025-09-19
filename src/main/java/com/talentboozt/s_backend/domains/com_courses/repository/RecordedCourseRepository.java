@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface RecordedCourseRepository extends MongoRepository<RecordedCourseModel, String> {
     List<RecordedCourseModel> findByPublishedTrue();
+
+    List<RecordedCourseModel> findByPublishedTrueAndApprovedTrue();
 }
