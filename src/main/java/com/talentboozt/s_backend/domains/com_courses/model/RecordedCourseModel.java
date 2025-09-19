@@ -26,6 +26,7 @@ public class RecordedCourseModel {
 
     private String price;  // can be string or BigDecimal
     private boolean published;
+    private boolean approved;
 
     private String createdAt;
     private String updatedAt;
@@ -39,6 +40,7 @@ public class RecordedCourseModel {
     private List<String> requirements;
 
     private String lecturer;  // instructor/trainer name
+    private String email;
     private String language = "English"; // Optional, default to "English"
     private String category;  // e.g., "Development", "Design"
 

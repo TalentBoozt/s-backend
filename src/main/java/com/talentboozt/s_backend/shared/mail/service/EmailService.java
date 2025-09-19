@@ -306,4 +306,14 @@ public class EmailService {
         EmailJob job = new EmailJob(to, subject, htmlContent);
         emailQueueService.queueEmail(job);
     }
+
+    public void sendRecCourseRejectEmail(String to, String subject, Map<String, String> variables) throws IOException {
+        if (!EmailValidator.isValid(to)) {
+            System.out.println("Invalid email skipped: " + to);
+            return;
+        }
+        String htmlContent = emailTemplateLoader.loadTemplate("course-reject.html", variables);
+        EmailJob job = new EmailJob(to, subject, htmlContent);
+        emailQueueService.queueEmail(job);
+    }
 }
