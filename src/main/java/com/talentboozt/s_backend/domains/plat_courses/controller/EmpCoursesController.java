@@ -106,9 +106,8 @@ public class EmpCoursesController {
     public EmpCoursesModel updateRecordedCourse(
             @PathVariable String employeeId,
             @PathVariable String courseId,
-            @RequestBody CourseProgressDTO courseProgress,
-            @RequestBody List<ModuleProgressDTO> moduleProgress) {
-        return empCoursesService.updateRecordedCourseProgress(employeeId, courseId, courseProgress, moduleProgress);
+            @RequestBody CourseUpdateDTO courseUpdate) {
+        return empCoursesService.updateRecordedCourseProgress(employeeId, courseId, courseUpdate);
     }
 
     @PutMapping("/update-rec-review/{employeeId}/{courseId}")

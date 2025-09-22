@@ -344,7 +344,7 @@ public class EmpCoursesService {
         throw new RuntimeException("Recorded course not found for employeeId: " + employeeId);
     }
 
-    public EmpCoursesModel updateRecordedCourseProgress(String employeeId, String courseId, CourseProgressDTO courseProgress, List<ModuleProgressDTO> moduleProgress) {
+    public EmpCoursesModel updateRecordedCourseProgress(String employeeId, String courseId, CourseUpdateDTO courseUpdate) {
         List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel model = empCoursesList.get(0);
@@ -352,8 +352,8 @@ public class EmpCoursesService {
             if (recordedCourses != null) {
                 for (RecordedCourseEnrollment course : recordedCourses) {
                     if (course.getCourseId().equals(courseId)) {
-                        course.setCourseProgress(courseProgress);
-                        course.setModuleProgress(moduleProgress);
+                        course.setCourseProgress(courseUpdate.getCourseProgress());
+                        course.setModuleProgress(courseUpdate.getModuleProgress());
                         return empCoursesRepository.save(model);
                     }
                 }

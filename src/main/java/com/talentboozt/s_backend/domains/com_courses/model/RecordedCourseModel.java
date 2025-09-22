@@ -38,10 +38,11 @@ public class RecordedCourseModel {
 
     private List<String> skills;
     private List<String> requirements;
+    private String level;
 
     private String lecturer;  // instructor/trainer name
-    private String nametag;  // senior react developer
-    private String email;
+    private String lecturerNameTag;  // senior react developer
+    private String lecturerEmail;
     private String language = "English"; // Optional, default to "English"
     private String category;  // e.g., "Development", "Design"
 
