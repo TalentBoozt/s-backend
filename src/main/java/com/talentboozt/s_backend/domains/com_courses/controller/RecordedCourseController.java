@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/recorded-courses")
+@RequestMapping("/api/v2/recorded-courses")
 public class RecordedCourseController {
     private final RecordedCourseService recordedCourseService;
 
@@ -17,10 +17,7 @@ public class RecordedCourseController {
         this.recordedCourseService = recordedCourseService;
     }
 
-    @PostMapping("/add")
-    public RecordedCourseModel addCourse(@RequestBody RecordedCourseModel course) {
-        return recordedCourseService.createCourse(course);
-    }
+    // add method is public
 
     @PutMapping("/update/{id}")
     public RecordedCourseModel updateCourse(@PathVariable String id, @RequestBody RecordedCourseModel course) {

@@ -147,7 +147,7 @@ public class RecordedCourseService {
         course.setApproved(false);
         RecordedCourseModel rejectedCourse = recordedCourseRepository.save(course);
 
-        String to = rejectedCourse.getEmail();
+        String to = rejectedCourse.getLecturerEmail();
         String subject = "Your Submission to Talent Boozt has been Rejected!";
         Map<String, String> variables = Map.of(
                 "code", rejectRecCourseDTO.getCode(),
