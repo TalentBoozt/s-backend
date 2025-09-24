@@ -352,6 +352,7 @@ public class EmpCoursesService {
             if (recordedCourses != null) {
                 for (RecordedCourseEnrollment course : recordedCourses) {
                     if (course.getCourseId().equals(courseId)) {
+                        course.setOverallProgress(courseUpdate.getCourseProgress().getProgressPercent());
                         course.setCourseProgress(courseUpdate.getCourseProgress());
                         course.setModuleProgress(courseUpdate.getModuleProgress());
                         return empCoursesRepository.save(model);
