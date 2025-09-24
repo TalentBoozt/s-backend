@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.com_courses.service;
 import com.talentboozt.s_backend.domains.com_courses.dto.RecLectureDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.RecordedCourseReviewDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.RejectRecCourseDTO;
+import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
 import com.talentboozt.s_backend.domains.com_courses.model.RecordedCourseModel;
 import com.talentboozt.s_backend.domains.com_courses.repository.RecordedCourseRepository;
 import com.talentboozt.s_backend.shared.mail.service.EmailService;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class RecordedCourseService {
@@ -166,6 +168,13 @@ public class RecordedCourseService {
         }
 
         return rejectedCourse;
+    }
+
+    public List<String> getCategories() {
+        return recordedCourseRepository.findAll().stream()
+                .map(RecordedCourseModel::getCategory)
+                .distinct()
+                .collect(Collectors.toList());
     }
 }
 
