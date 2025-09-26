@@ -49,11 +49,6 @@ public class RecordedCourseController {
         return recordedCourseService.getPublishedAndApprovedCourses();
     }
 
-    @GetMapping("/get/categories")
-    public List<String> getCategories() {
-        return recordedCourseService.getCategories();
-    }
-
     @PutMapping("/approve/{id}")
     public RecordedCourseModel approveCourse(@PathVariable String id) {
         return recordedCourseService.approveCourse(id);
