@@ -8,6 +8,8 @@ import com.talentboozt.s_backend.domains.common.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/public")
 public class PublicController {
@@ -28,5 +30,10 @@ public class PublicController {
     @PostMapping("/recorded-courses/add")
     public RecordedCourseModel addCourse(@RequestBody RecordedCourseModel course) {
         return recordedCourseService.createCourse(course);
+    }
+
+    @GetMapping("/recorded-courses/categories")
+    public List<String> getCategories() {
+        return recordedCourseService.getCategories();
     }
 }
