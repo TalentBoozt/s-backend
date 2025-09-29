@@ -51,7 +51,7 @@ class RewardAuditControllerTest {
     @Test
     void getRewardAuditsReturnsPaginatedResults() {
         Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "issuedAt"));
-        Page<TaskRewardAuditModel> page = new PageImpl<>(List.of(new TaskRewardAuditModel(), new TaskRewardAuditModel()));
+        Page<TaskRewardAuditModel> page = new PageImpl<>(List.of(new TaskRewardAuditModel()));
         when(auditRepo.search(null, null, pageable)).thenReturn(page);
 
         Map<String, Object> result = rewardAuditController.getRewardAudits(1, 10, null, null);
