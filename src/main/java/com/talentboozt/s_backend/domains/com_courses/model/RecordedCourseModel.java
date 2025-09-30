@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -24,7 +25,7 @@ public class RecordedCourseModel {
 
     private String courseType = "recorded"; // constant/fixed
 
-    private String price;  // can be string or BigDecimal
+    private BigDecimal price;  // can be string or BigDecimal
     private boolean published;
     private boolean approved;
 
@@ -55,4 +56,8 @@ public class RecordedCourseModel {
     private boolean certificate; // true if certificate available after completion
 
     private String currency = "USD"; // pricing currency
+
+    private String trainerId;          // link to trainer user account
+    private BigDecimal trainerShare;   // percentage, default 0.6 (60%)
+    private BigDecimal platformShare;  // percentage, default 0.4 (40%)
 }
