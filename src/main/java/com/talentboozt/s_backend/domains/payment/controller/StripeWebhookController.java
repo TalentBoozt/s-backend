@@ -46,6 +46,8 @@ public class StripeWebhookController {
     public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestBody Map<String, Object> data, @PathVariable String processType) throws StripeException {
         Session session;
 
+        System.out.println("payment process type: "+processType);
+
         switch (processType.toLowerCase()) {
             case "subscription":
                 session = stripeService.createSubscriptionSession(data);
