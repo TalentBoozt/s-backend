@@ -117,6 +117,13 @@ public class StripeWebhookController {
             return;
         }
 
+        try {
+            session = Session.retrieve(session.getId()); // refresh from Stripe
+        } catch (StripeException e) {
+            auditLogService.markFailed(event.getId(), "❌ Stripe error: " + e.getMessage(), true);
+            return;
+        }
+
         String purchaseType = session.getMetadata().get("purchase_type");
         if ("course".equals(purchaseType)) {
             handleCoursePurchase(event, session, false);
