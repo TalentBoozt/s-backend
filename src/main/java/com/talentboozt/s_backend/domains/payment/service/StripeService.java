@@ -190,6 +190,9 @@ public class StripeService {
             }
         }
 
+        System.out.println("metadata: "+ metadata);
+        System.out.println("checkout params: "+ builder.build().toString());
+
         return Session.create(builder.build());
     }
 
