@@ -1,5 +1,7 @@
 package com.talentboozt.s_backend.domains.payment.service;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.stripe.model.*;
 import com.stripe.param.CouponCreateParams;
 import com.stripe.param.InvoiceCreateParams;
@@ -190,8 +192,9 @@ public class StripeService {
             }
         }
 
-        System.out.println("metadata: "+ metadata);
-        System.out.println("checkout params: "+ builder.build().toString());
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        SessionCreateParams params = builder.build();
+        System.out.println("checkout params: "+ gson.toJson(params));
 
         return Session.create(builder.build());
     }
