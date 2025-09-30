@@ -194,7 +194,7 @@ public class StripeService {
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         SessionCreateParams params = builder.build();
-        System.out.println("checkout params: "+ gson.toJson(params));
+        auditLogService.logCustom("Checkout Params", gson.toJson(params));
 
         return Session.create(builder.build());
     }
