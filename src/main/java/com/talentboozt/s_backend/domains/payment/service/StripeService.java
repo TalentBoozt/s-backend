@@ -8,7 +8,11 @@ import com.stripe.param.InvoiceCreateParams;
 import com.stripe.param.InvoiceItemCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.talentboozt.s_backend.domains.audit_logs.service.StripeAuditLogService;
+import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
+import com.talentboozt.s_backend.domains.com_courses.dto.InstallmentDTO;
+import com.talentboozt.s_backend.domains.com_courses.model.RecordedCourseModel;
+import com.talentboozt.s_backend.domains.com_courses.service.RecordedCourseService;
 import com.talentboozt.s_backend.domains.com_job_portal.service.CmpPostedJobsService;
 import com.talentboozt.s_backend.domains.com_job_portal.service.CompanyService;
 import com.talentboozt.s_backend.domains.payment.model.BillingHistoryModel;
@@ -16,7 +20,11 @@ import com.talentboozt.s_backend.domains.payment.model.InvoicesModel;
 import com.talentboozt.s_backend.domains.payment.model.PaymentMethodsModel;
 import com.talentboozt.s_backend.domains.payment.model.SubscriptionsModel;
 import com.talentboozt.s_backend.domains.payment.repository.InvoiceRepository;
+import com.talentboozt.s_backend.domains.plat_courses.dto.CourseProgressDTO;
+import com.talentboozt.s_backend.domains.plat_courses.dto.RecordedCourseEnrollment;
+import com.talentboozt.s_backend.domains.plat_courses.dto.ReviewDTO;
 import com.talentboozt.s_backend.domains.plat_courses.model.CourseCouponsModel;
+import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
 import com.talentboozt.s_backend.domains.plat_courses.service.CourseCouponsService;
 import com.talentboozt.s_backend.domains.plat_courses.service.EmpCoursesService;
 import com.talentboozt.s_backend.shared.utils.ConfigUtility;
@@ -28,10 +36,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Instant;
+import java.util.*;
 
 @Service
 public class StripeService {
@@ -49,6 +55,7 @@ public class StripeService {
     private final CredentialsService credentialsService;
     private final CmpPostedJobsService cmpPostedJobsService;
     private final RecordedCoursePaymentService recordedCoursePaymentService;
+    private final RecordedCourseService recordedCourseService;
 
     @Autowired
     public StripeService(ConfigUtility configUtility, CourseCouponsService courseCouponsService,
@@ -57,7 +64,8 @@ public class StripeService {
                          PrePaymentService prePaymentService, SubscriptionService subscriptionService,
                          EmpCoursesService empCoursesService, CompanyService companyService,
                          CredentialsService credentialsService, CmpPostedJobsService cmpPostedJobsService,
-                         RecordedCoursePaymentService recordedCoursePaymentService) {
+                         RecordedCoursePaymentService recordedCoursePaymentService,
+                         RecordedCourseService recordedCourseService) {
         this.configUtility = configUtility;
         this.courseCouponsService = courseCouponsService;
         this.billingHistoryService = billingHistoryService;
@@ -71,6 +79,7 @@ public class StripeService {
         this.credentialsService = credentialsService;
         this.cmpPostedJobsService = cmpPostedJobsService;
         this.recordedCoursePaymentService = recordedCoursePaymentService;
+        this.recordedCourseService = recordedCourseService;
     }
 
     public Customer createCustomer(String email, String paymentMethodId) throws StripeException {
@@ -136,6 +145,7 @@ public class StripeService {
 
     public Session createCourseCheckoutSession(Map<String, Object> data, String type) throws StripeException {
         String userId = (String) data.get("userId");
+        String timezone = (String) data.get("timezone");
         String courseId = (String) data.get("courseId");
         String courseName = (String) data.get("courseName");
         String splitType = (String) data.getOrDefault("splitType", "platform-led");
@@ -163,6 +173,7 @@ public class StripeService {
         if (priceType != null) metadata.put("price_type", priceType);
         if (couponCode != null) metadata.put("coupon_code", couponCode);
         if (referrer != null) metadata.put("referrer", referrer);
+        if (timezone != null) metadata.put("timezone", timezone);
 
         // ----- Detect if this is subscription or one-time -----
         boolean isSubscription = "subscription".equalsIgnoreCase(type);
@@ -490,7 +501,7 @@ public class StripeService {
         try {
             empCoursesService.updateInstallmentPayment(userId, courseId, installmentId, "paid");
         } catch (Exception e) {
-            auditLogService.logCustom("installment payment", "❌ Error updating installment payment for "+userId+" - "+courseId+" - "+installmentId+": " + e.getMessage());
+            auditLogService.logCustom("installment payment", "❌ Error updating installment payment for " + userId + " - " + courseId + " - " + installmentId + ": " + e.getMessage());
         }
     }
 
@@ -498,7 +509,7 @@ public class StripeService {
         try {
             empCoursesService.updateFullCoursePayment(userId, courseId, installmentId, "paid");
         } catch (Exception e) {
-            auditLogService.logCustom("full course payment", "❌ Error updating full course payment for "+userId+" - "+courseId+" - "+installmentId+": " + e.getMessage());
+            auditLogService.logCustom("full course payment", "❌ Error updating full course payment for " + userId + " - " + courseId + " - " + installmentId + ": " + e.getMessage());
         }
     }
 
@@ -588,6 +599,71 @@ public class StripeService {
         return null;
     }
 
+    // ------------------- RECORDED COURSE -------------------
+
+    public void updateRecordedCourseEnrollment(String userId, String courseId, String timezone) {
+        RecordedCourseModel course = recordedCourseService.getCourseById(courseId);
+        if (course != null) {
+            Optional<CredentialsModel> employee = credentialsService.getCredentials(userId);
+            if (employee.isPresent()) {
+                CredentialsModel credentials = employee.get();
+
+                CourseProgressDTO courseProgress = new CourseProgressDTO();
+                courseProgress.setCompletedLectures(0);
+                courseProgress.setTotalLectures(0);
+                courseProgress.setCompletedModules(0);
+                courseProgress.setTotalModules(0);
+                courseProgress.setProgressPercent(0);
+                courseProgress.setTotalWatchTimeSeconds(0);
+
+                ReviewDTO review = new ReviewDTO();
+                review.setRating(0);
+                review.setComment("");
+                review.setReviewedAt("");
+
+                // create recorded course enrollment
+                RecordedCourseEnrollment enrollment = new RecordedCourseEnrollment();
+                enrollment.setCourseId(courseId);
+                enrollment.setCourseName(course.getTitle());
+                enrollment.setStatus("purchased");
+                enrollment.setOrganizer(course.getLecturer());
+                enrollment.setEnrollmentDate(Instant.now().toString());
+                enrollment.setOverallProgress(0);
+                enrollment.setCourseProgress(courseProgress);
+                enrollment.setModuleProgress(new ArrayList<>());
+                enrollment.setReview(review);
+                enrollment.setImage(course.getImage());
+                enrollment.setDescription(course.getDescription());
+                enrollment.setCertificates(new ArrayList<>());
+
+                // update installment
+                InstallmentDTO installment = course.getInstallment();
+                installment.setPaid("true");
+                installment.setPaymentDate(Instant.now().toString());
+                installment.setRequestDate(Instant.now().toString());
+                enrollment.setInstallment(installment);
+
+                // make enrollment
+                EmpCoursesModel empCourses;
+                try {
+                    empCourses = empCoursesService.getEmpCourseByEmployeeIdAndCourseId(userId, courseId);
+                } catch (Exception e) {
+                    empCourses = new EmpCoursesModel();
+                }
+                empCourses.setEmployeeId(userId);
+                empCourses.setEmployeeName(credentials.getFirstname() + " " + credentials.getLastname());
+                empCourses.setEmail(credentials.getEmail());
+                empCourses.setPhone("0000000000");
+                empCourses.setTimezone(timezone);
+                if (empCourses.getRecordedCourses() == null) {
+                    empCourses.setRecordedCourses(new ArrayList<>());
+                }
+                empCourses.getRecordedCourses().add(enrollment);
+                empCoursesService.addEmpCourses(empCourses, "recorded");
+            }
+        }
+    }
+
     public void updateRecordedCoursePayment(Session session, String courseId, String courseName, String userId, String trainerId, String splitType) {
         // Create ledger entry for revenue split
         BigDecimal grossAmount = BigDecimal.valueOf(session.getAmountTotal()).movePointLeft(2);
@@ -605,9 +681,6 @@ public class StripeService {
                 "stripe",
                 session.getId()
         );
-
-        // Update learner’s enrollment
-        empCoursesService.addRecordedCourseEnrollment(userId, courseId, courseName);
     }
 }
 

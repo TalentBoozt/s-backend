@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.plat_courses.dto;
 
+import com.talentboozt.s_backend.domains.com_courses.dto.InstallmentDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,4 +25,5 @@ public class RecordedCourseEnrollment {
     private String image;
     private String description;
     private List<CertificateDTO> certificates;
+    private InstallmentDTO installment;
 }
