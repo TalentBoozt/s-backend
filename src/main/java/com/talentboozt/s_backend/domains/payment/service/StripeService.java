@@ -48,6 +48,7 @@ public class StripeService {
     private final CompanyService companyService;
     private final CredentialsService credentialsService;
     private final CmpPostedJobsService cmpPostedJobsService;
+    private final RecordedCoursePaymentService recordedCoursePaymentService;
 
     @Autowired
     public StripeService(ConfigUtility configUtility, CourseCouponsService courseCouponsService,
@@ -55,7 +56,8 @@ public class StripeService {
                          PaymentMethodService paymentMethodService, InvoiceRepository invoiceRepository,
                          PrePaymentService prePaymentService, SubscriptionService subscriptionService,
                          EmpCoursesService empCoursesService, CompanyService companyService,
-                         CredentialsService credentialsService, CmpPostedJobsService cmpPostedJobsService) {
+                         CredentialsService credentialsService, CmpPostedJobsService cmpPostedJobsService,
+                         RecordedCoursePaymentService recordedCoursePaymentService) {
         this.configUtility = configUtility;
         this.courseCouponsService = courseCouponsService;
         this.billingHistoryService = billingHistoryService;
@@ -68,6 +70,7 @@ public class StripeService {
         this.companyService = companyService;
         this.credentialsService = credentialsService;
         this.cmpPostedJobsService = cmpPostedJobsService;
+        this.recordedCoursePaymentService = recordedCoursePaymentService;
     }
 
     public Customer createCustomer(String email, String paymentMethodId) throws StripeException {
@@ -134,6 +137,9 @@ public class StripeService {
     public Session createCourseCheckoutSession(Map<String, Object> data, String type) throws StripeException {
         String userId = (String) data.get("userId");
         String courseId = (String) data.get("courseId");
+        String courseName = (String) data.get("courseName");
+        String splitType = (String) data.getOrDefault("splitType", "platform-led");
+        String trainerId = (String) data.get("trainerId");
         String installmentId = (String) data.get("installmentId");
         String couponCode = (String) data.get("couponCode");
         String productId = (String) data.get("productId");
@@ -148,6 +154,9 @@ public class StripeService {
         metadata.put("purchase_type", type);
         metadata.put("user_id", userId);
         metadata.put("course_id", courseId);
+        metadata.put("split_type", splitType);
+        if (trainerId != null) metadata.put("trainer_id", trainerId);
+        if (courseName != null) metadata.put("course_name", courseName);
         if (installmentId != null) metadata.put("installment_id", installmentId);
         if (productId != null) metadata.put("product_id", productId);
         if (priceId != null) metadata.put("price_id", priceId);
@@ -577,6 +586,28 @@ public class StripeService {
             return subscription.getMetadata().get("company_id");
         }
         return null;
+    }
+
+    public void updateRecordedCoursePayment(Session session, String courseId, String courseName, String userId, String trainerId, String splitType) {
+        // Create ledger entry for revenue split
+        BigDecimal grossAmount = BigDecimal.valueOf(session.getAmountTotal()).movePointLeft(2);
+        BigDecimal netAmount = grossAmount; // stripe fees will be deducted in createPaymentRecord method in RecordedCoursePaymentService
+
+        recordedCoursePaymentService.createPaymentRecord(
+                courseId,
+                courseName,
+                userId,
+                trainerId,
+                grossAmount,
+                netAmount,
+                session.getCurrency(),
+                splitType,
+                "stripe",
+                session.getId()
+        );
+
+        // Update learner’s enrollment
+        empCoursesService.addRecordedCourseEnrollment(userId, courseId, courseName);
     }
 }
 

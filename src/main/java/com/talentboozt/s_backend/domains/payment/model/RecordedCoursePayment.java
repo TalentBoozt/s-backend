@@ -16,18 +16,25 @@ public class RecordedCoursePayment {
     private String id;
 
     private String courseId;
+    private String courseName;
+
     private String learnerId;
     private String trainerId;
 
-    private BigDecimal amount;        // total paid
-    private BigDecimal trainerAmount; // trainer share after split
-    private BigDecimal platformAmount;// platform share after split
-
+    // Payment info
+    private BigDecimal grossAmount;       // total amount learner paid (before tax)
+    private BigDecimal netAmount;         // after tax & fees
     private String currency;
 
-    private String paymentMethod;     // stripe, paypal, manual, etc.
-    private String paymentStatus;     // pending, paid, refunded, failed
-    private String transactionId;     // from Stripe/PayPal/etc.
+    // Revenue split (calculated per transaction)
+    private BigDecimal trainerAmount;
+    private BigDecimal platformAmount;
+    private String splitType;             // "trainer-led", "platform-led", "promotion"
+
+    // Transaction info
+    private String paymentMethod;         // stripe, paypal, etc.
+    private String paymentStatus;         // pending, success, refunded
+    private String transactionId;         // from Stripe/PayPal/etc.
 
     private String createdAt;
     private String updatedAt;

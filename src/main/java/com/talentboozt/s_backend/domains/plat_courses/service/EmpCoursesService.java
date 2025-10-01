@@ -10,6 +10,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -444,5 +445,18 @@ public class EmpCoursesService {
             }
         }
         throw new RuntimeException("Employee not found for id: " + employeeId);
+    }
+
+    public void addRecordedCourseEnrollment(String userId, String courseId, String courseName) {
+        EmpCoursesModel emp = empCoursesRepository.findById(userId).orElse(new EmpCoursesModel(userId));
+
+        RecordedCourseEnrollment enrollment = new RecordedCourseEnrollment();
+        enrollment.setCourseId(courseId);
+        enrollment.setCourseName(courseName);
+        enrollment.setStatus("purchased");
+        enrollment.setEnrollmentDate(Instant.now().toString());
+
+        emp.getRecordedCourses().add(enrollment);
+        empCoursesRepository.save(emp);
     }
 }
