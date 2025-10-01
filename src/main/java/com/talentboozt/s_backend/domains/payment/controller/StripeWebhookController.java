@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -23,6 +24,7 @@ public class StripeWebhookController {
 
     @Autowired private StripeAuditLogService auditLogService;
     @Autowired private StripeService stripeService;
+
 
     private final String endpointSecret;
     private final Map<String, Consumer<Event>> EVENT_HANDLERS = new HashMap<>();
@@ -57,6 +59,10 @@ public class StripeWebhookController {
 
             case "course-onetime":
                 session = stripeService.createCourseCheckoutSession(data, "course-onetime");
+                break;
+
+            case "recorded-course":
+                session = stripeService.createCourseCheckoutSession(data, "recorded-course");
                 break;
 
             // 🔮 Future: Handle coaching, mentorship, etc.
@@ -135,6 +141,8 @@ public class StripeWebhookController {
             } catch (StripeException e) {
                 auditLogService.markFailed(event.getId(), "❌ Stripe error: " + e.getMessage(), true);
             }
+        } else if ("recorded-course".equals(purchaseType)) {
+            handleRecordedCoursePurchase(event, session);
         } else {
             auditLogService.markFailed(event.getId(), "Unknown purchase_type: " + purchaseType, false);
         }
@@ -237,6 +245,37 @@ public class StripeWebhookController {
             auditLogService.markProcessed(event.getId());
         } catch (StripeException e) {
             auditLogService.markFailed(event.getId(), "Error creating subscription for company: " + companyId, true);
+        }
+    }
+
+    private void handleRecordedCoursePurchase(Event event, Session session) {
+        try {
+            Map<String, String> metadata = session.getMetadata();
+            String userId = metadata.get("user_id");
+            String courseId = metadata.get("course_id");
+            String trainerId = metadata.get("trainer_id");
+            String courseName = metadata.get("course_name");
+            String splitType = metadata.getOrDefault("split_type", "platform-led");
+
+            // Attach metadata to customer for future lookups
+            if (session.getCustomer() != null) {
+                Customer customer = Customer.retrieve(session.getCustomer());
+                CustomerUpdateParams updateParams = CustomerUpdateParams.builder()
+                        .putMetadata("user_id", userId)
+                        .putMetadata("course_id", courseId)
+                        .putMetadata("trainer_id", trainerId)
+                        .build();
+                customer.update(updateParams);
+            }
+
+            // Store payment info
+            stripeService.createBillingHistory(userId, session.getId(), session, "recorded-course");
+            stripeService.createPaymentMethod(userId, session, "recorded-course");
+            stripeService.updateRecordedCoursePayment(session, courseId, courseName, userId, trainerId, splitType);
+
+            auditLogService.markProcessed(event.getId());
+        } catch (Exception e) {
+            auditLogService.markFailed(event.getId(), "❌ Recorded course purchase failed: " + e.getMessage(), true);
         }
     }
 }
