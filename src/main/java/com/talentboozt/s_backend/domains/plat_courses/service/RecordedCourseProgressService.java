@@ -120,7 +120,8 @@ public class RecordedCourseProgressService {
                 new ReviewDTO(),
                 course.getImage(),
                 course.getDescription(),
-                new ArrayList<>()
+                new ArrayList<>(),
+                null
         );
     }
 

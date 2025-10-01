@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.com_courses.model;
 
+import com.talentboozt.s_backend.domains.com_courses.dto.InstallmentDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.RecModuleDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.RecordedCourseReviewDTO;
 import lombok.Getter;
@@ -60,4 +61,6 @@ public class RecordedCourseModel {
     private String trainerId;          // link to trainer user account
     private BigDecimal trainerShare;   // percentage, default 0.6 (60%)
     private BigDecimal platformShare;  // percentage, default 0.4 (40%)
+
+    private InstallmentDTO installment; // installment details
 }
