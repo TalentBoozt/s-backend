@@ -89,7 +89,8 @@ public class SecurityConfig {
                                 "/sitemap.xml", "/api/event/**", "/api/monitoring/**",
                                 "/api/security/**", "/api/v2/github/**", "/api/v2/facebook/**",
                                 "/api/v2/linkedin/**", "/callback/google/**", "/api/v2/cmp_job-apply/addViewer/**",
-                                "/api/v2/ambassador/**", "/api/v2/courses/**", "/api/v2/password-reset/request"
+                                "/api/v2/ambassador/**", "/api/v2/courses/**", "/api/v2/password-reset/request",
+                                "/api/v2/payments/recorded/**"
                         ).permitAll()
 //                        .requestMatchers("/actuator/**").permitAll() // for testing
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
