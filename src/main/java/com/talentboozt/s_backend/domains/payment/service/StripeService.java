@@ -154,6 +154,7 @@ public class StripeService {
         String couponCode = (String) data.get("couponCode");
         String productId = (String) data.get("productId");
         String priceId = (String) data.get("priceId");
+        String discountedPriceId = (String) data.get("discountedPriceId");
         String priceType = (String) data.get("priceType");
         String currency = (String) data.getOrDefault("currency", "usd");
         String referrer = (String) data.get("referrer");
@@ -175,6 +176,10 @@ public class StripeService {
         if (referrer != null) metadata.put("referrer", referrer);
         if (timezone != null) metadata.put("timezone", timezone);
 
+        String chosenPriceId = ("discounted".equalsIgnoreCase(priceType) && discountedPriceId != null)
+                ? discountedPriceId
+                : priceId;
+
         // ----- Detect if this is subscription or one-time -----
         boolean isSubscription = "subscription".equalsIgnoreCase(type);
 
@@ -184,7 +189,7 @@ public class StripeService {
                 .setCancelUrl(configUtility.getProperty("STRIPE_CANCEL_URL") + "?referrer=" + encodedReferrer)
                 .addLineItem(SessionCreateParams.LineItem.builder()
                         .setQuantity(1L)
-                        .setPrice(priceId)
+                        .setPrice(chosenPriceId)
                         .build())
                 .putAllMetadata(metadata)
                 .setCustomerCreation(SessionCreateParams.CustomerCreation.ALWAYS);

@@ -16,6 +16,7 @@ public class InstallmentDTO {
     private String paymentLink;
     private String productId;
     private String priceId;
+    private String discountedPriceId;
     private String priceType; // default, discounted
     private String bank;
     private String accountNb;
