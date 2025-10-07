@@ -64,8 +64,8 @@ public class RecordedCoursePaymentService {
 
         switch (splitType) {
             case "trainer-led" -> {
-                trainerPercent = new BigDecimal("0.97");
-                platformPercent = new BigDecimal("0.03");
+                trainerPercent = new BigDecimal("0.90");
+                platformPercent = new BigDecimal("0.10");
             }
             case "promotion" -> {
                 trainerPercent = new BigDecimal("0.30");
