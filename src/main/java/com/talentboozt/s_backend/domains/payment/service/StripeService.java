@@ -150,6 +150,7 @@ public class StripeService {
         String courseName = (String) data.get("courseName");
         String splitType = (String) data.getOrDefault("splitType", "platform-led");
         String trainerId = (String) data.get("trainerId");
+        String companyId = (String) data.get("companyId");
         String installmentId = (String) data.get("installmentId");
         String couponCode = (String) data.get("couponCode");
         String productId = (String) data.get("productId");
@@ -167,6 +168,7 @@ public class StripeService {
         metadata.put("course_id", courseId);
         metadata.put("split_type", splitType);
         if (trainerId != null) metadata.put("trainer_id", trainerId);
+        if (companyId != null) metadata.put("company_id", companyId);
         if (courseName != null) metadata.put("course_name", courseName);
         if (installmentId != null) metadata.put("installment_id", installmentId);
         if (productId != null) metadata.put("product_id", productId);
@@ -669,7 +671,7 @@ public class StripeService {
         }
     }
 
-    public void updateRecordedCoursePayment(Session session, String courseId, String courseName, String userId, String trainerId, String splitType) {
+    public void updateRecordedCoursePayment(Session session, String courseId, String courseName, String userId, String trainerId, String companyId, String splitType) {
         // Create ledger entry for revenue split
         BigDecimal grossAmount = BigDecimal.valueOf(session.getAmountTotal()).movePointLeft(2);
         BigDecimal netAmount = grossAmount; // stripe fees will be deducted in createPaymentRecord method in RecordedCoursePaymentService
@@ -679,6 +681,7 @@ public class StripeService {
                 courseName,
                 userId,
                 trainerId,
+                companyId,
                 grossAmount,
                 netAmount,
                 session.getCurrency(),

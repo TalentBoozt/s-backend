@@ -10,6 +10,7 @@ public class PaymentRequestDto {
     private String courseName;
     private String learnerId;
     private String trainerId;
+    private String companyId;
     private BigDecimal grossAmount;
     private BigDecimal netAmount;
     private String currency;

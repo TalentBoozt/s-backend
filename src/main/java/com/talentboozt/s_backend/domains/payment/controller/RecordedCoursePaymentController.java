@@ -31,6 +31,7 @@ public class RecordedCoursePaymentController {
                 dto.getCourseName(),
                 dto.getLearnerId(),
                 dto.getTrainerId(),
+                dto.getCompanyId(),
                 dto.getGrossAmount(),
                 dto.getNetAmount(),
                 dto.getCurrency(),

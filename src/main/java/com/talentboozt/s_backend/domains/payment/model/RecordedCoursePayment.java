@@ -20,6 +20,7 @@ public class RecordedCoursePayment {
 
     private String learnerId;
     private String trainerId;
+    private String companyId;
 
     // Payment info
     private BigDecimal grossAmount;       // total amount learner paid (before tax)

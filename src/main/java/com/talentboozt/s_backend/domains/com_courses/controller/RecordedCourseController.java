@@ -49,6 +49,16 @@ public class RecordedCourseController {
         return recordedCourseService.getPublishedAndApprovedCourses();
     }
 
+    @GetMapping("/get-by-company/{companyId}")
+    public List<RecordedCourseModel> getCoursesByCompanyId(@PathVariable String companyId) {
+        return recordedCourseService.getCoursesByCompanyId(companyId);
+    }
+
+    @GetMapping("/get-by-trainer/{trainerId}")
+    public List<RecordedCourseModel> getCoursesByTrainerId(@PathVariable String trainerId) {
+        return recordedCourseService.getCoursesByTrainerId(trainerId);
+    }
+
     @PutMapping("/approve/{id}")
     public RecordedCourseModel approveCourse(@PathVariable String id) {
         return recordedCourseService.approveCourse(id);

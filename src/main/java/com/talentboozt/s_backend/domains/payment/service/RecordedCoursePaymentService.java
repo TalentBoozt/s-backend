@@ -25,6 +25,7 @@ public class RecordedCoursePaymentService {
             String courseName,
             String learnerId,
             String trainerId,
+            String companyId,
             BigDecimal grossAmount,
             BigDecimal netAmount,
             String currency,
@@ -40,6 +41,7 @@ public class RecordedCoursePaymentService {
         payment.setCourseName(courseName);
         payment.setLearnerId(learnerId);
         payment.setTrainerId(trainerId);
+        payment.setCompanyId(companyId);
         payment.setGrossAmount(grossAmount);
         payment.setNetAmount(netAmount);
         payment.setCurrency(currency);

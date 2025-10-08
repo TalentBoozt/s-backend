@@ -11,4 +11,8 @@ public interface RecordedCourseRepository extends MongoRepository<RecordedCourse
     List<RecordedCourseModel> findByPublishedTrue();
 
     List<RecordedCourseModel> findByPublishedTrueAndApprovedTrue();
+
+    List<RecordedCourseModel> findByCompanyId(String companyId);
+
+    List<RecordedCourseModel> findByTrainerId(String trainerId);
 }

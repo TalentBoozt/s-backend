@@ -58,6 +58,7 @@ public class RecordedCourseModel {
 
     private String currency = "USD"; // pricing currency
 
+    private String companyId;          // link to company
     private String trainerId;          // link to trainer user account
     private BigDecimal trainerShare;   // percentage, default 0.6 (60%)
     private BigDecimal platformShare;  // percentage, default 0.4 (40%)
