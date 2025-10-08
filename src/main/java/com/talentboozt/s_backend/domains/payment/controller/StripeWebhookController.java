@@ -254,6 +254,7 @@ public class StripeWebhookController {
             String userId = metadata.get("user_id");
             String courseId = metadata.get("course_id");
             String trainerId = metadata.get("trainer_id");
+            String companyId = metadata.get("company_id");
             String courseName = metadata.get("course_name");
             String splitType = metadata.getOrDefault("split_type", "platform-led");
             String timezone = metadata.get("timezone");
@@ -265,6 +266,7 @@ public class StripeWebhookController {
                         .putMetadata("user_id", userId)
                         .putMetadata("course_id", courseId)
                         .putMetadata("trainer_id", trainerId)
+                        .putMetadata("company_id", companyId)
                         .putMetadata("course_name", courseName)
                         .putMetadata("split_type", splitType)
                         .putMetadata("timezone", timezone)
@@ -275,7 +277,7 @@ public class StripeWebhookController {
             // Store payment info
             stripeService.createBillingHistory(userId, session.getId(), session, "recorded-course");
             stripeService.createPaymentMethod(userId, session, "recorded-course");
-            stripeService.updateRecordedCoursePayment(session, courseId, courseName, userId, trainerId, splitType);
+            stripeService.updateRecordedCoursePayment(session, courseId, courseName, userId, trainerId, companyId, splitType);
             stripeService.updateRecordedCourseEnrollment(userId, courseId, timezone);
 
             auditLogService.markProcessed(event.getId());

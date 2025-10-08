@@ -3,7 +3,6 @@ package com.talentboozt.s_backend.domains.com_courses.service;
 import com.talentboozt.s_backend.domains.com_courses.dto.RecLectureDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.RecordedCourseReviewDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.RejectRecCourseDTO;
-import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
 import com.talentboozt.s_backend.domains.com_courses.model.RecordedCourseModel;
 import com.talentboozt.s_backend.domains.com_courses.repository.RecordedCourseRepository;
 import com.talentboozt.s_backend.shared.mail.service.EmailService;
@@ -175,6 +174,14 @@ public class RecordedCourseService {
                 .map(RecordedCourseModel::getCategory)
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    public List<RecordedCourseModel> getCoursesByCompanyId(String companyId) {
+        return recordedCourseRepository.findByCompanyId(companyId);
+    }
+
+    public List<RecordedCourseModel> getCoursesByTrainerId(String trainerId) {
+        return recordedCourseRepository.findByTrainerId(trainerId);
     }
 }
 
