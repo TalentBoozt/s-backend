@@ -38,3 +38,4 @@ build/
 
 ### Cleaned Data Frame ###
 /src/main/resources/training/events_data_cleaned.csv
+/src/main/resources/training/durationMs_predictor.pkl
