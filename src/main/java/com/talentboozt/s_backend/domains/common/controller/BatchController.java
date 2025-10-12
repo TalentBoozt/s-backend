@@ -16,7 +16,6 @@ import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
 import com.talentboozt.s_backend.shared.security.service.JwtService;
 import com.talentboozt.s_backend.domains.user.model.*;
 import com.talentboozt.s_backend.domains.user.service.*;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,6 +40,7 @@ public class BatchController {
     private final EmpFollowersService empFollowersService;
     private final EmpFollowingService empFollowingService;
     private final EmpCoursesService empCoursesService;
+    private final TrainerProfileService trainerProfileService;
     private final CredentialsService credentialsService;
     private final CmpPostedJobsService cmpPostedJobsService;
     private final CompanyService companyService;
@@ -54,7 +54,7 @@ public class BatchController {
             EmpCertificatesService empCertificatesService, EmpFollowersService empFollowersService, EmpFollowingService empFollowingService,
             EmpCoursesService empCoursesService, CredentialsService credentialsService, CmpPostedJobsService cmpPostedJobsService,
             CompanyService companyService, CmpSocialService cmpSocialService, CourseService courseService, JwtService jwtService,
-            CourseBatchService courseBatchService) {
+            CourseBatchService courseBatchService, TrainerProfileService trainerProfileService) {
         this.employeeService = employeeService;
         this.empContactService = empContactService;
         this.empEducationService = empEducationService;
@@ -65,6 +65,7 @@ public class BatchController {
         this.empFollowersService = empFollowersService;
         this.empFollowingService = empFollowingService;
         this.empCoursesService = empCoursesService;
+        this.trainerProfileService = trainerProfileService;
         this.credentialsService = credentialsService;
         this.cmpPostedJobsService = cmpPostedJobsService;
         this.companyService = companyService;
@@ -101,6 +102,7 @@ public class BatchController {
         response.put("empFollowers", empFollowersService.getEmpFollowersByEmployeeId(id));
         response.put("empFollowing", empFollowingService.getEmpFollowingByEmployeeId(id));
         response.put("empCourses", empCoursesService.getEmpCoursesByEmployeeId(id));
+        response.put("trainer", trainerProfileService.getByEmpId(id));
         return response;
     }
 
@@ -130,9 +132,12 @@ public class BatchController {
         CompletableFuture<List<EmpFollowersModel>> followersFuture = empFollowersService.getEmpFollowersByEmployeeIdAsync(id);
         CompletableFuture<List<EmpFollowingModel>> followingFuture = empFollowingService.getEmpFollowingByEmployeeIdAsync(id);
         CompletableFuture<List<EmpCoursesModel>> coursesFuture = empCoursesService.getEmpCoursesByEmployeeIdAsync(id);
+        CompletableFuture<TrainerProfile> trainerFuture = trainerProfileService.getTrainerByEmpIdAsync(id);
 
         // Wait for all async calls to complete
-        return CompletableFuture.allOf(employeeFuture, contactFuture, educationFuture, skillsFuture, experiencesFuture)
+        return CompletableFuture.allOf(employeeFuture, contactFuture, educationFuture, skillsFuture, experiencesFuture,
+                        projectsFuture, certificatesFuture, followersFuture, followingFuture,
+                        coursesFuture, trainerFuture)
                 .thenApply(v -> {
                     Map<String, Object> response = new HashMap<>();
                     response.put("employee", employeeFuture.join());
@@ -146,6 +151,7 @@ public class BatchController {
                     response.put("empFollowers", followersFuture.join());
                     response.put("empFollowing", followingFuture.join());
                     response.put("empCourses", coursesFuture.join());
+                    response.put("trainer", trainerFuture.join());
                     return response;
                 });
     }
