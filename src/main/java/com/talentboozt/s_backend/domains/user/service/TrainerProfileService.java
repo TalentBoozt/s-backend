@@ -5,7 +5,6 @@ import com.talentboozt.s_backend.domains.user.repository.TrainerProfileRepositor
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -22,30 +21,29 @@ public class TrainerProfileService {
     }
 
     public TrainerProfile updateByEmployeeId(String employeeId, TrainerProfile trainerProfile) {
-        Optional<TrainerProfile> trainerProfileOpt = Optional.ofNullable(trainerProfileRepository.findByEmployeeId(employeeId));
+        TrainerProfile existing = trainerProfileRepository.findByEmployeeId(employeeId);
 
-        if (trainerProfileOpt.isPresent()) {
-            TrainerProfile existsProfile = trainerProfileOpt.get();
-            existsProfile.setEmployeeId(trainerProfile.getEmployeeId());
-            existsProfile.setHeadline(trainerProfile.getHeadline());
-            existsProfile.setBio(trainerProfile.getBio());
-            existsProfile.setSpecialties(trainerProfile.getSpecialties());
-            existsProfile.setLanguages(trainerProfile.getLanguages());
-            existsProfile.setHourlyRate(trainerProfile.getHourlyRate());
-            existsProfile.setAvailability(trainerProfile.getAvailability());
-            existsProfile.setCertifications(trainerProfile.getCertifications());
-            existsProfile.setRating(trainerProfile.getRating());
-            existsProfile.setTotalReviews(trainerProfile.getTotalReviews());
-            existsProfile.setTrainerVideoIntro(trainerProfile.getTrainerVideoIntro());
-            existsProfile.setWebsite(trainerProfile.getWebsite());
-            existsProfile.setYoutube(trainerProfile.getYoutube());
-            existsProfile.setLinkedIn(trainerProfile.getLinkedIn());
-            existsProfile.setPublicProfile(trainerProfile.isPublicProfile());
-
-            return trainerProfileRepository.save(existsProfile);
-        } else {
-            return trainerProfileRepository.save(trainerProfile);
+        if (existing != null) {
+            existing.setHeadline(trainerProfile.getHeadline());
+            existing.setBio(trainerProfile.getBio());
+            existing.setSpecialties(trainerProfile.getSpecialties());
+            existing.setLanguages(trainerProfile.getLanguages());
+            existing.setHourlyRate(trainerProfile.getHourlyRate());
+            existing.setAvailability(trainerProfile.getAvailability());
+            existing.setCertifications(trainerProfile.getCertifications());
+            existing.setRating(trainerProfile.getRating());
+            existing.setTotalReviews(trainerProfile.getTotalReviews());
+            existing.setTrainerVideoIntro(trainerProfile.getTrainerVideoIntro());
+            existing.setWebsite(trainerProfile.getWebsite());
+            existing.setYoutube(trainerProfile.getYoutube());
+            existing.setLinkedIn(trainerProfile.getLinkedIn());
+            existing.setPublicProfile(trainerProfile.isPublicProfile());
+            return trainerProfileRepository.save(existing);
         }
+
+        // for new trainer
+        trainerProfile.setEmployeeId(employeeId);
+        return trainerProfileRepository.save(trainerProfile);
     }
 
     @Async

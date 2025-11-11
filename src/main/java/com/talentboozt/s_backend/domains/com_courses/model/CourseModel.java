@@ -17,6 +17,7 @@ public class CourseModel {
     @Id
     private String id;
     private String companyId;
+    private String trainerId;
     private String name;
     private String description;
     private String overview;
