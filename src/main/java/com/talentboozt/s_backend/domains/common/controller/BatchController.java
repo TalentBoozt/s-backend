@@ -106,6 +106,22 @@ public class BatchController {
         return response;
     }
 
+    @GetMapping("/getPublicEmployee/{id}")
+    public Map<String, Object> getPublicEmployee(@PathVariable String id) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("employee", employeeService.getEmployee(id));
+        response.put("empContact", empContactService.getEmpContactByEmployeeId(id));
+        response.put("empEducation", empEducationService.getEmpEducationByEmployeeId(id));
+        response.put("empSkills", empSkillsService.getEmpSkillsByEmployeeId(id));
+        response.put("empExperiences", empExperiencesService.getEmpExperiencesByEmployeeId(id));
+        response.put("empProjects", empProjectsService.getEmpProjectsByEmployeeId(id));
+        response.put("empCertificates", empCertificatesService.getEmpCertificatesByEmployeeId(id));
+        response.put("empFollowers", empFollowersService.getEmpFollowersByEmployeeId(id));
+        response.put("empFollowing", empFollowingService.getEmpFollowingByEmployeeId(id));
+        response.put("trainer", trainerProfileService.getByEmpId(id));
+        return response;
+    }
+
     @GetMapping("/async/getEmployee/{id}")
     public CompletableFuture<Map<String, Object>> getEmployeeAsync(HttpServletRequest request, @PathVariable String id) throws ExecutionException, InterruptedException {
         CompletableFuture<Map<String, Object>> errorResponse = CompletableFuture.completedFuture(new HashMap<>());
