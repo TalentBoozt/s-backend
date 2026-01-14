@@ -108,12 +108,12 @@ public class AuthService {
     }
 
     private String determineRedirectUri(CredentialsModel user) {
-        String defaultUri = "https://talentboozt.com";
+        String defaultUri = "https://talnova.io";
 
         if (user.getRole().equalsIgnoreCase("candidate")) {
-            return "https://talentboozt.com/candidate-profile";
+            return "https://talnova.io/candidate-profile";
         } else if (user.getRole().equalsIgnoreCase("employer")) {
-            return "https://talentboozt.com/dashboard";
+            return "https://talnova.io/dashboard";
         } else {
             return defaultUri;
         }

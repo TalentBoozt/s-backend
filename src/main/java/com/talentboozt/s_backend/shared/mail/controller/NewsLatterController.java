@@ -56,13 +56,13 @@ public class NewsLatterController {
         variables.put("meetingLink", "https://zoom.us/j/123456789");
         variables.put("year", String.valueOf(Year.now().getValue()));
 
-        emailService.sendCourseReminderEmail("dilum@talentboozt.com", subject, variables);
+        emailService.sendCourseReminderEmail("dilum@talnova.io", subject, variables);
         return ResponseEntity.ok(new ApiResponse("Email sent successfully."));
     }
 
     @GetMapping("/test2")
     public ResponseEntity<ApiResponse> test2() throws IOException {
-        emailService.sendRejectionNotification("kavindu@talentboozt.com", "Test Learner");
+        emailService.sendRejectionNotification("kavindu@talnova.io", "Test Learner");
         return ResponseEntity.ok(new ApiResponse("Email sent successfully."));
     }
 }

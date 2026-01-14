@@ -53,7 +53,7 @@ public class SsoAuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain(".talentboozt.com")
+                .domain(".talnova.io")
                 .path("/")
                 .maxAge(3600) // 1 hour
                 .build();
@@ -62,7 +62,7 @@ public class SsoAuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain(".talentboozt.com")
+                .domain(".talnova.io")
                 .path("/")
                 .maxAge(2592000) // 30 days
                 .build();
@@ -88,7 +88,7 @@ public class SsoAuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain(".talentboozt.com")
+                .domain(".talnova.io")
                 .path("/")
                 .maxAge(3600) // 1 hour
                 .build();
@@ -97,7 +97,7 @@ public class SsoAuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain(".talentboozt.com")
+                .domain(".talnova.io")
                 .path("/")
                 .maxAge(2592000) // 30 days
                 .build();
@@ -152,7 +152,7 @@ public class SsoAuthController {
                         .httpOnly(true)
                         .secure(true)
                         .sameSite("None")
-                        .domain(".talentboozt.com")
+                        .domain(".talnova.io")
                         .path("/")
                         .maxAge(3600) // 1 hour
                         .build();
@@ -161,7 +161,7 @@ public class SsoAuthController {
                         .httpOnly(true)
                         .secure(true)
                         .sameSite("None")
-                        .domain(".talentboozt.com")
+                        .domain(".talnova.io")
                         .path("/")
                         .maxAge(2592000) // 30 days
                         .build();
@@ -205,7 +205,7 @@ public class SsoAuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain(".talentboozt.com")
+                .domain(".talnova.io")
                 .path("/")
                 .maxAge(0)
                 .build();
@@ -214,7 +214,7 @@ public class SsoAuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain(".talentboozt.com")
+                .domain(".talnova.io")
                 .path("/")
                 .maxAge(0)
                 .build();

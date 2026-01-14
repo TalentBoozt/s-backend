@@ -190,7 +190,7 @@ public class EmailService {
         }
         String userName = to.split("@")[0];
         String token = validateTokenService.generateToken(userName);
-        String link = "https://talentboozt.com/private/interview-questions?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+        String link = "https://talnova.io/private/interview-questions?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
         String subject = "Your Interview Question Access Link";
 
         Map<String, String> variables = Map.of(
@@ -211,7 +211,7 @@ public class EmailService {
         }
         String userName = to.split("@")[0];
         String token = validateTokenService.generateToken(userName);
-        String link = "https://talentboozt.com/private/system-notifications?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+        String link = "https://talnova.io/private/system-notifications?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
         String subject = "Your System Notification Management Link";
 
         Map<String, String> variables = Map.of(

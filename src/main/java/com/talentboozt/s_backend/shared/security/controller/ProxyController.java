@@ -12,7 +12,7 @@ public class ProxyController {
 
     @GetMapping(value = "/static/**", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> proxyToSSR(HttpServletRequest request) {
-        String apiUrl = "https://talentboozt.com" + request.getRequestURI();
+        String apiUrl = "https://talnova.io" + request.getRequestURI();
         RestTemplate restTemplate = new RestTemplate();
         return restTemplate.getForEntity(apiUrl, String.class);
     }

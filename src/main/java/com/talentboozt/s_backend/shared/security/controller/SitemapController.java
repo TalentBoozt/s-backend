@@ -11,73 +11,73 @@ public class SitemapController {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
                 "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd\">" +
                 "<url>" +
-                "<loc> https://talentboozt.com/</loc>" +
+                "<loc> https://talnova.io/</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:33:55+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
                 "</url>" +
                 "<url>" +
-                "<loc>https://talentboozt.com/home</loc>" +
+                "<loc>https://talnova.io/home</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:35:35+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
                 "</url>" +
                 "<url>" +
-                "<loc>https://talentboozt.com/job</loc>" +
+                "<loc>https://talnova.io/job</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:37:15+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
                 "</url>" +
                 "<url>" +
-                "<loc>https://talentboozt.com/companies</loc>" +
+                "<loc>https://talnova.io/companies</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:40:20+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
                 "</url>" +
                 "<url>" +
-                "<loc>https://talentboozt.com/about</loc>" +
+                "<loc>https://talnova.io/about</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:42:38+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
                 "</url>" +
                 "<url>" +
-                "<loc>https://talentboozt.com/pricing</loc>" +
+                "<loc>https://talnova.io/pricing</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:44:42+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
                 "</url>" +
                 "<url>" +
-                "<loc>https://talentboozt.com/for-companies</loc>" +
+                "<loc>https://talnova.io/for-companies</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:47:10+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
                 "</url>" +
                 "<url>" +
-                "<loc>https://talentboozt.com/login</loc>" +
+                "<loc>https://talnova.io/login</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:49:58+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
                 "</url>" +
                 "<url>" +
-                "<loc>https://talentboozt.com/employees</loc>" +
+                "<loc>https://talnova.io/employees</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:52:59+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
                 "</url>" +
                 "<url>" +
-                "<loc>https://talentboozt.com/terms-and-conditions</loc>" +
+                "<loc>https://talnova.io/terms-and-conditions</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:54:47+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
                 "</url>" +
                 "<url>" +
-                "<loc>https://talentboozt.com/faq</loc>" +
+                "<loc>https://talnova.io/faq</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:55:25+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
                 "</url>" +
                 "<url>" +
-                "<loc>https://talentboozt.com/contact</loc>" +
+                "<loc>https://talnova.io/contact</loc>" +
                 "<changefreq>daily</changefreq>" +
                 "<lastmod>2024-12-09T04:57:09+00:00</lastmod>" +
                 "<priority>1.0</priority>" +
