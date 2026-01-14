@@ -28,7 +28,7 @@ public class SwagItem {
 //  "_id": "tshirt_v1",
 //  "title": "Talentboozt T-Shirt",
 //  "description": "Premium cotton shirt with logo",
-//  "imageUrl": "https://cdn.talentboozt.com/swag/tshirt_v1.png",
+//  "imageUrl": "https://cdn.talnova.io/swag/tshirt_v1.png",
 //  "inventory": 250,
 //  "sizeOptions": ["S", "M", "L", "XL"],
 //  "enabled": true,

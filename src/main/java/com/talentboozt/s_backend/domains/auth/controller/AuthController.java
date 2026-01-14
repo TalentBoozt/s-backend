@@ -170,7 +170,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain(".talentboozt.com")
+                .domain(".talnova.io")
                 .path("/")
                 .maxAge(3600) // 1 hour
                 .build();
@@ -179,7 +179,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain(".talentboozt.com")
+                .domain(".talnova.io")
                 .path("/")
                 .maxAge(2592000) // 30 days
                 .build();
@@ -214,7 +214,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain(".talentboozt.com")
+                .domain(".talnova.io")
                 .path("/")
                 .maxAge(3600) // 1 hour
                 .build();
@@ -223,7 +223,7 @@ public class AuthController {
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
-                .domain(".talentboozt.com")
+                .domain(".talnova.io")
                 .path("/")
                 .maxAge(2592000) // 30 days
                 .build();

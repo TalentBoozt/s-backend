@@ -29,7 +29,7 @@ public class BadgeDefinition {
 //  "title": "Top Referrer",
 //  "description": "Awarded for referring the most users in a cycle.",
 //  "level": "Gold", // Optional: Bronze, Silver, Gold etc.
-//  "svgUrl": "https://cdn.talentboozt.com/badges/top_referrer.svg",
+//  "svgUrl": "https://cdn.talnova.io/badges/top_referrer.svg",
 //  "visible": true,
 //  "createdAt": ISODate("2025-07-01T00:00:00Z"),
 //  "tags": ["referral", "top", "special"]
