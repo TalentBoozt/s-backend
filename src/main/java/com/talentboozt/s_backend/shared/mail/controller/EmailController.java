@@ -1,10 +1,7 @@
 package com.talentboozt.s_backend.shared.mail.controller;
 
 import com.talentboozt.s_backend.domains.common.dto.ApiResponse;
-import com.talentboozt.s_backend.shared.mail.dto.BankPaymentDTO;
-import com.talentboozt.s_backend.shared.mail.dto.CVRequestDTO;
-import com.talentboozt.s_backend.shared.mail.dto.ContactUsDTO;
-import com.talentboozt.s_backend.shared.mail.dto.PersonalContactDTO;
+import com.talentboozt.s_backend.shared.mail.dto.*;
 import com.talentboozt.s_backend.shared.mail.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -45,6 +42,12 @@ public class EmailController {
     @PostMapping("/cv-request")
     public ResponseEntity<ApiResponse> requestResume(@RequestBody CVRequestDTO cvRequestDTO) throws IOException {
         emailService.requestResume(cvRequestDTO);
+        return ResponseEntity.ok(new ApiResponse("Email sent successfully"));
+    }
+
+    @PostMapping("/leads")
+    public ResponseEntity<ApiResponse> leads(@RequestBody LeadsDTO leadsDTO) throws IOException {
+        emailService.leads(leadsDTO);
         return ResponseEntity.ok(new ApiResponse("Email sent successfully"));
     }
 }

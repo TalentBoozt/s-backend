@@ -23,6 +23,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Year;
+import java.util.ArrayList;
 import java.util.Map;
 
 @Service
@@ -314,6 +315,36 @@ public class EmailService {
         }
         String htmlContent = emailTemplateLoader.loadTemplate("course-reject.html", variables);
         EmailJob job = new EmailJob(to, subject, htmlContent);
+        emailQueueService.queueEmail(job);
+    }
+
+    public void leads(LeadsDTO leadsDTO) throws IOException {
+        String to = configUtil.getProperty("CONTACT_ME_EMAIL");
+        String mailSubject = "Lead - " + leadsDTO.getCtaType();
+        String text = "New Lead received from " + leadsDTO.getName() + " - " + leadsDTO.getEmail() + "\n\n" +
+                "ctaType: " + leadsDTO.getCtaType() + "\nserviceType: " + leadsDTO.getServiceType() + "\nfocusArea: " + leadsDTO.getFocusArea() + "\nmessage: " + leadsDTO.getMessage();
+
+        sendSimpleEmail(to, mailSubject, text);
+
+        switch (leadsDTO.getCtaType()) {
+            case "contact":
+                leadsAck(leadsDTO);
+                break;
+            case "booking":
+                //todo: implement booking
+                break;
+        }
+    }
+
+    private void leadsAck(LeadsDTO leadsDTO) throws IOException {
+        String contactSubject = "Contact Us - " + leadsDTO.getServiceType();
+        Map<String, String> contactVariables = Map.of(
+                "name", leadsDTO.getName(),
+                "serviceName", leadsDTO.getEmail()
+        );
+
+        String htmlContent = emailTemplateLoader.loadTemplate("leads.html", contactVariables);
+        EmailJob job = new EmailJob(leadsDTO.getEmail(), contactSubject, htmlContent);
         emailQueueService.queueEmail(job);
     }
 }
