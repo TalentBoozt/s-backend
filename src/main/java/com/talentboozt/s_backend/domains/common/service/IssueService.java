@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -15,7 +16,7 @@ public class IssueService {
     private IssueRepository issueRepository;
 
     public IssueModel addIssue(IssueModel issue) {
-        return issueRepository.save(issue);
+        return issueRepository.save(Objects.requireNonNull(issue));
     }
 
     public List<IssueModel> getAllIssues() {
@@ -23,7 +24,7 @@ public class IssueService {
     }
 
     public IssueModel updateAttachment(IssueModel issue) {
-        Optional<IssueModel> issueModel = issueRepository.findById(issue.getId());
+        Optional<IssueModel> issueModel = issueRepository.findById(Objects.requireNonNull(issue.getId()));
         if (issueModel.isPresent()) {
             IssueModel existingIssue = issueModel.get();
             existingIssue.setAttachment(issue.getAttachment());

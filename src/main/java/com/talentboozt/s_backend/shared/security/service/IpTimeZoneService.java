@@ -46,7 +46,7 @@ public class IpTimeZoneService {
                     "?fields=status,message,timezone,country,countryCode,regionName,city,isp,proxy";
 
             ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
-            Map body = response.getBody();
+            Map<String, Object> body = response.getBody();
 
             if (body != null && "success".equalsIgnoreCase((String) body.get("status"))) {
                 IpGeoData geo = new IpGeoData(

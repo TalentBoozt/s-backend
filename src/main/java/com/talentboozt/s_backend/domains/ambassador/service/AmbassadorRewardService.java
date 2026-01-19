@@ -7,6 +7,7 @@ import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorRewardR
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -19,7 +20,7 @@ public class AmbassadorRewardService {
     AmbassadorProfileRepository ambassadorProfileRepository;
 
     public AmbassadorRewardModel addAmbassadorReward(String ambassadorId, AmbassadorRewardModel ambassadorRewardModel) {
-        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository.findById(ambassadorId);
+        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository.findById(Objects.requireNonNull(ambassadorId));
         if (ambassadorProfileModel.isPresent()) {
             ambassadorRewardModel.setAmbassadorId(ambassadorId);
             return ambassadorRewardRepository.save(ambassadorRewardModel);
@@ -32,33 +33,33 @@ public class AmbassadorRewardService {
     }
 
     public AmbassadorRewardModel getAmbassadorReward(String id) {
-        Optional<AmbassadorRewardModel> ambassadorRewardModel = ambassadorRewardRepository.findById(id);
+        Optional<AmbassadorRewardModel> ambassadorRewardModel = ambassadorRewardRepository.findById(Objects.requireNonNull(id));
         return ambassadorRewardModel.orElse(null);
     }
 
     public AmbassadorRewardModel updateAmbassadorRewardStatus(String id, String status) {
-        Optional<AmbassadorRewardModel> ambassadorRewardModel = ambassadorRewardRepository.findById(id);
+        Optional<AmbassadorRewardModel> ambassadorRewardModel = ambassadorRewardRepository.findById(Objects.requireNonNull(id));
         if (ambassadorRewardModel.isPresent()) {
             ambassadorRewardModel.get().setStatus(status);
-            return ambassadorRewardRepository.save(ambassadorRewardModel.get());
+            return ambassadorRewardRepository.save(Objects.requireNonNull(ambassadorRewardModel.get()));
         }
         return null;
     }
 
     public AmbassadorRewardModel updateAmbassadorReward(String id, AmbassadorRewardModel ambassadorRewardModel) {
-        Optional<AmbassadorRewardModel> ambassadorRewardModel1 = ambassadorRewardRepository.findById(id);
+        Optional<AmbassadorRewardModel> ambassadorRewardModel1 = ambassadorRewardRepository.findById(Objects.requireNonNull(id));
         if (ambassadorRewardModel1.isPresent()) {
             ambassadorRewardModel1.get().setRewardType(ambassadorRewardModel.getRewardType());
             ambassadorRewardModel1.get().setStatus(ambassadorRewardModel.getStatus());
             ambassadorRewardModel1.get().setIssuedAt(ambassadorRewardModel.getIssuedAt());
             ambassadorRewardModel1.get().setRedeemedAt(ambassadorRewardModel.getRedeemedAt());
-            return ambassadorRewardRepository.save(ambassadorRewardModel1.get());
+            return ambassadorRewardRepository.save(Objects.requireNonNull(ambassadorRewardModel1.get()));
         }
         return null;
     }
 
     public void deleteAmbassadorReward(String id) {
-        ambassadorRewardRepository.deleteById(id);
+        ambassadorRewardRepository.deleteById(Objects.requireNonNull(id));
     }
 
     public Iterable<AmbassadorRewardModel> getAllAmbassadorRewards() {
@@ -66,10 +67,10 @@ public class AmbassadorRewardService {
     }
 
     public AmbassadorRewardModel markAsShipped(String id) {
-        Optional<AmbassadorRewardModel> ambassadorRewardModel = ambassadorRewardRepository.findById(id);
+        Optional<AmbassadorRewardModel> ambassadorRewardModel = ambassadorRewardRepository.findById(Objects.requireNonNull(id));
         if (ambassadorRewardModel.isPresent()) {
             ambassadorRewardModel.get().setStatus("SHIPPED");
-            return ambassadorRewardRepository.save(ambassadorRewardModel.get());
+            return ambassadorRewardRepository.save(Objects.requireNonNull(ambassadorRewardModel.get()));
         }
         return null;
     }

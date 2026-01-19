@@ -4,9 +4,7 @@ import com.talentboozt.s_backend.domains.common.dto.LoginEventDTO;
 import com.talentboozt.s_backend.domains.common.dto.LoginMetaDTO;
 import com.talentboozt.s_backend.domains.common.model.Login;
 import com.talentboozt.s_backend.domains.common.repository.LoginRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;

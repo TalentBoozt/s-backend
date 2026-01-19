@@ -5,10 +5,8 @@ import com.talentboozt.s_backend.domains.plat_courses.dto.CourseEnrollment;
 import com.talentboozt.s_backend.domains.audit_logs.model.CourseReminderAuditLog;
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
 import com.talentboozt.s_backend.domains.audit_logs.repository.CourseReminderAuditLogRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

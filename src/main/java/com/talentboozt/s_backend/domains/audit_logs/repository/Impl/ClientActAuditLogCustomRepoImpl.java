@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class ClientActAuditLogCustomRepoImpl implements ClientActAuditLogCustomRepo {
@@ -38,11 +39,11 @@ public class ClientActAuditLogCustomRepoImpl implements ClientActAuditLogCustomR
                 .sort(new Document("timestamp", -1))
                 .skip((int) pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .map(doc -> mongoTemplate.getConverter().read(ClientActAuditLog.class, doc))
+                .map(doc -> mongoTemplate.getConverter().read(ClientActAuditLog.class, Objects.requireNonNull(doc)))
                 .into(new ArrayList<>());
 
         long total = mongoTemplate.getCollection("client_act_audit_log").countDocuments(criteria);
 
-        return new PageImpl<>(results, pageable, total);
+        return new PageImpl<>(Objects.requireNonNull(results), pageable, total);
     }
 }

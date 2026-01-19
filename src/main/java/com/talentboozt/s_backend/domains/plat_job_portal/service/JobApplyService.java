@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -31,7 +32,7 @@ public class JobApplyService {
     }
 
     public JobApplyModel addJobApply(JobApplyModel jobApply) {
-        return jobApplyRepository.save(jobApply);
+        return jobApplyRepository.save(Objects.requireNonNull(jobApply));
     }
 
     public JobApplyModel addJobApplicant(String companyId, String jobId, JobApplicantDTO newApplicant) {
@@ -174,7 +175,7 @@ public class JobApplyService {
     }
 
     public void deleteJobApply(String id) {
-        jobApplyRepository.deleteById(id);
+        jobApplyRepository.deleteById(Objects.requireNonNull(id));
     }
 
     public void deleteSingleJobApply(String companyId, String applicantId) {

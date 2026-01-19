@@ -36,7 +36,7 @@ public class RecordedCourseService {
 
 
     public RecordedCourseModel updateCourse(String courseId, RecordedCourseModel updatedCourse) {
-        Optional<RecordedCourseModel> optionalCourse = recordedCourseRepository.findById(courseId);
+        Optional<RecordedCourseModel> optionalCourse = recordedCourseRepository.findById(Objects.requireNonNull(courseId));
         if (optionalCourse.isPresent()) {
             RecordedCourseModel existingCourse = optionalCourse.get();
 
@@ -64,8 +64,8 @@ public class RecordedCourseService {
 
 
     public boolean deleteCourse(String courseId) {
-        if (recordedCourseRepository.existsById(courseId)) {
-            recordedCourseRepository.deleteById(courseId);
+        if (recordedCourseRepository.existsById(Objects.requireNonNull(courseId))) {
+            recordedCourseRepository.deleteById(Objects.requireNonNull(courseId));
             return true;
         }
         return false;
@@ -77,7 +77,7 @@ public class RecordedCourseService {
     }
 
     public RecordedCourseModel getCourseById(String courseId) {
-        return recordedCourseRepository.findById(courseId)
+        return recordedCourseRepository.findById(Objects.requireNonNull(courseId))
                 .orElseThrow(() -> new RuntimeException("Course not found: " + courseId));
     }
 

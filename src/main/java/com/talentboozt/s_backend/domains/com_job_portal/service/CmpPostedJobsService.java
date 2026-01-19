@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -57,7 +58,7 @@ public class CmpPostedJobsService {
         cmpPostedJobsRepository.save(cmpPostedJobsModel);
 
         // Now update the CompanyModel to reference the cmpPostedJobsModel ID (if needed)
-        Optional<CompanyModel> companyModel = companyRepository.findById(cmpPostedJobs.getCompanyId());
+        Optional<CompanyModel> companyModel = companyRepository.findById(Objects.requireNonNull(cmpPostedJobs.getCompanyId()));
         if (companyModel.isPresent()) {
             CompanyModel existingCompany = companyModel.get();
             existingCompany.setPostedJobs(cmpPostedJobsModel.getId());

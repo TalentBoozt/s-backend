@@ -11,6 +11,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,7 +38,7 @@ public class StripeAuditLogService {
     }
 
     public void markProcessed(String eventId) {
-        Optional<StripeAuditLog> logOpt = auditLogRepository.findById(eventId);
+        Optional<StripeAuditLog> logOpt = auditLogRepository.findById(Objects.requireNonNull(eventId));
         logOpt.ifPresent(log -> {
             log.setStatus("processed");
             log.setUpdatedAt(new Date());
@@ -46,7 +47,7 @@ public class StripeAuditLogService {
     }
 
     public void markFailed(String eventId, String error, boolean retryable) {
-        Optional<StripeAuditLog> logOpt = auditLogRepository.findById(eventId);
+        Optional<StripeAuditLog> logOpt = auditLogRepository.findById(Objects.requireNonNull(eventId));
         logOpt.ifPresent(log -> {
             log.setStatus(retryable ? "retry_pending" : "error");
             log.setErrorMessage(error);

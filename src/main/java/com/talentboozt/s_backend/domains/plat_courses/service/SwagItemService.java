@@ -5,6 +5,7 @@ import com.talentboozt.s_backend.domains.plat_courses.repository.SwagItemReposit
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -14,11 +15,11 @@ public class SwagItemService {
     private SwagItemRepository swagItemRepository;
 
     public SwagItem addSwagItem(SwagItem swagItem) {
-        return swagItemRepository.save(swagItem);
+        return swagItemRepository.save(Objects.requireNonNull(swagItem));
     }
 
     public SwagItem updateSwagItem(SwagItem swagItem) {
-        Optional<SwagItem> swagItemOptional = swagItemRepository.findById(swagItem.getId());
+        Optional<SwagItem> swagItemOptional = swagItemRepository.findById(Objects.requireNonNull(swagItem.getId()));
 
         if (swagItemOptional.isPresent()) {
             return swagItemRepository.save(swagItem);
@@ -27,11 +28,11 @@ public class SwagItemService {
     }
 
     public void deleteSwagItem(String id) {
-        swagItemRepository.deleteById(id);
+        swagItemRepository.deleteById(Objects.requireNonNull(id));
     }
 
     public SwagItem getSwagItem(String id) {
-        Optional<SwagItem> swagItemOptional = swagItemRepository.findById(id);
+        Optional<SwagItem> swagItemOptional = swagItemRepository.findById(Objects.requireNonNull(id));
         return swagItemOptional.orElse(null);
     }
 
@@ -48,7 +49,7 @@ public class SwagItemService {
     }
 
     public SwagItem enableSwagItem(String id) {
-        Optional<SwagItem> swagItemOptional = swagItemRepository.findById(id);
+        Optional<SwagItem> swagItemOptional = swagItemRepository.findById(Objects.requireNonNull(id));
         if (swagItemOptional.isPresent()) {
             SwagItem swagItem = swagItemOptional.get();
             swagItem.setEnabled(true);
@@ -58,7 +59,7 @@ public class SwagItemService {
     }
 
     public SwagItem disableSwagItem(String id) {
-        Optional<SwagItem> swagItemOptional = swagItemRepository.findById(id);
+        Optional<SwagItem> swagItemOptional = swagItemRepository.findById(Objects.requireNonNull(id));
         if (swagItemOptional.isPresent()) {
             SwagItem swagItem = swagItemOptional.get();
             swagItem.setEnabled(false);

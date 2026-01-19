@@ -2,7 +2,6 @@ package com.talentboozt.s_backend.shared.security.service;
 
 import com.talentboozt.s_backend.domains.auth.dto.SSO.JwtUserPayload;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
-import com.talentboozt.s_backend.domains.auth.service.AuthService;
 import com.talentboozt.s_backend.domains.auth.service.UserPermissionsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SignatureException;

@@ -23,7 +23,7 @@ import java.util.*;
 @RequestMapping("/sso")
 public class SsoAuthController {
 
-    private final AuthService authService; // Your existing auth service logic (reuse)
+    private final AuthService authService; // existing auth service logic (reuse)
     private final JwtService jwtService; // Service to create and validate JWTs
     private final CredentialsRepository credentialsRepository;
     private final JwtUtil jwtUtil;
@@ -49,7 +49,7 @@ public class SsoAuthController {
         String accessToken = jwtService.generateToken(authResponse.getUser());
         String refreshToken = jwtService.generateRefreshToken(authResponse.getUser());
 
-        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", accessToken)
+        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", Objects.requireNonNull(accessToken))
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
@@ -58,7 +58,7 @@ public class SsoAuthController {
                 .maxAge(3600) // 1 hour
                 .build();
 
-        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", refreshToken)
+        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", Objects.requireNonNull(refreshToken))
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
@@ -84,7 +84,7 @@ public class SsoAuthController {
         String accessToken = jwtService.generateToken(authResponse.getUser());
         String refreshToken = jwtService.generateRefreshToken(authResponse.getUser());
 
-        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", accessToken)
+        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", Objects.requireNonNull(accessToken))
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
@@ -93,7 +93,7 @@ public class SsoAuthController {
                 .maxAge(3600) // 1 hour
                 .build();
 
-        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", refreshToken)
+        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", Objects.requireNonNull(refreshToken))
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
@@ -148,7 +148,7 @@ public class SsoAuthController {
                 String newRefreshToken = jwtService.generateRefreshToken(payload);
 
                 // Set new cookies
-                ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", newAccessToken)
+                ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", Objects.requireNonNull(newAccessToken))
                         .httpOnly(true)
                         .secure(true)
                         .sameSite("None")
@@ -157,7 +157,7 @@ public class SsoAuthController {
                         .maxAge(3600) // 1 hour
                         .build();
 
-                ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", newRefreshToken)
+                ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", Objects.requireNonNull(newRefreshToken))
                         .httpOnly(true)
                         .secure(true)
                         .sameSite("None")

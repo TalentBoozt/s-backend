@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -25,7 +25,7 @@ public class CourseCouponsService {
     }
 
     public CourseCouponsModel getCourseCoupon(String id) {
-        return couponRepo.findById(id).orElse(null);
+        return couponRepo.findById(Objects.requireNonNull(id)).orElse(null);
     }
 
     public Iterable<CourseCouponsModel> getAllCourseCoupons() {
@@ -37,7 +37,7 @@ public class CourseCouponsService {
     }
 
     public CourseCouponsModel unlockCoupon(String couponId, String userId) {
-        CourseCouponsModel coupon = couponRepo.findById(couponId).orElseThrow();
+        CourseCouponsModel coupon = couponRepo.findById(Objects.requireNonNull(couponId)).orElseThrow();
         if (coupon.getStatus() == CourseCouponsModel.Status.LOCKED) {
             coupon.setStatus(CourseCouponsModel.Status.UNLOCKED);
             coupon.setUnlockedBy(userId);
@@ -50,7 +50,7 @@ public class CourseCouponsService {
     }
 
     public CourseCouponsModel activateCoupon(String couponId, String userId) {
-        CourseCouponsModel coupon = couponRepo.findById(couponId)
+        CourseCouponsModel coupon = couponRepo.findById(Objects.requireNonNull(couponId))
                 .orElseThrow(() -> new CouponValidationException("Coupon not found", "COUPON_NOT_FOUND"));
 
         if (!userId.equals(coupon.getUserId())) {
@@ -110,7 +110,7 @@ public class CourseCouponsService {
     }
 
     public void deleteCourseCoupon(String id) {
-        couponRepo.deleteById(id);
+        couponRepo.deleteById(Objects.requireNonNull(id));
     }
 
     public CourseCouponsModel findValidCouponByCode(String code, String userId, String courseId, String installmentId) {

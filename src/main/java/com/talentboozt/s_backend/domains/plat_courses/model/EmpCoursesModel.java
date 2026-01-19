@@ -3,7 +3,6 @@ package com.talentboozt.s_backend.domains.plat_courses.model;
 import com.talentboozt.s_backend.domains.plat_courses.dto.CourseEnrollment;
 import com.talentboozt.s_backend.domains.plat_courses.dto.RecordedCourseEnrollment;
 import lombok.*;
-import org.checkerframework.checker.units.qual.N;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;

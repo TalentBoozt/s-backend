@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -65,7 +66,7 @@ public class AuthController {
             try {
                 // Decrypt stored password
                 ResponseEntity<Map<String, String>> decryptedPassword = keyService.decryptData(user.getPassword());
-                String password = decryptedPassword.getBody().get("data");
+                String password = Objects.requireNonNull(decryptedPassword.getBody()).get("data");
 
                 // Compare decrypted password with input
                 if (!password.equals(loginRequest.getPassword())) {
@@ -87,7 +88,7 @@ public class AuthController {
         if (loginRequest.getFirstname() != null && !loginRequest.getFirstname().trim().isEmpty()) {
             try {
                 ResponseEntity<Map<String, String>> encryptedPassword = keyService.encryptData(loginRequest.getPassword());
-                String password = encryptedPassword.getBody().get("data");
+                String password = Objects.requireNonNull(encryptedPassword.getBody()).get("data");
                 String referrer = loginRequest.getReferrerId();
 
                 loginRequest.setPassword(password);
@@ -166,7 +167,7 @@ public class AuthController {
         String accessToken = jwtService.generateToken(userPayload);
         String refreshToken = jwtService.generateRefreshToken(userPayload);
 
-        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", accessToken)
+        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", Objects.requireNonNull(accessToken))
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
@@ -175,7 +176,7 @@ public class AuthController {
                 .maxAge(3600) // 1 hour
                 .build();
 
-        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", refreshToken)
+        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", Objects.requireNonNull(refreshToken))
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
@@ -210,7 +211,7 @@ public class AuthController {
         String accessToken = jwtService.generateToken(userPayload);
         String refreshToken = jwtService.generateRefreshToken(userPayload);
 
-        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", accessToken)
+        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", Objects.requireNonNull(accessToken))
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")
@@ -219,7 +220,7 @@ public class AuthController {
                 .maxAge(3600) // 1 hour
                 .build();
 
-        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", refreshToken)
+        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", Objects.requireNonNull(refreshToken))
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("None")

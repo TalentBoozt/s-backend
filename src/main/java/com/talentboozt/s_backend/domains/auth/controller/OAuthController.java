@@ -6,6 +6,7 @@ import com.talentboozt.s_backend.shared.utils.ConfigUtility;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.util.LinkedMultiValueMap;
@@ -18,6 +19,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v2/oauth")
@@ -71,10 +73,10 @@ public class OAuthController {
 
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
+        headers.setBearerAuth(Objects.requireNonNull(accessToken));
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<OidcUser> response = restTemplate.exchange(userInfoEndpoint, HttpMethod.GET, entity, OidcUser.class);
+        ResponseEntity<OidcUser> response = restTemplate.exchange(userInfoEndpoint, Objects.requireNonNull(HttpMethod.GET), entity, OidcUser.class);
 
         return response.getBody();
     }
@@ -119,7 +121,7 @@ public class OAuthController {
             System.out.println("Response Status: " + response.getStatusCode());
             System.out.println("Response Body: " + response.getBody());
 
-            Map body = response.getBody();
+            Map<String, Object> body = response.getBody();
             if (body != null && body.containsKey("access_token")) {
                 return body.get("access_token").toString();
             } else {

@@ -323,7 +323,7 @@ public class MonitoringService {
         MatchOperation match = Aggregation.match(Criteria.where("totalAccesses").gt(thresholdPerMinute));
 
         Aggregation agg = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("timestamp").gt(LocalDateTime.now().minusMinutes(1))),
+                Aggregation.match(Criteria.where("timestamp").gt(Objects.requireNonNull(LocalDateTime.now().minusMinutes(1)))),
                 groupByUserAndMinute,
                 match
         );
@@ -336,7 +336,7 @@ public class MonitoringService {
         Instant recentWindow = Instant.now().minusSeconds(timeWindowMinutes * 60);
 
         Aggregation agg = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("timestamp").gt(LocalDateTime.ofInstant(recentWindow, ZoneOffset.UTC))),
+                Aggregation.match(Criteria.where("timestamp").gt(Objects.requireNonNull(LocalDateTime.ofInstant(recentWindow, ZoneOffset.UTC)))),
                 Aggregation.group("userId")
                         .addToSet("encryptedIpAddress").as("uniqueIps")
                         .count().as("requestCount"),
@@ -381,7 +381,7 @@ public class MonitoringService {
         Instant recentWindow = Instant.now().minusSeconds(timeWindowMinutes * 60);
 
         Aggregation agg = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("timestamp").gt(recentWindow)),
+                Aggregation.match(Criteria.where("timestamp").gt(Objects.requireNonNull(recentWindow))),
                 Aggregation.group("userId")
                         .addToSet("country").as("uniqueCountries")
                         .addToSet("city").as("uniqueCities"),
@@ -415,7 +415,7 @@ public class MonitoringService {
         Aggregation agg = Aggregation.newAggregation(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("userId").is("Anonymous"),
-                        Criteria.where("endpointAccessed").in(protectedEndpoints)
+                        Criteria.where("endpointAccessed").in(Objects.requireNonNull(protectedEndpoints))
                 )),
                 Aggregation.project("userId", "endpointAccessed", "timestamp")
         );

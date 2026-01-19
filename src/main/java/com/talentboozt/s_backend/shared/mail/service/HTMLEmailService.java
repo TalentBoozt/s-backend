@@ -4,6 +4,9 @@ import com.talentboozt.s_backend.shared.utils.EmailValidator;
 import jakarta.activation.DataSource;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -35,9 +38,9 @@ public class HTMLEmailService {
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(htmlContent, true);
+        helper.setTo(Objects.requireNonNull(to));
+        helper.setSubject(Objects.requireNonNull(subject));
+        helper.setText(Objects.requireNonNull(htmlContent), true);
 
         if (attachmentName != null && attachmentDataSource != null) {
             helper.addAttachment(attachmentName, attachmentDataSource);

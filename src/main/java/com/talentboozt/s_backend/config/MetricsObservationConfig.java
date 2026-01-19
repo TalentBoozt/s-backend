@@ -8,8 +8,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.observation.DefaultServerRequestObservationConvention;
 import org.springframework.http.server.observation.ServerRequestObservationContext;
 import org.springframework.http.server.observation.ServerRequestObservationConvention;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.HandlerMapping;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Configuration
@@ -18,13 +20,13 @@ public class MetricsObservationConfig {
     @Bean
     public ServerRequestObservationConvention customServerRequestObservationConvention() {
         return new DefaultServerRequestObservationConvention() {
-            @NotNull
+            @NonNull
             @Override
             public String getName() {
                 return "http.server.requests";
             }
 
-            @NotNull
+            @NonNull
             @Override
             public KeyValues getLowCardinalityKeyValues(@NotNull ServerRequestObservationContext context) {
                 HttpServletRequest request = context.getCarrier();
@@ -34,11 +36,11 @@ public class MetricsObservationConfig {
 
                 String normalizedUri = uri.replaceAll("/\\d+", "/{id}");
 
-                return KeyValues.of(
+                return Objects.requireNonNull(KeyValues.of(
                         "method", request.getMethod(),
                         "uri", normalizedUri,
                         "status", String.valueOf(context.getResponse().getStatus())
-                );
+                ));
             }
         };
     }

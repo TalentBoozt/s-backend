@@ -43,7 +43,7 @@ public class EmpCertificatesService {
 
         empCertificatesRepository.save(certificatesModel);
 
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empCertificates.getEmployeeId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empCertificates.getEmployeeId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setCertificates(certificatesModel.getId());
@@ -65,7 +65,7 @@ public class EmpCertificatesService {
     }
 
     public EmpCertificatesModel updateEmpCertificates(String id, EmpCertificatesModel empCertificates) {
-        EmpCertificatesModel certificatesModel = empCertificatesRepository.findById(id).orElse(null);
+        EmpCertificatesModel certificatesModel = empCertificatesRepository.findById(Objects.requireNonNull(id)).orElse(null);
         if (certificatesModel != null) {
             certificatesModel.setEmployeeId(empCertificates.getEmployeeId());
             certificatesModel.setCertificates(empCertificates.getCertificates());

@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -54,7 +55,7 @@ public class UserManagementServiceImpl implements UserManagementService {
         int start = Math.min((int) pageable.getOffset(), result.size());
         int end = Math.min((start + pageable.getPageSize()), result.size());
 
-        return new PagedResponseDTO<>(new PageImpl<>(result.subList(start, end), pageable, result.size()));
+        return new PagedResponseDTO<>(new PageImpl<>(Objects.requireNonNull(result.subList(start, end)), pageable, result.size()));
     }
 
     private UserManagementDTO mapToDTO(CredentialsModel model) {
@@ -106,7 +107,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public void updateStatus(String userId, StatusUpdateDTO status) {
-        CredentialsModel user = credentialsRepository.findById(userId)
+        CredentialsModel user = credentialsRepository.findById(Objects.requireNonNull(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setActive(status.isActive());
@@ -118,7 +119,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public void updateRoles(String userId, List<String> roles) {
-        CredentialsModel user = credentialsRepository.findById(userId)
+        CredentialsModel user = credentialsRepository.findById(Objects.requireNonNull(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setRoles(roles);
@@ -127,7 +128,7 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public void updatePermissions(String userId, List<String> permissions) {
-        CredentialsModel user = credentialsRepository.findById(userId)
+        CredentialsModel user = credentialsRepository.findById(Objects.requireNonNull(userId))
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setPermissions(permissions);

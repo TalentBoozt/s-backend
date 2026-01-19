@@ -3,6 +3,8 @@ package com.talentboozt.s_backend.domains.auth.controller;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
 import com.talentboozt.s_backend.shared.utils.ConfigUtility;
+
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -56,7 +58,11 @@ public class GoogleOAuthController {
         tokenRequest.put("redirect_uri", REDIRECT_URI);
         tokenRequest.put("grant_type", "authorization_code");
 
-        ResponseEntity<Map> tokenResponse = restTemplate.postForEntity(GOOGLE_TOKEN_URL, tokenRequest, Map.class);
+        ResponseEntity<Map<String, Object>> tokenResponse = restTemplate.exchange(
+            GOOGLE_TOKEN_URL, 
+            Objects.requireNonNull(HttpMethod.POST), 
+            new HttpEntity<>(tokenRequest), 
+            new ParameterizedTypeReference<Map<String, Object>>() {});
 
         if (tokenResponse.getStatusCode() != HttpStatus.OK || tokenResponse.getBody() == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Failed to exchange token");
@@ -64,14 +70,18 @@ public class GoogleOAuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid authorization code");
         }
 
-        String accessToken = (String) tokenResponse.getBody().get("access_token");
+        String accessToken = (String) Objects.requireNonNull(tokenResponse.getBody()).get("access_token");
 
         // Step 3: Fetch user info
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
+        headers.setBearerAuth(Objects.requireNonNull(accessToken));
         HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-        ResponseEntity<Map> userInfoResponse = restTemplate.exchange(GOOGLE_USERINFO_URL, HttpMethod.GET, entity, Map.class);
+        ResponseEntity<Map<String, Object>> userInfoResponse = restTemplate.exchange(
+            GOOGLE_USERINFO_URL, 
+            Objects.requireNonNull(HttpMethod.GET), 
+            new HttpEntity<>(entity), 
+            new ParameterizedTypeReference<Map<String, Object>>() {});
 
         if (userInfoResponse.getStatusCode() != HttpStatus.OK || userInfoResponse.getBody() == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Failed to fetch user info");
@@ -80,7 +90,7 @@ public class GoogleOAuthController {
         Map<String, Object> userInfo = userInfoResponse.getBody();
 
         // Step 4: Register or login the user
-        String email = (String) userInfo.get("email");
+        String email = (String) Objects.requireNonNull(userInfo).get("email");
         String firstName = (String) userInfo.get("given_name");
         String lastName = (String) userInfo.get("family_name");
 

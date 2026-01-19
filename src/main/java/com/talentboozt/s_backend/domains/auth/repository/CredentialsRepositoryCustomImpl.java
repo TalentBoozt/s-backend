@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class CredentialsRepositoryCustomImpl implements CredentialsRepositoryCustom {
@@ -43,7 +44,7 @@ public class CredentialsRepositoryCustomImpl implements CredentialsRepositoryCus
         }
 
         if (!criteriaList.isEmpty()) {
-            query.addCriteria(new Criteria().andOperator(criteriaList.toArray(new Criteria[0])));
+            query.addCriteria(new Criteria().andOperator(Objects.requireNonNull(criteriaList.toArray(new Criteria[0]))));
         }
 
         return mongoTemplate.find(query, CredentialsModel.class);

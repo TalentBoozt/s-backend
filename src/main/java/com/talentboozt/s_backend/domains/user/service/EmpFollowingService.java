@@ -41,7 +41,7 @@ public class EmpFollowingService {
 
         empFollowingRepository.save(empFollowingModel);
 
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empFollowing.getEmployeeId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empFollowing.getEmployeeId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setFollowings(empFollowingModel.getId());
@@ -60,7 +60,7 @@ public class EmpFollowingService {
     }
 
     public EmpFollowingModel updateEmpFollowings(String id, EmpFollowingModel empFollowing) {
-        EmpFollowingModel empFollowingModel = empFollowingRepository.findById(id).orElse(null);
+        EmpFollowingModel empFollowingModel = empFollowingRepository.findById(Objects.requireNonNull(id)).orElse(null);
 
         if (empFollowingModel != null) {
             empFollowingModel.setEmployeeId(empFollowing.getEmployeeId());

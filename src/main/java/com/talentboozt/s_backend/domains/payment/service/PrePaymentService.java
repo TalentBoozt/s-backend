@@ -5,6 +5,7 @@ import com.talentboozt.s_backend.domains.payment.repository.PrePaymentRepository
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -14,7 +15,7 @@ public class PrePaymentService {
     PrePaymentRepository prePaymentRepository;
 
     public PrePaymentModel save(PrePaymentModel prePaymentModel) {
-        return prePaymentRepository.save(prePaymentModel);
+        return prePaymentRepository.save(Objects.requireNonNull(prePaymentModel));
     }
 
     public void updateSubscriptionId(String companyId, String subscriptionId){

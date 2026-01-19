@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -74,7 +75,7 @@ public class SubscriptionService {
     }
 
     public void markAsInactive(String subscriptionId) {
-        SubscriptionsModel subscription = subscriptionRepository.findById(subscriptionId).orElse(null);
+        SubscriptionsModel subscription = subscriptionRepository.findById(Objects.requireNonNull(subscriptionId)).orElse(null);
         if (subscription != null) {
             subscription.set_active(false);
             subscriptionRepository.save(subscription);

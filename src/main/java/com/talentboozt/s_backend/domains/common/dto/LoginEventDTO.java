@@ -1,6 +1,5 @@
 package com.talentboozt.s_backend.domains.common.dto;
 
-import com.talentboozt.s_backend.domains.common.dto.LoginMetaDTO;
 import lombok.Getter;
 import lombok.Setter;
 

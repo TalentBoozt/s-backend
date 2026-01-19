@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -36,7 +35,7 @@ public class CourseCertificateService {
         if (certificate == null || certificate.getCourseId() == null || certificate.getEmployeeId().isEmpty()) {
             return null;
         }
-        List<EmpCoursesModel> empCoursesList = empCoursesService.getEmpCoursesByEmployeeId(certificate.getEmployeeId());
+        List<EmpCoursesModel> empCoursesList = empCoursesService.getEmpCoursesByEmployeeId(Objects.requireNonNull(certificate.getEmployeeId()));
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
             List<CourseEnrollment> courses = empCoursesModel.getCourses();
@@ -84,7 +83,7 @@ public class CourseCertificateService {
     }
 
     public CourseCertificateModel getCertificate(String id) {
-        return courseCertificateRepository.findById(id).orElse(null);
+        return courseCertificateRepository.findById(Objects.requireNonNull(id)).orElse(null);
     }
 
     public Iterable<CourseCertificateModel> getCertificatesByCourseId(String courseId) {
@@ -116,7 +115,7 @@ public class CourseCertificateService {
         if (certificate == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Certificate not found");
         }
-        CourseCertificateModel existingCertificate = courseCertificateRepository.findById(id).orElse(null);
+        CourseCertificateModel existingCertificate = courseCertificateRepository.findById(Objects.requireNonNull(id)).orElse(null);
         return updateSysCert(existingCertificate, certificate);
     }
 

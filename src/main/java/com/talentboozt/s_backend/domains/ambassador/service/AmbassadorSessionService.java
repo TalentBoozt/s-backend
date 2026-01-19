@@ -7,6 +7,7 @@ import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorSession
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -19,7 +20,7 @@ public class AmbassadorSessionService {
     AmbassadorProfileRepository ambassadorProfileRepository;
 
     public AmbassadorSessionModel addAmbassadorSession(String id, AmbassadorSessionModel ambassadorSessionModel) {
-        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository.findById(id);
+        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository.findById(Objects.requireNonNull(id));
         if (ambassadorProfileModel.isPresent()) {
             ambassadorSessionModel.setAmbassadorId(id);
             return ambassadorSessionRepository.save(ambassadorSessionModel);
@@ -32,11 +33,11 @@ public class AmbassadorSessionService {
     }
 
     public AmbassadorSessionModel getAmbassadorSession(String id) {
-        return ambassadorSessionRepository.findById(id).orElse(null);
+        return ambassadorSessionRepository.findById(Objects.requireNonNull(id)).orElse(null);
     }
 
     public AmbassadorSessionModel updateAmbassadorSession(String id, AmbassadorSessionModel ambassadorSessionModel) {
-        Optional<AmbassadorSessionModel> ambassadorSessionModel1 = ambassadorSessionRepository.findById(id);
+        Optional<AmbassadorSessionModel> ambassadorSessionModel1 = ambassadorSessionRepository.findById(Objects.requireNonNull(id));
         if (ambassadorSessionModel1.isPresent()) {
             AmbassadorSessionModel newAmbassadorSessionModel = ambassadorSessionModel1.get();
             newAmbassadorSessionModel.setType(ambassadorSessionModel.getType());
@@ -51,6 +52,6 @@ public class AmbassadorSessionService {
     }
 
     public void deleteAmbassadorSession(String id) {
-        ambassadorSessionRepository.deleteById(id);
+        ambassadorSessionRepository.deleteById(Objects.requireNonNull(id));
     }
 }

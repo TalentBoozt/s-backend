@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class CourseBatchService {
@@ -13,7 +14,7 @@ public class CourseBatchService {
     private CourseBatchRepository courseBatchRepository;
 
     public CourseBatchModel getById(String batchId) {
-        return courseBatchRepository.findById(batchId)
+        return courseBatchRepository.findById(Objects.requireNonNull(batchId))
                 .orElseThrow(() -> new RuntimeException("Batch not found with id: " + batchId));
     }
 
@@ -26,18 +27,18 @@ public class CourseBatchService {
     }
 
     public CourseBatchModel saveBatch(CourseBatchModel courseBatch) {
-        return courseBatchRepository.save(courseBatch);
+        return courseBatchRepository.save(Objects.requireNonNull(courseBatch));
     }
 
     public CourseBatchModel updateBatch(CourseBatchModel courseBatch) {
-        if (!courseBatchRepository.existsById(courseBatch.getId())) {
+        if (!courseBatchRepository.existsById(Objects.requireNonNull(courseBatch.getId()))) {
             throw new RuntimeException("Batch not found with id: " + courseBatch.getId());
         }
         return courseBatchRepository.save(courseBatch);
     }
 
     public void deleteBatch(String batchId) {
-        if (!courseBatchRepository.existsById(batchId)) {
+        if (!courseBatchRepository.existsById(Objects.requireNonNull(batchId))) {
             throw new RuntimeException("Batch not found with id: " + batchId);
         }
         courseBatchRepository.deleteById(batchId);

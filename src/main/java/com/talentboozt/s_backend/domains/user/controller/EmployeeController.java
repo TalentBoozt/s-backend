@@ -3,7 +3,6 @@ package com.talentboozt.s_backend.domains.user.controller;
 import com.talentboozt.s_backend.domains.plat_job_portal.dto.FavJobDTO;
 import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
 import com.talentboozt.s_backend.domains.user.service.EmployeeService;
-import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

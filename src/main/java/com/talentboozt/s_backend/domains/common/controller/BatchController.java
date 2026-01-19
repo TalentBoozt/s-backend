@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -101,7 +102,7 @@ public class BatchController {
         response.put("auth", credentialsService.getCredentialsByEmployeeId(id));
         response.put("empFollowers", empFollowersService.getEmpFollowersByEmployeeId(id));
         response.put("empFollowing", empFollowingService.getEmpFollowingByEmployeeId(id));
-        response.put("empCourses", empCoursesService.getEmpCoursesByEmployeeId(id));
+        response.put("empCourses", empCoursesService.getEmpCoursesByEmployeeId(Objects.requireNonNull(id)));
         response.put("trainer", trainerProfileService.getByEmpId(id));
         return response;
     }

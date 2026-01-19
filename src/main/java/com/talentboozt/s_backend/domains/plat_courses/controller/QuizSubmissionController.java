@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v2/course/quiz")
@@ -23,7 +24,7 @@ public class QuizSubmissionController {
 
     @PostMapping("/submit")
     public ResponseEntity<?> submit(@RequestBody QuizSubmissionRequest req) {
-        var course = courseRepo.findById(req.getCourseId())
+        var course = courseRepo.findById(Objects.requireNonNull(req.getCourseId()))
                 .orElseThrow(() -> new RuntimeException("Course not found"));
         var quiz = course.getQuizzes().stream()
                 .filter(q -> q.getId().equals(req.getQuizId())).findFirst()

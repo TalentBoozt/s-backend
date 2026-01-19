@@ -13,7 +13,6 @@ import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
 import com.talentboozt.s_backend.domains.com_courses.service.CourseService;
 import com.talentboozt.s_backend.domains.payment.service.StripeService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

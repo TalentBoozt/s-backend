@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -20,7 +21,7 @@ public class PublicService {
     }
 
     public ResponseEntity<ApiResponse> addNewBatchNotification(String courseId, CourseMissedNotify courseMissedNotify) {
-        Optional<CourseModel> course = courseRepository.findById(courseId);
+        Optional<CourseModel> course = courseRepository.findById(Objects.requireNonNull(courseId));
         if (course.isPresent()) {
             CourseModel courseModel = course.get();
             if (courseModel.getNotifiers() == null) {

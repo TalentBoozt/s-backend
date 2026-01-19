@@ -44,7 +44,7 @@ public class EmpContactService {
 
         empContactRepository.save(empContactModel);
 
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empContact.getEmployeeId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empContact.getEmployeeId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setContactInfo(empContactModel.getId());
@@ -109,7 +109,7 @@ public class EmpContactService {
 
         empContactRepository.save(empContactModel);
 
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empContact.getEmployeeId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empContact.getEmployeeId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setContactInfo(empContactModel.getId());
@@ -156,7 +156,7 @@ public class EmpContactService {
     }
 
     public EmpContactModel updateEmpContact(String id, EmpContactModel empContact) {
-        EmpContactModel existingEmpContact = empContactRepository.findById(id).orElse(null);
+        EmpContactModel existingEmpContact = empContactRepository.findById(Objects.requireNonNull(id)).orElse(null);
         if (existingEmpContact != null) {
             existingEmpContact.setEmployeeId(empContact.getEmployeeId());
             existingEmpContact.setContact(empContact.getContact());
@@ -171,7 +171,7 @@ public class EmpContactService {
     }
 
     public EmpContactModel updatePublicity(String id) {
-        Optional<EmpContactModel> empContactModel = empContactRepository.findById(id);
+        Optional<EmpContactModel> empContactModel = empContactRepository.findById(Objects.requireNonNull(id));
         if (empContactModel.isPresent()) {
             EmpContactModel existingEmpContact = empContactModel.get();
             existingEmpContact.setPublicity(!existingEmpContact.isPublicity());

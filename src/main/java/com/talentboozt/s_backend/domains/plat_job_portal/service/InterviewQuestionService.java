@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 @Service
 public class InterviewQuestionService {
@@ -19,7 +20,7 @@ public class InterviewQuestionService {
     }
 
     public InterviewQuestionModel saveQuestion(InterviewQuestionModel question) {
-        return repository.save(question);
+        return repository.save(Objects.requireNonNull(question));
     }
 
     public List<InterviewQuestionModel> getAllQuestions() { return repository.findAll(); }
