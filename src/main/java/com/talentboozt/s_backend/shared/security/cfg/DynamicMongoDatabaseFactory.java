@@ -42,6 +42,16 @@ public class DynamicMongoDatabaseFactory {
         String dbUri = configUtility.getProperty("DATABASE_URI");
         String dbName = configUtility.getProperty("DATABASE");
 
+        // Validate configuration - "World" is a placeholder that indicates missing config
+        if (dbUri == null || dbUri.equals("World") || dbUri.isEmpty()) {
+            throw new IllegalStateException(
+                "DATABASE_URI environment variable is not set. Please configure MongoDB connection URI.");
+        }
+        if (dbName == null || dbName.equals("World") || dbName.isEmpty()) {
+            throw new IllegalStateException(
+                "DATABASE environment variable is not set. Please configure MongoDB database name.");
+        }
+
         // Tenant-aware database selection
         TenantContext tenantContext = TenantContext.getCurrent();
         if (tenantContext != null && tenantContext.getDatabaseName() != null) {
@@ -53,35 +63,39 @@ public class DynamicMongoDatabaseFactory {
         if ("true".equalsIgnoreCase(demoModeHeader)) {
             String demoUri = configUtility.getProperty("MONGODB_DEMO_URI");
             String demoName = configUtility.getProperty("MONGODB_DEMO_NAME");
-            if (demoUri != null && !demoUri.equals("World")) {
+            if (demoUri != null && !demoUri.equals("World") && !demoUri.isEmpty()) {
                 dbUri = demoUri;
             }
-            if (demoName != null && !demoName.equals("World")) {
+            if (demoName != null && !demoName.equals("World") && !demoName.isEmpty()) {
                 dbName = demoName;
             }
         }
 
         // Create or reuse MongoClient with optimized connection pooling
         MongoClient mongoClient = mongoClients.computeIfAbsent(dbUri, uri -> {
-            ConnectionString connectionString = new ConnectionString(uri);
-            
-            MongoClientSettings settings = MongoClientSettings.builder()
-                    .applyConnectionString(connectionString)
-                    .applyToConnectionPoolSettings(builder -> {
-                        builder.maxSize(MAX_POOL_SIZE)
-                               .minSize(MIN_POOL_SIZE)
-                               .maxConnectionIdleTime(MAX_IDLE_TIME_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
-                    })
-                    .applyToSocketSettings(builder -> {
-                        builder.connectTimeout(CONNECTION_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
-                               .readTimeout(SOCKET_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
-                    })
-                    .applyToServerSettings(builder -> {
-                        builder.heartbeatFrequency(10000, java.util.concurrent.TimeUnit.MILLISECONDS);
-                    })
-                    .build();
-            
-            return MongoClients.create(settings);
+            try {
+                ConnectionString connectionString = new ConnectionString(uri);
+                
+                MongoClientSettings settings = MongoClientSettings.builder()
+                        .applyConnectionString(connectionString)
+                        .applyToConnectionPoolSettings(builder -> {
+                            builder.maxSize(MAX_POOL_SIZE)
+                                   .minSize(MIN_POOL_SIZE)
+                                   .maxConnectionIdleTime(MAX_IDLE_TIME_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
+                        })
+                        .applyToSocketSettings(builder -> {
+                            builder.connectTimeout(CONNECTION_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS)
+                                   .readTimeout(SOCKET_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
+                        })
+                        .applyToServerSettings(builder -> {
+                            builder.heartbeatFrequency(10000, java.util.concurrent.TimeUnit.MILLISECONDS);
+                        })
+                        .build();
+                
+                return MongoClients.create(settings);
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to create MongoDB client for URI: " + uri, e);
+            }
         });
         
         return new SimpleMongoClientDatabaseFactory(Objects.requireNonNull(mongoClient), Objects.requireNonNull(dbName));

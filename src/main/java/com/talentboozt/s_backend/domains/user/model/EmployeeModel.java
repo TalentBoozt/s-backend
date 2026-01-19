@@ -21,12 +21,12 @@ public class EmployeeModel {
     private String id;
     private String firstname;
     private String lastname;
-    @Indexed
+    @Indexed(name = "occupation_1")
     private String occupation;
     private String image;
     private String coverImage;
     private String dob;
-    @Indexed(unique = true)
+    @Indexed(unique = true, name = "email_1")
     private String email;
     private String resume;
     private String intro;
