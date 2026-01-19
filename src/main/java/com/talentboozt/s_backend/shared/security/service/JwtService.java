@@ -22,14 +22,20 @@ import java.util.Map;
 @Service
 public class JwtService {
 
-    @Value("${jwt-token.secret}")
+    @Value("${jwt-token.secret:World}")
     private String token;
 
     @Autowired
     private UserPermissionsService userPermissionsService;
 
-    public String generateToken(JwtUserPayload user) {
+    private void validateJwtSecret() {
+        if (token == null || token.equals("World") || token.isEmpty()) {
+            throw new IllegalStateException("JWT secret key is not configured. Please set jwt-token.secret property.");
+        }
+    }
 
+    public String generateToken(JwtUserPayload user) {
+        validateJwtSecret();
         Key key = Keys.hmacShaKeyFor(token.getBytes());
 
         Map<String, Object> claims = new HashMap<>();
@@ -48,6 +54,7 @@ public class JwtService {
     }
 
     public boolean validateToken(String token) {
+        validateJwtSecret();
         try {
             Jwts.parserBuilder().setSigningKey(Keys.hmacShaKeyFor(this.token.getBytes())).build().parseClaimsJws(token);
             return true;
@@ -74,6 +81,7 @@ public class JwtService {
 
     public String generateRefreshToken(JwtUserPayload user) {
         // Refresh token should have a much longer expiration time, e.g., 30 days.
+        validateJwtSecret();
         Key key = Keys.hmacShaKeyFor(token.getBytes());
 
         Map<String, Object> claims = new HashMap<>();
@@ -89,6 +97,7 @@ public class JwtService {
     }
 
     public CredentialsModel getUserFromToken(String encodedToken) {
+        validateJwtSecret();
         SecretKey key = Keys.hmacShaKeyFor(token.getBytes(StandardCharsets.UTF_8));
 
         Claims claims = Jwts.parserBuilder()

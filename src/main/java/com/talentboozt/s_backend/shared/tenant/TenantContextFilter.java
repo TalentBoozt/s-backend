@@ -26,6 +26,12 @@ public class TenantContextFilter extends OncePerRequestFilter {
     }
     
     @Override
+    protected void initFilterBean() throws ServletException {
+        // Ensure filter is properly initialized
+        super.initFilterBean();
+    }
+    
+    @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, 
                                    @NonNull HttpServletResponse response, 
                                    @NonNull FilterChain filterChain) 

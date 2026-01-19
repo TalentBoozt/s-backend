@@ -21,17 +21,23 @@ public class MongoDatabaseHealthIndicator implements HealthIndicator {
     public Health health() {
         try {
             // Perform a simple database operation to check connectivity
-            mongoTemplate.getDb().runCommand(org.bson.Document.parse("{ ping: 1 }"));
+            @SuppressWarnings("null")
+            org.bson.Document result = mongoTemplate.executeCommand(org.bson.Document.parse("{ ping: 1 }"));
+            
+            // Get database name safely
+            String databaseName = mongoTemplate.getDb().getName();
             
             return Health.up()
                     .withDetail("database", "MongoDB")
                     .withDetail("status", "Connected")
-                    .withDetail("databaseName", mongoTemplate.getDb().getName())
+                    .withDetail("databaseName", databaseName != null ? databaseName : "unknown")
+                    .withDetail("ping", result != null ? "ok" : "unknown")
                     .build();
         } catch (Exception e) {
             return Health.down()
                     .withDetail("database", "MongoDB")
-                    .withDetail("error", e.getMessage())
+                    .withDetail("error", e.getMessage() != null ? e.getMessage() : "Unknown error")
+                    .withDetail("exception", e.getClass().getSimpleName())
                     .build();
         }
     }
