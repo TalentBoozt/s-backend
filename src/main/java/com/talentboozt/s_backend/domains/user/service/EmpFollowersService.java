@@ -43,7 +43,7 @@ public class EmpFollowersService {
 
         empFollowersRepository.save(empFollowersModel);
 
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empFollowers.getEmployeeId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empFollowers.getEmployeeId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setFollowers(empFollowersModel.getId());
@@ -62,7 +62,7 @@ public class EmpFollowersService {
     }
 
     public EmpFollowersModel updateEmpFollowers(String id, EmpFollowersModel empFollowers) {
-        EmpFollowersModel empFollowersModel = empFollowersRepository.findById(id).orElse(null);
+        EmpFollowersModel empFollowersModel = empFollowersRepository.findById(Objects.requireNonNull(id)).orElse(null);
 
         if (empFollowersModel != null) {
             List<EmpFollowersDTO> followers = empFollowersModel.getFollowers();

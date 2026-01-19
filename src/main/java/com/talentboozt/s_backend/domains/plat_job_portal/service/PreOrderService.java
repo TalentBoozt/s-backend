@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -21,13 +22,13 @@ public class PreOrderService {
     private EmailService emailService;
 
     public PreOrderModel addPreOrder(PreOrderModel preOrderModel) throws IOException {
-        this.preOrderRepository.save(preOrderModel);
+        this.preOrderRepository.save(Objects.requireNonNull(preOrderModel));
         emailService.sendPreOrderSuccess(preOrderModel.getEmail());
         return preOrderModel;
     }
 
     public PreOrderModel updatePreOrder(PreOrderModel preOrderModel, String id) {
-        Optional<PreOrderModel> preOrder = this.preOrderRepository.findById(id);
+        Optional<PreOrderModel> preOrder = this.preOrderRepository.findById(Objects.requireNonNull(id));
         if (preOrder.isPresent()) {
             PreOrderModel existingPreOrder = preOrder.get();
             existingPreOrder.setName(preOrderModel.getName());
@@ -40,9 +41,9 @@ public class PreOrderService {
     }
 
     public ResponseEntity<String> deletePreOrder(String id) {
-        Optional<PreOrderModel> preOrder = this.preOrderRepository.findById(id);
+        Optional<PreOrderModel> preOrder = this.preOrderRepository.findById(Objects.requireNonNull(id));
         if (preOrder.isPresent()) {
-            this.preOrderRepository.delete(preOrder.get());
+            this.preOrderRepository.delete(Objects.requireNonNull(preOrder.get()));
             return ResponseEntity.ok("PreOrder deleted successfully.");
         }
         return ResponseEntity.notFound().build();
@@ -53,7 +54,7 @@ public class PreOrderService {
     }
 
     public PreOrderModel getPreOrder(String id) {
-        Optional<PreOrderModel> preOrder = this.preOrderRepository.findById(id);
+        Optional<PreOrderModel> preOrder = this.preOrderRepository.findById(Objects.requireNonNull(id));
         return preOrder.orElse(null);
     }
 }

@@ -38,7 +38,7 @@ public class EmpCoursesService {
     }
 
     public EmpCoursesModel addEmpCourses(EmpCoursesModel empCourses, String type) {
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(empCourses.getEmployeeId());
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(empCourses.getEmployeeId()));
         EmpCoursesModel empCoursesModel;
         if (!empCoursesList.isEmpty()) {
             empCoursesModel = empCoursesList.get(0);
@@ -67,7 +67,7 @@ public class EmpCoursesService {
     }
 
     public EmpCoursesModel updateEmpCourses(String id, EmpCoursesModel empCourses) {
-        EmpCoursesModel empCoursesModel = empCoursesRepository.findById(id).orElse(null);
+        EmpCoursesModel empCoursesModel = empCoursesRepository.findById(Objects.requireNonNull(id)).orElse(null);
         if (empCoursesModel != null) {
             empCoursesModel.setEmployeeId(empCourses.getEmployeeId());
             empCoursesModel.setCourses(empCourses.getCourses());
@@ -80,7 +80,7 @@ public class EmpCoursesService {
     public void deleteEmpCourses(String id) { empCoursesRepository.deleteById(id); }
 
     public EmpCoursesModel deleteEmpCourse(String employeeId, String courseId, String type) {
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
             List<CourseEnrollment> courses = empCoursesModel.getCourses();
@@ -104,7 +104,7 @@ public class EmpCoursesService {
     }
 
     public EmpCoursesModel editEmpCourse(String employeeId, CourseModel course) {
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
             List<CourseEnrollment> courses = empCoursesModel.getCourses();
@@ -129,7 +129,7 @@ public class EmpCoursesService {
     }
 
     public EmpCoursesModel updateModulePayment(String employeeId, String courseId, String moduleId, String status) {
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
             List<CourseEnrollment> courses = empCoursesModel.getCourses();
@@ -150,7 +150,7 @@ public class EmpCoursesService {
     }
 
     public EmpCoursesModel updateInstallmentPayment(String employeeId, String courseId, String installmentId, String status){
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
             List<CourseEnrollment> courses = empCoursesModel.getCourses();
@@ -178,7 +178,7 @@ public class EmpCoursesService {
     }
 
     public EmpCoursesModel updateFullCoursePayment(String userId, String courseId, String installmentId, String paid) {
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(userId);
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(userId));
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
             List<CourseEnrollment> courses = empCoursesModel.getCourses();
@@ -204,7 +204,7 @@ public class EmpCoursesService {
     }
 
     public EmpCoursesModel updateEnrollmentStatus(String employeeId, String courseId, String status) {
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCoursesList.get(0);
             List<CourseEnrollment> courses = empCoursesModel.getCourses();
@@ -331,7 +331,7 @@ public class EmpCoursesService {
     }
 
     public RecordedCourseEnrollment getRecordedCourseByEmployeeIdAndCourseId(String employeeId, String courseId) {
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         if (!empCoursesList.isEmpty()) {
             List<RecordedCourseEnrollment> recordedCourses = empCoursesList.get(0).getRecordedCourses();
             if (recordedCourses != null) {
@@ -346,7 +346,7 @@ public class EmpCoursesService {
     }
 
     public EmpCoursesModel updateRecordedCourseProgress(String employeeId, String courseId, CourseUpdateDTO courseUpdate) {
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel model = empCoursesList.get(0);
             List<RecordedCourseEnrollment> recordedCourses = model.getRecordedCourses();
@@ -365,7 +365,7 @@ public class EmpCoursesService {
     }
 
     public EmpCoursesModel updateRecordedCourseReview(String employeeId, String courseId, ReviewDTO review) {
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel model = empCoursesList.get(0);
             List<RecordedCourseEnrollment> recordedCourses = model.getRecordedCourses();
@@ -382,7 +382,7 @@ public class EmpCoursesService {
     }
 
     public EmpCoursesModel completeRecordedCourse(String employeeId, String courseId) {
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel model = empCoursesList.get(0);
             List<RecordedCourseEnrollment> recordedCourses = model.getRecordedCourses();
@@ -409,7 +409,7 @@ public class EmpCoursesService {
     }
 
     public EmpCoursesModel updateRecordedCoursePayment(String employeeId, String courseId, String status) {
-        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCoursesList = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         if (!empCoursesList.isEmpty()) {
             EmpCoursesModel model = empCoursesList.get(0);
             List<RecordedCourseEnrollment> recordedCourses = model.getRecordedCourses();
@@ -427,12 +427,12 @@ public class EmpCoursesService {
 
     @Async
     public CompletableFuture<List<EmpCoursesModel>> getEmpCoursesByEmployeeIdAsync(String employeeId) {
-        List<EmpCoursesModel> empCourses = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCourses = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         return CompletableFuture.completedFuture(empCourses);
     }
 
     public EmpCoursesModel getEmpCourseByEmployeeIdAndCourseId(String employeeId, String courseId) {
-        List<EmpCoursesModel> empCourses = getEmpCoursesByEmployeeId(employeeId);
+        List<EmpCoursesModel> empCourses = getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
         if (!empCourses.isEmpty()) {
             EmpCoursesModel empCoursesModel = empCourses.get(0);
             List<CourseEnrollment> courses = empCoursesModel.getCourses();
@@ -448,7 +448,7 @@ public class EmpCoursesService {
     }
 
     public void addRecordedCourseEnrollment(String userId, String courseId, String courseName) {
-        EmpCoursesModel emp = empCoursesRepository.findById(userId).orElse(new EmpCoursesModel(userId));
+        EmpCoursesModel emp = empCoursesRepository.findById(Objects.requireNonNull(userId)).orElse(new EmpCoursesModel(userId));
 
         RecordedCourseEnrollment enrollment = new RecordedCourseEnrollment();
         enrollment.setCourseId(courseId);

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -14,7 +15,7 @@ public class FeatureService {
     private FeatureRepository featureRepository;
 
     public FeatureModel addFeature(FeatureModel feature) {
-        return featureRepository.save(feature);
+        return featureRepository.save(Objects.requireNonNull(feature));
     }
 
     public List<FeatureModel> getAllFeatures() {
@@ -22,7 +23,7 @@ public class FeatureService {
     }
 
     public FeatureModel updateAttachment(FeatureModel feature) {
-        Optional<FeatureModel> featureModel = featureRepository.findById(feature.getId());
+        Optional<FeatureModel> featureModel = featureRepository.findById(Objects.requireNonNull(feature.getId()));
         if (featureModel.isPresent()) {
             FeatureModel existingFeature = featureModel.get();
             existingFeature.setAttachment(feature.getAttachment());

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -15,7 +16,7 @@ public class ReferralService {
     ReferralRepository referralRepository;
 
     public ReferralModel addReferral(ReferralModel referralModel) {
-        return referralRepository.save(referralModel);
+        return referralRepository.save(Objects.requireNonNull(referralModel));
     }
 
     public List<ReferralModel> getReferral(String referralCode) {
@@ -27,7 +28,7 @@ public class ReferralService {
     }
 
     public ReferralModel updateReferral(String id, ReferralModel referralModel) {
-        Optional<ReferralModel> existingReferral = referralRepository.findById(id);
+        Optional<ReferralModel> existingReferral = referralRepository.findById(Objects.requireNonNull(id));
         if (existingReferral.isPresent()) {
             ReferralModel referral = existingReferral.get();
             referral.setReferralCode(referralModel.getReferralCode());

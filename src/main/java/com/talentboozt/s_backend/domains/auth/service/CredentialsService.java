@@ -7,7 +7,6 @@ import com.talentboozt.s_backend.domains.auth.model.RoleModel;
 import com.talentboozt.s_backend.domains.com_job_portal.repository.CompanyRepository;
 import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
 import com.talentboozt.s_backend.domains.user.repository.EmployeeRepository;
-import com.talentboozt.s_backend.domains.auth.service.RoleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -180,7 +179,7 @@ public class CredentialsService {
     }
 
     public CredentialsModel updateCredentials(String employeeId, CredentialsModel credentials) {
-        Optional<CredentialsModel> optionalCredentials = credentialsRepository.findById(credentials.getId());
+        Optional<CredentialsModel> optionalCredentials = credentialsRepository.findById(Objects.requireNonNull(credentials.getId()));
         if (optionalCredentials.isPresent()) {
             CredentialsModel credentials1 = optionalCredentials.get();
             credentials1.setEmployeeId(employeeId);
@@ -195,7 +194,7 @@ public class CredentialsService {
     }
 
     public CredentialsModel updatePassword(String credentialsId, String password) {
-        Optional<CredentialsModel> optionalCredentials = credentialsRepository.findById(credentialsId);
+        Optional<CredentialsModel> optionalCredentials = credentialsRepository.findById(Objects.requireNonNull(credentialsId));
         if (optionalCredentials.isPresent()) {
             CredentialsModel credentials1 = optionalCredentials.get();
             credentials1.setPassword(password);

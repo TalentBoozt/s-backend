@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.config;
 import com.talentboozt.s_backend.shared.utils.ConfigUtility;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -13,7 +14,7 @@ public class CorsConfig implements WebMvcConfigurer {
     private ConfigUtility configUtility;
 
     @Override
-    public void addCorsMappings(CorsRegistry registry) {
+    public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(configUtility.getProperty("ALLOWED_ORIGIN_1"),
                         configUtility.getProperty("ALLOWED_ORIGIN_2"),

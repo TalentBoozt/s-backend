@@ -56,11 +56,11 @@ public class CourseService {
     }
 
     public CourseModel getCourseById(String id) {
-        return courseRepository.findById(id).orElse(null);
+        return courseRepository.findById(Objects.requireNonNull(id)).orElse(null);
     }
 
     public CourseResponseDTO createCourse(CourseModel course) {
-        CourseModel courseModel = courseRepository.save(course);
+        CourseModel courseModel = courseRepository.save(Objects.requireNonNull(course));
         CourseBatchModel latestBatch = setBatchDetails(new CourseBatchModel(), courseModel);
         latestBatch.setBatchName(generateBatchName(course.getName()));
 
@@ -69,7 +69,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO updateCourse(String id, CourseModel course, String batchId) {
-        if (!courseRepository.existsById(id)) {
+        if (!courseRepository.existsById(Objects.requireNonNull(id))) {
             throw new RuntimeException("Course not found with id: " + id);
         }
         course.setId(id);
@@ -90,7 +90,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO updateCourseWithNewBatch(String courseId, CourseModel course) throws IOException {
-        if (!courseRepository.existsById(courseId)) {
+        if (!courseRepository.existsById(Objects.requireNonNull(courseId))) {
             throw new RuntimeException("Course not found with id: " + courseId);
         }
         course.setId(courseId);
@@ -124,18 +124,18 @@ public class CourseService {
                 courseBatchService.deleteBatch(batchId);
             }
         }
-        Optional<CourseModel> course = courseRepository.findById(id);
+        Optional<CourseModel> course = courseRepository.findById(Objects.requireNonNull(id));
         if (course.isPresent()) {
             for (InstallmentDTO i: course.get().getInstallment()) {
                 if (i.getPriceId() != null) stripeService.archivePrice(i.getPriceId());
             }
         }
         empCoursesAsyncUpdater.deleteCourseFromEmpCourses(id);
-        courseRepository.deleteById(id);
+        courseRepository.deleteById(Objects.requireNonNull(id));
     }
 
     public CourseResponseDTO updateModule(String courseId, ModuleDTO module, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         CourseModel updatedCourse = null;
         CourseBatchModel updatedBatch = null;
         if (batch != null && course != null) {
@@ -184,7 +184,7 @@ public class CourseService {
     }
 
     public void deleteModule(String courseId, String moduleId, String batchId) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         if (batchId != null && !batchId.isEmpty()) {
             CourseBatchModel batch = courseBatchService.getById(batchId);
             if (batch != null && batch.getCourseId().equals(courseId)) {
@@ -212,7 +212,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO addModule(String courseId, ModuleDTO module, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         CourseModel newCourse;
         CourseBatchModel newBatch;
         if (batch != null && course != null) {
@@ -249,7 +249,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO updateInstallment(String courseId, InstallmentDTO installment, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         CourseModel updatedCourse = null;
         CourseBatchModel updatedBatch = null;
         if (course != null && batch != null) {
@@ -298,7 +298,7 @@ public class CourseService {
     }
 
     public void deleteInstallment(String courseId, String installmentId, String batchId) throws StripeException {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         if (batchId != null && !batchId.isEmpty() && course != null) {
             CourseBatchModel batch = courseBatchService.getById(batchId);
             if (batch != null && batch.getCourseId().equals(courseId)) {
@@ -342,7 +342,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO addInstallment(String courseId, InstallmentDTO installment, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         CourseModel newCourse;
         CourseBatchModel newBatch;
         if (batch != null && course != null) {
@@ -379,7 +379,7 @@ public class CourseService {
             List<String> employeeIds = enrollments.stream()
                     .map(EmpCoursesModel::getEmployeeId)
                     .collect(Collectors.toList());
-            return employeeRepository.findAllById(employeeIds);
+            return employeeRepository.findAllById(Objects.requireNonNull(employeeIds));
         }
 
         List<EmpCoursesModel> enrollments = empCoursesRepository.findByCoursesCourseIdAndCoursesBatchId(courseId, batchId);
@@ -388,7 +388,7 @@ public class CourseService {
                 .map(EmpCoursesModel::getEmployeeId)
                 .collect(Collectors.toList());
 
-        return employeeRepository.findAllById(employeeIds);
+        return employeeRepository.findAllById(Objects.requireNonNull(employeeIds));
     }
 
     public List<EmpCoursesModel> getEnrolls(String courseId, String batchId) {
@@ -497,7 +497,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO updatePublicity(String courseId, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         if (batch.getId() != null && !batch.getId().isEmpty()) {
             if (course != null && batch.getCourseId().equals(courseId)) {
                 course.setPublicity(!course.isPublicity());
@@ -518,7 +518,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO addMaterial(String courseId, MaterialsDTO materials, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         CourseModel newCourse;
         CourseBatchModel newBatch;
         if (batch != null && course != null) {
@@ -556,7 +556,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO updateMaterial(String courseId, String id, MaterialsDTO materials, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         CourseModel updatedCourse = null;
         CourseBatchModel updatedBatch = null;
         if (batch != null && batch.getMaterials() != null && course != null) {
@@ -594,7 +594,7 @@ public class CourseService {
     }
 
     public void deleteMaterial(String courseId, String id, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         if (course != null) {
             List<MaterialsDTO> materialsList = course.getMaterials();
             materialsList.removeIf(materialsDTO -> materialsDTO.getId().equals(id));
@@ -614,7 +614,7 @@ public class CourseService {
         if (batch != null && batch.getMaterials() != null) {
             return batch.getMaterials();
         }
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         if (course != null) {
             return course.getMaterials();
         }
@@ -629,7 +629,7 @@ public class CourseService {
                 }
             }
         }
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         if (course != null) {
             List<MaterialsDTO> materialsList = course.getMaterials();
             for (MaterialsDTO materialsDTO : materialsList) {
@@ -642,7 +642,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO incrementMaterialView(String courseId, String id, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         CourseBatchModel updatedBatch;
         CourseModel updatedCourse;
         if (batch != null && batch.getMaterials() != null && course != null) {
@@ -680,7 +680,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO updateMaterialVisibility(String courseId, String id, String status, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         CourseBatchModel updatedBatch;
         CourseModel updatedCourse;
         if (batch != null && batch.getMaterials() != null && course != null) {
@@ -733,7 +733,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO updateCourseStatus(String courseId, String status, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         if (batch.getId() != null && !batch.getId().isEmpty()) {
             if (course != null && batch.getCourseId().equals(courseId)) {
                 course.setCourseStatus(status);
@@ -754,7 +754,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO addQuiz(String courseId, QuizDTO quiz, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         CourseModel newCourse;
         CourseBatchModel newBatch;
         if (batch != null && course != null) {
@@ -789,7 +789,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO updateQuiz(String courseId, String quizId, QuizDTO quiz, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         CourseModel updatedCourse = null;
         CourseBatchModel updatedBatch = null;
         if (batch != null && batch.getQuizzes() != null && course != null) {
@@ -821,7 +821,7 @@ public class CourseService {
     }
 
     public void deleteQuiz(String courseId, String quizId, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         if (course != null) {
             List<QuizDTO> quizzes = course.getQuizzes();
             quizzes.removeIf(quizDTO -> quizDTO.getId().equals(quizId));
@@ -840,7 +840,7 @@ public class CourseService {
         if (batch != null && batch.getMaterials() != null) {
             return batch.getQuizzes();
         }
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         return (course != null) ? course.getQuizzes() : null;
     }
 
@@ -848,7 +848,7 @@ public class CourseService {
         if (batch != null && batch.getQuizzes() != null) {
             return batch.getQuizzes().stream().filter(q -> q.getId().equals(quizId)).findFirst().orElse(null);
         }
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         if (course != null && course.getQuizzes() != null) {
             return course.getQuizzes().stream().filter(q -> q.getId().equals(quizId)).findFirst().orElse(null);
         }
@@ -856,7 +856,7 @@ public class CourseService {
     }
 
     public CourseResponseDTO updateQuizVisibility(String courseId, String quizId, String status, CourseBatchModel batch) {
-        CourseModel course = courseRepository.findById(courseId).orElse(null);
+        CourseModel course = courseRepository.findById(Objects.requireNonNull(courseId)).orElse(null);
         CourseBatchModel updatedBatch;
         CourseModel updatedCourse;
         if (batch != null && batch.getQuizzes() != null && course != null) {

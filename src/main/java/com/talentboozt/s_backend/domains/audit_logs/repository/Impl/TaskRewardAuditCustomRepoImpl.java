@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class TaskRewardAuditCustomRepoImpl implements TaskRewardAuditCustomRepo {
@@ -31,7 +32,7 @@ public class TaskRewardAuditCustomRepoImpl implements TaskRewardAuditCustomRepo 
         }
 
         long count = mongoTemplate.count(query, TaskRewardAuditModel.class);
-        query.with(pageable);
+        query.with(Objects.requireNonNull(pageable));
 
         List<TaskRewardAuditModel> logs = mongoTemplate.find(query, TaskRewardAuditModel.class);
         return new PageImpl<>(logs, pageable, count);

@@ -4,7 +4,6 @@ import com.talentboozt.s_backend.domains.com_courses.dto.InstallmentDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.MaterialsDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.ModuleDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.QuizDTO;
-import com.talentboozt.s_backend.domains.plat_courses.dto.CertificateDTO;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;

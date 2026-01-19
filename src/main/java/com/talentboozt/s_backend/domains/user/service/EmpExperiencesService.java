@@ -43,7 +43,7 @@ public class EmpExperiencesService {
 
         empExperiencesRepository.save(empExperiencesModel);
 
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empExperiences.getEmployeeId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empExperiences.getEmployeeId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setExperiences(empExperiencesModel.getId());
@@ -61,7 +61,7 @@ public class EmpExperiencesService {
     }
 
     public EmpExperiencesModel updateEmpExperiences(String id, EmpExperiencesModel empExperiences) {
-        EmpExperiencesModel existingEmpExperiences = empExperiencesRepository.findById(id).orElse(null);
+        EmpExperiencesModel existingEmpExperiences = empExperiencesRepository.findById(Objects.requireNonNull(id)).orElse(null);
         if (existingEmpExperiences != null) {
             existingEmpExperiences.setEmployeeId(empExperiences.getEmployeeId());
             existingEmpExperiences.setExperiences(empExperiences.getExperiences());

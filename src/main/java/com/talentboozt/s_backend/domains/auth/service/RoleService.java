@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -35,7 +36,7 @@ public class RoleService {
     }
 
     public RoleModel updateRole(String id, RoleModel updatedRole) {
-        RoleModel existing = roleRepository.findById(id)
+        RoleModel existing = roleRepository.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new RuntimeException("Role not found"));
 
         existing.setName(updatedRole.getName());
@@ -44,19 +45,19 @@ public class RoleService {
     }
 
     public void deleteRole(String id) {
-        if (!roleRepository.existsById(id)) {
+        if (!roleRepository.existsById(Objects.requireNonNull(id))) {
             throw new RuntimeException("Role not found");
         }
         roleRepository.deleteById(id);
     }
 
     public List<String> getPermissionsByRole(String id) {
-        Optional<RoleModel> role = roleRepository.findById(id);
+        Optional<RoleModel> role = roleRepository.findById(Objects.requireNonNull(id));
         return role.map(RoleModel::getPermissions).orElse(null);
     }
 
     public void updateRolePermissions(String id, List<String> permissions) {
-        Optional<RoleModel> role = roleRepository.findById(id);
+        Optional<RoleModel> role = roleRepository.findById(Objects.requireNonNull(id));
         if (role.isPresent()) {
             RoleModel roleModel = role.get();
             roleModel.setPermissions(permissions);

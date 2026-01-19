@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class BillingAddressService {
@@ -21,8 +22,8 @@ public class BillingAddressService {
             addresses.get(0).setState(address.getState());
             addresses.get(0).setPostal_code(address.getPostal_code());
             addresses.get(0).setCountry(address.getCountry());
-            return billingAddressRepository.save(addresses.get(0));
+            return billingAddressRepository.save(Objects.requireNonNull(addresses.get(0)));
         }
-        return billingAddressRepository.save(address);
+        return billingAddressRepository.save(Objects.requireNonNull(address));
     }
 }

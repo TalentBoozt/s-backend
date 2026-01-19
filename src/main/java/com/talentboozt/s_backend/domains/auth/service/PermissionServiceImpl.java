@@ -10,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +24,7 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     public PermissionModel createPermission(PermissionRequest request) {
-        if (repository.existsById(request.getId())) {
+        if (repository.existsById(Objects.requireNonNull(request.getId()))) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Permission already exists");
         }
         PermissionModel permission = PermissionModel.builder()
@@ -34,12 +35,12 @@ public class PermissionServiceImpl implements PermissionService {
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
-        return repository.save(permission);
+        return repository.save(Objects.requireNonNull(permission));
     }
 
     @Override
     public PermissionModel updatePermission(String id, PermissionRequest request) {
-        PermissionModel existing = repository.findById(id)
+        PermissionModel existing = repository.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Permission not found"));
         existing.setName(request.getName());
         existing.setDescription(request.getDescription());
@@ -53,6 +54,6 @@ public class PermissionServiceImpl implements PermissionService {
         if (!repository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Permission not found");
         }
-        repository.deleteById(id);
+        repository.deleteById(Objects.requireNonNull(id));
     }
 }

@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.auth.controller;
 import com.talentboozt.s_backend.domains.auth.dto.LinkedInAuthRequest;
 import com.talentboozt.s_backend.domains.auth.dto.LinkedInTokenResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -11,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v2/linkedin")
@@ -51,7 +53,7 @@ public class LinkedinAuthController {
         HttpEntity<MultiValueMap<String, String>> httpRequest = new HttpEntity<>(body, headers);
 
         try {
-            ResponseEntity<LinkedInTokenResponse> response = restTemplate.postForEntity(tokenUrl, httpRequest, LinkedInTokenResponse.class);
+            ResponseEntity<LinkedInTokenResponse> response = restTemplate.postForEntity(Objects.requireNonNull(tokenUrl), httpRequest, LinkedInTokenResponse.class);
             return ResponseEntity.ok(response.getBody());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to exchange authorization code: " + e.getMessage());
@@ -61,7 +63,7 @@ public class LinkedinAuthController {
     @GetMapping("/profile")
     public ResponseEntity<?> getLinkedInProfile(@RequestParam("accessToken") String accessToken) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
+        headers.setBearerAuth(Objects.requireNonNull(accessToken));
 
 //        try {
 //
@@ -71,7 +73,12 @@ public class LinkedinAuthController {
 
         // Fetch basic profile
         HttpEntity<Void> httpRequest = new HttpEntity<>(headers);
-        ResponseEntity<Map> profileResponse = restTemplate.exchange(profileUrl, HttpMethod.GET, httpRequest, Map.class);
+        ResponseEntity<Map<String, Object>> profileResponse = restTemplate.exchange(
+            Objects.requireNonNull(profileUrl), 
+            Objects.requireNonNull(HttpMethod.GET), 
+            new HttpEntity<>(httpRequest), 
+            new ParameterizedTypeReference<Map<String, Object>>(){}
+        );
 
         // Fetch email address
 //        ResponseEntity<Map> emailResponse = restTemplate.exchange(emailUrl, HttpMethod.GET, httpRequest, Map.class);

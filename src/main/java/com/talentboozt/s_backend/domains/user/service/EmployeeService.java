@@ -67,15 +67,15 @@ public class EmployeeService {
     }
 
     public EmployeeModel getEmployee(String id) {
-        return employeeRepository.findById(id).orElse(null);
+        return employeeRepository.findById(Objects.requireNonNull(id)).orElse(null);
     }
 
     public EmployeeModel addEmployee(EmployeeModel employee) {
-        return employeeRepository.save(employee);
+        return employeeRepository.save(Objects.requireNonNull(employee));
     }
 
     public EmployeeModel updateEmployee(EmployeeModel employee) {
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(employee.getId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(employee.getId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setFirstname(employee.getFirstname());
@@ -114,7 +114,7 @@ public class EmployeeService {
     }
 
     public EmployeeModel updateSearchAppearance(EmployeeModel employee) {
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(employee.getId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(employee.getId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setExpectedSalaryRange(employee.getExpectedSalaryRange());
@@ -126,7 +126,7 @@ public class EmployeeService {
     }
 
     public EmployeeModel updateNotifications(EmployeeModel employee) {
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(employee.getId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(employee.getId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             if (existingEmployee.getAccountNotifications() == null) {
@@ -143,7 +143,7 @@ public class EmployeeService {
     }
 
     public EmployeeModel updateProfilePic(EmployeeModel employee) {
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(employee.getId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(employee.getId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setImage(employee.getImage());
@@ -164,7 +164,7 @@ public class EmployeeService {
     }
 
     public EmployeeModel updateCoverPic(EmployeeModel employee) {
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(employee.getId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(employee.getId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setCoverImage(employee.getCoverImage());
@@ -185,7 +185,7 @@ public class EmployeeService {
     }
 
     public EmployeeModel updateResume(EmployeeModel employee) {
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(employee.getId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(employee.getId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setResume(employee.getResume());
@@ -206,7 +206,7 @@ public class EmployeeService {
     }
 
     public EmployeeModel saveFavoriteJob(String empId, FavJobDTO jobDTO) {
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empId);
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empId));
         if (employeeModel.isPresent()) {
             EmployeeModel employee = employeeModel.get();
             List<FavJobDTO> favJobs = employee.getSavedJobs();
@@ -222,7 +222,7 @@ public class EmployeeService {
     }
 
     public EmployeeModel removeFavoriteJob(String empId, String jobId) {
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empId);
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empId));
         if (employeeModel.isPresent()) {
             EmployeeModel employee = employeeModel.get();
             List<FavJobDTO> favJobs = employee.getSavedJobs();
@@ -238,7 +238,7 @@ public class EmployeeService {
     }
 
     public EmployeeModel changeFavoriteJobStatus(String empId, FavJobDTO jobDto) throws IOException {
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empId);
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empId));
         if (employeeModel.isPresent()) {
             EmployeeModel employee = employeeModel.get();
             List<FavJobDTO> favJobs = employee.getSavedJobs();
@@ -299,8 +299,8 @@ public class EmployeeService {
                 empFollowingRepository.deleteByEmployeeId(id);
             }
 
-            employeeRepository.delete(employee);
-            credentialsRepository.delete(credentials);
+            employeeRepository.delete(Objects.requireNonNull(employee));
+            credentialsRepository.delete(Objects.requireNonNull(credentials));
         } else {
             throw new RuntimeException("Employee not found for id: " + id);
         }

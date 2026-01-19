@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -47,7 +48,7 @@ public class CmpSocialService {
         // Save the updated CmpSocialModel to the repository
         cmpSocialRepository.save(cmpSocialsModel);
 
-        Optional<CompanyModel> companyModel = companyRepository.findById(cmpSocials.getCompanyId());
+        Optional<CompanyModel> companyModel = companyRepository.findById(Objects.requireNonNull(cmpSocials.getCompanyId()));
 
         if (companyModel.isPresent()) {
             CompanyModel existingCompany = companyModel.get();
@@ -64,7 +65,7 @@ public class CmpSocialService {
     }
 
     public CmpSocialModel updateCmpSocials(String id, CmpSocialModel cmpSocials) {
-        CmpSocialModel cmpSocialsModel = cmpSocialRepository.findById(id).orElse(null);
+        CmpSocialModel cmpSocialsModel = cmpSocialRepository.findById(Objects.requireNonNull(id)).orElse(null);
         if (cmpSocialsModel != null) {
             cmpSocialsModel.setCompanyId(cmpSocials.getCompanyId());
             cmpSocialsModel.setSocialLinks(cmpSocials.getSocialLinks());

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class BillingHistoryService {
@@ -18,7 +19,7 @@ public class BillingHistoryService {
     }
 
     public BillingHistoryModel save(BillingHistoryModel billingHistory) {
-        return billingHistoryRepository.save(billingHistory);
+        return billingHistoryRepository.save(Objects.requireNonNull(billingHistory));
     }
 
     public boolean existsBySessionId(String id) {

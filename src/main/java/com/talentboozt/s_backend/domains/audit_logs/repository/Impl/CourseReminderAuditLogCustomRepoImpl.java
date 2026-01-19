@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class CourseReminderAuditLogCustomRepoImpl implements CourseReminderAuditLogCustomRepo {
@@ -40,11 +41,11 @@ public class CourseReminderAuditLogCustomRepoImpl implements CourseReminderAudit
                 .sort(new Document("timestamp", -1))
                 .skip((int) pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .map(doc -> mongoTemplate.getConverter().read(CourseReminderAuditLog.class, doc))
+                .map(doc -> mongoTemplate.getConverter().read(CourseReminderAuditLog.class, Objects.requireNonNull(doc)))
                 .into(new ArrayList<>());
 
         long total = mongoTemplate.getCollection("course_reminder_audit_logs").countDocuments(criteria);
 
-        return new PageImpl<>(results, pageable, total);
+        return new PageImpl<>(Objects.requireNonNull(results), pageable, total);
     }
 }

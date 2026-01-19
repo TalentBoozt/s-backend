@@ -53,7 +53,7 @@ public class EmpSkillsService {
         empSkillsRepository.save(empSkillsModel);
 
         // Now update the EmployeeModel to reference the empSkillsModel ID (if needed)
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empSkills.getEmployeeId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empSkills.getEmployeeId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setSkills(empSkillsModel.getId());
@@ -75,7 +75,7 @@ public class EmpSkillsService {
 
 
     public EmpSkillsModel updateEmpSkills(String id, EmpSkillsModel empSkills) {
-        EmpSkillsModel existingEmpSkills = empSkillsRepository.findById(id).orElse(null);
+        EmpSkillsModel existingEmpSkills = empSkillsRepository.findById(Objects.requireNonNull(id)).orElse(null);
         if (existingEmpSkills != null) {
             existingEmpSkills.setEmployeeId(empSkills.getEmployeeId());
             existingEmpSkills.setSkills(empSkills.getSkills());

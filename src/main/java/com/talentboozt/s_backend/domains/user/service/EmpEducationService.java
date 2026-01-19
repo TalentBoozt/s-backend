@@ -43,7 +43,7 @@ public class EmpEducationService {
 
         empEducationRepository.save(empEducationModel);
 
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empEducation.getEmployeeId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empEducation.getEmployeeId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setEducation(empEducationModel.getId());
@@ -61,7 +61,7 @@ public class EmpEducationService {
     }
 
     public EmpEducationModel updateEmpEducation(String id, EmpEducationModel empEducation) {
-        EmpEducationModel existingEmpEducation = empEducationRepository.findById(id).orElse(null);
+        EmpEducationModel existingEmpEducation = empEducationRepository.findById(Objects.requireNonNull(id)).orElse(null);
         if (existingEmpEducation != null) {
             existingEmpEducation.setEmployeeId(empEducation.getEmployeeId());
             existingEmpEducation.setEducation(empEducation.getEducation());

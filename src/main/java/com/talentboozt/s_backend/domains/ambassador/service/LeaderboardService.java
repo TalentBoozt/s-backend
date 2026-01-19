@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -54,7 +55,7 @@ public class LeaderboardService {
 
         int rank = 1;
         for (Map.Entry<String, Integer> entry : sorted) {
-            Optional<AmbassadorProfileModel> optional = ambassadorRepo.findById(entry.getKey());
+            Optional<AmbassadorProfileModel> optional = ambassadorRepo.findById(Objects.requireNonNull(entry.getKey()));
             if (optional.isEmpty()) continue;
 
             AmbassadorProfileModel ambassador = optional.get();
@@ -74,7 +75,7 @@ public class LeaderboardService {
         }
 
         // Clear previous and save fresh
-        leaderboardRepo.deleteAll(leaderboardRepo.findByTypeOrderByRankAsc(type));
+        leaderboardRepo.deleteAll(Objects.requireNonNull(leaderboardRepo.findByTypeOrderByRankAsc(type)));
         leaderboardRepo.saveAll(leaderboard);
     }
 }

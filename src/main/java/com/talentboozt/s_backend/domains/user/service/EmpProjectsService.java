@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -46,7 +47,7 @@ public class EmpProjectsService {
 
         empProjectsRepository.save(empProjectsModel);
 
-        Optional<EmployeeModel> employeeModel = employeeRepository.findById(empProjects.getEmployeeId());
+        Optional<EmployeeModel> employeeModel = employeeRepository.findById(Objects.requireNonNull(empProjects.getEmployeeId()));
         if (employeeModel.isPresent()) {
             EmployeeModel existingEmployee = employeeModel.get();
             existingEmployee.setProjects(empProjectsModel.getId());
@@ -65,7 +66,7 @@ public class EmpProjectsService {
     }
 
     public EmpProjectsModel updateEmpProjects(String id, EmpProjectsModel empProjects) {
-        EmpProjectsModel existingEmpProjects = empProjectsRepository.findById(id).orElse(null);
+        EmpProjectsModel existingEmpProjects = empProjectsRepository.findById(Objects.requireNonNull(id)).orElse(null);
         if (existingEmpProjects != null) {
             existingEmpProjects.setEmployeeId(empProjects.getEmployeeId());
             existingEmpProjects.setProjects(empProjects.getProjects());
@@ -75,7 +76,7 @@ public class EmpProjectsService {
     }
 
     public void deleteEmpProjects(String id) {
-        empProjectsRepository.deleteById(id);
+        empProjectsRepository.deleteById(Objects.requireNonNull(id));
     }
 
     public EmpProjectsModel deleteEmpProject(String employeeId, String projectId) {

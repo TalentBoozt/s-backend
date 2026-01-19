@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -26,7 +27,7 @@ public class CompanyService {
     }
 
     public CompanyModel getCompany(String id) {
-        return companyRepository.findById(id).orElse(null);
+        return companyRepository.findById(Objects.requireNonNull(id)).orElse(null);
     }
 
     public Optional<List<CompanyModel>> getCompanyByType(String type) {
@@ -34,11 +35,11 @@ public class CompanyService {
     }
 
     public CompanyModel addCompany(CompanyModel company) {
-        return companyRepository.save(company);
+        return companyRepository.save(Objects.requireNonNull(company));
     }
 
     public CompanyModel updateLogoPic(CompanyModel company) {
-        Optional<CompanyModel> companyModel = companyRepository.findById(company.getId());
+        Optional<CompanyModel> companyModel = companyRepository.findById(Objects.requireNonNull(company.getId()));
         if (companyModel.isPresent()) {
             CompanyModel existingCompany = companyModel.get();
             existingCompany.setLogo(company.getLogo());
@@ -56,7 +57,7 @@ public class CompanyService {
     }
 
     public CompanyModel updateCoverPic(CompanyModel company) {
-        Optional<CompanyModel> companyModel = companyRepository.findById(company.getId());
+        Optional<CompanyModel> companyModel = companyRepository.findById(Objects.requireNonNull(company.getId()));
         if (companyModel.isPresent()) {
             CompanyModel existingCompany = companyModel.get();
             existingCompany.setProfileBanner(company.getProfileBanner());
@@ -74,7 +75,7 @@ public class CompanyService {
     }
 
     public CompanyModel updateThumb1Pic(CompanyModel company) {
-        Optional<CompanyModel> companyModel = companyRepository.findById(company.getId());
+        Optional<CompanyModel> companyModel = companyRepository.findById(Objects.requireNonNull(company.getId()));
         if (companyModel.isPresent()) {
             CompanyModel existingCompany = companyModel.get();
             existingCompany.setImage1(company.getImage1());
@@ -92,7 +93,7 @@ public class CompanyService {
     }
 
     public CompanyModel updateThumb2Pic(CompanyModel company) {
-        Optional<CompanyModel> companyModel = companyRepository.findById(company.getId());
+        Optional<CompanyModel> companyModel = companyRepository.findById(Objects.requireNonNull(company.getId()));
         if (companyModel.isPresent()) {
             CompanyModel existingCompany = companyModel.get();
             existingCompany.setImage2(company.getImage2());
@@ -110,7 +111,7 @@ public class CompanyService {
     }
 
     public CompanyModel updateThumb3Pic(CompanyModel company) {
-        Optional<CompanyModel> companyModel = companyRepository.findById(company.getId());
+        Optional<CompanyModel> companyModel = companyRepository.findById(Objects.requireNonNull(company.getId()));
         if (companyModel.isPresent()) {
             CompanyModel existingCompany = companyModel.get();
             existingCompany.setImage3(company.getImage3());
@@ -128,7 +129,7 @@ public class CompanyService {
     }
 
     public CompanyModel updateCompany(CompanyModel company) {
-        Optional<CompanyModel> companyModel = companyRepository.findById(company.getId());
+        Optional<CompanyModel> companyModel = companyRepository.findById(Objects.requireNonNull(company.getId()));
         if (companyModel.isPresent()) {
             CompanyModel existingCompany = companyModel.get();
             existingCompany.setName(company.getName());
@@ -192,7 +193,7 @@ public class CompanyService {
     }
 
     public CompanyModel updateNotifications(CompanyModel company) {
-        Optional<CompanyModel> companyModel = companyRepository.findById(company.getId());
+        Optional<CompanyModel> companyModel = companyRepository.findById(Objects.requireNonNull(company.getId()));
         if (companyModel.isPresent()) {
             CompanyModel existingCompany = companyModel.get();
             if (existingCompany.getAccountNotifications() == null) {
@@ -209,7 +210,7 @@ public class CompanyService {
     }
 
     public void deleteCompany(String id) {
-        companyRepository.deleteById(id);
+        companyRepository.deleteById(Objects.requireNonNull(id));
     }
 
     @Async
@@ -225,7 +226,7 @@ public class CompanyService {
     }
 
     public void findAndUpdateCompanyLevel(String id, String companyLevel) {
-        Optional<CompanyModel> companyModel = companyRepository.findById(id);
+        Optional<CompanyModel> companyModel = companyRepository.findById(Objects.requireNonNull(id));
         if (companyModel.isPresent()) {
             CompanyModel existingCompany = companyModel.get();
             existingCompany.setCompanyLevel(companyLevel);

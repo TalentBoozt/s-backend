@@ -5,6 +5,7 @@ import com.talentboozt.s_backend.domains.plat_courses.repository.TaskProgressRep
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -14,7 +15,7 @@ public class AmbassadorTaskProgressService {
     TaskProgressRepository taskProgressRepository;
 
     public AmbassadorTaskProgressModel addTaskProgress(AmbassadorTaskProgressModel taskProgress) {
-        return taskProgressRepository.save(taskProgress);
+        return taskProgressRepository.save(Objects.requireNonNull(taskProgress));
     }
 
     public Iterable<AmbassadorTaskProgressModel> getAllTaskProgress() {
@@ -22,11 +23,11 @@ public class AmbassadorTaskProgressService {
     }
 
     public AmbassadorTaskProgressModel getTaskProgressById(String id) {
-        return taskProgressRepository.findById(id).orElse(null);
+        return taskProgressRepository.findById(Objects.requireNonNull(id)).orElse(null);
     }
 
     public AmbassadorTaskProgressModel rewardProgress(String progressId) {
-        Optional<AmbassadorTaskProgressModel> progress = taskProgressRepository.findById(progressId);
+        Optional<AmbassadorTaskProgressModel> progress = taskProgressRepository.findById(Objects.requireNonNull(progressId));
         if (progress.isPresent()) {
             AmbassadorTaskProgressModel p = progress.get();
             p.setRewardStatus("ISSUED");

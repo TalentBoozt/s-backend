@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class AsyncUpdateAuditLogCustomRepoImpl implements AsyncUpdateAuditLogCustomRepo {
@@ -37,11 +38,11 @@ public class AsyncUpdateAuditLogCustomRepoImpl implements AsyncUpdateAuditLogCus
                 .sort(new Document("createdAt", -1))
                 .skip((int) pageable.getOffset())
                 .limit(pageable.getPageSize())
-                .map(doc -> mongoTemplate.getConverter().read(AsyncUpdateAuditLog.class, doc))
+                .map(doc -> mongoTemplate.getConverter().read(AsyncUpdateAuditLog.class, Objects.requireNonNull(doc)))
                 .into(new ArrayList<>());
 
         long total = mongoTemplate.getCollection("async_update_audit_log").countDocuments(criteria);
 
-        return new PageImpl<>(results, pageable, total);
+        return new PageImpl<>(Objects.requireNonNull(results), pageable, total);
     }
 }

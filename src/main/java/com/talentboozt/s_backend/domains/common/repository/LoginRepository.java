@@ -3,7 +3,6 @@ package com.talentboozt.s_backend.domains.common.repository;
 import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.LoginLocationAggregateDTO;
 import com.talentboozt.s_backend.domains.common.model.Login;
 import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.UniqueUserCountDTO;
-import org.bson.Document;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
 

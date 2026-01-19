@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -22,15 +23,15 @@ public class SystemNotificationsService {
     }
 
     public SystemNotificationsModel createNotification(SystemNotificationsModel notification) {
-        return notificationRepository.save(notification);
+        return notificationRepository.save(Objects.requireNonNull(notification));
     }
 
     public SystemNotificationsModel updateNotification(SystemNotificationsModel notification) {
-        return notificationRepository.save(notification);
+        return notificationRepository.save(Objects.requireNonNull(notification));
     }
 
     public SystemNotificationsModel updateNotificationStatus(String id) {
-        Optional<SystemNotificationsModel> notification = notificationRepository.findById(id);
+        Optional<SystemNotificationsModel> notification = notificationRepository.findById(Objects.requireNonNull(id));
         if (notification.isPresent()) {
             SystemNotificationsModel notificationObj = notification.get();
             notificationObj.setActive(!notificationObj.isActive());
@@ -40,6 +41,6 @@ public class SystemNotificationsService {
     }
 
     public void deleteNotification(String id) {
-        notificationRepository.deleteById(id);
+        notificationRepository.deleteById(Objects.requireNonNull(id));
     }
 }

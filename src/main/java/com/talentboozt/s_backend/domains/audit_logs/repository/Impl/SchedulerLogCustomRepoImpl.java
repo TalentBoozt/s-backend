@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class SchedulerLogCustomRepoImpl implements SchedulerLogCustomRepo {
@@ -31,7 +32,7 @@ public class SchedulerLogCustomRepoImpl implements SchedulerLogCustomRepo {
         }
 
         long count = mongoTemplate.count(query, SchedulerLogModel.class);
-        query.with(pageable);
+        query.with(Objects.requireNonNull(pageable));
 
         List<SchedulerLogModel> logs = mongoTemplate.find(query, SchedulerLogModel.class);
         return new PageImpl<>(logs, pageable, count);

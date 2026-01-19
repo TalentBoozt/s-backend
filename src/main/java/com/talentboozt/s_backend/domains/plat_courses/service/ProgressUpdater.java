@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -124,7 +125,7 @@ public class ProgressUpdater {
 
         for (CourseCouponsModel original : matchingCoupons) {
             CourseCouponsModel unlocked = new CourseCouponsModel();
-            BeanUtils.copyProperties(original, unlocked);
+            BeanUtils.copyProperties(Objects.requireNonNull(original), unlocked);
             unlocked.setId(null); // Let Mongo generate new ID
             unlocked.setUserId(ambassador.getId());
             unlocked.setUnlockedBy(ambassador.getId());

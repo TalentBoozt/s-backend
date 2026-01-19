@@ -11,6 +11,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/v2/facebook")
@@ -44,7 +45,7 @@ public class FacebookAuthController {
             // Handle the response from GitHub
             if (response.getStatusCode() == HttpStatus.OK) {
                 // Extract access token from response body (GitHub returns it as a plain text)
-                String accessToken = response.getBody().split("&")[0].split("=")[1];
+                String accessToken = Objects.requireNonNull(response.getBody()).split("&")[0].split("=")[1];
                 return ResponseEntity.ok(Map.of("accessToken", accessToken));
             } else {
                 return ResponseEntity.status(response.getStatusCode()).body("Error fetching access token");

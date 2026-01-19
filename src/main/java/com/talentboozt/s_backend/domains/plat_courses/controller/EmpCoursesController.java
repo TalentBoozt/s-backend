@@ -25,7 +25,7 @@ public class EmpCoursesController {
 
     @GetMapping("/getByEmployeeId/{employeeId}")
     public List<EmpCoursesModel> getAllEmpCoursesByEmployeeId(@PathVariable String employeeId) {
-        return empCoursesService.getEmpCoursesByEmployeeId(employeeId);
+        return empCoursesService.getEmpCoursesByEmployeeId(Objects.requireNonNull(employeeId));
     }
 
     @GetMapping("/get-course/{employeeId}/{courseId}")

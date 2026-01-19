@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class StripeAuditLogCustomRepoImpl implements StripeAuditLogCustomRepo {
@@ -31,7 +32,7 @@ public class StripeAuditLogCustomRepoImpl implements StripeAuditLogCustomRepo {
         }
 
         long count = mongoTemplate.count(query, StripeAuditLog.class);
-        query.with(pageable);
+        query.with(Objects.requireNonNull(pageable));
 
         List<StripeAuditLog> logs = mongoTemplate.find(query, StripeAuditLog.class);
         return new PageImpl<>(logs, pageable, count);

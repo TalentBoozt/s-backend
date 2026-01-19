@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class PaymentMethodService {
@@ -23,7 +24,7 @@ public class PaymentMethodService {
     }
 
     public PaymentMethodsModel save(PaymentMethodsModel paymentMethodModel) {
-        return paymentMethodRepository.save(paymentMethodModel);
+        return paymentMethodRepository.save(Objects.requireNonNull(paymentMethodModel));
     }
 
     public boolean existsBySessionId(String id) {
