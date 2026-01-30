@@ -8,6 +8,10 @@ import com.talentboozt.s_backend.domains.com_job_portal.repository.CompanyReposi
 import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
 import com.talentboozt.s_backend.domains.user.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -30,6 +34,9 @@ public class CredentialsService {
     @Autowired
     private UserPermissionsService userPermissionsService;
 
+    @Autowired
+    private CacheManager cacheManager;
+
     public CredentialsModel addCredentials(CredentialsModel credentials, String platform, String referrer) {
         Optional<CredentialsModel> optionalCredentials = Optional.ofNullable(credentialsRepository.findByEmail(credentials.getEmail()));
 
@@ -41,6 +48,13 @@ public class CredentialsService {
             if (platforms.add(platform)) { // Adds only if it's not already present
                 existingUser.setAccessedPlatforms(new ArrayList<>(platforms));
                 credentialsRepository.save(existingUser);
+            }
+            // Evict the existing user's cache entry if updated
+            if (existingUser.getEmployeeId() != null) {
+                Cache userCredentialsCache = cacheManager.getCache("userCredentials");
+                if (userCredentialsCache != null) {
+                    userCredentialsCache.evict(existingUser.getEmployeeId());
+                }
             }
             return existingUser;
         } else {
@@ -178,6 +192,7 @@ public class CredentialsService {
         return Optional.empty();
     }
 
+    @CacheEvict(value = "userCredentials", key = "#employeeId")
     public CredentialsModel updateCredentials(String employeeId, CredentialsModel credentials) {
         Optional<CredentialsModel> optionalCredentials = credentialsRepository.findById(Objects.requireNonNull(credentials.getId()));
         if (optionalCredentials.isPresent()) {
@@ -193,6 +208,7 @@ public class CredentialsService {
         return null;
     }
 
+    @CacheEvict(value = "userCredentials", key = "#credentialsId")
     public CredentialsModel updatePassword(String credentialsId, String password) {
         Optional<CredentialsModel> optionalCredentials = credentialsRepository.findById(Objects.requireNonNull(credentialsId));
         if (optionalCredentials.isPresent()) {
@@ -203,6 +219,7 @@ public class CredentialsService {
         return null;
     }
 
+    @CacheEvict(value = "userCredentials", key = "#employeeId")
     public CredentialsModel deleteCredentials(String employeeId) {
         return credentialsRepository.deleteByEmployeeId(employeeId);
     }
@@ -211,6 +228,14 @@ public class CredentialsService {
         Optional<CredentialsModel> optionalCredentials = credentialsRepository.findByCompanyId(companyId);
         if (optionalCredentials.isPresent()) {
             CredentialsModel credentials1 = optionalCredentials.get();
+            String employeeId = credentials1.getEmployeeId();
+            if (employeeId != null) {
+                // Perform eviction only if employeeId is present
+                Cache userCredentialsCache = cacheManager.getCache("userCredentials");
+                if (userCredentialsCache != null) {
+                    userCredentialsCache.evict(employeeId);
+                }
+            }
             credentials1.setUserLevel(userLevel);
             credentialsRepository.save(credentials1);
         }

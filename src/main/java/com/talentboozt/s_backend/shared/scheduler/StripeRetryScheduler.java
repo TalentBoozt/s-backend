@@ -27,9 +27,9 @@ public class StripeRetryScheduler {
             try {
                 Event event = Event.GSON.fromJson(log.getRawPayload(), Event.class);
                 webhookController.handleEvent(event);
-                auditLogService.markProcessed(log.getId());
+                auditLogService.markProcessed(log.getEventId());
             } catch (Exception ex) {
-                auditLogService.markFailed(log.getId(), ex.getMessage(), true);
+                auditLogService.markFailed(log.getEventId(), ex.getMessage(), true);
             }
         }
     }

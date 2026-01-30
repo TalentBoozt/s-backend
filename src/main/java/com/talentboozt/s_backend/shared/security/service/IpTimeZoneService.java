@@ -23,7 +23,8 @@ public class IpTimeZoneService {
     @Autowired
     private ClientActAuditLogService clientActAuditLogService;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private RestTemplate restTemplate;
 
     private final Cache<String, IpGeoData> ipCache = Caffeine.newBuilder()
             .expireAfterWrite(12, TimeUnit.HOURS)

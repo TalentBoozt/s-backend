@@ -15,7 +15,11 @@ public class GeoIPService {
     @Autowired
     private ClientActAuditLogService clientActAuditLogService;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    public GeoIPService(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     public TrackingEvent enrichWithGeoIP(TrackingEvent event) {
         try {

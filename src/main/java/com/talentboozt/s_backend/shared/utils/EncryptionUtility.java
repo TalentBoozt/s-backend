@@ -11,6 +11,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Base64;
 
+/**
+ * Encryption utility for password encryption/decryption.
+ * 
+ * SECURITY NOTE: Static KEY/IV arrays are kept for backward compatibility.
+ * For new deployments, consider migrating to SecureKeyManager which uses
+ * volatile fields and can clear keys from memory.
+ */
 @Component
 public class EncryptionUtility {
     private static final String ALGORITHM = "AES/CBC/PKCS5Padding";

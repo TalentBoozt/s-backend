@@ -18,7 +18,17 @@ public class GeoLocationService {
     @Autowired
     ConfigUtility configUtility;
 
-    private final OkHttpClient httpClient = new OkHttpClient();
+    private final OkHttpClient httpClient;
+
+    public GeoLocationService() {
+        // Configure OkHttpClient with connection pooling and timeouts to prevent resource leaks
+        this.httpClient = new OkHttpClient.Builder()
+                .connectTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .connectionPool(new okhttp3.ConnectionPool(10, 5, java.util.concurrent.TimeUnit.MINUTES))
+                .build();
+    }
 
     public Map<String, String> getGeoLocation(String ipAddress) throws Exception {
         String url = "https://ipinfo.io/" + ipAddress + "/json?token=" + configUtility.getProperty("IPINFO_TOKEN");

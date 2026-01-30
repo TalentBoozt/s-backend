@@ -35,7 +35,11 @@ public class LinkedinAuthController {
     @Value("${linkedin.email-url}")
     private String emailUrl;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    public LinkedinAuthController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     @PostMapping("/exchange-code")
     public ResponseEntity<?> exchangeCode(@RequestBody LinkedInAuthRequest request) {
