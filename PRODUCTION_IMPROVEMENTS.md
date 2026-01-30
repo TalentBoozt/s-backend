@@ -323,23 +323,26 @@ public void callExternalApi() {
 
 ## 🚀 Next Steps
 
-### Recommended Next Steps
-1. **Payment Webhook Fix**: Address Stripe webhook issues in production (as mentioned, keeping for next stage)
-2. **Load Testing**: Perform load testing with new configurations
-3. **Monitoring Setup**: Configure Prometheus/Grafana dashboards
-4. **Cache Warming**: Implement cache warming strategies
-5. **Tenant Migration**: Migrate existing data to use tenant context
-6. **Documentation**: Update API documentation with tenant headers
+### Recommended Next Steps (Coding Tasks)
+1.  **Cache Warming**: Implement cache warming strategies.
+2.  **Cache Invalidation**: Implement more comprehensive cache invalidation strategies (beyond `@CacheEvict`).
+3.  **Secure Key Storage Migration**: Fully integrate `SecureKeyManager` into `EncryptionUtility` (with migration path for existing data).
+
+### Operational Next Steps
+1.  **Load Testing**: Perform load testing with new configurations.
+2.  **Monitoring Setup**: Configure Prometheus/Grafana dashboards for all relevant metrics.
+3.  **Tenant Data Migration**: Migrate existing data to use tenant context.
+4.  **API Documentation**: Update API documentation with tenant headers and new features.
 
 ---
 
 ## ⚠️ Important Notes
 
-1. **Tenant Context**: Ensure all database queries respect tenant context
-2. **Cache Invalidation**: Implement proper cache invalidation strategies
-3. **Circuit Breakers**: Monitor circuit breaker states in production
-4. **Health Checks**: Set up alerts based on health check status
-5. **Connection Pools**: Monitor connection pool metrics
+1.  **Tenant Context Adherence**: Ensure all new and existing database queries and business logic respect tenant context, using `TenantContext.getCurrent()` where appropriate.
+2.  **Cache Invalidation**: Implement proper cache invalidation strategies (beyond `@CacheEvict`).
+3.  **Circuit Breakers Monitoring**: Continuously monitor circuit breaker states in production to fine-tune thresholds and identify external service issues.
+4.  **Health Checks Alerts**: Set up robust alerting based on health check statuses to proactively detect and respond to system health degradation.
+5.  **Connection Pools Monitoring**: Monitor connection pool metrics for MongoDB and HTTP clients to ensure optimal resource utilization and prevent exhaustion.
 
 ---
 

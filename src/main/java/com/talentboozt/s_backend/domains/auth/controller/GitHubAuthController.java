@@ -21,12 +21,17 @@ public class GitHubAuthController {
     @Autowired
     private ConfigUtility configUtil;
 
+    private final RestTemplate restTemplate;
+
+    public GitHubAuthController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
     @PostMapping("/token")
     public ResponseEntity<?> exchangeCodeForToken(@RequestBody Map<String, String> request) {
         String code = request.get("code");
 
         // Prepare the request to exchange the code for a token
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 

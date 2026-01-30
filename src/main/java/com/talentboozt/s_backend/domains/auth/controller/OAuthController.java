@@ -30,6 +30,12 @@ public class OAuthController {
     @Autowired
     private ConfigUtility configUtil;
 
+    private final RestTemplate restTemplate;
+
+    public OAuthController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
     @PostMapping(value = "/callback/google", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     public ResponseEntity<CredentialsModel> handleGoogleCallback(
             @RequestBody Map<String, String> body,
@@ -71,7 +77,6 @@ public class OAuthController {
     private OidcUser fetchUserInfo(String accessToken) {
         String userInfoEndpoint = "https://www.googleapis.com/oauth2/v3/userinfo";
 
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(Objects.requireNonNull(accessToken));
         HttpEntity<String> entity = new HttpEntity<>(headers);
@@ -100,7 +105,6 @@ public class OAuthController {
     }
 
     private String exchangeCodeForAccessToken(String code, String codeVerifier) {
-        RestTemplate restTemplate = new RestTemplate();
         String url = "https://oauth2.googleapis.com/token";
 
         MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();

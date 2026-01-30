@@ -10,10 +10,15 @@ import org.springframework.web.client.RestTemplate;
 @RestController
 public class ProxyController {
 
+    private final RestTemplate restTemplate;
+
+    public ProxyController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
     @GetMapping(value = "/static/**", produces = MediaType.TEXT_HTML_VALUE)
     public ResponseEntity<String> proxyToSSR(HttpServletRequest request) {
         String apiUrl = "https://talnova.io" + request.getRequestURI();
-        RestTemplate restTemplate = new RestTemplate();
         return restTemplate.getForEntity(apiUrl, String.class);
     }
 }

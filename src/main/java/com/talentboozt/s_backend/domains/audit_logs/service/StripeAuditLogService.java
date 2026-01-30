@@ -24,15 +24,47 @@ public class StripeAuditLogService {
     @Value("${audit.expire-after-days:30}")
     private long expireAfterDays;
 
+    /**
+     * Enqueue an incoming Stripe event for asynchronous processing.
+     * This creates (or updates) a log entry keyed by the Stripe event id.
+     */
+    public void enqueueEvent(Event event, String rawPayload) {
+        String eventId = Objects.requireNonNull(event.getId(), "Stripe event id must not be null");
+
+        StripeAuditLog log = auditLogRepository.findById(eventId).orElseGet(StripeAuditLog::new);
+        log.setId(eventId);
+        log.setEventId(eventId);
+        log.setEventType(event.getType());
+        log.setRawPayload(rawPayload);
+        log.setStatus("retry_pending"); // ready for worker, with retries allowed
+        log.setErrorMessage(null);
+        log.setRetryCount(0);
+
+        Date now = new Date();
+        if (log.getCreatedAt() == null) {
+            log.setCreatedAt(now);
+        }
+        log.setUpdatedAt(now);
+        log.setExpiresAt(Instant.now().plus(expireAfterDays, ChronoUnit.DAYS)); // TTL
+
+        auditLogRepository.save(log);
+    }
+
+    /**
+     * Lightweight info log for Stripe events (does NOT participate in retry queue).
+     */
     public void logEvent(Event event, String rawPayload) {
         StripeAuditLog log = new StripeAuditLog();
+        log.setId(UUID.randomUUID().toString());
         log.setEventId(event.getId());
         log.setEventType(event.getType());
 
         // You can enrich this later with sessionId, customerId, etc.
         log.setRawPayload(rawPayload);
         log.setStatus("pending");
-        log.setCreatedAt(new Date());
+        Date now = new Date();
+        log.setCreatedAt(now);
+        log.setUpdatedAt(now);
         log.setExpiresAt(Instant.now().plus(expireAfterDays, ChronoUnit.DAYS)); // 30 days TTL
         auditLogRepository.save(log);
     }

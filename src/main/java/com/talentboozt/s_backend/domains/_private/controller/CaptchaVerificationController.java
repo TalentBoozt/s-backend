@@ -26,7 +26,11 @@ public class CaptchaVerificationController {
     @Value("${recaptcha.secret}")
     private String recaptchaSecret;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    public CaptchaVerificationController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     @PostMapping("/verify-captcha")
 public ResponseEntity<?> verifyCaptcha(

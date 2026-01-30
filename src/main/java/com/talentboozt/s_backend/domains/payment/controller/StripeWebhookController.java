@@ -88,13 +88,14 @@ public class StripeWebhookController {
 
         try {
             Event event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
-            handleEvent(event);
-            return ResponseEntity.ok("Event processed");
+            // Enqueue event for asynchronous processing via StripeRetryScheduler
+            auditLogService.enqueueEvent(event, payload);
+            return ResponseEntity.ok("Event accepted");
         } catch (SignatureVerificationException e) {
-            auditLogService.markFailed("N/A", "⚠️ Invalid Stripe signature", true);
+            auditLogService.logCustom("stripe-webhook", "⚠️ Invalid Stripe signature: " + e.getMessage());
             return ResponseEntity.badRequest().body("Invalid signature");
         } catch (Exception e) {
-            auditLogService.markFailed("N/A", "❌ Exception: " + e.getMessage(), true);
+            auditLogService.logCustom("stripe-webhook", "❌ Exception: " + e.getMessage());
             return ResponseEntity.internalServerError().body("Webhook error");
         }
     }
