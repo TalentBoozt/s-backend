@@ -22,6 +22,12 @@ public class GeoIPService {
     }
 
     public TrackingEvent enrichWithGeoIP(TrackingEvent event) {
+        String ip = event.getIp();
+
+        if (ip == null || ip.isEmpty() || isLocalhost(ip)) {
+            return event;
+        }
+
         try {
             String url = "http://ip-api.com/json/" + event.getIp();
             GeoIPResponse response = restTemplate.getForObject(url, GeoIPResponse.class);
@@ -35,5 +41,14 @@ public class GeoIPService {
             clientActAuditLogService.log("geoip", event.getIp(), null, "error", "geoip", Map.of("error", e.getMessage()));
         }
         return event;
+    }
+
+    private boolean isLocalhost(String ip) {
+        return ip.equals("127.0.0.1") ||
+                ip.equals("0:0:0:0:0:0:0:1") ||
+                ip.equals("::1") ||
+                ip.startsWith("192.168.") ||
+                ip.startsWith("10.") ||
+                ip.startsWith("172.16.");
     }
 }

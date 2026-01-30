@@ -1,17 +1,14 @@
 package com.talentboozt.s_backend.domains.sys_tracking.service.monitor;
 
 import com.talentboozt.s_backend.domains._private.dto.PagedResponse;
-import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
-import com.talentboozt.s_backend.domains.auth.model.RoleModel;
+import com.talentboozt.s_backend.domains.auth.model.*;
 import com.talentboozt.s_backend.domains.auth.service.RoleService;
 import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.*;
 import com.talentboozt.s_backend.domains.sys_tracking.model.TrackingEvent;
 import com.talentboozt.s_backend.domains.sys_tracking.repository.TrackingEventRepository;
 import com.talentboozt.s_backend.domains._private.repository.UserActivityRepository;
 import com.talentboozt.s_backend.domains.common.repository.LoginRepository;
-import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
-import com.talentboozt.s_backend.domains.auth.repository.PermissionRepository;
-import com.talentboozt.s_backend.domains.auth.repository.RoleRepository;
+import com.talentboozt.s_backend.domains.auth.repository.*;
 import com.talentboozt.s_backend.shared.utils.EncryptionUtility;
 import eu.bitwalker.useragentutils.OperatingSystem;
 import eu.bitwalker.useragentutils.UserAgent;
