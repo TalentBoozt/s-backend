@@ -26,7 +26,6 @@ import java.util.Set;
 @Slf4j
 @RestController
 @RequestMapping("/api/event")
-@CrossOrigin(origins = "*") // Configure appropriately for production
 public class TrackingController {
 
     @Autowired
