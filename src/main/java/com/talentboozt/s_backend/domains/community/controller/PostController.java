@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.*;
 
 import com.talentboozt.s_backend.domains.community.dto.CommentDTO;
 import com.talentboozt.s_backend.domains.community.dto.PostDTO;
+import com.talentboozt.s_backend.domains.community.service.LinkPreviewService;
 import com.talentboozt.s_backend.domains.community.service.PostService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v2/posts")
@@ -17,6 +19,7 @@ import java.util.List;
 public class PostController {
 
     private final PostService postService;
+    private final LinkPreviewService linkPreviewService;
 
     @GetMapping
     public ResponseEntity<List<PostDTO>> getAllPosts() {
@@ -69,5 +72,15 @@ public class PostController {
             @PathVariable String id,
             @RequestBody CommentDTO commentDTO) {
         return new ResponseEntity<>(postService.addComment(id, commentDTO), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/link/preview")
+    public ResponseEntity<PostDTO.LinkPreviewDTO> getLinkPreview(@RequestBody Map<String, String> body) {
+        String url = body.get("url");
+        if (url == null || url.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        PostDTO.LinkPreviewDTO preview = linkPreviewService.getPreview(url);
+        return preview != null ? ResponseEntity.ok(preview) : ResponseEntity.ok().build();
     }
 }

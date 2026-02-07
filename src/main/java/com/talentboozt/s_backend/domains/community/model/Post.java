@@ -33,8 +33,20 @@ public class Post {
         private String title;
         private String text;
         private String url;
+        private LinkPreview linkPreview;
         private List<String> media;
         private List<String> tags;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LinkPreview {
+        private String title;
+        private String description;
+        private String image;
+        private String siteName;
     }
 
     @Data
