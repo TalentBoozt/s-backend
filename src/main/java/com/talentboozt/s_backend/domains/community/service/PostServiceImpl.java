@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -25,8 +26,8 @@ public class PostServiceImpl implements PostService {
     private final CommentRepository commentRepository;
 
     @Override
-    public List<PostDTO> getAllPosts() {
-        return postRepository.findAll().stream()
+    public List<PostDTO> getAllPosts(Pageable pageable) {
+        return postRepository.findAll(Objects.requireNonNull(pageable)).stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
@@ -131,6 +132,22 @@ public class PostServiceImpl implements PostService {
                         .title(post.getContent().getTitle())
                         .text(post.getContent().getText())
                         .url(post.getContent().getUrl())
+                        .linkPreview(post.getContent().getLinkPreview() != null
+                                                                ? PostDTO.LinkPreviewDTO.builder()
+                                                                                .title(post.getContent()
+                                                                                                .getLinkPreview()
+                                                                                                .getTitle())
+                                                                                .description(post.getContent()
+                                                                                                .getLinkPreview()
+                                                                                                .getDescription())
+                                                                                .image(post.getContent()
+                                                                                                .getLinkPreview()
+                                                                                                .getImage())
+                                                                                .siteName(post.getContent()
+                                                                                                .getLinkPreview()
+                                                                                                .getSiteName())
+                                                                                .build()
+                                                                : null)
                         .media(post.getContent().getMedia())
                         .tags(post.getContent().getTags())
                         .build())
@@ -147,7 +164,8 @@ public class PostServiceImpl implements PostService {
                                 .userReacted(false)
                                 .build())
                         .collect(Collectors.toList()) : new ArrayList<>())
-                .timestamp(post.getTimestamp() != null ? post.getTimestamp().format(DateTimeFormatter.ISO_DATE_TIME)
+                        .timestamp(post.getTimestamp() != null
+                        ? post.getTimestamp().format(DateTimeFormatter.ISO_DATE_TIME)
                         : null)
                 .build();
     }
@@ -167,8 +185,10 @@ public class PostServiceImpl implements PostService {
                                 .build())
                         .collect(Collectors.toList()) : new ArrayList<>())
                 .timestamp(
-                        comment.getTimestamp() != null ? comment.getTimestamp().format(DateTimeFormatter.ISO_DATE_TIME)
-                                : null)
+                        comment.getTimestamp() != null
+                                                                ? comment.getTimestamp()
+                                                                                .format(DateTimeFormatter.ISO_DATE_TIME)
+                                                                : null)
                 .build();
     }
 
@@ -181,6 +201,20 @@ public class PostServiceImpl implements PostService {
                         .title(dto.getContent().getTitle())
                         .text(dto.getContent().getText())
                         .url(dto.getContent().getUrl())
+                        .linkPreview(dto.getContent().getLinkPreview() != null
+                                                                ? Post.LinkPreview.builder()
+                                                                                .title(dto.getContent().getLinkPreview()
+                                                                                                .getTitle())
+                                                                                .description(dto.getContent()
+                                                                                                .getLinkPreview()
+                                                                                                .getDescription())
+                                                                                .image(dto.getContent().getLinkPreview()
+                                                                                                .getImage())
+                                                                                .siteName(dto.getContent()
+                                                                                                .getLinkPreview()
+                                                                                                .getSiteName())
+                                                                                .build()
+                                                                : null)
                         .media(dto.getContent().getMedia())
                         .tags(dto.getContent().getTags())
                         .build())
