@@ -14,7 +14,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v2/posts")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class PostController {
 
     private final PostService postService;
