@@ -1,6 +1,9 @@
 package com.talentboozt.s_backend.domains.community.controller;
 
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +25,11 @@ public class PostController {
     private final LinkPreviewService linkPreviewService;
 
     @GetMapping
-    public ResponseEntity<List<PostDTO>> getAllPosts() {
-        return ResponseEntity.ok(postService.getAllPosts());
+    public ResponseEntity<List<PostDTO>> getAllPosts(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(postService.getAllPosts(pageable));
     }
 
     @GetMapping("/community/{communityId}")

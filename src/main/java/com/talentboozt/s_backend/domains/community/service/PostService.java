@@ -4,8 +4,10 @@ import com.talentboozt.s_backend.domains.community.dto.PostDTO;
 import com.talentboozt.s_backend.domains.community.dto.CommentDTO;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+
 public interface PostService {
-    List<PostDTO> getAllPosts();
+    List<PostDTO> getAllPosts(Pageable pageable);
 
     List<PostDTO> getPostsByCommunity(String communityId);
 
