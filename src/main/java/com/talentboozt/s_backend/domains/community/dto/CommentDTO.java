@@ -16,6 +16,8 @@ public class CommentDTO {
     private String parentId;
     private String authorId;
     private String text;
+    private int upvotes;
+    private int downvotes;
     private List<PostDTO.ReactionDTO> reactions;
     private String timestamp;
 }

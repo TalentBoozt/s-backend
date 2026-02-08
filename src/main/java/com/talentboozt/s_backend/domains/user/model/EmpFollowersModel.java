@@ -1,7 +1,11 @@
 package com.talentboozt.s_backend.domains.user.model;
 
 import com.talentboozt.s_backend.domains.user.dto.EmpFollowersDTO;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.annotation.Id;
@@ -13,6 +17,9 @@ import java.util.List;
 @Getter
 @Setter
 @ToString
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 
 @Document(collection = "portal_emp_followers")
 public class EmpFollowersModel {

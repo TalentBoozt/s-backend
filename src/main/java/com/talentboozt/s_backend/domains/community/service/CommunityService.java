@@ -12,4 +12,8 @@ public interface CommunityService {
     CommunityDTO createCommunity(CommunityDTO communityDTO);
 
     void deleteCommunity(String id);
+
+    CommunityDTO joinCommunity(String id, String userId);
+
+    CommunityDTO leaveCommunity(String id, String userId);
 }
