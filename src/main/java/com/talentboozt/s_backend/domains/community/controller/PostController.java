@@ -80,6 +80,15 @@ public class PostController {
         return new ResponseEntity<>(postService.addComment(id, commentDTO), HttpStatus.CREATED);
     }
 
+    @PostMapping("/comments/{commentId}/react")
+    public ResponseEntity<CommentDTO> reactToComment(
+            @PathVariable String commentId,
+            @RequestParam String emoji,
+            @RequestParam String userId) {
+        CommentDTO comment = postService.reactToComment(commentId, emoji, userId);
+        return comment != null ? ResponseEntity.ok(comment) : ResponseEntity.notFound().build();
+    }
+
     @PostMapping("/link/preview")
     public ResponseEntity<PostDTO.LinkPreviewDTO> getLinkPreview(@RequestBody Map<String, String> body) {
         String url = body.get("url");
