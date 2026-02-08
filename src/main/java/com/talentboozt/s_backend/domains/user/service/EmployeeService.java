@@ -5,6 +5,8 @@ import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
 import com.talentboozt.s_backend.shared.mail.service.EmailService;
 import com.talentboozt.s_backend.shared.events.EventPublisher;
+import com.talentboozt.s_backend.domains.user.dto.EmpFollowersDTO;
+import com.talentboozt.s_backend.domains.user.dto.EmpFollowingDTO;
 import com.talentboozt.s_backend.domains.user.model.*;
 import com.talentboozt.s_backend.domains.user.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,12 @@ public class EmployeeService {
     @Autowired
     private EventPublisher eventPublisher;
 
+    @Autowired
+    private EmpFollowingService empFollowingService;
+
+    @Autowired
+    private EmpFollowersService empFollowersService;
+
     public EmployeeService(EmployeeRepository employeeRepository) {
         this.employeeRepository = employeeRepository;
     }
@@ -99,15 +107,17 @@ public class EmployeeService {
             EmployeeModel updatedEmployee = employeeRepository.save(existingEmployee);
 
             // comment this and uncomment event publisher to enable microserver
-            profileUpdateService.bulkUpdateFollowingsAndFollowers(updatedEmployee.getId(), updatedEmployee.getFirstname() + " " + updatedEmployee.getLastname(), updatedEmployee.getOccupation(), updatedEmployee.getImage());
+            profileUpdateService.bulkUpdateFollowingsAndFollowers(updatedEmployee.getId(),
+                    updatedEmployee.getFirstname() + " " + updatedEmployee.getLastname(),
+                    updatedEmployee.getOccupation(), updatedEmployee.getImage());
 
-//            UserProfileUpdatedEvent event = new UserProfileUpdatedEvent(
-//                    existingEmployee.getId(),
-//                    existingEmployee.getFirstname() + " " + existingEmployee.getLastname(),
-//                    existingEmployee.getOccupation(),
-//                    existingEmployee.getImage()
-//            );
-//            eventPublisher.publish(event);
+            // UserProfileUpdatedEvent event = new UserProfileUpdatedEvent(
+            // existingEmployee.getId(),
+            // existingEmployee.getFirstname() + " " + existingEmployee.getLastname(),
+            // existingEmployee.getOccupation(),
+            // existingEmployee.getImage()
+            // );
+            // eventPublisher.publish(event);
             return updatedEmployee;
         }
         return employee;
@@ -264,6 +274,48 @@ public class EmployeeService {
             throw new RuntimeException("Employee not found for id: " + empId);
         }
         return null;
+    }
+
+    public EmployeeModel follow(String followerId, String targetId) {
+        EmployeeModel follower = getEmployee(followerId);
+        EmployeeModel target = getEmployee(targetId);
+
+        if (follower != null && target != null) {
+            // Add to following
+            EmpFollowingModel followingModel = EmpFollowingModel.builder()
+                    .employeeId(followerId)
+                    .followings(Collections.singletonList(EmpFollowingDTO.builder()
+                            .id(targetId)
+                            .followingId(targetId)
+                            .followingName(target.getFirstname() + " " + target.getLastname())
+                            .followingOccupation(target.getOccupation())
+                            .followingImage(target.getImage())
+                            .build()))
+                    .build();
+            empFollowingService.addEmpFollowing(followingModel);
+
+            // Add to followers
+            EmpFollowersModel followersModel = EmpFollowersModel.builder()
+                    .employeeId(targetId)
+                    .followers(Collections.singletonList(EmpFollowersDTO.builder()
+                            .id(followerId)
+                            .followerId(followerId)
+                            .followerName(follower.getFirstname() + " " + follower.getLastname())
+                            .followerOccupation(follower.getOccupation())
+                            .followerImage(follower.getImage())
+                            .build()))
+                    .build();
+            empFollowersService.addEmpFollowers(followersModel);
+
+            return follower;
+        }
+        return null;
+    }
+
+    public EmployeeModel unfollow(String followerId, String targetId) {
+        empFollowingService.deleteFollowing(followerId, targetId);
+        empFollowersService.deleteEmpFollower(targetId, followerId);
+        return getEmployee(followerId);
     }
 
     public void deleteEmployee(String id) {

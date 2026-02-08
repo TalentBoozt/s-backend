@@ -51,6 +51,24 @@ public class CommunityServiceImpl implements CommunityService {
         communityRepository.deleteById(Objects.requireNonNull(id));
     }
 
+    @Override
+    public CommunityDTO joinCommunity(String id, String userId) {
+        Community community = communityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Community not found"));
+        community.setMemberCount(community.getMemberCount() + 1);
+        // todo: Note: In a real app we'd also link the user to the community here.
+        // For now, aligning with DTO requirement.
+        return mapToDTO(communityRepository.save(community));
+    }
+
+    @Override
+    public CommunityDTO leaveCommunity(String id, String userId) {
+        Community community = communityRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Community not found"));
+        community.setMemberCount(Math.max(0, community.getMemberCount() - 1));
+        return mapToDTO(communityRepository.save(community));
+    }
+
     private CommunityDTO mapToDTO(Community community) {
         return CommunityDTO.builder()
                 .id(community.getId())

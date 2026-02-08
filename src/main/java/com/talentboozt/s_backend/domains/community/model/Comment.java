@@ -21,6 +21,8 @@ public class Comment {
     private String parentId; // For threaded comments
     private String authorId;
     private String text;
+    private int upvotes;
+    private int downvotes;
     private List<Post.Reaction> reactions;
     private LocalDateTime timestamp;
 }

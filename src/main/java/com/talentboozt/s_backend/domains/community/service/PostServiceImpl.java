@@ -177,6 +177,8 @@ public class PostServiceImpl implements PostService {
                 .parentId(comment.getParentId())
                 .authorId(comment.getAuthorId())
                 .text(comment.getText())
+                .upvotes(comment.getUpvotes())
+                .downvotes(comment.getDownvotes())
                 .reactions(comment.getReactions() != null ? comment.getReactions().stream()
                         .map(r -> PostDTO.ReactionDTO.builder()
                                 .emoji(r.getEmoji())

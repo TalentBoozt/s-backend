@@ -77,8 +77,19 @@ public class EmployeeController {
     }
 
     @PutMapping("/update/saved-job/status/{empId}")
-    public EmployeeModel changeFavoriteJobStatus(@PathVariable String empId, @RequestBody FavJobDTO jobDto) throws IOException {
+    public EmployeeModel changeFavoriteJobStatus(@PathVariable String empId, @RequestBody FavJobDTO jobDto)
+            throws IOException {
         return employeeService.changeFavoriteJobStatus(empId, jobDto);
+    }
+
+    @PostMapping("/follow/{targetId}")
+    public EmployeeModel follow(@PathVariable String targetId, @RequestParam String followerId) {
+        return employeeService.follow(followerId, targetId);
+    }
+
+    @PostMapping("/unfollow/{targetId}")
+    public EmployeeModel unfollow(@PathVariable String targetId, @RequestParam String followerId) {
+        return employeeService.unfollow(followerId, targetId);
     }
 
     @DeleteMapping("/delete/{id}")

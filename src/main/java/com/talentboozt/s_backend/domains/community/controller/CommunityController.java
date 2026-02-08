@@ -36,5 +36,15 @@ public class CommunityController {
         communityService.deleteCommunity(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{id}/join")
+    public ResponseEntity<CommunityDTO> joinCommunity(@PathVariable String id, @RequestParam String userId) {
+        return ResponseEntity.ok(communityService.joinCommunity(id, userId));
+    }
+
+    @PostMapping("/{id}/leave")
+    public ResponseEntity<CommunityDTO> leaveCommunity(@PathVariable String id, @RequestParam String userId) {
+        return ResponseEntity.ok(communityService.leaveCommunity(id, userId));
+    }
 }
 
