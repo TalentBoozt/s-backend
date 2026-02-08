@@ -7,23 +7,23 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "comments")
-public class Comment {
+@Document(collection = "community_notifications")
+public class Notification {
     @Id
     private String id;
-    private String postId;
-    private String parentId; // For threaded comments
-    private String authorId;
-    private List<String> mentionIds;
-    private String text;
-    private int upvotes;
-    private int downvotes;
-    private List<Post.Reaction> reactions;
+    private String recipientId;
+    private String senderId;
+    private NotificationType type;
+    private String targetId; // ID of post or comment
+    private boolean isRead;
     private LocalDateTime timestamp;
+
+    public enum NotificationType {
+        LIKE, COMMENT, MENTION, FOLLOW, QUOTE
+    }
 }

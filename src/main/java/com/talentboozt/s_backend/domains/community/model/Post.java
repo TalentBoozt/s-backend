@@ -19,6 +19,8 @@ public class Post {
     private String id;
     private String authorId;
     private String communityId;
+    private List<String> mentionIds;
+    private String quotedPostId;
     private String type; // text, image, link
     private PostContent content;
     private PostMetrics metrics;

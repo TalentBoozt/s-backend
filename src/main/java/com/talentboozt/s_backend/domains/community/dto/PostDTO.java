@@ -18,6 +18,8 @@ public class PostDTO {
     private PostContentDTO content;
     private PostMetricsDTO metrics;
     private List<ReactionDTO> reactions;
+    private List<String> mentionIds;
+    private String quotedPostId;
     private String timestamp;
 
     @Data

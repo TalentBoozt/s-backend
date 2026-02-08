@@ -7,23 +7,27 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "comments")
-public class Comment {
+@Document(collection = "community_reports")
+public class Report {
     @Id
     private String id;
-    private String postId;
-    private String parentId; // For threaded comments
-    private String authorId;
-    private List<String> mentionIds;
-    private String text;
-    private int upvotes;
-    private int downvotes;
-    private List<Post.Reaction> reactions;
+    private String reporterId;
+    private String targetId;
+    private ReportTargetType targetType;
+    private String reason;
+    private ReportStatus status;
     private LocalDateTime timestamp;
+
+    public enum ReportTargetType {
+        POST, COMMENT, USER
+    }
+
+    public enum ReportStatus {
+        PENDING, RESOLVED, DISMISSED
+    }
 }
