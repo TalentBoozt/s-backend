@@ -67,5 +67,6 @@ public class Post {
     public static class Reaction {
         private String emoji;
         private int count;
+        private List<String> userIds;
     }
 }

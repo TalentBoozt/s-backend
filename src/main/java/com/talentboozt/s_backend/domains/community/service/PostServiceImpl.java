@@ -84,18 +84,67 @@ public class PostServiceImpl implements PostService {
         if (reactions == null)
             reactions = new ArrayList<>();
 
-        boolean found = false;
+        Post.Reaction targetReaction = null;
         for (Post.Reaction r : reactions) {
             if (r.getEmoji().equals(emoji)) {
-                r.setCount(r.getCount() + 1);
-                found = true;
+                targetReaction = r;
                 break;
             }
         }
 
-        if (!found) {
-            reactions.add(Post.Reaction.builder().emoji(emoji).count(1).build());
+        if (targetReaction == null) {
+            targetReaction = Post.Reaction.builder()
+                    .emoji(emoji)
+                    .count(0)
+                    .userIds(new ArrayList<>())
+                    .build();
+            reactions.add(targetReaction);
         }
+
+        List<String> userIds = targetReaction.getUserIds();
+        if (userIds == null)
+            userIds = new ArrayList<>();
+
+        if (userIds.contains(userId)) {
+            userIds.remove(userId);
+            targetReaction.setCount(userIds.size());
+            // Update metrics
+            if (emoji.equals("👍"))
+                post.getMetrics().setUpvotes(Math.max(0, post.getMetrics().getUpvotes() - 1));
+            if (emoji.equals("👎"))
+                post.getMetrics().setDownvotes(Math.max(0, post.getMetrics().getDownvotes() - 1));
+        } else {
+            // Remove previous vote if it's an up/down vote
+            if (emoji.equals("👍") || emoji.equals("👎")) {
+                String opposite = emoji.equals("👍") ? "👎" : "👍";
+                for (Post.Reaction r : reactions) {
+                    if (r.getEmoji().equals(opposite) && r.getUserIds() != null
+                            && r.getUserIds().contains(userId)) {
+                        r.getUserIds().remove(userId);
+                        r.setCount(r.getUserIds().size());
+                        if (opposite.equals("👍"))
+                            post.getMetrics().setUpvotes(Math.max(0,
+                                    post.getMetrics().getUpvotes() - 1));
+                        if (opposite.equals("👎"))
+                            post.getMetrics().setDownvotes(Math.max(0,
+                                    post.getMetrics().getDownvotes() - 1));
+                        break;
+                    }
+                }
+            }
+
+            userIds.add(userId);
+            targetReaction.setCount(userIds.size());
+            // Update metrics
+            if (emoji.equals("👍"))
+                post.getMetrics().setUpvotes(post.getMetrics().getUpvotes() + 1);
+            if (emoji.equals("👎"))
+                post.getMetrics().setDownvotes(post.getMetrics().getDownvotes() + 1);
+        }
+
+        targetReaction.setUserIds(userIds);
+        // Remove empty reactions to keep it clean
+        reactions.removeIf(r -> r.getCount() <= 0 && !r.getEmoji().equals("👍") && !r.getEmoji().equals("👎"));
 
         post.setReactions(reactions);
         return mapToDTO(postRepository.save(post));
@@ -117,9 +166,88 @@ public class PostServiceImpl implements PostService {
                 .text(commentDTO.getText())
                 .timestamp(LocalDateTime.now())
                 .reactions(new ArrayList<>())
+                .upvotes(0)
+                .downvotes(0)
                 .build();
 
-        return mapToCommentDTO(commentRepository.save(Objects.requireNonNull(comment)));
+        Comment savedComment = commentRepository.save(Objects.requireNonNull(comment));
+
+        // Increment post comment count
+        Post post = postRepository.findById(Objects.requireNonNull(postId)).orElse(null);
+        if (post != null) {
+            post.getMetrics().setComments(post.getMetrics().getComments() + 1);
+            postRepository.save(post);
+        }
+
+        return mapToCommentDTO(savedComment);
+    }
+
+    @Override
+    public CommentDTO reactToComment(String commentId, String emoji, String userId) {
+        Comment comment = commentRepository.findById(Objects.requireNonNull(commentId)).orElse(null);
+        if (comment == null)
+            return null;
+
+        List<Post.Reaction> reactions = comment.getReactions();
+        if (reactions == null)
+            reactions = new ArrayList<>();
+
+        Post.Reaction targetReaction = null;
+        for (Post.Reaction r : reactions) {
+            if (r.getEmoji().equals(emoji)) {
+                targetReaction = r;
+                break;
+            }
+        }
+
+        if (targetReaction == null) {
+            targetReaction = Post.Reaction.builder()
+                    .emoji(emoji)
+                    .count(0)
+                    .userIds(new ArrayList<>())
+                    .build();
+            reactions.add(targetReaction);
+        }
+
+        List<String> userIds = targetReaction.getUserIds();
+        if (userIds == null)
+            userIds = new ArrayList<>();
+
+        if (userIds.contains(userId)) {
+            userIds.remove(userId);
+            targetReaction.setCount(userIds.size());
+            if (emoji.equals("👍"))
+                comment.setUpvotes(Math.max(0, comment.getUpvotes() - 1));
+            if (emoji.equals("👎"))
+                comment.setDownvotes(Math.max(0, comment.getDownvotes() - 1));
+        } else {
+            if (emoji.equals("👍") || emoji.equals("👎")) {
+                String opposite = emoji.equals("👍") ? "👎" : "👍";
+                for (Post.Reaction r : reactions) {
+                    if (r.getEmoji().equals(opposite) && r.getUserIds() != null
+                            && r.getUserIds().contains(userId)) {
+                        r.getUserIds().remove(userId);
+                        r.setCount(r.getUserIds().size());
+                        if (opposite.equals("👍"))
+                            comment.setUpvotes(Math.max(0, comment.getUpvotes() - 1));
+                        if (opposite.equals("👎"))
+                            comment.setDownvotes(Math.max(0, comment.getDownvotes() - 1));
+                        break;
+                    }
+                }
+            }
+            userIds.add(userId);
+            targetReaction.setCount(userIds.size());
+            if (emoji.equals("👍"))
+                comment.setUpvotes(comment.getUpvotes() + 1);
+            if (emoji.equals("👎"))
+                comment.setDownvotes(comment.getDownvotes() + 1);
+        }
+
+        targetReaction.setUserIds(userIds);
+        reactions.removeIf(r -> r.getCount() <= 0 && !r.getEmoji().equals("👍") && !r.getEmoji().equals("👎"));
+        comment.setReactions(reactions);
+        return mapToCommentDTO(commentRepository.save(comment));
     }
 
     private PostDTO mapToDTO(Post post) {
@@ -133,21 +261,21 @@ public class PostServiceImpl implements PostService {
                         .text(post.getContent().getText())
                         .url(post.getContent().getUrl())
                         .linkPreview(post.getContent().getLinkPreview() != null
-                                                                ? PostDTO.LinkPreviewDTO.builder()
-                                                                                .title(post.getContent()
-                                                                                                .getLinkPreview()
-                                                                                                .getTitle())
-                                                                                .description(post.getContent()
-                                                                                                .getLinkPreview()
-                                                                                                .getDescription())
-                                                                                .image(post.getContent()
-                                                                                                .getLinkPreview()
-                                                                                                .getImage())
-                                                                                .siteName(post.getContent()
-                                                                                                .getLinkPreview()
-                                                                                                .getSiteName())
-                                                                                .build()
-                                                                : null)
+                                ? PostDTO.LinkPreviewDTO.builder()
+                                        .title(post.getContent()
+                                                .getLinkPreview()
+                                                .getTitle())
+                                        .description(post.getContent()
+                                                .getLinkPreview()
+                                                .getDescription())
+                                        .image(post.getContent()
+                                                .getLinkPreview()
+                                                .getImage())
+                                        .siteName(post.getContent()
+                                                .getLinkPreview()
+                                                .getSiteName())
+                                        .build()
+                                : null)
                         .media(post.getContent().getMedia())
                         .tags(post.getContent().getTags())
                         .build())
@@ -161,10 +289,13 @@ public class PostServiceImpl implements PostService {
                         .map(r -> PostDTO.ReactionDTO.builder()
                                 .emoji(r.getEmoji())
                                 .count(r.getCount())
+                                .userIds(r.getUserIds() != null
+                                        ? new ArrayList<>(r.getUserIds())
+                                        : new ArrayList<>())
                                 .userReacted(false)
                                 .build())
                         .collect(Collectors.toList()) : new ArrayList<>())
-                        .timestamp(post.getTimestamp() != null
+                .timestamp(post.getTimestamp() != null
                         ? post.getTimestamp().format(DateTimeFormatter.ISO_DATE_TIME)
                         : null)
                 .build();
@@ -183,14 +314,17 @@ public class PostServiceImpl implements PostService {
                         .map(r -> PostDTO.ReactionDTO.builder()
                                 .emoji(r.getEmoji())
                                 .count(r.getCount())
+                                .userIds(r.getUserIds() != null
+                                        ? new ArrayList<>(r.getUserIds())
+                                        : new ArrayList<>())
                                 .userReacted(false)
                                 .build())
                         .collect(Collectors.toList()) : new ArrayList<>())
                 .timestamp(
                         comment.getTimestamp() != null
-                                                                ? comment.getTimestamp()
-                                                                                .format(DateTimeFormatter.ISO_DATE_TIME)
-                                                                : null)
+                                ? comment.getTimestamp()
+                                        .format(DateTimeFormatter.ISO_DATE_TIME)
+                                : null)
                 .build();
     }
 
@@ -204,19 +338,19 @@ public class PostServiceImpl implements PostService {
                         .text(dto.getContent().getText())
                         .url(dto.getContent().getUrl())
                         .linkPreview(dto.getContent().getLinkPreview() != null
-                                                                ? Post.LinkPreview.builder()
-                                                                                .title(dto.getContent().getLinkPreview()
-                                                                                                .getTitle())
-                                                                                .description(dto.getContent()
-                                                                                                .getLinkPreview()
-                                                                                                .getDescription())
-                                                                                .image(dto.getContent().getLinkPreview()
-                                                                                                .getImage())
-                                                                                .siteName(dto.getContent()
-                                                                                                .getLinkPreview()
-                                                                                                .getSiteName())
-                                                                                .build()
-                                                                : null)
+                                ? Post.LinkPreview.builder()
+                                        .title(dto.getContent().getLinkPreview()
+                                                .getTitle())
+                                        .description(dto.getContent()
+                                                .getLinkPreview()
+                                                .getDescription())
+                                        .image(dto.getContent().getLinkPreview()
+                                                .getImage())
+                                        .siteName(dto.getContent()
+                                                .getLinkPreview()
+                                                .getSiteName())
+                                        .build()
+                                : null)
                         .media(dto.getContent().getMedia())
                         .tags(dto.getContent().getTags())
                         .build())

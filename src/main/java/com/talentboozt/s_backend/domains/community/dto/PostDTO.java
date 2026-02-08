@@ -63,5 +63,6 @@ public class PostDTO {
         private String emoji;
         private int count;
         private boolean userReacted;
+        private List<String> userIds;
     }
 }

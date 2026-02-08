@@ -24,4 +24,6 @@ public interface PostService {
     List<CommentDTO> getComments(String postId);
 
     CommentDTO addComment(String postId, CommentDTO commentDTO);
+
+    CommentDTO reactToComment(String commentId, String emoji, String userId);
 }
