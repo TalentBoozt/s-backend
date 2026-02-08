@@ -7,23 +7,17 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "comments")
-public class Comment {
+@Document(collection = "community_activities")
+public class Activity {
     @Id
     private String id;
-    private String postId;
-    private String parentId; // For threaded comments
-    private String authorId;
-    private List<String> mentionIds;
-    private String text;
-    private int upvotes;
-    private int downvotes;
-    private List<Post.Reaction> reactions;
+    private String userId;
+    private String action; // e.g., "CREATED_POST", "REACTED_TO_COMMENT"
+    private String targetId;
     private LocalDateTime timestamp;
 }

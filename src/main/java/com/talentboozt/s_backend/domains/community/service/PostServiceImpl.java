@@ -7,6 +7,7 @@ import com.talentboozt.s_backend.domains.community.dto.CommentDTO;
 import com.talentboozt.s_backend.domains.community.dto.PostDTO;
 import com.talentboozt.s_backend.domains.community.model.Comment;
 import com.talentboozt.s_backend.domains.community.model.Post;
+import com.talentboozt.s_backend.domains.community.model.Notification;
 import com.talentboozt.s_backend.domains.community.repository.CommentRepository;
 import com.talentboozt.s_backend.domains.community.repository.PostRepository;
 
@@ -24,6 +25,8 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final NotificationService notificationService;
+    private final ActivityService activityService;
 
     @Override
     public List<PostDTO> getAllPosts(Pageable pageable) {
@@ -57,15 +60,36 @@ public class PostServiceImpl implements PostService {
     public PostDTO createPost(PostDTO postDTO) {
         Post post = mapToEntity(postDTO);
         post.setTimestamp(LocalDateTime.now());
-        post.setMetrics(Post.PostMetrics.builder()
-                .upvotes(0)
-                .downvotes(0)
-                .comments(0)
-                .shares(0)
-                .build());
+        post.setMetrics(
+                Post.PostMetrics.builder().upvotes(0).downvotes(0).comments(0).shares(0).build());
         post.setReactions(new ArrayList<>());
 
+        // Handle mentions
+        List<String> mentionIds = postDTO.getMentionIds();
+        if (mentionIds == null)
+            mentionIds = new ArrayList<>();
+        post.setMentionIds(mentionIds);
+        post.setQuotedPostId(postDTO.getQuotedPostId());
+
         Post savedPost = postRepository.save(post);
+
+        // Log Activity
+        activityService.logActivity(post.getAuthorId(), "CREATED_POST", savedPost.getId());
+
+        // Notify Mentioned Users
+        for (String mentionId : mentionIds) {
+            notificationService.createNotification(mentionId, post.getAuthorId(),
+                    Notification.NotificationType.MENTION, savedPost.getId());
+        }
+
+        // Notify Quoted Post Author
+        if (post.getQuotedPostId() != null) {
+            postRepository.findById(post.getQuotedPostId()).ifPresent(originalPost -> {
+                notificationService.createNotification(originalPost.getAuthorId(), post.getAuthorId(),
+                        Notification.NotificationType.QUOTE, savedPost.getId());
+            });
+        }
+
         return mapToDTO(savedPost);
     }
 
@@ -147,7 +171,17 @@ public class PostServiceImpl implements PostService {
         reactions.removeIf(r -> r.getCount() <= 0 && !r.getEmoji().equals("👍") && !r.getEmoji().equals("👎"));
 
         post.setReactions(reactions);
-        return mapToDTO(postRepository.save(post));
+        Post savedPost = postRepository.save(post);
+
+        // Notify Author on new React (if it's not a removal)
+        if (userIds.contains(userId)) {
+            Notification.NotificationType type = emoji.equals("👍") || emoji.equals("👎")
+                    ? Notification.NotificationType.LIKE
+                    : Notification.NotificationType.LIKE;
+            notificationService.createNotification(post.getAuthorId(), userId, type, post.getId());
+        }
+
+        return mapToDTO(savedPost);
     }
 
     @Override
@@ -163,6 +197,8 @@ public class PostServiceImpl implements PostService {
                 .postId(postId)
                 .parentId(commentDTO.getParentId())
                 .authorId(commentDTO.getAuthorId())
+                .mentionIds(commentDTO.getMentionIds() != null ? commentDTO.getMentionIds()
+                        : new ArrayList<>())
                 .text(commentDTO.getText())
                 .timestamp(LocalDateTime.now())
                 .reactions(new ArrayList<>())
@@ -172,11 +208,36 @@ public class PostServiceImpl implements PostService {
 
         Comment savedComment = commentRepository.save(Objects.requireNonNull(comment));
 
-        // Increment post comment count
+        // Log Activity
+        activityService.logActivity(comment.getAuthorId(), "ADDED_COMMENT", savedComment.getId());
+
+        // Increment post comment count and Notify Post Author
         Post post = postRepository.findById(Objects.requireNonNull(postId)).orElse(null);
         if (post != null) {
             post.getMetrics().setComments(post.getMetrics().getComments() + 1);
             postRepository.save(post);
+
+            // Notify Post Author
+            notificationService.createNotification(post.getAuthorId(), comment.getAuthorId(),
+                    Notification.NotificationType.COMMENT, post.getId());
+        }
+
+        // Notify Parent Comment Author (if reply)
+        if (comment.getParentId() != null) {
+            commentRepository.findById(comment.getParentId()).ifPresent(parent -> {
+                notificationService.createNotification(parent.getAuthorId(), comment.getAuthorId(),
+                        Notification.NotificationType.COMMENT,
+                        post != null ? post.getId() : savedComment.getId());
+            });
+        }
+
+        // Notify Mentioned Users
+        if (comment.getMentionIds() != null) {
+            for (String mentionId : comment.getMentionIds()) {
+                notificationService.createNotification(mentionId, comment.getAuthorId(),
+                        Notification.NotificationType.MENTION,
+                        post != null ? post.getId() : savedComment.getId());
+            }
         }
 
         return mapToCommentDTO(savedComment);
@@ -295,6 +356,8 @@ public class PostServiceImpl implements PostService {
                                 .userReacted(false)
                                 .build())
                         .collect(Collectors.toList()) : new ArrayList<>())
+                .mentionIds(post.getMentionIds())
+                .quotedPostId(post.getQuotedPostId())
                 .timestamp(post.getTimestamp() != null
                         ? post.getTimestamp().format(DateTimeFormatter.ISO_DATE_TIME)
                         : null)
@@ -320,6 +383,7 @@ public class PostServiceImpl implements PostService {
                                 .userReacted(false)
                                 .build())
                         .collect(Collectors.toList()) : new ArrayList<>())
+                .mentionIds(comment.getMentionIds())
                 .timestamp(
                         comment.getTimestamp() != null
                                 ? comment.getTimestamp()
@@ -354,6 +418,8 @@ public class PostServiceImpl implements PostService {
                         .media(dto.getContent().getMedia())
                         .tags(dto.getContent().getTags())
                         .build())
+                .mentionIds(dto.getMentionIds())
+                .quotedPostId(dto.getQuotedPostId())
                 .build();
     }
 }
