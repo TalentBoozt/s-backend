@@ -46,7 +46,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
 
     public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomUserDetailsService userDetailsService,
-        ConfigUtility configUtil, CredentialsService credentialsService) {
+            ConfigUtility configUtil, CredentialsService credentialsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
         this.configUtil = configUtil;
@@ -66,10 +66,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .headers(headers -> headers
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
                         .xssProtection(HeadersConfigurer.XXssConfig::disable)
                         .referrerPolicy(referrerPolicy -> referrerPolicy
-                            .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                         .httpStrictTransportSecurity(
                                 httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer
                                         .includeSubDomains(false)
@@ -91,9 +91,9 @@ public class SecurityConfig {
                                 "/api/v2/linkedin/**", "/callback/google/**", "/api/v2/cmp_job-apply/addViewer/**",
                                 "/api/v2/ambassador/**", "/api/v2/courses/**", "/api/v2/password-reset/request",
                                 "/api/v2/payments/recorded/**", "/api/v2/news-latter/**", "/api/v2/email/**",
-                                "/api/security/verify-captcha", "/ws/**"
-                        ).permitAll()
-//                        .requestMatchers("/actuator/**").permitAll() // for testing
+                                "/api/security/verify-captcha", "/ws/**")
+                        .permitAll()
+                        // .requestMatchers("/actuator/**").permitAll() // for testing
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .anyRequest().authenticated())
@@ -136,7 +136,7 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setExposedHeaders(
-            List.of("Stripe-Signature", "X-Demo-Mode", "X-Timezone-Mismatch", "Remaining-Credits"));
+                List.of("Stripe-Signature", "X-Demo-Mode", "X-Timezone-Mismatch", "Remaining-Credits"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
