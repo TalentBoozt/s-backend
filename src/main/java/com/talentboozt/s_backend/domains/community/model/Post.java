@@ -26,6 +26,7 @@ public class Post {
     private PostMetrics metrics;
     private List<Reaction> reactions;
     private LocalDateTime timestamp;
+    private LocalDateTime updatedAt;
 
     @Data
     @Builder

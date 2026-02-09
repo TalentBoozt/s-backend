@@ -21,5 +21,6 @@ public class CommentDTO {
     private List<PostDTO.ReactionDTO> reactions;
     private List<String> mentionIds;
     private String timestamp;
+    private String updatedAt;
     private List<CommentDTO> replies;
 }
