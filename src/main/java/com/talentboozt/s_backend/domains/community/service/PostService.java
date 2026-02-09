@@ -5,6 +5,7 @@ import com.talentboozt.s_backend.domains.community.dto.CommentDTO;
 import java.util.List;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 public interface PostService {
     List<PostDTO> getAllPosts(Pageable pageable);
@@ -21,7 +22,7 @@ public interface PostService {
 
     PostDTO reactToPost(String id, String emoji, String userId);
 
-    List<CommentDTO> getComments(String postId);
+    Page<CommentDTO> getComments(String postId, Pageable pageable);
 
     CommentDTO addComment(String postId, CommentDTO commentDTO);
 

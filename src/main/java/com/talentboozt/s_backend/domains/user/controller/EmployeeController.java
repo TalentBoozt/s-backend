@@ -26,6 +26,14 @@ public class EmployeeController {
         return employeeService.getEmployeesPaginated(page, size);
     }
 
+    @GetMapping("/search")
+    public List<EmployeeModel> searchEmployees(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return employeeService.searchEmployees(query, page, size);
+    }
+
     @GetMapping("/get/{id}")
     public EmployeeModel getEmployee(@PathVariable String id) {
         return employeeService.getEmployee(id);

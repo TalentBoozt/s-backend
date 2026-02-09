@@ -10,6 +10,7 @@ import com.talentboozt.s_backend.domains.community.model.Post;
 import com.talentboozt.s_backend.domains.community.model.Notification;
 import com.talentboozt.s_backend.domains.community.repository.CommentRepository;
 import com.talentboozt.s_backend.domains.community.repository.PostRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ public class PostServiceImpl implements PostService {
     private final CommentRepository commentRepository;
     private final NotificationService notificationService;
     private final ActivityService activityService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Override
     public List<PostDTO> getAllPosts(Pageable pageable) {
@@ -181,14 +184,15 @@ public class PostServiceImpl implements PostService {
             notificationService.createNotification(post.getAuthorId(), userId, type, post.getId());
         }
 
-        return mapToDTO(savedPost);
+        PostDTO postDTO = mapToDTO(savedPost);
+        messagingTemplate.convertAndSend("/topic/post/" + id, Objects.requireNonNull(postDTO));
+        return postDTO;
     }
 
     @Override
-    public List<CommentDTO> getComments(String postId) {
-        return commentRepository.findByPostId(postId).stream()
-                .map(this::mapToCommentDTO)
-                .collect(Collectors.toList());
+    public Page<CommentDTO> getComments(String postId, Pageable pageable) {
+        return commentRepository.findByPostId(postId, pageable)
+                .map(this::mapToCommentDTO);
     }
 
     @Override
@@ -240,7 +244,9 @@ public class PostServiceImpl implements PostService {
             }
         }
 
-        return mapToCommentDTO(savedComment);
+        CommentDTO newCommentDTO = mapToCommentDTO(savedComment);
+        messagingTemplate.convertAndSend("/topic/post/" + postId + "/comments", Objects.requireNonNull(newCommentDTO));
+        return newCommentDTO;
     }
 
     @Override
@@ -389,6 +395,7 @@ public class PostServiceImpl implements PostService {
                                 ? comment.getTimestamp()
                                         .format(DateTimeFormatter.ISO_DATE_TIME)
                                 : null)
+                .replies(new ArrayList<>())
                 .build();
     }
 

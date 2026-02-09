@@ -45,7 +45,8 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService userDetailsService;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomUserDetailsService userDetailsService, ConfigUtility configUtil, CredentialsService credentialsService) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomUserDetailsService userDetailsService,
+        ConfigUtility configUtil, CredentialsService credentialsService) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
         this.configUtil = configUtil;
@@ -67,22 +68,21 @@ public class SecurityConfig {
                 .headers(headers -> headers
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                         .xssProtection(HeadersConfigurer.XXssConfig::disable)
-                        .referrerPolicy(referrerPolicy -> referrerPolicy.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        .referrerPolicy(referrerPolicy -> referrerPolicy
+                            .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                         .httpStrictTransportSecurity(
                                 httpSecurityHeadersConfigurer -> httpSecurityHeadersConfigurer
                                         .includeSubDomains(false)
-                                        .maxAgeInSeconds(31536000)
-                        )
-                )
+                                        .maxAgeInSeconds(31536000)))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/env").authenticated()
                         .requestMatchers("/actuator/loggers").authenticated()
                         .requestMatchers("/actuator/beans").authenticated()
                         .requestMatchers("/actuator/configprops").authenticated()
-                        .requestMatchers(request ->
-                                request.getRequestURI().startsWith("/actuator/") && !request.getRequestURI().equals("/actuator/env")
-                        ).permitAll()
+                        .requestMatchers(request -> request.getRequestURI().startsWith("/actuator/")
+                                && !request.getRequestURI().equals("/actuator/env"))
+                        .permitAll()
                         .requestMatchers(
                                 "/stripe/**", "/public/**", "/sso/**", "/docs/**",
                                 "/api/auth/**", "/oauth2/**", "/oauth/**",
@@ -91,21 +91,19 @@ public class SecurityConfig {
                                 "/api/v2/linkedin/**", "/callback/google/**", "/api/v2/cmp_job-apply/addViewer/**",
                                 "/api/v2/ambassador/**", "/api/v2/courses/**", "/api/v2/password-reset/request",
                                 "/api/v2/payments/recorded/**", "/api/v2/news-latter/**", "/api/v2/email/**",
-                                "/api/security/verify-captcha"
+                                "/api/security/verify-captcha", "/ws/**"
                         ).permitAll()
 //                        .requestMatchers("/actuator/**").permitAll() // for testing
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage(configUtil.getProperty("FAILURE_REDIRECT"))
                         .defaultSuccessUrl(configUtil.getProperty("SUCCESS_REDIRECT"), true)
-                        .permitAll()
-                )
+                        .permitAll())
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage(configUtil.getProperty("FAILURE_REDIRECT"))
                         .userInfoEndpoint(userInfo -> {
@@ -115,8 +113,7 @@ public class SecurityConfig {
                             userInfo.userService(this.linkedinUserService());
                         })
                         .defaultSuccessUrl(configUtil.getProperty("GOOGLE_CLIENT_REDIRECT"), true)
-                        .permitAll()
-                );
+                        .permitAll());
 
         return http.build();
     }
@@ -135,11 +132,11 @@ public class SecurityConfig {
                 configUtil.getProperty("ALLOWED_ORIGIN_7"),
                 configUtil.getProperty("ALLOWED_ORIGIN_8"),
                 configUtil.getProperty("ALLOWED_ORIGIN_9"),
-                configUtil.getProperty("ALLOWED_ORIGIN_10")
-        ));
+                configUtil.getProperty("ALLOWED_ORIGIN_10")));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(List.of("Stripe-Signature", "X-Demo-Mode", "X-Timezone-Mismatch", "Remaining-Credits"));
+        configuration.setExposedHeaders(
+            List.of("Stripe-Signature", "X-Demo-Mode", "X-Timezone-Mismatch", "Remaining-Credits"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

@@ -2,15 +2,18 @@ package com.talentboozt.s_backend.domains.community.service;
 
 import com.talentboozt.s_backend.domains.community.model.Notification;
 import com.talentboozt.s_backend.domains.community.repository.NotificationRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
     private final NotificationRepository notificationRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public void createNotification(String recipientId, String senderId, Notification.NotificationType type,
             String targetId) {
@@ -25,7 +28,13 @@ public class NotificationService {
                 .isRead(false)
                 .timestamp(LocalDateTime.now())
                 .build();
-        notificationRepository.save(notification);
+                Notification savedNotification = notificationRepository.save(Objects.requireNonNull(notification));
+
+                // Push real-time notification
+                messagingTemplate.convertAndSendToUser(
+                        recipientId,
+                        "/queue/notifications",
+                        savedNotification);
     }
 
     public List<Notification> getNotifications(String userId) {
@@ -33,7 +42,7 @@ public class NotificationService {
     }
 
     public void markAsRead(String notificationId) {
-        notificationRepository.findById(notificationId).ifPresent(n -> {
+        notificationRepository.findById(Objects.requireNonNull(notificationId)).ifPresent(n -> {
             n.setRead(true);
             notificationRepository.save(n);
         });
