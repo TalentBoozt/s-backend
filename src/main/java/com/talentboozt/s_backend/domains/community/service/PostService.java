@@ -20,11 +20,17 @@ public interface PostService {
 
     void deletePost(String id);
 
+    PostDTO updatePost(String id, PostDTO postDTO);
+
     PostDTO reactToPost(String id, String emoji, String userId);
 
     Page<CommentDTO> getComments(String postId, Pageable pageable);
 
     CommentDTO addComment(String postId, CommentDTO commentDTO);
+
+    void deleteComment(String postId, String commentId);
+
+    CommentDTO updateComment(String postId, String commentId, CommentDTO commentDTO);
 
     CommentDTO reactToComment(String commentId, String emoji, String userId);
 }

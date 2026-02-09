@@ -102,6 +102,39 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public PostDTO updatePost(String id, PostDTO postDTO) {
+        Post post = postRepository.findById(Objects.requireNonNull(id)).orElse(null);
+        if (post == null)
+            return null;
+
+        // Update content fields
+        if (postDTO.getContent() != null) {
+            if (post.getContent() == null) {
+                post.setContent(Post.PostContent.builder().build());
+            }
+            if (postDTO.getContent().getText() != null) {
+                post.getContent().setText(postDTO.getContent().getText());
+            }
+            if (postDTO.getContent().getTitle() != null) {
+                post.getContent().setTitle(postDTO.getContent().getTitle());
+            }
+            if (postDTO.getContent().getUrl() != null) {
+                post.getContent().setUrl(postDTO.getContent().getUrl());
+            }
+            if (postDTO.getContent().getMedia() != null) {
+                post.getContent().setMedia(postDTO.getContent().getMedia());
+            }
+            if (postDTO.getContent().getTags() != null) {
+                post.getContent().setTags(postDTO.getContent().getTags());
+            }
+        }
+        post.setUpdatedAt(LocalDateTime.now());
+
+        Post updatedPost = postRepository.save(post);
+        return mapToDTO(updatedPost);
+    }
+
+    @Override
     public PostDTO reactToPost(String id, String emoji, String userId) {
         Post post = postRepository.findById(Objects.requireNonNull(id)).orElse(null);
         if (post == null)
@@ -247,6 +280,24 @@ public class PostServiceImpl implements PostService {
         CommentDTO newCommentDTO = mapToCommentDTO(savedComment);
         messagingTemplate.convertAndSend("/topic/post/" + postId + "/comments", Objects.requireNonNull(newCommentDTO));
         return newCommentDTO;
+    }
+
+    @Override
+    public void deleteComment(String postId, String commentId) {
+        commentRepository.deleteById(Objects.requireNonNull(commentId));
+    }
+
+    @Override
+    public CommentDTO updateComment(String postId, String commentId, CommentDTO commentDTO) {
+        Comment comment = commentRepository.findById(Objects.requireNonNull(commentId)).orElse(null);
+        if (comment == null)
+            return null;
+
+        comment.setText(commentDTO.getText());
+        comment.setUpdatedAt(LocalDateTime.now());
+
+        Comment updatedComment = commentRepository.save(comment);
+        return mapToCommentDTO(updatedComment);
     }
 
     @Override

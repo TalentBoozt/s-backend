@@ -60,6 +60,14 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<PostDTO> update(
+            @PathVariable String id,
+            @RequestBody PostDTO postDTO) {
+        PostDTO post = postService.updatePost(id, postDTO);
+        return post != null ? ResponseEntity.ok(post) : ResponseEntity.notFound().build();
+    }
+
     @PostMapping("/{id}/react")
     public ResponseEntity<PostDTO> react(
             @PathVariable String id,
@@ -83,6 +91,21 @@ public class PostController {
             @PathVariable String id,
             @RequestBody CommentDTO commentDTO) {
         return new ResponseEntity<>(postService.addComment(id, commentDTO), HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/{id}/comments/{commentId}")
+    public ResponseEntity<Void> deleteComment(@PathVariable String id, @PathVariable String commentId) {
+        postService.deleteComment(id, commentId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/comments/{commentId}")
+    public ResponseEntity<CommentDTO> updateComment(
+            @PathVariable String id,
+            @PathVariable String commentId,
+            @RequestBody CommentDTO commentDTO) {
+        CommentDTO comment = postService.updateComment(id, commentId, commentDTO);
+        return comment != null ? ResponseEntity.ok(comment) : ResponseEntity.notFound().build();
     }
 
     @PostMapping("/comments/{commentId}/react")

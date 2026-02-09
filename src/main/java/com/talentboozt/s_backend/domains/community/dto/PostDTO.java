@@ -21,6 +21,7 @@ public class PostDTO {
     private List<String> mentionIds;
     private String quotedPostId;
     private String timestamp;
+    private String updatedAt;
 
     @Data
     @Builder
