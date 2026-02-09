@@ -74,6 +74,12 @@ public class EmployeeService {
         return employeeRepository.findAllBy(pageable);
     }
 
+    public List<EmployeeModel> searchEmployees(String query, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return employeeRepository.findByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(query, query,
+                pageable);
+    }
+
     public EmployeeModel getEmployee(String id) {
         return employeeRepository.findById(Objects.requireNonNull(id)).orElse(null);
     }

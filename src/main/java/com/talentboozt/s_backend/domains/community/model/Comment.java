@@ -26,4 +26,5 @@ public class Comment {
     private int downvotes;
     private List<Post.Reaction> reactions;
     private LocalDateTime timestamp;
+    private List<Comment> replies;
 }

@@ -13,4 +13,7 @@ public interface EmployeeRepository extends MongoRepository<EmployeeModel, Strin
     List<EmployeeModel> findAllBy(Pageable pageable);
 
     Optional<EmployeeModel> findByEmail(String email);
+
+    List<EmployeeModel> findByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(String firstname,
+        String lastname, Pageable pageable);
 }
