@@ -13,6 +13,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
@@ -156,13 +157,30 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiErrorResponse> handleRuntimeException(RuntimeException ex) {
+    public ResponseEntity<ApiErrorResponse> handleRuntimeException(RuntimeException ex, WebRequest request) {
+        // If the response is already committed, we can't write a JSON body
+        // Also check if the request is looking for application/javascript (SockJS
+        // fallback)
+        String acceptHeader = request.getHeader("Accept");
+        if (acceptHeader != null && acceptHeader.contains("application/javascript")) {
+            logger.warn("Runtime exception during non-JSON request: {}", ex.getMessage());
+            return null; // Let the container handle it or return empty
+        }
+
         logger.error("Runtime exception occurred: {}", ex.getMessage(), ex);
         ApiErrorResponse error = new ApiErrorResponse(
                 ex.getMessage() != null ? ex.getMessage() : "An error occurred",
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "RUNTIME_ERROR");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    }
+
+    @ExceptionHandler(HttpMessageNotWritableException.class)
+    public ResponseEntity<ApiErrorResponse> handleHttpMessageNotWritableException(HttpMessageNotWritableException ex,
+            WebRequest request) {
+        logger.warn("Could not write JSON response (possibly response already committed or incompatible type): {}",
+                ex.getMessage());
+        return null; // Prevent infinite loop or secondary errors in ExceptionHandler
     }
 
     @ExceptionHandler(io.github.resilience4j.ratelimiter.RequestNotPermitted.class)
