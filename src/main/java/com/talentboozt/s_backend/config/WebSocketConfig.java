@@ -25,6 +25,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         "https://talnova.io",
                         "https://*.talnova.io",
                         "http://localhost:*",
+                        "http://127.0.0.1:*");
+
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns(
+                        "https://talnova.io",
+                        "https://*.talnova.io",
+                        "http://localhost:*",
                         "http://127.0.0.1:*")
                 .withSockJS()
                 .setStreamBytesLimit(512 * 1024)
