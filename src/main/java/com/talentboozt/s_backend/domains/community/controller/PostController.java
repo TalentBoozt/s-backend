@@ -25,7 +25,7 @@ public class PostController {
     private final PostService postService;
     private final LinkPreviewService linkPreviewService;
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<PostDTO>> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
