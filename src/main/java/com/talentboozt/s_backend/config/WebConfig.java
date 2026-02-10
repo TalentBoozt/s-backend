@@ -17,7 +17,7 @@ import static org.springframework.data.web.config.EnableSpringDataWebSupport.Pag
 public class WebConfig implements WebMvcConfigurer {
 
     @Override
-    public void configureMessageConverters(@NonNull List<HttpMessageConverter<?>> converters) {
+    public void extendMessageConverters(@NonNull List<HttpMessageConverter<?>> converters) {
         converters.add(new AllEncompassingFormHttpMessageConverter());
     }
 }

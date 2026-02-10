@@ -81,6 +81,19 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Order(1) // Specific matcher before catch-all
+    public SecurityFilterChain captchaSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/api/security/verify-captcha")
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/security/verify-captcha").permitAll());
+
+        return http.build();
+    }
+
+    @Bean
     @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -208,19 +221,6 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    @Bean
-    @Order(1)
-    public SecurityFilterChain captchaSecurityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .securityMatcher("/api/security/verify-captcha")
-                .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/security/verify-captcha").permitAll());
-
-        return http.build();
     }
 
     @Bean
