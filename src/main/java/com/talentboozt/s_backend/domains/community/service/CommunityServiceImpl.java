@@ -2,6 +2,10 @@ package com.talentboozt.s_backend.domains.community.service;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+
 import org.springframework.stereotype.Service;
 
 import com.talentboozt.s_backend.domains.community.dto.CommunityDTO;
@@ -35,6 +39,7 @@ public class CommunityServiceImpl implements CommunityService {
     }
 
     @Override
+    @Cacheable(value = "communities", key = "#id")
     public CommunityDTO getCommunityById(String id) {
         return getCommunityById(id, null);
     }
@@ -81,6 +86,7 @@ public class CommunityServiceImpl implements CommunityService {
     }
 
     @Override
+    @CacheEvict(value = "communities", key = "#id")
     public void deleteCommunity(String id) {
         // Delete all members first
         List<CommunityMember> members = communityMemberRepository.findByCommunityId(id);
@@ -91,6 +97,7 @@ public class CommunityServiceImpl implements CommunityService {
     }
 
     @Override
+    @CachePut(value = "communities", key = "#id")
     public CommunityDTO updateCommunity(String id, CommunityDTO communityDTO) {
         Community community = communityRepository.findById(Objects.requireNonNull(id))
                 .orElseThrow(() -> new ResourceNotFoundException("Community", "id", id));

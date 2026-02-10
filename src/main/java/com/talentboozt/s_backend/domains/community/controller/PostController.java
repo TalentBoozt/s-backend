@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.community.controller;
 
 import lombok.RequiredArgsConstructor;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,9 +29,20 @@ public class PostController {
     @GetMapping("/all")
     public ResponseEntity<List<PostDTO>> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "new") String sort) {
+        Pageable pageable = PageRequest.of(page, size);
+        return ResponseEntity.ok(postService.getAllPosts(pageable, sort));
+    }
+
+    @GetMapping("/search")
+    @RateLimiter(name = "searchLimiter")
+    public ResponseEntity<List<PostDTO>> searchPosts(
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return ResponseEntity.ok(postService.getAllPosts(pageable));
+        return ResponseEntity.ok(postService.searchPosts(query, pageable));
     }
 
     @GetMapping("/community/{communityId}")
@@ -50,6 +62,7 @@ public class PostController {
     }
 
     @PostMapping
+    @RateLimiter(name = "postLimiter")
     public ResponseEntity<PostDTO> create(@RequestBody PostDTO postDTO) {
         return new ResponseEntity<>(postService.createPost(postDTO), HttpStatus.CREATED);
     }
@@ -87,6 +100,7 @@ public class PostController {
     }
 
     @PostMapping("/{id}/comments")
+    @RateLimiter(name = "postLimiter")
     public ResponseEntity<CommentDTO> addComment(
             @PathVariable String id,
             @RequestBody CommentDTO commentDTO) {

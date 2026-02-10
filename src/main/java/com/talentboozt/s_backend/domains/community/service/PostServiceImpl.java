@@ -3,8 +3,13 @@ package com.talentboozt.s_backend.domains.community.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
+
 import com.talentboozt.s_backend.domains.community.dto.CommentDTO;
 import com.talentboozt.s_backend.domains.community.dto.PostDTO;
+import com.talentboozt.s_backend.domains.community.event.ContentCreatedEvent;
 import com.talentboozt.s_backend.domains.community.model.Comment;
 import com.talentboozt.s_backend.domains.community.model.Post;
 import com.talentboozt.s_backend.domains.community.model.Notification;
@@ -20,6 +25,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 @Service
 @RequiredArgsConstructor
@@ -29,11 +36,22 @@ public class PostServiceImpl implements PostService {
     private final CommentRepository commentRepository;
     private final NotificationService notificationService;
     private final ActivityService activityService;
+    private final MentionService mentionService;
+    private final ApplicationEventPublisher eventPublisher;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override
-    public List<PostDTO> getAllPosts(Pageable pageable) {
-        return postRepository.findAll(Objects.requireNonNull(pageable)).stream()
+    public List<PostDTO> getAllPosts(Pageable pageable, String sort) {
+        Sort sorting = Sort.by(Sort.Direction.DESC, "timestamp");
+        if ("trending".equals(sort)) {
+            sorting = Sort.by(Sort.Direction.DESC, "trendingScore");
+        } else if ("top".equals(sort)) {
+            sorting = Sort.by(Sort.Direction.DESC, "metrics.upvotes");
+        }
+
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sorting);
+
+        return postRepository.findAll(sortedPageable).stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
@@ -46,6 +64,13 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public List<PostDTO> searchPosts(String query, Pageable pageable) {
+        return postRepository.searchPosts(query, pageable).stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<PostDTO> getPostsByAuthor(String authorId) {
         return postRepository.findByAuthorId(authorId).stream()
                 .map(this::mapToDTO)
@@ -53,6 +78,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Cacheable(value = "posts", key = "#id")
     public PostDTO getPostById(String id) {
         return postRepository.findById(Objects.requireNonNull(id))
                 .map(this::mapToDTO)
@@ -71,10 +97,31 @@ public class PostServiceImpl implements PostService {
         List<String> mentionIds = postDTO.getMentionIds();
         if (mentionIds == null)
             mentionIds = new ArrayList<>();
+
+        // Auto-extract from text if available
+        if (post.getContent() != null && post.getContent().getText() != null) {
+            List<String> extractedIds = mentionService
+                    .extractAndResolveMentions(post.getContent().getText());
+            for (String id : extractedIds) {
+                if (!mentionIds.contains(id)) {
+                    mentionIds.add(id);
+                }
+            }
+        }
+
         post.setMentionIds(mentionIds);
         post.setQuotedPostId(postDTO.getQuotedPostId());
 
         Post savedPost = postRepository.save(post);
+
+        // Automated Flagging
+        eventPublisher.publishEvent(
+            ContentCreatedEvent.builder()
+                            .targetId(Objects.requireNonNull(savedPost.getId()))
+                            .type("POST")
+                            .text(Objects.requireNonNull(post.getContent().getText()))
+                            .authorId(Objects.requireNonNull(post.getAuthorId()))
+                            .build());
 
         // Log Activity
         activityService.logActivity(post.getAuthorId(), "CREATED_POST", savedPost.getId());
@@ -97,6 +144,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @CacheEvict(value = "posts", key = "#id")
     public void deletePost(String id) {
         postRepository.deleteById(Objects.requireNonNull(id));
     }
@@ -212,11 +260,11 @@ public class PostServiceImpl implements PostService {
         // Notify Author on new React (if it's not a removal and not self-reaction)
         if (userIds.contains(userId) && !post.getAuthorId().equals(userId)) {
             notificationService.createNotification(
-                            post.getAuthorId(),
-                            userId,
-                            Notification.NotificationType.POST_REACTION,
-                            post.getId());
-    }
+                    post.getAuthorId(),
+                    userId,
+                    Notification.NotificationType.POST_REACTION,
+                    post.getId());
+        }
 
         PostDTO postDTO = mapToDTO(savedPost);
         messagingTemplate.convertAndSend("/topic/post/" + id, Objects.requireNonNull(postDTO));
@@ -244,7 +292,28 @@ public class PostServiceImpl implements PostService {
                 .downvotes(0)
                 .build();
 
+        // Auto-extract mentions from comment text
+        if (comment.getText() != null) {
+            List<String> extractedIds = mentionService.extractAndResolveMentions(comment.getText());
+            if (comment.getMentionIds() == null)
+                comment.setMentionIds(new ArrayList<>());
+            for (String id : extractedIds) {
+                if (!comment.getMentionIds().contains(id)) {
+                    comment.getMentionIds().add(id);
+                }
+            }
+        }
+
         Comment savedComment = commentRepository.save(Objects.requireNonNull(comment));
+
+        // Automated Flagging
+        eventPublisher.publishEvent(
+            ContentCreatedEvent.builder()
+                            .targetId(Objects.requireNonNull(savedComment.getId()))
+                            .type("COMMENT")
+                            .text(Objects.requireNonNull(comment.getText()))
+                            .authorId(Objects.requireNonNull(comment.getAuthorId()))
+                            .build());
 
         // Log Activity
         activityService.logActivity(comment.getAuthorId(), "ADDED_COMMENT", savedComment.getId());
@@ -368,19 +437,19 @@ public class PostServiceImpl implements PostService {
         comment.setReactions(reactions);
         Comment savedComment = commentRepository.save(comment);
 
-                // Notify Comment Author on new React (if it's not a removal and not
-                // self-reaction)
-                if (userIds.contains(userId) && !comment.getAuthorId().equals(userId)) {
-                        notificationService.createNotification(
-                                        comment.getAuthorId(),
-                                        userId,
-                                        Notification.NotificationType.COMMENT_REACTION,
-                                        comment.getId());
-                }
+        // Notify Comment Author on new React (if it's not a removal and not
+        // self-reaction)
+        if (userIds.contains(userId) && !comment.getAuthorId().equals(userId)) {
+            notificationService.createNotification(
+                    comment.getAuthorId(),
+                    userId,
+                    Notification.NotificationType.COMMENT_REACTION,
+                    comment.getId());
+        }
 
-                CommentDTO commentDTO = mapToCommentDTO(savedComment);
-                messagingTemplate.convertAndSend("/topic/comment/" + commentId, commentDTO);
-                return commentDTO;
+        CommentDTO commentDTO = mapToCommentDTO(savedComment);
+        messagingTemplate.convertAndSend("/topic/comment/" + commentId, commentDTO);
+        return commentDTO;
     }
 
     private PostDTO mapToDTO(Post post) {
@@ -433,6 +502,7 @@ public class PostServiceImpl implements PostService {
                 .timestamp(post.getTimestamp() != null
                         ? post.getTimestamp().format(DateTimeFormatter.ISO_DATE_TIME)
                         : null)
+                .trendingScore(post.getTrendingScore())
                 .build();
     }
 

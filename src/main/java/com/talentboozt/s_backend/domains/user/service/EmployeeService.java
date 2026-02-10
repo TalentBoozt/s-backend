@@ -399,5 +399,28 @@ public class EmployeeService {
         EmployeeModel savedEmployee = addEmployee(employee);
         return CompletableFuture.completedFuture(savedEmployee);
     }
+
+    public List<EmployeeModel> getRecommendations(String userId) {
+        // Get list of users already followed
+        List<EmpFollowingModel> followingList = empFollowingRepository.findByEmployeeId(userId);
+        List<String> excludedIds = new ArrayList<>();
+        excludedIds.add(userId); // Exclude self
+
+        if (!followingList.isEmpty()) {
+            EmpFollowingModel followingModel = followingList.get(0);
+            if (followingModel.getFollowings() != null) {
+                for (EmpFollowingDTO following : followingModel.getFollowings()) {
+                    excludedIds.add(following.getFollowingId());
+                }
+            }
+        }
+
+        // Fetch 5 random/top users not in the excluded list
+        // For now, just fetching top 5 by default order (which might be registration
+        // order)
+        // Todo: Improve to use "most followed" or "similar interests"
+        Pageable pageable = PageRequest.of(0, 5);
+        return employeeRepository.findByIdNotIn(excludedIds, pageable);
+    }
 }
 

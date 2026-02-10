@@ -165,6 +165,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
+    @ExceptionHandler(io.github.resilience4j.ratelimiter.RequestNotPermitted.class)
+    public ResponseEntity<ApiErrorResponse> handleRateLimitException(
+            io.github.resilience4j.ratelimiter.RequestNotPermitted ex) {
+        logger.warn("Rate limit exceeded");
+        ApiErrorResponse error = new ApiErrorResponse(
+                "Rate limit exceeded. Please try again later.",
+                HttpStatus.TOO_MANY_REQUESTS.value(),
+                "RATE_LIMIT_EXCEEDED");
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGenericException(Exception ex, WebRequest request) {
         logger.error("Unexpected error occurred", ex);

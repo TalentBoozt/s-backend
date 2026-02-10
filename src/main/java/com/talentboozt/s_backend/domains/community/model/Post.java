@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,6 +16,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "posts")
+@CompoundIndexes({
+    @CompoundIndex(name = "community_timestamp", def = "{'communityId': 1, 'timestamp': -1}"),
+    @CompoundIndex(name = "author_timestamp", def = "{'authorId': 1, 'timestamp': -1}"),
+    @CompoundIndex(name = "timestamp_idx", def = "{'timestamp': -1}"),
+        @CompoundIndex(name = "trending_idx", def = "{'trendingScore': -1}")
+})
 public class Post {
     @Id
     private String id;
@@ -27,6 +35,9 @@ public class Post {
     private List<Reaction> reactions;
     private LocalDateTime timestamp;
     private LocalDateTime updatedAt;
+
+    @Builder.Default
+    private double trendingScore = 0.0;
 
     @Data
     @Builder

@@ -26,54 +26,93 @@ public class CacheConfig {
         SimpleCacheManager cacheManager = new SimpleCacheManager();
 
         List<CaffeineCache> caches = List.of(
-            new CaffeineCache("userCredentials",
-            Objects.requireNonNull(
-                Caffeine.newBuilder()
-                    .expireAfterWrite(10, TimeUnit.MINUTES)
-                    .maximumSize(10_000)
-                    .recordStats()
-                    .build())),
+                new CaffeineCache("userCredentials",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(10, TimeUnit.MINUTES)
+                                        .maximumSize(10_000)
+                                        .recordStats()
+                                        .build())),
 
-            new CaffeineCache("organizations",
-            Objects.requireNonNull(
-                Caffeine.newBuilder()
-                    .expireAfterWrite(1, TimeUnit.HOURS)
-                    .maximumSize(5_000)
-                    .recordStats()
-                    .build())),
+                new CaffeineCache("organizations",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(1, TimeUnit.HOURS)
+                                        .maximumSize(5_000)
+                                        .recordStats()
+                                        .build())),
 
-            new CaffeineCache("jwtTokens",
-            Objects.requireNonNull(
-                Caffeine.newBuilder()
-                    .expireAfterWrite(5, TimeUnit.MINUTES)
-                    .maximumSize(50_000)
-                    .recordStats()
-                    .build())),
+                new CaffeineCache("jwtTokens",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(5, TimeUnit.MINUTES)
+                                        .maximumSize(50_000)
+                                        .recordStats()
+                                        .build())),
 
-            new CaffeineCache("courses",
-            Objects.requireNonNull(
-                Caffeine.newBuilder()
-                    .expireAfterWrite(30, TimeUnit.MINUTES)
-                    .maximumSize(20_000)
-                    .recordStats()
-                    .build())),
+                new CaffeineCache("courses",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(30, TimeUnit.MINUTES)
+                                        .maximumSize(20_000)
+                                        .recordStats()
+                                        .build())),
 
-            new CaffeineCache("jobListings",
-            Objects.requireNonNull(
-                Caffeine.newBuilder()
-                    .expireAfterWrite(15, TimeUnit.MINUTES)
-                    .maximumSize(15_000)
-                    .recordStats()
-                    .build())),
+                new CaffeineCache("jobListings",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(15, TimeUnit.MINUTES)
+                                        .maximumSize(15_000)
+                                        .recordStats()
+                                        .build())),
 
-            new CaffeineCache("configurations",
-            Objects.requireNonNull(
-                Caffeine.newBuilder()
-                    .expireAfterWrite(1, TimeUnit.HOURS)
-                    .maximumSize(1_000)
-                    .recordStats()
-                    .build()))
-        );
+                new CaffeineCache("configurations",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(1, TimeUnit.HOURS)
+                                        .maximumSize(1_000)
+                                        .recordStats()
+                                        .build())),
+
+                new CaffeineCache("linkPreviews",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(24, TimeUnit.HOURS)
+                                        .maximumSize(2_000)
+                                        .recordStats()
+                                        .build())),
+
+                new CaffeineCache("communities",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(30, TimeUnit.MINUTES)
+                                        .maximumSize(5_000)
+                                        .recordStats()
+                                        .build())),
+
+                new CaffeineCache("communityStats",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(15, TimeUnit.MINUTES)
+                                        .maximumSize(1_000)
+                                        .recordStats()
+                                        .build())),
+
+                new CaffeineCache("trendingPosts",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(5, TimeUnit.MINUTES)
+                                        .maximumSize(500)
+                                        .recordStats()
+                                        .build())),
+
+                new CaffeineCache("posts",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(10, TimeUnit.MINUTES)
+                                        .maximumSize(10_000)
+                                        .recordStats()
+                                        .build())));
 
         cacheManager.setCaches(caches);
         return cacheManager;

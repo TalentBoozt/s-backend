@@ -15,4 +15,16 @@ public class ReportController {
     public Report submitReport(@RequestBody Report report) {
         return reportService.createReport(report);
     }
+
+    @GetMapping
+    public java.util.List<Report> getAllReports() {
+        return reportService.getAllReports();
+    }
+
+    @PutMapping("/{id}/status")
+    public void updateReportStatus(
+            @PathVariable String id,
+            @RequestParam Report.ReportStatus status) {
+        reportService.updateReportStatus(id, status);
+    }
 }

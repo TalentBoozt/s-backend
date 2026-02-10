@@ -22,6 +22,7 @@ public class PostDTO {
     private String quotedPostId;
     private String timestamp;
     private String updatedAt;
+    private double trendingScore;
 
     @Data
     @Builder

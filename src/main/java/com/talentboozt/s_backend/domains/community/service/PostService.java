@@ -8,7 +8,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
 
 public interface PostService {
-    List<PostDTO> getAllPosts(Pageable pageable);
+    List<PostDTO> getAllPosts(Pageable pageable, String sort);
+
+    List<PostDTO> searchPosts(String query, Pageable pageable);
 
     List<PostDTO> getPostsByCommunity(String communityId);
 
