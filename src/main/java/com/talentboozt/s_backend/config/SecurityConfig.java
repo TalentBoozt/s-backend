@@ -74,7 +74,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/ws/**").permitAll());
 
         return http.build();
     }
@@ -216,7 +217,8 @@ public class SecurityConfig {
                 .securityMatcher("/api/security/verify-captcha")
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/security/verify-captcha").permitAll());
 
         return http.build();
     }
