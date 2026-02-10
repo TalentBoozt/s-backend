@@ -35,14 +35,10 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
     private final CredentialsService credentialsService;
     private final ConfigUtility configUtil;
@@ -108,18 +104,6 @@ public class SecurityConfig {
                                         .maxAgeInSeconds(31536000)))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> {
-                    // #region agent log
-                    try {
-                        String logEntry = String.format(
-                                "{\"timestamp\":%d,\"location\":\"SecurityConfig.java:82\",\"message\":\"Starting HttpSecurity authorization configuration\",\"data\":{},\"runId\":\"run1\",\"hypothesisId\":\"A\"}\n",
-                                System.currentTimeMillis());
-                        java.nio.file.Files.write(java.nio.file.Paths
-                                .get("e:\\PROJECTS\\spring boot\\Talentboozt-projects\\s-backend\\.cursor\\debug.log"),
-                                logEntry.getBytes(), java.nio.file.StandardOpenOption.CREATE,
-                                java.nio.file.StandardOpenOption.APPEND);
-                    } catch (Exception e) {
-                    }
-                    // #endregion
                     auth
                             .requestMatchers("/actuator/env").authenticated()
                             .requestMatchers("/actuator/loggers").authenticated()
@@ -127,19 +111,6 @@ public class SecurityConfig {
                             .requestMatchers("/actuator/configprops").authenticated()
                             .requestMatchers(request -> {
                                 String requestUri = request.getRequestURI();
-                                // #region agent log
-                                try {
-                                    String logEntry = String.format(
-                                            "{\"timestamp\":%d,\"location\":\"SecurityConfig.java:97\",\"message\":\"Processing actuator request matcher\",\"data\":{\"uri\":\"%s\",\"isActuatorRequest\":%s},\"runId\":\"run1\",\"hypothesisId\":\"B\"}\n",
-                                            System.currentTimeMillis(), requestUri,
-                                            requestUri.startsWith("/actuator/") && !requestUri.equals("/actuator/env"));
-                                    java.nio.file.Files.write(java.nio.file.Paths.get(
-                                            "e:\\PROJECTS\\spring boot\\Talentboozt-projects\\s-backend\\.cursor\\debug.log"),
-                                            logEntry.getBytes(), java.nio.file.StandardOpenOption.CREATE,
-                                            java.nio.file.StandardOpenOption.APPEND);
-                                } catch (Exception e) {
-                                }
-                                // #endregion
                                 return requestUri.startsWith("/actuator/")
                                         && !requestUri.equals("/actuator/env");
                             })
@@ -157,24 +128,13 @@ public class SecurityConfig {
                                     "/api/v2/batch/**", "/api/v2/employee/**", "/api/v2/communities/**",
                                     "/api/v2/emp_**") // Added API paths
                             .permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/v2/reports").authenticated()
+                            .requestMatchers("/api/v2/reports/**").authenticated() // Should be hasRole("ADMIN") in production
                             // .requestMatchers("/actuator/**").permitAll() // for testing
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                             // Temporarily commented out to debug H1
                             // .requestMatchers(HttpMethod.GET, "/**").permitAll()
                             .anyRequest().authenticated();
-
-                    // #region agent log
-                    try {
-                        String logEntry = String.format(
-                                "{\"timestamp\":%d,\"location\":\"SecurityConfig.java:120\",\"message\":\"HttpSecurity authorization configuration applied\",\"data\":{},\"runId\":\"run1\",\"hypothesisId\":\"A\"}\n",
-                                System.currentTimeMillis());
-                        java.nio.file.Files.write(java.nio.file.Paths
-                                .get("e:\\PROJECTS\\spring boot\\Talentboozt-projects\\s-backend\\.cursor\\debug.log"),
-                                logEntry.getBytes(), java.nio.file.StandardOpenOption.CREATE,
-                                java.nio.file.StandardOpenOption.APPEND);
-                    } catch (Exception e) {
-                    }
-                    // #endregion
                 })
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

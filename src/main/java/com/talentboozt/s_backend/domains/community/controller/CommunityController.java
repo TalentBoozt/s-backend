@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.community.controller;
 import com.talentboozt.s_backend.domains.community.dto.CommunityDTO;
 import com.talentboozt.s_backend.domains.community.model.CommunityMember;
 import com.talentboozt.s_backend.domains.community.service.CommunityService;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,7 @@ public class CommunityController {
     }
 
     @PostMapping
+    @RateLimiter(name = "postLimiter")
     public ResponseEntity<CommunityDTO> createCommunity(@RequestBody CommunityDTO communityDTO) {
         return new ResponseEntity<>(communityService.createCommunity(communityDTO), HttpStatus.CREATED);
     }

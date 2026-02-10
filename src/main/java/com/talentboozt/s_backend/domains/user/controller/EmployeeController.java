@@ -109,4 +109,9 @@ public class EmployeeController {
     public void deleteCompany(@PathVariable String id) {
         employeeService.deleteCompany(id);
     }
+
+    @GetMapping("/recommendations/{userId}")
+    public List<EmployeeModel> getRecommendations(@PathVariable String userId) {
+        return employeeService.getRecommendations(userId);
+    }
 }

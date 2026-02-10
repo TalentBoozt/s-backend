@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.community.service;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.talentboozt.s_backend.domains.community.dto.PostDTO;
@@ -11,6 +12,7 @@ import java.net.URI;
 @Service
 public class LinkPreviewService {
 
+    @Cacheable(value = "linkPreviews", unless = "#result == null")
     public PostDTO.LinkPreviewDTO getPreview(String url) {
         try {
             Document doc = Jsoup.connect(url)
