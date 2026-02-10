@@ -21,7 +21,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*") // Adjust in production for specific domains
-                .withSockJS();
+                .setAllowedOriginPatterns(
+                        "https://talnova.io",
+                        "https://*.talnova.io",
+                        "http://localhost:*",
+                        "http://127.0.0.1:*")
+                .withSockJS()
+                .setStreamBytesLimit(512 * 1024)
+                .setHttpMessageCacheSize(1000)
+                .setDisconnectDelay(30 * 1000);
     }
 }
