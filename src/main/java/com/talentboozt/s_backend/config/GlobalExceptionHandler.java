@@ -38,8 +38,7 @@ public class GlobalExceptionHandler {
         ApiErrorResponse error = new ApiErrorResponse(
                 ex.getMessage(),
                 HttpStatus.BAD_REQUEST.value(),
-                ex.getErrorCode()
-        );
+                ex.getErrorCode());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
@@ -52,14 +51,14 @@ public class GlobalExceptionHandler {
             String errorMessage = error.getDefaultMessage();
             errors.put(fieldName, errorMessage);
         });
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("timestamp", Instant.now());
         response.put("status", HttpStatus.BAD_REQUEST.value());
         response.put("error", "Validation Failed");
         response.put("message", "Invalid input parameters");
         response.put("errors", errors);
-        
+
         logger.warn("Validation failed: {}", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
@@ -70,8 +69,7 @@ public class GlobalExceptionHandler {
         ApiErrorResponse error = new ApiErrorResponse(
                 "Token has expired. Please refresh your token.",
                 HttpStatus.UNAUTHORIZED.value(),
-                "TOKEN_EXPIRED"
-        );
+                "TOKEN_EXPIRED");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
@@ -81,19 +79,18 @@ public class GlobalExceptionHandler {
         ApiErrorResponse error = new ApiErrorResponse(
                 "Invalid token signature",
                 HttpStatus.UNAUTHORIZED.value(),
-                "INVALID_TOKEN"
-        );
+                "INVALID_TOKEN");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
     @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleAuthenticationException(AuthenticationCredentialsNotFoundException ex) {
+    public ResponseEntity<ApiErrorResponse> handleAuthenticationException(
+            AuthenticationCredentialsNotFoundException ex) {
         logger.debug("Authentication credentials not found");
         ApiErrorResponse error = new ApiErrorResponse(
                 "Authentication required",
                 HttpStatus.UNAUTHORIZED.value(),
-                "AUTHENTICATION_REQUIRED"
-        );
+                "AUTHENTICATION_REQUIRED");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
     }
 
@@ -103,8 +100,7 @@ public class GlobalExceptionHandler {
         ApiErrorResponse error = new ApiErrorResponse(
                 "Access denied. Insufficient permissions.",
                 HttpStatus.FORBIDDEN.value(),
-                "ACCESS_DENIED"
-        );
+                "ACCESS_DENIED");
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
     }
 
@@ -114,8 +110,7 @@ public class GlobalExceptionHandler {
         ApiErrorResponse error = new ApiErrorResponse(
                 "Database operation failed. Please try again later.",
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "DATABASE_ERROR"
-        );
+                "DATABASE_ERROR");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
@@ -125,8 +120,7 @@ public class GlobalExceptionHandler {
         ApiErrorResponse error = new ApiErrorResponse(
                 "Request timeout. Please try again.",
                 HttpStatus.REQUEST_TIMEOUT.value(),
-                "TIMEOUT"
-        );
+                "TIMEOUT");
         return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(error);
     }
 
@@ -136,8 +130,7 @@ public class GlobalExceptionHandler {
         ApiErrorResponse error = new ApiErrorResponse(
                 "Endpoint not found",
                 HttpStatus.NOT_FOUND.value(),
-                "NOT_FOUND"
-        );
+                "NOT_FOUND");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
@@ -147,9 +140,29 @@ public class GlobalExceptionHandler {
         ApiErrorResponse error = new ApiErrorResponse(
                 ex.getMessage(),
                 HttpStatus.BAD_REQUEST.value(),
-                "INVALID_ARGUMENT"
-        );
+                "INVALID_ARGUMENT");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
+    @ExceptionHandler(com.talentboozt.s_backend.domains.community.exception.ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleResourceNotFoundException(
+            com.talentboozt.s_backend.domains.community.exception.ResourceNotFoundException ex) {
+        logger.warn("Resource not found: {}", ex.getMessage());
+        ApiErrorResponse error = new ApiErrorResponse(
+                ex.getMessage(),
+                HttpStatus.NOT_FOUND.value(),
+                "RESOURCE_NOT_FOUND");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiErrorResponse> handleRuntimeException(RuntimeException ex) {
+        logger.error("Runtime exception occurred: {}", ex.getMessage(), ex);
+        ApiErrorResponse error = new ApiErrorResponse(
+                ex.getMessage() != null ? ex.getMessage() : "An error occurred",
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "RUNTIME_ERROR");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 
     @ExceptionHandler(Exception.class)
@@ -158,8 +171,7 @@ public class GlobalExceptionHandler {
         ApiErrorResponse error = new ApiErrorResponse(
                 "An unexpected error occurred. Please contact support if the problem persists.",
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "INTERNAL_ERROR"
-        );
+                "INTERNAL_ERROR");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
 }

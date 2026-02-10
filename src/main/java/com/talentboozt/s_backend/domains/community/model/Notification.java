@@ -24,6 +24,18 @@ public class Notification {
     private LocalDateTime timestamp;
 
     public enum NotificationType {
-        LIKE, COMMENT, MENTION, FOLLOW, QUOTE
+        LIKE,
+        COMMENT,
+        MENTION,
+        FOLLOW,
+        QUOTE,
+        BAN,
+        UNBAN,
+        POST_REACTION,
+        COMMENT_REACTION,
+        POST_SHARE,
+        COMMUNITY_POST,
+        COMMUNITY_MEMBER_JOIN,
+        COMMUNITY_ROLE_CHANGE
     }
 }

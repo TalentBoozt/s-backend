@@ -209,13 +209,14 @@ public class PostServiceImpl implements PostService {
         post.setReactions(reactions);
         Post savedPost = postRepository.save(post);
 
-        // Notify Author on new React (if it's not a removal)
-        if (userIds.contains(userId)) {
-            Notification.NotificationType type = emoji.equals("👍") || emoji.equals("👎")
-                    ? Notification.NotificationType.LIKE
-                    : Notification.NotificationType.LIKE;
-            notificationService.createNotification(post.getAuthorId(), userId, type, post.getId());
-        }
+        // Notify Author on new React (if it's not a removal and not self-reaction)
+        if (userIds.contains(userId) && !post.getAuthorId().equals(userId)) {
+            notificationService.createNotification(
+                            post.getAuthorId(),
+                            userId,
+                            Notification.NotificationType.POST_REACTION,
+                            post.getId());
+    }
 
         PostDTO postDTO = mapToDTO(savedPost);
         messagingTemplate.convertAndSend("/topic/post/" + id, Objects.requireNonNull(postDTO));
@@ -365,7 +366,21 @@ public class PostServiceImpl implements PostService {
         targetReaction.setUserIds(userIds);
         reactions.removeIf(r -> r.getCount() <= 0 && !r.getEmoji().equals("👍") && !r.getEmoji().equals("👎"));
         comment.setReactions(reactions);
-        return mapToCommentDTO(commentRepository.save(comment));
+        Comment savedComment = commentRepository.save(comment);
+
+                // Notify Comment Author on new React (if it's not a removal and not
+                // self-reaction)
+                if (userIds.contains(userId) && !comment.getAuthorId().equals(userId)) {
+                        notificationService.createNotification(
+                                        comment.getAuthorId(),
+                                        userId,
+                                        Notification.NotificationType.COMMENT_REACTION,
+                                        comment.getId());
+                }
+
+                CommentDTO commentDTO = mapToCommentDTO(savedComment);
+                messagingTemplate.convertAndSend("/topic/comment/" + commentId, commentDTO);
+                return commentDTO;
     }
 
     private PostDTO mapToDTO(Post post) {
