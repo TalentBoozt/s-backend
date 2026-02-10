@@ -13,9 +13,13 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
 
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
@@ -30,9 +34,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             @Override
             public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                     WebSocketHandler wsHandler, Map<String, Object> attributes) {
-                if (!request.getHeaders().containsKey("Upgrade")) {
-                    // This will help confirm proxy issues in logs
-                    // Log but don't fail here, let DefaultHandshakeHandler handle it
+                // Log essential headers to help diagnose proxy stripping
+                logger.info("WebSocket Handshake Attempt: {} | Upgrade: {} | Connection: {} | Host: {}",
+                        request.getURI(),
+                        request.getHeaders().getUpgrade(),
+                        request.getHeaders().getConnection(),
+                        request.getHeaders().getHost());
+
+                if (request.getHeaders().getUpgrade() == null) {
+                    logger.warn("CRITICAL: Upgrade header is MISSING from the request. WebSocket handshake will fail.");
                 }
                 return true;
             }
