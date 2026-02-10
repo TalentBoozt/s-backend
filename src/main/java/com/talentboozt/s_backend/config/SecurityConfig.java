@@ -67,6 +67,20 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Order(0) // Higher priority than main security chain
+    public SecurityFilterChain webSocketSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+                .securityMatcher("/ws/**")
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+
+        return http.build();
+    }
+
+    @Bean
+    @Order(1)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .headers(headers -> headers
@@ -185,7 +199,8 @@ public class SecurityConfig {
                 configUtil.getProperty("ALLOWED_ORIGIN_9"),
                 configUtil.getProperty("ALLOWED_ORIGIN_10")));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("*", "Upgrade", "Connection", "Sec-WebSocket-Key",
+                "Sec-WebSocket-Version", "Sec-WebSocket-Extensions", "Sec-WebSocket-Protocol"));
         configuration.setExposedHeaders(
                 List.of("Stripe-Signature", "X-Demo-Mode", "X-Timezone-Mismatch", "Remaining-Credits"));
 
@@ -195,7 +210,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(1)
+    @Order(2)
     public SecurityFilterChain captchaSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/security/verify-captcha")
