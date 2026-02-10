@@ -81,7 +81,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(1)
+    @Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .headers(headers -> headers
@@ -211,7 +211,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Order(2)
+    @Order(1)
     public SecurityFilterChain captchaSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/security/verify-captcha")
