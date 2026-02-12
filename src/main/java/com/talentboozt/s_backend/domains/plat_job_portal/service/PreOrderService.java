@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.plat_job_portal.service;
 
 import com.talentboozt.s_backend.domains.plat_job_portal.model.PreOrderModel;
-import com.talentboozt.s_backend.domains.plat_job_portal.repository.PreOrderRepository;
+import com.talentboozt.s_backend.domains.plat_job_portal.repository.mongodb.PreOrderRepository;
 import com.talentboozt.s_backend.shared.mail.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

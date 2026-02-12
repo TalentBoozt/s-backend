@@ -1,17 +1,16 @@
 package com.talentboozt.s_backend.domains.auth.service;
 
 import com.talentboozt.s_backend.domains.com_job_portal.model.CompanyModel;
+import com.talentboozt.s_backend.domains.com_job_portal.repository.mongodb.CompanyRepository;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
 import com.talentboozt.s_backend.domains.auth.model.RoleModel;
-import com.talentboozt.s_backend.domains.com_job_portal.repository.CompanyRepository;
-import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
-import com.talentboozt.s_backend.domains.user.repository.EmployeeRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
+import com.talentboozt.s_backend.domains.user.repository.mongodb.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -38,7 +37,8 @@ public class CredentialsService {
     private CacheManager cacheManager;
 
     public CredentialsModel addCredentials(CredentialsModel credentials, String platform, String referrer) {
-        Optional<CredentialsModel> optionalCredentials = Optional.ofNullable(credentialsRepository.findByEmail(credentials.getEmail()));
+        Optional<CredentialsModel> optionalCredentials = Optional
+                .ofNullable(credentialsRepository.findByEmail(credentials.getEmail()));
 
         if (optionalCredentials.isPresent()) {
             CredentialsModel existingUser = optionalCredentials.get();
@@ -60,15 +60,18 @@ public class CredentialsService {
         } else {
             credentials.setRegisteredFrom(platform);
             credentials.setReferrerId(referrer);
-            if (credentials.getAccessedPlatforms() == null) credentials.setAccessedPlatforms(new ArrayList<>());
-            if (credentials.getRoles() == null) credentials.setRoles(new ArrayList<>());
-            if (credentials.getOrganizations() == null) credentials.setOrganizations(new ArrayList<>());
+            if (credentials.getAccessedPlatforms() == null)
+                credentials.setAccessedPlatforms(new ArrayList<>());
+            if (credentials.getRoles() == null)
+                credentials.setRoles(new ArrayList<>());
+            if (credentials.getOrganizations() == null)
+                credentials.setOrganizations(new ArrayList<>());
 
             Set<String> userRoles = new HashSet<>(credentials.getRoles());
             Set<String> userPermissions = new HashSet<>();
             for (String roleName : userRoles) {
                 Optional<RoleModel> role = roleService.getRoleByName(roleName);
-                if (role.isPresent()){
+                if (role.isPresent()) {
                     RoleModel optRole = role.get();
                     if (optRole.getPermissions() != null) {
                         userPermissions.addAll(optRole.getPermissions());
@@ -114,7 +117,8 @@ public class CredentialsService {
             emp.setProfileCompleted(profileCompleted);
 
             // Check if user is an employer or higher level
-            if (credentials.getUserLevel().equals("2") || credentials.getUserLevel().equals("3") || credentials.getUserLevel().equals("4") || credentials.getUserLevel().equals("5")) {
+            if (credentials.getUserLevel().equals("2") || credentials.getUserLevel().equals("3")
+                    || credentials.getUserLevel().equals("4") || credentials.getUserLevel().equals("5")) {
                 CompanyModel cmp = new CompanyModel();
 
                 Map<String, Boolean> cmpProfileCompleted = new HashMap<>();
@@ -194,7 +198,8 @@ public class CredentialsService {
 
     @CacheEvict(value = "userCredentials", key = "#employeeId")
     public CredentialsModel updateCredentials(String employeeId, CredentialsModel credentials) {
-        Optional<CredentialsModel> optionalCredentials = credentialsRepository.findById(Objects.requireNonNull(credentials.getId()));
+        Optional<CredentialsModel> optionalCredentials = credentialsRepository
+                .findById(Objects.requireNonNull(credentials.getId()));
         if (optionalCredentials.isPresent()) {
             CredentialsModel credentials1 = optionalCredentials.get();
             credentials1.setEmployeeId(employeeId);
@@ -210,7 +215,8 @@ public class CredentialsService {
 
     @CacheEvict(value = "userCredentials", key = "#credentialsId")
     public CredentialsModel updatePassword(String credentialsId, String password) {
-        Optional<CredentialsModel> optionalCredentials = credentialsRepository.findById(Objects.requireNonNull(credentialsId));
+        Optional<CredentialsModel> optionalCredentials = credentialsRepository
+                .findById(Objects.requireNonNull(credentialsId));
         if (optionalCredentials.isPresent()) {
             CredentialsModel credentials1 = optionalCredentials.get();
             credentials1.setPassword(password);

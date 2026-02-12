@@ -3,14 +3,14 @@ package com.talentboozt.s_backend.domains.messaging.service;
 import com.talentboozt.s_backend.domains.messaging.dto.MessageRequest;
 import com.talentboozt.s_backend.domains.messaging.dto.MessageResponse;
 import com.talentboozt.s_backend.domains.messaging.model.*;
-import com.talentboozt.s_backend.domains.messaging.repository.ChatRoomRepository;
-import com.talentboozt.s_backend.domains.messaging.repository.MessageRepository;
+import com.talentboozt.s_backend.domains.messaging.repository.mongodb.ChatRoomRepository;
+import com.talentboozt.s_backend.domains.messaging.repository.mongodb.MessageRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 

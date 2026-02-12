@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.shared.async;
 
 import com.talentboozt.s_backend.domains.audit_logs.model.AsyncUpdateAuditLog;
-import com.talentboozt.s_backend.domains.audit_logs.repository.AsyncUpdateAuditLogRepository;
+import com.talentboozt.s_backend.domains.audit_logs.repository.mongodb.AsyncUpdateAuditLogRepository;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseBatchModel;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
 import com.talentboozt.s_backend.domains.com_courses.service.CourseBatchService;

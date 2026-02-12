@@ -1,9 +1,9 @@
 package com.talentboozt.s_backend.domains.community.service;
 
 import com.talentboozt.s_backend.domains.community.model.Report;
-import com.talentboozt.s_backend.domains.community.repository.ReportRepository;
-import com.talentboozt.s_backend.domains.community.repository.PostRepository;
-import com.talentboozt.s_backend.domains.community.repository.CommentRepository;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.ReportRepository;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.PostRepository;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;

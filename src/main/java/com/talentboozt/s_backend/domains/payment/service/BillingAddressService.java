@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.payment.service;
 
 import com.talentboozt.s_backend.domains.payment.model.BillingAddressModel;
-import com.talentboozt.s_backend.domains.payment.repository.BillingAddressRepository;
+import com.talentboozt.s_backend.domains.payment.repository.mongodb.BillingAddressRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

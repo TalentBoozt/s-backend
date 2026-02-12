@@ -3,8 +3,9 @@ package com.talentboozt.s_backend.domains.com_job_portal.service;
 import com.talentboozt.s_backend.domains.com_job_portal.dto.PostedJobsDTO;
 import com.talentboozt.s_backend.domains.com_job_portal.model.CmpPostedJobsModel;
 import com.talentboozt.s_backend.domains.com_job_portal.model.CompanyModel;
-import com.talentboozt.s_backend.domains.com_job_portal.repository.CmpPostedJobsRepository;
-import com.talentboozt.s_backend.domains.com_job_portal.repository.CompanyRepository;
+import com.talentboozt.s_backend.domains.com_job_portal.repository.mongodb.CmpPostedJobsRepository;
+import com.talentboozt.s_backend.domains.com_job_portal.repository.mongodb.CompanyRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;

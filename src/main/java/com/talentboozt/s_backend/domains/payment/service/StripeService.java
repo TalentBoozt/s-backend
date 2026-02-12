@@ -19,7 +19,7 @@ import com.talentboozt.s_backend.domains.payment.model.BillingHistoryModel;
 import com.talentboozt.s_backend.domains.payment.model.InvoicesModel;
 import com.talentboozt.s_backend.domains.payment.model.PaymentMethodsModel;
 import com.talentboozt.s_backend.domains.payment.model.SubscriptionsModel;
-import com.talentboozt.s_backend.domains.payment.repository.InvoiceRepository;
+import com.talentboozt.s_backend.domains.payment.repository.mongodb.InvoiceRepository;
 import com.talentboozt.s_backend.domains.plat_courses.dto.CourseProgressDTO;
 import com.talentboozt.s_backend.domains.plat_courses.dto.RecordedCourseEnrollment;
 import com.talentboozt.s_backend.domains.plat_courses.dto.ReviewDTO;

@@ -2,7 +2,8 @@ package com.talentboozt.s_backend.domains.messaging.service;
 
 import com.talentboozt.s_backend.domains.messaging.model.PresenceStatus;
 import com.talentboozt.s_backend.domains.messaging.model.UserPresence;
-import com.talentboozt.s_backend.domains.messaging.repository.UserPresenceRepository;
+import com.talentboozt.s_backend.domains.messaging.repository.redis.UserPresenceRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;

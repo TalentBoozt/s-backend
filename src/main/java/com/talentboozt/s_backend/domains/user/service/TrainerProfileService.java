@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.user.service;
 
 import com.talentboozt.s_backend.domains.user.model.TrainerProfile;
-import com.talentboozt.s_backend.domains.user.repository.TrainerProfileRepository;
+import com.talentboozt.s_backend.domains.user.repository.mongodb.TrainerProfileRepository;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +17,11 @@ public class TrainerProfileService {
     }
 
     public TrainerProfile getByEmpId(String employeeId) {
-        return trainerProfileRepository.findByEmployeeId(employeeId);
+        return trainerProfileRepository.findByEmployeeId(employeeId).orElse(null);
     }
 
     public TrainerProfile updateByEmployeeId(String employeeId, TrainerProfile trainerProfile) {
-        TrainerProfile existing = trainerProfileRepository.findByEmployeeId(employeeId);
+        TrainerProfile existing = trainerProfileRepository.findByEmployeeId(employeeId).orElse(null);
 
         if (existing != null) {
             existing.setHeadline(trainerProfile.getHeadline());

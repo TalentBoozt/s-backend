@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.community.service;
 
 import com.talentboozt.s_backend.domains.community.model.Activity;
-import com.talentboozt.s_backend.domains.community.repository.ActivityRepository;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.ActivityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;

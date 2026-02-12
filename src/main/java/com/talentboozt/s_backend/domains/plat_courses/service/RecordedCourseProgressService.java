@@ -5,7 +5,8 @@ import com.talentboozt.s_backend.domains.com_courses.dto.RecModuleDTO;
 import com.talentboozt.s_backend.domains.com_courses.model.RecordedCourseModel;
 import com.talentboozt.s_backend.domains.plat_courses.dto.*;
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
-import com.talentboozt.s_backend.domains.plat_courses.repository.EmpCoursesRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.EmpCoursesRepository;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

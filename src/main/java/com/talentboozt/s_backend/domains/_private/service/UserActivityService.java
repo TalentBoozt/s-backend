@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains._private.service;
 
 import com.talentboozt.s_backend.domains._private.model.UserActivity;
-import com.talentboozt.s_backend.domains._private.repository.UserActivityRepository;
+import com.talentboozt.s_backend.domains._private.repository.mongodb.UserActivityRepository;
 import com.talentboozt.s_backend.domains.audit_logs.service.ClientActAuditLogService;
 import com.talentboozt.s_backend.shared.utils.EncryptionUtility;
 import org.springframework.beans.factory.annotation.Autowired;

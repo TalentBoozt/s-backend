@@ -3,8 +3,9 @@ package com.talentboozt.s_backend.domains.audit_logs.service;
 import com.talentboozt.s_backend.domains.com_courses.dto.ModuleDTO;
 import com.talentboozt.s_backend.domains.plat_courses.dto.CourseEnrollment;
 import com.talentboozt.s_backend.domains.audit_logs.model.CourseReminderAuditLog;
+import com.talentboozt.s_backend.domains.audit_logs.repository.mongodb.CourseReminderAuditLogRepository;
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
-import com.talentboozt.s_backend.domains.audit_logs.repository.CourseReminderAuditLogRepository;
+
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;

@@ -19,4 +19,5 @@ public class AnnouncementRequest {
     private LocalDateTime publishedAt;
     private LocalDateTime expiresAt;
     private boolean pinned;
+    private boolean generateSummary;
 }

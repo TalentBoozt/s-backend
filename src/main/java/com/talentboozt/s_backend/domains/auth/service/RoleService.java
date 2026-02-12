@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.auth.service;
 
 import com.talentboozt.s_backend.domains.auth.model.RoleModel;
-import com.talentboozt.s_backend.domains.auth.repository.RoleRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.RoleRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

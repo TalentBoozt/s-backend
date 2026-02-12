@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -37,6 +38,14 @@ public class Announcement {
     private String createdBy; // Admin User ID
     private boolean pinned;
 
+    private boolean generateSummary;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // AI Generated Fields
+    private String aiSummary;
+    private List<String> aiHighlights;
+    private String aiSnippet;
+    private String aiSeoDescription;
 }

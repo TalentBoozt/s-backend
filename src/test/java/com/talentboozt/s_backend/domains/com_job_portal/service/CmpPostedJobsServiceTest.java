@@ -6,8 +6,9 @@ import static org.mockito.Mockito.*;
 import com.talentboozt.s_backend.domains.com_job_portal.dto.PostedJobsDTO;
 import com.talentboozt.s_backend.domains.com_job_portal.model.CmpPostedJobsModel;
 import com.talentboozt.s_backend.domains.com_job_portal.model.CompanyModel;
-import com.talentboozt.s_backend.domains.com_job_portal.repository.CmpPostedJobsRepository;
-import com.talentboozt.s_backend.domains.com_job_portal.repository.CompanyRepository;
+import com.talentboozt.s_backend.domains.com_job_portal.repository.mongodb.CmpPostedJobsRepository;
+import com.talentboozt.s_backend.domains.com_job_portal.repository.mongodb.CompanyRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

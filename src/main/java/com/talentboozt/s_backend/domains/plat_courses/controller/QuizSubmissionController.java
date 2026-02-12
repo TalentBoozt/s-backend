@@ -1,8 +1,8 @@
 package com.talentboozt.s_backend.domains.plat_courses.controller;
 
+import com.talentboozt.s_backend.domains.com_courses.repository.mongodb.CourseRepository;
 import com.talentboozt.s_backend.domains.plat_courses.dto.LeaderboardEntry;
 import com.talentboozt.s_backend.domains.plat_courses.dto.QuizSubmissionRequest;
-import com.talentboozt.s_backend.domains.com_courses.repository.CourseRepository;
 import com.talentboozt.s_backend.domains.plat_courses.service.QuizSubmissionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

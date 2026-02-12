@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.payment.service;
 
 import com.talentboozt.s_backend.domains.payment.model.BillingHistoryModel;
-import com.talentboozt.s_backend.domains.payment.repository.BillingHistoryRepository;
+import com.talentboozt.s_backend.domains.payment.repository.mongodb.BillingHistoryRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

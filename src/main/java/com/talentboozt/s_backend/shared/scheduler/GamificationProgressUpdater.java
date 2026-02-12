@@ -1,9 +1,9 @@
 package com.talentboozt.s_backend.shared.scheduler;
 
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
+import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbassadorProfileRepository;
 import com.talentboozt.s_backend.domains.plat_courses.model.GamificationTaskModel;
-import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorProfileRepository;
-import com.talentboozt.s_backend.domains.plat_courses.repository.GamificationTaskRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.GamificationTaskRepository;
 import com.talentboozt.s_backend.domains.plat_courses.service.ProgressUpdater;
 import com.talentboozt.s_backend.domains.audit_logs.service.SchedulerLoggerService;
 import org.springframework.beans.factory.annotation.Autowired;

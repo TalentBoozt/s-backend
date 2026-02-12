@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.shared.mail.service;
 
 import com.talentboozt.s_backend.shared.mail.model.NewsLatterModel;
-import com.talentboozt.s_backend.shared.mail.repository.NewsLetterRepository;
+import com.talentboozt.s_backend.shared.mail.repository.mongodb.NewsLetterRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -3,7 +3,8 @@ package com.talentboozt.s_backend.domains.plat_courses.service;
 import com.talentboozt.s_backend.domains.plat_courses.cfg.CouponValidationException;
 import com.talentboozt.s_backend.domains.plat_courses.dto.CouponRedemptionRequest;
 import com.talentboozt.s_backend.domains.plat_courses.model.CourseCouponsModel;
-import com.talentboozt.s_backend.domains.plat_courses.repository.CourseCouponsRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.CourseCouponsRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

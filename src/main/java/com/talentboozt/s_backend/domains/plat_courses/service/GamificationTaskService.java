@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.plat_courses.service;
 
 import com.talentboozt.s_backend.domains.plat_courses.model.GamificationTaskModel;
-import com.talentboozt.s_backend.domains.plat_courses.repository.GamificationTaskRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.GamificationTaskRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

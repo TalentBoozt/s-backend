@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.com_courses.service;
 
 import com.talentboozt.s_backend.domains.com_courses.model.CourseBatchModel;
-import com.talentboozt.s_backend.domains.com_courses.repository.CourseBatchRepository;
+import com.talentboozt.s_backend.domains.com_courses.repository.mongodb.CourseBatchRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

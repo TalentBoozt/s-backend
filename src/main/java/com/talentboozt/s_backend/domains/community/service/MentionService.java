@@ -2,7 +2,7 @@ package com.talentboozt.s_backend.domains.community.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.talentboozt.s_backend.domains.user.repository.EmployeeRepository;
+import com.talentboozt.s_backend.domains.user.repository.mongodb.EmployeeRepository;
 
 import java.util.ArrayList;
 import java.util.List;

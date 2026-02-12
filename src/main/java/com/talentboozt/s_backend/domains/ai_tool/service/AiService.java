@@ -56,4 +56,27 @@ public class AiService {
 
         return openAiClient.callStructuredApi(prompt, ChatResponse.class);
     }
+
+    public AiGeneratedSummary generateReleaseSummary(String content) {
+        // Simple truncation to stay within typical context limits if needed
+        String truncated = content.length() > 5000 ? content.substring(0, 5000) : content;
+
+        String prompt = """
+                You are a SaaS product release analyst.
+                Analyze the following release notes or content and provide a structured summary in JSON.
+
+                Content:
+                %s
+
+                Response Format (JSON):
+                {
+                  "summary": "A concise 2-3 sentence summary.",
+                  "highlights": ["Point 1", "Point 2", "Point 3"],
+                  "snippet": "A short 1-line social teaser.",
+                  "seoDescription": "150-160 character SEO description."
+                }
+                """.formatted(truncated);
+
+        return openAiClient.callStructuredApi(prompt, AiGeneratedSummary.class);
+    }
 }

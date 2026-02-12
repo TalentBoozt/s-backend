@@ -3,7 +3,7 @@ package com.talentboozt.s_backend.domains._private.controller;
 import com.talentboozt.s_backend.domains._private.dto.*;
 import com.talentboozt.s_backend.domains._private.service.UserManagementService;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
-import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
 import com.talentboozt.s_backend.domains.common.dto.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

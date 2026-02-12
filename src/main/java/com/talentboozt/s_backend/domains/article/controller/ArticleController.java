@@ -37,4 +37,17 @@ public class ArticleController {
     public ResponseEntity<Page<ArticleResponse>> search(@RequestParam String q, Pageable pageable) {
         return ResponseEntity.ok(articleService.search(q, pageable));
     }
+
+    @PostMapping("/{id}/like")
+    public ResponseEntity<ArticleResponse> like(@PathVariable String id,
+            @RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(articleService.likeArticle(id, userId));
+    }
+
+    @PostMapping("/{id}/bookmark")
+    public ResponseEntity<Void> bookmark(@PathVariable String id,
+            @RequestHeader("X-User-Id") String userId) {
+        articleService.bookmarkArticle(id, userId);
+        return ResponseEntity.ok().build();
+    }
 }

@@ -8,7 +8,8 @@ import com.talentboozt.s_backend.domains.com_courses.model.CourseBatchModel;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
 import com.talentboozt.s_backend.domains.plat_courses.dto.CourseEnrollment;
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
-import com.talentboozt.s_backend.domains.plat_courses.repository.EmpCoursesRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.EmpCoursesRepository;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 

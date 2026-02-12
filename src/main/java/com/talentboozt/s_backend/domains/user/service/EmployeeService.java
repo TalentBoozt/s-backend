@@ -2,13 +2,13 @@ package com.talentboozt.s_backend.domains.user.service;
 
 import com.talentboozt.s_backend.domains.plat_job_portal.dto.FavJobDTO;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
-import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
 import com.talentboozt.s_backend.shared.mail.service.EmailService;
 import com.talentboozt.s_backend.shared.events.EventPublisher;
 import com.talentboozt.s_backend.domains.user.dto.EmpFollowersDTO;
 import com.talentboozt.s_backend.domains.user.dto.EmpFollowingDTO;
 import com.talentboozt.s_backend.domains.user.model.*;
-import com.talentboozt.s_backend.domains.user.repository.*;
+import com.talentboozt.s_backend.domains.user.repository.mongodb.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

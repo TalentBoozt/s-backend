@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.community.service;
 
 import com.talentboozt.s_backend.domains.community.model.Notification;
-import com.talentboozt.s_backend.domains.community.repository.NotificationRepository;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.NotificationRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

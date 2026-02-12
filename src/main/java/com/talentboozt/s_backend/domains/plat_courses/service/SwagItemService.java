@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.plat_courses.service;
 
 import com.talentboozt.s_backend.domains.plat_courses.model.SwagItem;
-import com.talentboozt.s_backend.domains.plat_courses.repository.SwagItemRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.SwagItemRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

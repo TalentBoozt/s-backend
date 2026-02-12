@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.community.service;
 
 import com.talentboozt.s_backend.domains.community.model.Post;
-import com.talentboozt.s_backend.domains.community.repository.PostRepository;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

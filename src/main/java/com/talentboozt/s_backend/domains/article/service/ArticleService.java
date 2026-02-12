@@ -2,7 +2,7 @@ package com.talentboozt.s_backend.domains.article.service;
 
 import com.talentboozt.s_backend.domains.article.dto.*;
 import com.talentboozt.s_backend.domains.article.model.*;
-import com.talentboozt.s_backend.domains.article.repository.*;
+import com.talentboozt.s_backend.domains.article.repository.mongodb.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +22,7 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
     private final TagRepository tagRepository;
     private final MongoTemplate mongoTemplate;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     public ArticleResponse createArticle(ArticleRequest request, String authorId) {
         List<String> tagIds = getOrCreateTags(request.getTags());
@@ -42,6 +43,12 @@ public class ArticleService {
                 .build();
 
         Article saved = articleRepository.save(article);
+
+        if (saved.getStatus() == ArticleStatus.PUBLISHED) {
+            eventPublisher.publishEvent(
+                    new com.talentboozt.s_backend.domains.article.event.ArticlePublishedEvent(this, saved));
+        }
+
         return mapToResponse(saved);
     }
 
@@ -93,6 +100,37 @@ public class ArticleService {
         return (int) Math.ceil(wordCount / 225.0); // Avg reading speed: 225 wpm
     }
 
+    public ArticleResponse likeArticle(String articleId, String userId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+
+        Query query = new Query(Criteria.where("id").is(articleId));
+        Update update = new Update().inc("likes", 1);
+        mongoTemplate.updateFirst(query, update, Article.class);
+
+        eventPublisher.publishEvent(com.talentboozt.s_backend.domains.article.event.ArticleLikedEvent.builder()
+                .articleId(articleId)
+                .userId(userId)
+                .authorId(article.getAuthorId())
+                .build());
+
+        return getBySlug(article.getSlug());
+    }
+
+    public void bookmarkArticle(String articleId, String userId) {
+        // In a real system, this would add to a bookmarks collection
+        // For now, we just trigger the reputation event as requested
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+
+        // Trigger reputation event
+        eventPublisher.publishEvent(com.talentboozt.s_backend.domains.article.event.ArticleBookmarkedEvent.builder()
+                .articleId(articleId)
+                .userId(userId)
+                .authorId(article.getAuthorId())
+                .build());
+    }
+
     private ArticleResponse mapToResponse(Article article) {
         ArticleResponse response = new ArticleResponse();
         response.setId(article.getId());
@@ -109,6 +147,12 @@ public class ArticleService {
         response.setFeatured(article.isFeatured());
         response.setCreatedAt(article.getCreatedAt());
         response.setUpdatedAt(article.getUpdatedAt());
+
+        // Map AI Generated Fields
+        response.setAiSummary(article.getAiSummary());
+        response.setAiHighlights(article.getAiHighlights());
+        response.setAiSnippet(article.getAiSnippet());
+        response.setAiSeoDescription(article.getAiSeoDescription());
 
         if (article.getTagIds() != null) {
             response.setTags(tagRepository.findAllById(article.getTagIds()).stream()

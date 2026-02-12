@@ -2,8 +2,8 @@ package com.talentboozt.s_backend.domains.payment.service;
 
 import com.talentboozt.s_backend.domains.payment.model.BillingHistoryModel;
 import com.talentboozt.s_backend.domains.payment.model.SubscriptionsModel;
-import com.talentboozt.s_backend.domains.payment.repository.BillingHistoryRepository;
-import com.talentboozt.s_backend.domains.payment.repository.SubscriptionRepository;
+import com.talentboozt.s_backend.domains.payment.repository.mongodb.BillingHistoryRepository;
+import com.talentboozt.s_backend.domains.payment.repository.mongodb.SubscriptionRepository;
 import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionItem;
 import org.springframework.beans.factory.annotation.Autowired;
