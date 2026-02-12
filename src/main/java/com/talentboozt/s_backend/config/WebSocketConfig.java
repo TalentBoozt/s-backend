@@ -35,11 +35,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                     WebSocketHandler wsHandler, Map<String, Object> attributes) {
                 // Log essential headers to help diagnose proxy stripping
-                logger.info("WebSocket Handshake Attempt: {} | Upgrade: {} | Connection: {} | Host: {}",
-                        request.getURI(),
-                        request.getHeaders().getUpgrade(),
-                        request.getHeaders().getConnection(),
-                        request.getHeaders().getHost());
+                // logger.info("WebSocket Handshake Attempt: {} | Upgrade: {} | Connection: {} | Host: {}",
+                //         request.getURI(),
+                //         request.getHeaders().getUpgrade(),
+                //         request.getHeaders().getConnection(),
+                //         request.getHeaders().getHost());
 
                 if (request.getHeaders().getUpgrade() == null) {
                     logger.warn("CRITICAL: Upgrade header is MISSING from the request. WebSocket handshake will fail.");
