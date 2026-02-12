@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 import com.talentboozt.s_backend.domains.community.dto.CommunityDTO;
 import com.talentboozt.s_backend.domains.community.model.Community;
 import com.talentboozt.s_backend.domains.community.model.CommunityMember;
-import com.talentboozt.s_backend.domains.community.repository.CommunityRepository;
-import com.talentboozt.s_backend.domains.community.repository.CommunityMemberRepository;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.CommunityRepository;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.CommunityMemberRepository;
 import com.talentboozt.s_backend.domains.community.exception.AccessDeniedException;
 import com.talentboozt.s_backend.domains.community.exception.ResourceNotFoundException;
 

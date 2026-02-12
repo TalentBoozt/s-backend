@@ -3,7 +3,8 @@ package com.talentboozt.s_backend.domains.plat_job_portal.service;
 import com.talentboozt.s_backend.domains.plat_job_portal.dto.JobApplicantDTO;
 import com.talentboozt.s_backend.domains.plat_job_portal.dto.JobViewerDTO;
 import com.talentboozt.s_backend.domains.plat_job_portal.model.JobApplyModel;
-import com.talentboozt.s_backend.domains.plat_job_portal.repository.JobApplyRepository;
+import com.talentboozt.s_backend.domains.plat_job_portal.repository.mongodb.JobApplyRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

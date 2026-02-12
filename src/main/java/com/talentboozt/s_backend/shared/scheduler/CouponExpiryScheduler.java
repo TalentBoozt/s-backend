@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.shared.scheduler;
 
 import com.talentboozt.s_backend.domains.plat_courses.model.CourseCouponsModel;
-import com.talentboozt.s_backend.domains.plat_courses.repository.CourseCouponsRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.CourseCouponsRepository;
 import com.talentboozt.s_backend.domains.audit_logs.service.SchedulerLoggerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.auth.controller;
 
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
-import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;

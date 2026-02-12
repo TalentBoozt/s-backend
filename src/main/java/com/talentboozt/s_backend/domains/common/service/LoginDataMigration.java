@@ -3,7 +3,8 @@ package com.talentboozt.s_backend.domains.common.service;
 import com.talentboozt.s_backend.domains.common.dto.LoginEventDTO;
 import com.talentboozt.s_backend.domains.common.dto.LoginMetaDTO;
 import com.talentboozt.s_backend.domains.common.model.Login;
-import com.talentboozt.s_backend.domains.common.repository.LoginRepository;
+import com.talentboozt.s_backend.domains.common.repository.mongodb.LoginRepository;
+
 import org.springframework.boot.CommandLineRunner;
 
 import java.util.ArrayList;

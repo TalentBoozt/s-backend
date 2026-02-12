@@ -2,7 +2,7 @@ package com.talentboozt.s_backend.domains.sys_tracking.controller;
 
 import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.BatchEventRequest;
 import com.talentboozt.s_backend.domains.sys_tracking.model.TrackingEvent;
-import com.talentboozt.s_backend.domains.sys_tracking.repository.TrackingEventRepository;
+import com.talentboozt.s_backend.domains.sys_tracking.repository.mongodb.TrackingEventRepository;
 import com.talentboozt.s_backend.domains.sys_tracking.service.GeoIPService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;

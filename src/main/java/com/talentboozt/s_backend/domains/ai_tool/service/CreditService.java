@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.ai_tool.service;
 
 import com.talentboozt.s_backend.domains.ai_tool.model.CreditRecord;
-import com.talentboozt.s_backend.domains.ai_tool.repository.CreditRepository;
+import com.talentboozt.s_backend.domains.ai_tool.repository.mongodb.CreditRepository;
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;

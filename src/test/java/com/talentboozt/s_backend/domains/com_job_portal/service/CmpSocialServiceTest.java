@@ -4,8 +4,8 @@ import static org.mockito.Mockito.*;
 
 import com.talentboozt.s_backend.domains.com_job_portal.model.CmpSocialModel;
 import com.talentboozt.s_backend.domains.com_job_portal.model.CompanyModel;
-import com.talentboozt.s_backend.domains.com_job_portal.repository.CmpSocialRepository;
-import com.talentboozt.s_backend.domains.com_job_portal.repository.CompanyRepository;
+import com.talentboozt.s_backend.domains.com_job_portal.repository.mongodb.CmpSocialRepository;
+import com.talentboozt.s_backend.domains.com_job_portal.repository.mongodb.CompanyRepository;
 import com.talentboozt.s_backend.domains.common.dto.SocialLinksDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

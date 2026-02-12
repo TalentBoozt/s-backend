@@ -23,4 +23,10 @@ public class ArticleResponse {
     private boolean featured;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // AI Generated Fields
+    private String aiSummary;
+    private List<String> aiHighlights;
+    private String aiSnippet;
+    private String aiSeoDescription;
 }

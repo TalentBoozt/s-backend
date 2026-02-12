@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.common.service;
 
 import com.talentboozt.s_backend.domains.common.model.SystemNotificationsModel;
-import com.talentboozt.s_backend.domains.common.repository.SystemNotificationsRepository;
+import com.talentboozt.s_backend.domains.common.repository.mongodb.SystemNotificationsRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

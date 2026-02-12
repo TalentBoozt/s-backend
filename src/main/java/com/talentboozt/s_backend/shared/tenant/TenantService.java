@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.shared.tenant;
 
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
-import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
+
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 

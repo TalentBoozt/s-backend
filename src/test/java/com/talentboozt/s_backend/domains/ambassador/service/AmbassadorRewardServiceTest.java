@@ -2,8 +2,9 @@ package com.talentboozt.s_backend.domains.ambassador.service;
 
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorRewardModel;
-import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorProfileRepository;
-import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorRewardRepository;
+import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbassadorProfileRepository;
+import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbassadorRewardRepository;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

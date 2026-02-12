@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.audit_logs.service;
 
 import com.talentboozt.s_backend.domains.audit_logs.model.SchedulerLogModel;
-import com.talentboozt.s_backend.domains.audit_logs.repository.SchedulerLogRepository;
+import com.talentboozt.s_backend.domains.audit_logs.repository.mongodb.SchedulerLogRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

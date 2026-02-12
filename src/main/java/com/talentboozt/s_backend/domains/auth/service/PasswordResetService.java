@@ -2,8 +2,9 @@ package com.talentboozt.s_backend.domains.auth.service;
 
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.model.PasswordResetTokenModel;
-import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
-import com.talentboozt.s_backend.domains.auth.repository.PasswordResetTokenRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.PasswordResetTokenRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

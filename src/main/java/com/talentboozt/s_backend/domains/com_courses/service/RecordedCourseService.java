@@ -4,7 +4,7 @@ import com.talentboozt.s_backend.domains.com_courses.dto.RecLectureDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.RecordedCourseReviewDTO;
 import com.talentboozt.s_backend.domains.com_courses.dto.RejectRecCourseDTO;
 import com.talentboozt.s_backend.domains.com_courses.model.RecordedCourseModel;
-import com.talentboozt.s_backend.domains.com_courses.repository.RecordedCourseRepository;
+import com.talentboozt.s_backend.domains.com_courses.repository.mongodb.RecordedCourseRepository;
 import com.talentboozt.s_backend.shared.mail.service.EmailService;
 import org.springframework.stereotype.Service;
 

@@ -2,8 +2,9 @@ package com.talentboozt.s_backend.domains.com_courses.service;
 
 import com.talentboozt.s_backend.domains.com_courses.model.CourseBatchModel;
 import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
-import com.talentboozt.s_backend.domains.com_courses.repository.CourseBatchRepository;
-import com.talentboozt.s_backend.domains.com_courses.repository.CourseRepository;
+import com.talentboozt.s_backend.domains.com_courses.repository.mongodb.CourseBatchRepository;
+import com.talentboozt.s_backend.domains.com_courses.repository.mongodb.CourseRepository;
+
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

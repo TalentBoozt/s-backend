@@ -1,9 +1,10 @@
 package com.talentboozt.s_backend.domains.ambassador.service;
 
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
-import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorProfileRepository;
+import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbassadorProfileRepository;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
-import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
+
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;

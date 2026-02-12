@@ -2,7 +2,8 @@ package com.talentboozt.s_backend.domains.audit_logs.service;
 
 import com.stripe.model.Event;
 import com.talentboozt.s_backend.domains.audit_logs.model.StripeAuditLog;
-import com.talentboozt.s_backend.domains.audit_logs.repository.StripeAuditLogRepository;
+import com.talentboozt.s_backend.domains.audit_logs.repository.mongodb.StripeAuditLogRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

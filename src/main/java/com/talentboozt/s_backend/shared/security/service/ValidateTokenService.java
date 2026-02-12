@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.shared.security.service;
 
 import com.talentboozt.s_backend.shared.security.model.TokenModel;
-import com.talentboozt.s_backend.shared.security.repository.TokenRepository;
+import com.talentboozt.s_backend.shared.security.repository.mongodb.TokenRepository;
 import com.talentboozt.s_backend.shared.utils.ConfigUtility;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;

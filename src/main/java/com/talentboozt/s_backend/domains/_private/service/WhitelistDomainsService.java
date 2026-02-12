@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains._private.service;
 
 import com.talentboozt.s_backend.domains._private.model.WhitelistDomains;
-import com.talentboozt.s_backend.domains._private.repository.WhitelistDomainsRepository;
+import com.talentboozt.s_backend.domains._private.repository.mongodb.WhitelistDomainsRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

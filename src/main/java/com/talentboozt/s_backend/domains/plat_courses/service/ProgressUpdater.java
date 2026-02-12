@@ -1,13 +1,13 @@
 package com.talentboozt.s_backend.domains.plat_courses.service;
 
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
+import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbassadorSessionRepository;
+import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.ReferralRepository;
 import com.talentboozt.s_backend.domains.plat_courses.model.AmbassadorTaskProgressModel;
 import com.talentboozt.s_backend.domains.plat_courses.model.CourseCouponsModel;
 import com.talentboozt.s_backend.domains.plat_courses.model.GamificationTaskModel;
-import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorSessionRepository;
-import com.talentboozt.s_backend.domains.ambassador.repository.ReferralRepository;
-import com.talentboozt.s_backend.domains.plat_courses.repository.CourseCouponsRepository;
-import com.talentboozt.s_backend.domains.plat_courses.repository.TaskProgressRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.CourseCouponsRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.TaskProgressRepository;
 import com.talentboozt.s_backend.domains.ambassador.service.AmbassadorPointService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;

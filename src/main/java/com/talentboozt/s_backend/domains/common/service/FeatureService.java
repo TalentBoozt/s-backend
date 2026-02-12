@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.common.service;
 
 import com.talentboozt.s_backend.domains.common.model.FeatureModel;
-import com.talentboozt.s_backend.domains.common.repository.FeatureRepository;
+import com.talentboozt.s_backend.domains.common.repository.mongodb.FeatureRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

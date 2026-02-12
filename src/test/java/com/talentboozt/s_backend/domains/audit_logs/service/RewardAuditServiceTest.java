@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.audit_logs.service;
 
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
-import com.talentboozt.s_backend.domains.audit_logs.repository.TaskRewardAuditRepository;
+import com.talentboozt.s_backend.domains.audit_logs.repository.mongodb.TaskRewardAuditRepository;
 import com.talentboozt.s_backend.domains.plat_courses.model.GamificationTaskModel;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

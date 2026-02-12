@@ -5,7 +5,7 @@ import com.talentboozt.s_backend.domains.auth.dto.PasswordResetRequest;
 import com.talentboozt.s_backend.domains.auth.dto.PasswordResetRequestDTO;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.model.PasswordResetTokenModel;
-import com.talentboozt.s_backend.domains.auth.repository.PasswordResetTokenRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.PasswordResetTokenRepository;
 import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
 import com.talentboozt.s_backend.domains.auth.service.PasswordResetService;
 import com.talentboozt.s_backend.shared.mail.service.EmailService;

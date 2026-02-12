@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.plat_job_portal.service;
 
 import com.talentboozt.s_backend.domains.plat_job_portal.model.InterviewQuestionModel;
-import com.talentboozt.s_backend.domains.plat_job_portal.repository.InterviewQuestionRepository;
+import com.talentboozt.s_backend.domains.plat_job_portal.repository.mongodb.InterviewQuestionRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

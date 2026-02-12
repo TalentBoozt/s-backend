@@ -1,14 +1,16 @@
 package com.talentboozt.s_backend.domains.sys_tracking.service.monitor;
 
 import com.talentboozt.s_backend.domains._private.dto.PagedResponse;
+import com.talentboozt.s_backend.domains._private.repository.mongodb.UserActivityRepository;
 import com.talentboozt.s_backend.domains.auth.model.*;
 import com.talentboozt.s_backend.domains.auth.service.RoleService;
+import com.talentboozt.s_backend.domains.common.repository.mongodb.LoginRepository;
 import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.*;
 import com.talentboozt.s_backend.domains.sys_tracking.model.TrackingEvent;
-import com.talentboozt.s_backend.domains.sys_tracking.repository.TrackingEventRepository;
-import com.talentboozt.s_backend.domains._private.repository.UserActivityRepository;
-import com.talentboozt.s_backend.domains.common.repository.LoginRepository;
-import com.talentboozt.s_backend.domains.auth.repository.*;
+import com.talentboozt.s_backend.domains.sys_tracking.repository.mongodb.TrackingEventRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.PermissionRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.RoleRepository;
 import com.talentboozt.s_backend.shared.utils.EncryptionUtility;
 import eu.bitwalker.useragentutils.OperatingSystem;
 import eu.bitwalker.useragentutils.UserAgent;
@@ -49,7 +51,7 @@ public class MonitoringService {
     }
 
     public long countUniqueUsersByDate(String date) {
-        UniqueUserCountDTO  result = loginRepo.countDistinctUserIdByEventDate(date);
+        UniqueUserCountDTO result = loginRepo.countDistinctUserIdByEventDate(date);
         return result != null ? result.getUniqueUserCount() : 0;
     }
 
@@ -73,7 +75,8 @@ public class MonitoringService {
         return eventRepo.aggregatePerformanceMetrics(trackingId, from, to);
     }
 
-    public PagedResponse<SessionViewDTO> getSessionViews(String trackingId, Instant from, Instant to, int page, int size) {
+    public PagedResponse<SessionViewDTO> getSessionViews(String trackingId, Instant from, Instant to, int page,
+            int size) {
         long total = eventRepo.countDistinctSessionIdByTrackingIdAndTimestampBetween(trackingId, from, to);
 
         List<SessionViewDTO> items = eventRepo.aggregateSessionViewsPaginated(trackingId, from, to, page * size, size);
@@ -142,9 +145,12 @@ public class MonitoringService {
                 .collect(Collectors.toList());
     }
 
-    public List<ScreenResolutionCount> aggregateScreenResolutions(String trackingId, Instant from, Instant to) { return eventRepo.countByScreenResolution(trackingId, from, to); }
+    public List<ScreenResolutionCount> aggregateScreenResolutions(String trackingId, Instant from, Instant to) {
+        return eventRepo.countByScreenResolution(trackingId, from, to);
+    }
 
-    public SessionViewDetail getSessionDetails(String trackingId, String sessionId) throws ChangeSetPersister.NotFoundException {
+    public SessionViewDetail getSessionDetails(String trackingId, String sessionId)
+            throws ChangeSetPersister.NotFoundException {
         List<TrackingEvent> events = eventRepo.findSessionEvents(trackingId, sessionId);
 
         if (events.isEmpty()) {
@@ -166,8 +172,7 @@ public class MonitoringService {
                         e.getTimestamp().toString(),
                         e.getEventType(),
                         e.getUrl(),
-                        e.getElementText()
-                ))
+                        e.getElementText()))
                 .toList();
 
         List<SessionError> errors = events.stream()
@@ -177,8 +182,7 @@ public class MonitoringService {
                         e.getErrorSource(),
                         e.getErrorLine(),
                         e.getErrorColumn(),
-                        e.getRejectionReason()
-                ))
+                        e.getRejectionReason()))
                 .toList();
 
         return new SessionViewDetail(
@@ -194,9 +198,9 @@ public class MonitoringService {
                 averageNonZero(events.stream().map(TrackingEvent::getFullLoadTime).toList()),
                 averageNonZero(events.stream().map(TrackingEvent::getTtfb).toList()),
                 errors,
-                sessionEvents
-        );
+                sessionEvents);
     }
+
     private long averageNonZero(List<Long> values) {
         return (long) values.stream()
                 .filter(v -> v != null && v > 0)
@@ -224,10 +228,9 @@ public class MonitoringService {
                 Aggregation.match(Criteria.where("active").is(true)),
                 Aggregation.unwind("roles"),
                 Aggregation.group("roles").count().as("count"),
-                Aggregation.project("count").and("_id").as("role")
-        );
-        AggregationResults<RoleUserCountDTO> results =
-                mongoTemplate.aggregate(agg, "portal_credentials", RoleUserCountDTO.class);
+                Aggregation.project("count").and("_id").as("role"));
+        AggregationResults<RoleUserCountDTO> results = mongoTemplate.aggregate(agg, "portal_credentials",
+                RoleUserCountDTO.class);
         return results.getMappedResults();
     }
 
@@ -240,14 +243,14 @@ public class MonitoringService {
                 .filter(role -> role.getName() != null)
                 .collect(Collectors.toMap(
                         RoleModel::getName,
-                        role -> Optional.ofNullable(role.getPermissions()).orElse(Collections.emptyList())
-                ));
+                        role -> Optional.ofNullable(role.getPermissions()).orElse(Collections.emptyList())));
 
         // Count permission usage across all users
         Map<String, Integer> permissionUsageMap = new HashMap<>();
 
         for (CredentialsModel user : users) {
-            if (user.getRoles() == null) continue;
+            if (user.getRoles() == null)
+                continue;
 
             Set<String> userPermissions = new HashSet<>();
             for (String role : user.getRoles()) {
@@ -277,8 +280,7 @@ public class MonitoringService {
                 new SuspiciousActivityDTO("User123", "Admin", "CAN_MANAGE_USERS", "Accessed admin page"),
                 new SuspiciousActivityDTO("User123", "Job Seeker", "CAN_POST_JOBS", "Posted multiple jobs"),
                 new SuspiciousActivityDTO("Ab9ca123", "Job Seeker", "CAN_CREATE_COURSES", "Modified course"),
-                new SuspiciousActivityDTO("User123", "Admin", null, null)
-        );
+                new SuspiciousActivityDTO("User123", "Admin", null, null));
     }
 
     /** Suspicious 1: Abnormal session durations */
@@ -293,9 +295,7 @@ public class MonitoringService {
         if (maxSeconds == 0) {
             MatchOperation match = Aggregation.match(
                     new Criteria().orOperator(
-                            Criteria.where("durationMs").lt(minSeconds * 1000)
-                    )
-            );
+                            Criteria.where("durationMs").lt(minSeconds * 1000)));
 
             Aggregation agg = Aggregation.newAggregation(project, match);
             return mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
@@ -303,9 +303,7 @@ public class MonitoringService {
         MatchOperation match = Aggregation.match(
                 new Criteria().orOperator(
                         Criteria.where("durationMs").lt(minSeconds * 1000),
-                        Criteria.where("durationMs").gt(maxSeconds * 1000)
-                )
-        );
+                        Criteria.where("durationMs").gt(maxSeconds * 1000)));
 
         Aggregation agg = Aggregation.newAggregation(project, match);
         return mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
@@ -320,10 +318,10 @@ public class MonitoringService {
         MatchOperation match = Aggregation.match(Criteria.where("totalAccesses").gt(thresholdPerMinute));
 
         Aggregation agg = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("timestamp").gt(Objects.requireNonNull(LocalDateTime.now().minusMinutes(1)))),
+                Aggregation.match(
+                        Criteria.where("timestamp").gt(Objects.requireNonNull(LocalDateTime.now().minusMinutes(1)))),
                 groupByUserAndMinute,
-                match
-        );
+                match);
 
         return mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
     }
@@ -333,17 +331,18 @@ public class MonitoringService {
         Instant recentWindow = Instant.now().minusSeconds(timeWindowMinutes * 60);
 
         Aggregation agg = Aggregation.newAggregation(
-                Aggregation.match(Criteria.where("timestamp").gt(Objects.requireNonNull(LocalDateTime.ofInstant(recentWindow, ZoneOffset.UTC)))),
+                Aggregation.match(Criteria.where("timestamp")
+                        .gt(Objects.requireNonNull(LocalDateTime.ofInstant(recentWindow, ZoneOffset.UTC)))),
                 Aggregation.group("userId")
                         .addToSet("encryptedIpAddress").as("uniqueIps")
                         .count().as("requestCount"),
                 Aggregation.project("uniqueIps", "requestCount")
                         .and("_id").as("userId")
                         .andExpression("size(uniqueIps)").as("ipCount"),
-                Aggregation.match(Criteria.where("ipCount").gt(1))
-        );
+                Aggregation.match(Criteria.where("ipCount").gt(1)));
 
-        List<Document> results = mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
+        List<Document> results = mongoTemplate.aggregate(agg, "portal_user_activity", Document.class)
+                .getMappedResults();
 
         // Decrypt IPs and replace the list
         for (Document doc : results) {
@@ -357,7 +356,7 @@ public class MonitoringService {
             doc.put("uniqueIps", String.join("\n", decryptedIps));
 
             // Optionally replace encrypted list with decrypted one
-//            doc.put("uniqueIpsString", decryptedIps);
+            // doc.put("uniqueIpsString", decryptedIps);
         }
 
         return results;
@@ -388,9 +387,7 @@ public class MonitoringService {
                         .andExpression("size(uniqueCities)").as("cityCount"),
                 Aggregation.match(new Criteria().orOperator(
                         Criteria.where("countryCount").gt(1),
-                        Criteria.where("cityCount").gt(1)
-                ))
-        );
+                        Criteria.where("cityCount").gt(1))));
 
         return mongoTemplate.aggregate(agg, "events", Document.class).getMappedResults();
     }
@@ -401,8 +398,7 @@ public class MonitoringService {
                 Aggregation.match(Criteria.where("errorMessage").ne(null)),
                 Aggregation.group("userId")
                         .count().as("errorCount"),
-                Aggregation.match(Criteria.where("errorCount").gt(threshold))
-        );
+                Aggregation.match(Criteria.where("errorCount").gt(threshold)));
 
         return mongoTemplate.aggregate(agg, "events", Document.class).getMappedResults();
     }
@@ -412,10 +408,8 @@ public class MonitoringService {
         Aggregation agg = Aggregation.newAggregation(
                 Aggregation.match(new Criteria().andOperator(
                         Criteria.where("userId").is("Anonymous"),
-                        Criteria.where("endpointAccessed").in(Objects.requireNonNull(protectedEndpoints))
-                )),
-                Aggregation.project("userId", "endpointAccessed", "timestamp")
-        );
+                        Criteria.where("endpointAccessed").in(Objects.requireNonNull(protectedEndpoints)))),
+                Aggregation.project("userId", "endpointAccessed", "timestamp"));
 
         return mongoTemplate.aggregate(agg, "portal_user_activity", Document.class).getMappedResults();
     }
@@ -425,10 +419,10 @@ public class MonitoringService {
         query.addCriteria(new Criteria().orOperator(
                 Criteria.where("roles").exists(false),
                 Criteria.where("roles").is(null),
-                Criteria.where("roles").size(0)
-        ));
+                Criteria.where("roles").size(0)));
 
-        List<CredentialsModel> usersMissingRoles = mongoTemplate.find(query, CredentialsModel.class, "portal_credentials");
+        List<CredentialsModel> usersMissingRoles = mongoTemplate.find(query, CredentialsModel.class,
+                "portal_credentials");
 
         for (CredentialsModel user : usersMissingRoles) {
             // Determine if this user is a social-auth user
@@ -442,7 +436,8 @@ public class MonitoringService {
             boolean isTrainer = user.getAccessedPlatforms() != null &&
                     user.getAccessedPlatforms().contains("TrainingPlatform");
 
-            // Set default role(s) based on logic — here assuming social auth users are "SOCIAL_LOGGER"
+            // Set default role(s) based on logic — here assuming social auth users are
+            // "SOCIAL_LOGGER"
             List<String> defaultRoles = new ArrayList<>();
             if (isSocialAuth && isLearner) {
                 defaultRoles.addAll(Arrays.asList("CANDIDATE", "LEARNER", "SOCIAL_LOGGER"));
@@ -459,13 +454,12 @@ public class MonitoringService {
             Update update = new Update().set("roles", defaultRoles);
 
             // Optionally remove deprecated "role" field
-//            update.unset("role");
+            // update.unset("role");
 
             mongoTemplate.updateFirst(
                     Query.query(Criteria.where("_id").is(user.getId())),
                     update,
-                    "portal_credentials"
-            );
+                    "portal_credentials");
         }
     }
 

@@ -4,7 +4,7 @@ import com.talentboozt.s_backend.domains.announcement.dto.AnnouncementRequest;
 import com.talentboozt.s_backend.domains.announcement.dto.AnnouncementResponse;
 import com.talentboozt.s_backend.domains.announcement.event.AnnouncementPublishedEvent;
 import com.talentboozt.s_backend.domains.announcement.model.*;
-import com.talentboozt.s_backend.domains.announcement.repository.AnnouncementRepository;
+import com.talentboozt.s_backend.domains.announcement.repository.mongodb.AnnouncementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -33,6 +33,7 @@ public class AnnouncementService {
                 .expiresAt(request.getExpiresAt())
                 .createdBy(adminId)
                 .pinned(request.isPinned())
+                .generateSummary(request.isGenerateSummary())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

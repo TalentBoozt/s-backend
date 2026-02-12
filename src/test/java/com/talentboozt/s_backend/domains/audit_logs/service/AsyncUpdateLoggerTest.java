@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.audit_logs.service;
 
 import com.talentboozt.s_backend.domains.audit_logs.model.AsyncUpdateAuditLog;
-import com.talentboozt.s_backend.domains.audit_logs.repository.AsyncUpdateAuditLogRepository;
+import com.talentboozt.s_backend.domains.audit_logs.repository.mongodb.AsyncUpdateAuditLogRepository;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

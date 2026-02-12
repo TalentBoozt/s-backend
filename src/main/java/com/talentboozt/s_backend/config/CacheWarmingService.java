@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.config;
 
-import com.talentboozt.s_backend.domains.auth.repository.CredentialsRepository;
+import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
 import com.talentboozt.s_backend.shared.tenant.TenantService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

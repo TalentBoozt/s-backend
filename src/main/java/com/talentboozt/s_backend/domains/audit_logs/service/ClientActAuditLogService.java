@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.audit_logs.service;
 
 import com.talentboozt.s_backend.domains.audit_logs.model.ClientActAuditLog;
-import com.talentboozt.s_backend.domains.audit_logs.repository.ClientActAuditLogRepository;
+import com.talentboozt.s_backend.domains.audit_logs.repository.mongodb.ClientActAuditLogRepository;
+
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;

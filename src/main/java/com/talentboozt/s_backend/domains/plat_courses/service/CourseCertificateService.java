@@ -4,8 +4,9 @@ import com.talentboozt.s_backend.domains.plat_courses.dto.CertificateDTO;
 import com.talentboozt.s_backend.domains.plat_courses.dto.CourseEnrollment;
 import com.talentboozt.s_backend.domains.plat_courses.model.CourseCertificateModel;
 import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
-import com.talentboozt.s_backend.domains.plat_courses.repository.CourseCertificateRepository;
-import com.talentboozt.s_backend.domains.plat_courses.repository.EmpCoursesRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.CourseCertificateRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.EmpCoursesRepository;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;

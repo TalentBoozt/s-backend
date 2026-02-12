@@ -13,9 +13,11 @@ import com.talentboozt.s_backend.domains.community.event.ContentCreatedEvent;
 import com.talentboozt.s_backend.domains.community.model.Comment;
 import com.talentboozt.s_backend.domains.community.model.Post;
 import com.talentboozt.s_backend.domains.community.model.Notification;
-import com.talentboozt.s_backend.domains.community.repository.CommentRepository;
-import com.talentboozt.s_backend.domains.community.repository.PostRepository;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.CommentRepository;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.PostRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.talentboozt.s_backend.domains.community.event.CommentUpvotedEvent;
+import com.talentboozt.s_backend.domains.community.event.PostUpvotedEvent;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -116,12 +118,12 @@ public class PostServiceImpl implements PostService {
 
         // Automated Flagging
         eventPublisher.publishEvent(
-            ContentCreatedEvent.builder()
-                            .targetId(Objects.requireNonNull(savedPost.getId()))
-                            .type("POST")
-                            .text(Objects.requireNonNull(post.getContent().getText()))
-                            .authorId(Objects.requireNonNull(post.getAuthorId()))
-                            .build());
+                ContentCreatedEvent.builder()
+                        .targetId(Objects.requireNonNull(savedPost.getId()))
+                        .type("POST")
+                        .text(Objects.requireNonNull(post.getContent().getText()))
+                        .authorId(Objects.requireNonNull(post.getAuthorId()))
+                        .build());
 
         // Log Activity
         activityService.logActivity(post.getAuthorId(), "CREATED_POST", savedPost.getId());
@@ -266,6 +268,16 @@ public class PostServiceImpl implements PostService {
                     post.getId());
         }
 
+        // Publish Event for Reputation
+        if (emoji.equals("👍") && userIds.contains(userId)) {
+            eventPublisher.publishEvent(
+                    PostUpvotedEvent.builder()
+                            .postId(post.getId())
+                            .userId(userId)
+                            .authorId(post.getAuthorId())
+                            .build());
+        }
+
         PostDTO postDTO = mapToDTO(savedPost);
         messagingTemplate.convertAndSend("/topic/post/" + id, Objects.requireNonNull(postDTO));
         return postDTO;
@@ -308,12 +320,12 @@ public class PostServiceImpl implements PostService {
 
         // Automated Flagging
         eventPublisher.publishEvent(
-            ContentCreatedEvent.builder()
-                            .targetId(Objects.requireNonNull(savedComment.getId()))
-                            .type("COMMENT")
-                            .text(Objects.requireNonNull(comment.getText()))
-                            .authorId(Objects.requireNonNull(comment.getAuthorId()))
-                            .build());
+                ContentCreatedEvent.builder()
+                        .targetId(Objects.requireNonNull(savedComment.getId()))
+                        .type("COMMENT")
+                        .text(Objects.requireNonNull(comment.getText()))
+                        .authorId(Objects.requireNonNull(comment.getAuthorId()))
+                        .build());
 
         // Log Activity
         activityService.logActivity(comment.getAuthorId(), "ADDED_COMMENT", savedComment.getId());
@@ -445,6 +457,16 @@ public class PostServiceImpl implements PostService {
                     userId,
                     Notification.NotificationType.COMMENT_REACTION,
                     comment.getId());
+        }
+
+        // Publish Event for Reputation
+        if (emoji.equals("👍") && userIds.contains(userId)) {
+            eventPublisher.publishEvent(
+                    CommentUpvotedEvent.builder()
+                            .commentId(comment.getId())
+                            .userId(userId)
+                            .authorId(comment.getAuthorId())
+                            .build());
         }
 
         CommentDTO commentDTO = mapToCommentDTO(savedComment);

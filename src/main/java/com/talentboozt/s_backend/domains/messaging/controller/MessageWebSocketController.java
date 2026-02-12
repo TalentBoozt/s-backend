@@ -1,7 +1,6 @@
 package com.talentboozt.s_backend.domains.messaging.controller;
 
 import com.talentboozt.s_backend.domains.messaging.dto.MessageRequest;
-import com.talentboozt.s_backend.domains.messaging.dto.MessageResponse;
 import com.talentboozt.s_backend.domains.messaging.service.MessagingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;

@@ -2,10 +2,11 @@ package com.talentboozt.s_backend.domains.ambassador.service;
 
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorLeaderboardModel;
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
-import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorLeaderboardRepository;
-import com.talentboozt.s_backend.domains.ambassador.repository.AmbassadorProfileRepository;
+import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbassadorLeaderboardRepository;
+import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbassadorProfileRepository;
 import com.talentboozt.s_backend.domains.plat_courses.model.AmbassadorTaskProgressModel;
-import com.talentboozt.s_backend.domains.plat_courses.repository.TaskProgressRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.TaskProgressRepository;
+
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

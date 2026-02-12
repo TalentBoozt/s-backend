@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import com.talentboozt.s_backend.domains.sys_tracking.dto.monitor.*;
-import com.talentboozt.s_backend.domains.sys_tracking.repository.TrackingEventRepository;
+import com.talentboozt.s_backend.domains.sys_tracking.repository.mongodb.TrackingEventRepository;
 
 import java.time.Instant;
 import java.util.List;

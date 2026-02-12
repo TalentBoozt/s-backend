@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.payment.service;
 
 import com.talentboozt.s_backend.domains.payment.model.RecordedCoursePayment;
-import com.talentboozt.s_backend.domains.payment.repository.RecordedCoursePaymentRepository;
+import com.talentboozt.s_backend.domains.payment.repository.mongodb.RecordedCoursePaymentRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

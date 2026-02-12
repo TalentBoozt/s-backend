@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.common.service;
 
 import com.talentboozt.s_backend.domains.common.model.IssueModel;
-import com.talentboozt.s_backend.domains.common.repository.IssueRepository;
+import com.talentboozt.s_backend.domains.common.repository.mongodb.IssueRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

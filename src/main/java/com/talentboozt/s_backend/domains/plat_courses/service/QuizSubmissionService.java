@@ -4,7 +4,8 @@ import com.talentboozt.s_backend.domains.com_courses.dto.QuizDTO;
 import com.talentboozt.s_backend.domains.plat_courses.dto.LeaderboardEntry;
 import com.talentboozt.s_backend.domains.plat_courses.dto.QuestionAnswer;
 import com.talentboozt.s_backend.domains.plat_courses.model.QuizAttempt;
-import com.talentboozt.s_backend.domains.plat_courses.repository.QuizAttemptRepository;
+import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.QuizAttemptRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

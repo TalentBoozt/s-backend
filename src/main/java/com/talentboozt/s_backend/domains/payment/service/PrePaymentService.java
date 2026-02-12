@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.payment.service;
 
 import com.talentboozt.s_backend.domains.payment.model.PrePaymentModel;
-import com.talentboozt.s_backend.domains.payment.repository.PrePaymentRepository;
+import com.talentboozt.s_backend.domains.payment.repository.mongodb.PrePaymentRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

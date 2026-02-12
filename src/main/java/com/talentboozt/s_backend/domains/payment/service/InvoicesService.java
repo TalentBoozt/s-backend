@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.payment.service;
 
 import com.talentboozt.s_backend.domains.payment.model.InvoicesModel;
-import com.talentboozt.s_backend.domains.payment.repository.InvoiceRepository;
+import com.talentboozt.s_backend.domains.payment.repository.mongodb.InvoiceRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

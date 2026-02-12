@@ -1,7 +1,8 @@
 package com.talentboozt.s_backend.domains.audit_logs.controller;
 
 import com.talentboozt.s_backend.domains.audit_logs.model.StripeAuditLog;
-import com.talentboozt.s_backend.domains.audit_logs.repository.StripeAuditLogRepository;
+import com.talentboozt.s_backend.domains.audit_logs.repository.mongodb.StripeAuditLogRepository;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
