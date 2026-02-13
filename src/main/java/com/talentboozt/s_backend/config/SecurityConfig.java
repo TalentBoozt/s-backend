@@ -126,7 +126,7 @@ public class SecurityConfig {
                                     "/api/security/verify-captcha", "/ws/**",
                                     "/api/v2/posts/**", "/api/v2/notifications/**",
                                     "/api/v2/batch/**", "/api/v2/employee/**", "/api/v2/communities/**",
-                                    "/api/v2/emp_**") // Added API paths
+                                    "/api/v2/messaging/**", "/api/v2/emp_**") // Added API paths
                             .permitAll()
                             .requestMatchers(HttpMethod.POST, "/api/v2/reports").authenticated()
                             .requestMatchers("/api/v2/reports/**").authenticated() // Should be hasRole("ADMIN") in production
