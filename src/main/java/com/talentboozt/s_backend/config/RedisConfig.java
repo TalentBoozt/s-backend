@@ -43,7 +43,7 @@ public class RedisConfig {
         if (useSsl) {
             clientConfigBuilder.useSsl();
         }
-        clientConfigBuilder.commandTimeout(Duration.ofSeconds(2));
+        clientConfigBuilder.commandTimeout(Duration.ofSeconds(30));
         clientConfigBuilder.shutdownTimeout(Duration.ZERO);
 
         return new LettuceConnectionFactory(redisConfig, clientConfigBuilder.build());
