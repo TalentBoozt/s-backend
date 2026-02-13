@@ -10,6 +10,7 @@ import com.talentboozt.s_backend.domains.user.repository.mongodb.EmployeeReposit
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -93,7 +94,12 @@ public class MessagingService {
         List<ParticipantDTO> participants = room.getParticipants().stream()
                 .map(userId -> {
                     EmployeeModel employee = employeeRepository.findById(userId).orElse(null);
-                    PresenceStatus status = presenceService.getUserPresence(userId).getStatus();
+                    PresenceStatus status;
+                    try {
+                        status = presenceService.getUserPresence(userId).getStatus();
+                    } catch (RedisConnectionFailureException e) {
+                        status = PresenceStatus.OFFLINE;
+                    }
                     String name = "Unknown User";
                     String avatar = null;
 
@@ -112,7 +118,8 @@ public class MessagingService {
                 .collect(Collectors.toList());
 
         Message lastMessage = messageRepository.findFirstByRoomIdOrderByCreatedAtDesc(room.getId()).orElse(null);
-        long unreadCount = messageRepository.countUnreadMessages(room.getId(), currentUserId, currentUserId);
+        Long unreadCount = messageRepository.countUnreadMessages(room.getId(), currentUserId, currentUserId);
+        long safeUnread = unreadCount != null ? unreadCount : 0L;
 
         return ChatRoomResponse.builder()
                 .id(room.getId())
@@ -120,7 +127,7 @@ public class MessagingService {
                 .participants(participants)
                 .communityId(room.getCommunityId())
                 .lastMessage(lastMessage != null ? mapToResponse(lastMessage) : null)
-                .unreadCount((int) unreadCount)
+                .unreadCount((int) safeUnread)
                 .createdAt(room.getCreatedAt())
                 .build();
     }
