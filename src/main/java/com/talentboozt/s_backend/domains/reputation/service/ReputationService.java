@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.reputation.service;
 
 import com.talentboozt.s_backend.domains.reputation.model.*;
 import com.talentboozt.s_backend.domains.reputation.repository.mongodb.*;
+import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
+import com.talentboozt.s_backend.domains.user.repository.mongodb.EmployeeRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -19,6 +21,7 @@ public class ReputationService {
     private final UserBadgeRepository userBadgeRepository;
     private final ReputationScoringStrategy scoringStrategy;
     private final RedisTemplate<String, String> redisTemplate;
+    private final EmployeeRepository employeeRepository;
 
     private static final String LEADERBOARD_KEY = "leaderboard:global";
 
@@ -95,16 +98,53 @@ public class ReputationService {
     public List<com.talentboozt.s_backend.domains.reputation.dto.LeaderboardEntry> getLeaderboard(int limit) {
         var typedTuples = redisTemplate.opsForZSet().reverseRangeWithScores(LEADERBOARD_KEY, 0, limit - 1);
 
-        if (typedTuples == null)
+        if (typedTuples == null || typedTuples.isEmpty())
             return java.util.Collections.emptyList();
 
-        java.util.concurrent.atomic.AtomicInteger rank = new java.util.concurrent.atomic.AtomicInteger(1);
+        List<String> userIds = typedTuples.stream()
+                .map(org.springframework.data.redis.core.ZSetOperations.TypedTuple::getValue)
+                .toList();
+
+        // Batch fetch users and reputations
+        List<EmployeeModel> employees = employeeRepository.findAllById(userIds);
+        List<UserReputation> reputations = userReputationRepository.findByUserIdIn(userIds);
+
+        // Create lookup maps
+        java.util.Map<String, EmployeeModel> employeeMap = employees.stream()
+                .collect(java.util.stream.Collectors.toMap(EmployeeModel::getId, e -> e));
+        java.util.Map<String, UserReputation> reputationMap = reputations.stream()
+                .collect(java.util.stream.Collectors.toMap(UserReputation::getUserId, r -> r));
+
+        java.util.concurrent.atomic.AtomicInteger rankCounter = new java.util.concurrent.atomic.AtomicInteger(1);
         return typedTuples.stream()
-                .map(tuple -> com.talentboozt.s_backend.domains.reputation.dto.LeaderboardEntry.builder()
-                        .userId(tuple.getValue())
-                        .score(tuple.getScore() != null ? tuple.getScore().longValue() : 0)
-                        .rank(rank.getAndIncrement())
-                        .build())
+                .map(tuple -> {
+                    String userId = tuple.getValue();
+                    long totalScore = tuple.getScore() != null ? tuple.getScore().longValue() : 0;
+                    int rank = rankCounter.getAndIncrement();
+
+                    EmployeeModel employee = employeeMap.get(userId);
+                    UserReputation reputation = reputationMap.get(userId);
+
+                    String name = "Unknown User";
+                    String avatar = null;
+                    if (employee != null) {
+                        name = employee.getFirstname() + " " + employee.getLastname();
+                        avatar = employee.getImage();
+                    }
+
+                    long articleScore = (reputation != null) ? reputation.getArticleScore() : 0;
+                    long communityScore = (reputation != null) ? reputation.getCommunityScore() : 0;
+
+                    return com.talentboozt.s_backend.domains.reputation.dto.LeaderboardEntry.builder()
+                            .userId(userId)
+                            .totalScore(totalScore)
+                            .articleScore(articleScore)
+                            .communityScore(communityScore)
+                            .rank(rank)
+                            .name(name)
+                            .avatar(avatar)
+                            .build();
+                })
                 .toList();
     }
 
