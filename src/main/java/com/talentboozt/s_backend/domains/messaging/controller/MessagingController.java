@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/messaging")
+@RequestMapping("/api/v2/messaging")
 @RequiredArgsConstructor
 public class MessagingController {
     private final MessagingService messagingService;

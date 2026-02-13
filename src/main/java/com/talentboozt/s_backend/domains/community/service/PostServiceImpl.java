@@ -15,6 +15,8 @@ import com.talentboozt.s_backend.domains.community.model.Post;
 import com.talentboozt.s_backend.domains.community.model.Notification;
 import com.talentboozt.s_backend.domains.community.repository.mongodb.CommentRepository;
 import com.talentboozt.s_backend.domains.community.repository.mongodb.PostRepository;
+import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
+import com.talentboozt.s_backend.domains.user.repository.mongodb.EmployeeRepository;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import com.talentboozt.s_backend.domains.community.event.CommentUpvotedEvent;
 import com.talentboozt.s_backend.domains.community.event.PostUpvotedEvent;
@@ -36,6 +38,7 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final EmployeeRepository employeeRepository;
     private final NotificationService notificationService;
     private final ActivityService activityService;
     private final MentionService mentionService;
@@ -472,6 +475,48 @@ public class PostServiceImpl implements PostService {
         CommentDTO commentDTO = mapToCommentDTO(savedComment);
         messagingTemplate.convertAndSend("/topic/comment/" + commentId, commentDTO);
         return commentDTO;
+    }
+
+    @Override
+    public List<PostDTO> getSavedPosts(String userId) {
+        EmployeeModel employee = employeeRepository.findById(userId).orElse(null);
+        if (employee == null || employee.getSavedPosts() == null || employee.getSavedPosts().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<String> validIds = new ArrayList<>();
+        // Filter out nulls if any
+        for (String id : employee.getSavedPosts()) {
+            if (id != null)
+                validIds.add(id);
+        }
+
+        Iterable<Post> posts = postRepository.findAllById(validIds);
+        List<PostDTO> result = new ArrayList<>();
+        for (Post post : posts) {
+            result.add(mapToDTO(post));
+        }
+        return result;
+    }
+
+    @Override
+    public void bookmarkPost(String postId, String userId) {
+        EmployeeModel employee = employeeRepository.findById(userId).orElse(null);
+        if (employee == null)
+            return;
+
+        List<String> saved = employee.getSavedPosts();
+        if (saved == null)
+            saved = new ArrayList<>();
+
+        if (saved.contains(postId)) {
+            saved.remove(postId);
+        } else {
+            saved.add(postId);
+        }
+
+        employee.setSavedPosts(saved);
+        employeeRepository.save(employee);
     }
 
     private PostDTO mapToDTO(Post post) {
