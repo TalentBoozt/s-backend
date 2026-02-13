@@ -45,6 +45,11 @@ public class PostController {
         return ResponseEntity.ok(postService.searchPosts(query, pageable));
     }
 
+    @GetMapping("/saved")
+    public ResponseEntity<List<PostDTO>> getSavedPosts(@RequestParam String userId) {
+        return ResponseEntity.ok(postService.getSavedPosts(userId));
+    }
+
     @GetMapping("/community/{communityId}")
     public ResponseEntity<List<PostDTO>> getByCommunity(@PathVariable String communityId) {
         return ResponseEntity.ok(postService.getPostsByCommunity(communityId));
@@ -88,6 +93,14 @@ public class PostController {
             @RequestParam String userId) {
         PostDTO post = postService.reactToPost(id, emoji, userId);
         return post != null ? ResponseEntity.ok(post) : ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/{id}/bookmark")
+    public ResponseEntity<Void> bookmark(
+            @PathVariable String id,
+            @RequestParam String userId) {
+        postService.bookmarkPost(id, userId);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/{id}/comments")

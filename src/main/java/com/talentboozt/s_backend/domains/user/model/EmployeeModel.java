@@ -30,17 +30,18 @@ public class EmployeeModel {
     private String email;
     private String resume;
     private String intro;
-    private String skills; //id
-    private String experiences; //id
-    private String education; //id
-    private String projects; //id
-    private String certificates; //id
-    private String contactInfo; //id
-    private String courses; //id
+    private String skills; // id
+    private String experiences; // id
+    private String education; // id
+    private String projects; // id
+    private String certificates; // id
+    private String contactInfo; // id
+    private String courses; // id
     private String followings;
     private String followers;
     @Field("savedJobs")
     private List<FavJobDTO> savedJobs;
+    private List<String> savedPosts;
     private Object accountNotifications;
     private Object marketingNotifications;
     private Object profileCompleted;
@@ -61,44 +62,46 @@ public class EmployeeModel {
 }
 
 // {
-//    "firstname":"john",
-//    "lastname":"Doe",
-//    "occupation":"Web Developer",
-//    "image":"",
-//    "coverImage":"",
-//    "dob":"09/11/1999",
-//    "email":"johndoe@gmail.com",
-//    "resume":"",
-//    "intro":"lorem ipsum dolor sit amet consectetur adipisicing elit. Dignissimos, totam. \nlorem ipsum dolor sit amet consectetur adipisicing elit. Dignissimos, totam.",
-//    "skills":"",
-//    "experiences":"",
-//    "education":"",
-//    "contactInfo":"",
-//    "accountNotifications":{
-//      "mention": true,
-//      "follow": true,
-//      "shareActivity": true,
-//      "message": true
-//    },
-//    "marketingNotifications":{
-//      "promotion": true,
-//      "companyNews": true,
-//      "weeklyJobs": true,
-//      "unsubscribe": true
-//    },
-//    "profileCompleted":{
-//      "name": true,
-//      "email": true,
-//      "resume": true,
-//      "occupation": true,
-//      "profilePic": true,
-//      "coverPic": true,
-//      "intro": true,
-//      "skills": true,
-//      "experiences": true,
-//      "education": true,
-//      "contactInfo": true,
-//      "socialLinks": true
-//    },
-//    "profileStatus":""
-//}
+// "firstname":"john",
+// "lastname":"Doe",
+// "occupation":"Web Developer",
+// "image":"",
+// "coverImage":"",
+// "dob":"09/11/1999",
+// "email":"johndoe@gmail.com",
+// "resume":"",
+// "intro":"lorem ipsum dolor sit amet consectetur adipisicing elit.
+// Dignissimos, totam. \nlorem ipsum dolor sit amet consectetur adipisicing
+// elit. Dignissimos, totam.",
+// "skills":"",
+// "experiences":"",
+// "education":"",
+// "contactInfo":"",
+// "accountNotifications":{
+// "mention": true,
+// "follow": true,
+// "shareActivity": true,
+// "message": true
+// },
+// "marketingNotifications":{
+// "promotion": true,
+// "companyNews": true,
+// "weeklyJobs": true,
+// "unsubscribe": true
+// },
+// "profileCompleted":{
+// "name": true,
+// "email": true,
+// "resume": true,
+// "occupation": true,
+// "profilePic": true,
+// "coverPic": true,
+// "intro": true,
+// "skills": true,
+// "experiences": true,
+// "education": true,
+// "contactInfo": true,
+// "socialLinks": true
+// },
+// "profileStatus":""
+// }

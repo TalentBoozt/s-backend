@@ -35,4 +35,8 @@ public interface PostService {
     CommentDTO updateComment(String postId, String commentId, CommentDTO commentDTO);
 
     CommentDTO reactToComment(String commentId, String emoji, String userId);
+
+    List<PostDTO> getSavedPosts(String userId);
+
+    void bookmarkPost(String postId, String userId);
 }
