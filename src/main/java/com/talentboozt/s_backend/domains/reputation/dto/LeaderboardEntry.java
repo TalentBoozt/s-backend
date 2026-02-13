@@ -7,7 +7,10 @@ import lombok.Data;
 @Builder
 public class LeaderboardEntry {
     private String userId;
-    private long score;
+    private long totalScore;
+    private long articleScore;
+    private long communityScore;
     private int rank;
-    private String name; // To be populated if needed
+    private String name;
+    private String avatar;
 }

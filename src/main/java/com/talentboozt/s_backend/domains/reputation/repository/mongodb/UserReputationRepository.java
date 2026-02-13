@@ -6,4 +6,6 @@ import java.util.Optional;
 
 public interface UserReputationRepository extends MongoRepository<UserReputation, String> {
     Optional<UserReputation> findByUserId(String userId);
+
+    java.util.List<UserReputation> findByUserIdIn(java.util.List<String> userIds);
 }
