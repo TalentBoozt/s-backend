@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.messaging.controller;
 import com.talentboozt.s_backend.domains.messaging.dto.ChatRoomResponse;
 import com.talentboozt.s_backend.domains.messaging.dto.MessageResponse;
 import com.talentboozt.s_backend.domains.messaging.service.MessagingService;
+import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,8 +21,12 @@ public class MessagingController {
     private final MessagingService messagingService;
 
     @GetMapping("/rooms")
-    public ResponseEntity<List<ChatRoomResponse>> getUserRooms(@AuthenticationPrincipal String userId) {
-        return ResponseEntity.ok(messagingService.getUserRooms(userId));
+    public ResponseEntity<List<ChatRoomResponse>> getUserRooms(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails != null) {
+            return ResponseEntity.ok(messagingService.getUserRooms(userDetails.getUserId()));
+        }
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/rooms/{roomId}/messages")
@@ -35,16 +40,21 @@ public class MessagingController {
 
     @PostMapping("/rooms/direct/{targetUserId}")
     public ResponseEntity<ChatRoomResponse> getOrCreateDirectRoom(
-            @AuthenticationPrincipal String userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String targetUserId) {
-        return ResponseEntity.ok(messagingService.getOrCreateEnrichedDirectRoom(userId, targetUserId));
+        if (userDetails != null) {
+            return ResponseEntity.ok(messagingService.getOrCreateEnrichedDirectRoom(userDetails.getUserId(), targetUserId));
+        }
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/messages/{messageId}/read")
     public ResponseEntity<Void> markAsRead(
-            @AuthenticationPrincipal String userId,
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String messageId) {
-        messagingService.markAsRead(messageId, userId);
+        if (userDetails != null) {
+            messagingService.markAsRead(messageId, userDetails.getUserId());
+        }
         return ResponseEntity.ok().build();
     }
 }

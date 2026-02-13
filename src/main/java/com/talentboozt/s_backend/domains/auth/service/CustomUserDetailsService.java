@@ -1,8 +1,8 @@
 package com.talentboozt.s_backend.domains.auth.service;
 
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
+import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,6 +24,10 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
 
         String password = credentials.getPassword() != null ? credentials.getPassword() : "";
-        return new User(credentials.getEmail(), password, Collections.emptyList());
+        return new CustomUserDetails(
+                credentials.getId(),
+                credentials.getEmail(),
+                password,
+                Collections.emptyList());
     }
 }
