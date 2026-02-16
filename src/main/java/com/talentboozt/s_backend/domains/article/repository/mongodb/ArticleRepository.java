@@ -24,4 +24,6 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
 
     @Query("{ $text: { $search: ?0 }, 'status': 'PUBLISHED' }")
     Page<Article> searchArticles(String query, Pageable pageable);
+
+    Page<Article> findByAuthorId(String authorId, Pageable pageable);
 }

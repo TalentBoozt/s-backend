@@ -27,6 +27,7 @@ public class Announcement {
     private String summary;
     private String content; // Markdown
     private String coverImage;
+    private AnnouncementStatus status;
 
     private AnnouncementType type;
     private AnnouncementVisibility visibility;

@@ -26,6 +26,7 @@ public class AnnouncementService {
                 .summary(request.getSummary())
                 .content(request.getContent())
                 .coverImage(request.getCoverImage())
+                .status(request.getStatus() != null ? request.getStatus() : AnnouncementStatus.DRAFT)
                 .type(request.getType())
                 .visibility(request.getVisibility())
                 .priority(request.getPriority())
@@ -39,8 +40,49 @@ public class AnnouncementService {
                 .build();
 
         Announcement saved = announcementRepository.save(announcement);
-        eventPublisher.publishEvent(new AnnouncementPublishedEvent(this, saved));
+
+        if (saved.getStatus() == AnnouncementStatus.PUBLISHED) {
+            eventPublisher.publishEvent(new AnnouncementPublishedEvent(this, saved));
+        }
+
         return mapToResponse(saved);
+    }
+
+    public List<AnnouncementResponse> getAllAnnouncements() {
+        return announcementRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public AnnouncementResponse updateAnnouncement(String id, AnnouncementRequest request) {
+        Announcement announcement = announcementRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Announcement not found"));
+
+        announcement.setTitle(request.getTitle());
+        announcement.setSlug(generateSlug(request.getTitle()));
+        announcement.setSummary(request.getSummary());
+        announcement.setContent(request.getContent());
+        announcement.setCoverImage(request.getCoverImage());
+        announcement.setStatus(request.getStatus() != null ? request.getStatus() : announcement.getStatus());
+        announcement.setType(request.getType());
+        announcement.setVisibility(request.getVisibility());
+        announcement.setPriority(request.getPriority());
+        announcement.setPublishedAt(request.getPublishedAt());
+        announcement.setExpiresAt(request.getExpiresAt());
+        announcement.setPinned(request.isPinned());
+        announcement.setUpdatedAt(LocalDateTime.now());
+
+        Announcement saved = announcementRepository.save(announcement);
+
+        if (saved.getStatus() == AnnouncementStatus.PUBLISHED) {
+            eventPublisher.publishEvent(new AnnouncementPublishedEvent(this, saved));
+        }
+
+        return mapToResponse(saved);
+    }
+
+    public void deleteAnnouncement(String id) {
+        announcementRepository.deleteById(id);
     }
 
     public List<AnnouncementResponse> getActiveAnnouncements() {
@@ -59,6 +101,12 @@ public class AnnouncementService {
 
     public AnnouncementResponse getBySlug(String slug) {
         return announcementRepository.findBySlug(slug)
+                .map(this::mapToResponse)
+                .orElseThrow(() -> new RuntimeException("Announcement not found"));
+    }
+
+    public AnnouncementResponse getById(String id) {
+        return announcementRepository.findById(id)
                 .map(this::mapToResponse)
                 .orElseThrow(() -> new RuntimeException("Announcement not found"));
     }

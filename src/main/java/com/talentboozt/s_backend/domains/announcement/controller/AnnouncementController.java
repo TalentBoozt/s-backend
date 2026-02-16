@@ -31,4 +31,21 @@ public class AnnouncementController {
     public ResponseEntity<AnnouncementResponse> getBySlug(@PathVariable String slug) {
         return ResponseEntity.ok(announcementService.getBySlug(slug));
     }
+
+    @GetMapping
+    public ResponseEntity<List<AnnouncementResponse>> getAll() {
+        return ResponseEntity.ok(announcementService.getAllAnnouncements());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AnnouncementResponse> update(@PathVariable String id,
+            @RequestBody AnnouncementRequest request) {
+        return ResponseEntity.ok(announcementService.updateAnnouncement(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id) {
+        announcementService.deleteAnnouncement(id);
+        return ResponseEntity.noContent().build();
+    }
 }
