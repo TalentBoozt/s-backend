@@ -28,6 +28,11 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.getBySlug(slug));
     }
 
+    @GetMapping("/id/{id}")
+    public ResponseEntity<ArticleResponse> getById(@PathVariable String id) {
+        return ResponseEntity.ok(articleService.getById(id));
+    }
+
     @GetMapping("/featured")
     public ResponseEntity<List<ArticleResponse>> getFeatured() {
         return ResponseEntity.ok(articleService.getFeatured());
@@ -49,5 +54,25 @@ public class ArticleController {
             @RequestHeader("X-User-Id") String userId) {
         articleService.bookmarkArticle(id, userId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<Page<ArticleResponse>> getMyArticles(@RequestHeader("X-User-Id") String userId,
+            Pageable pageable) {
+        return ResponseEntity.ok(articleService.getMyArticles(userId, pageable));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ArticleResponse> update(@PathVariable String id,
+            @RequestBody ArticleRequest request,
+            @RequestHeader("X-User-Id") String userId) {
+        return ResponseEntity.ok(articleService.updateArticle(id, request, userId));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable String id,
+            @RequestHeader("X-User-Id") String userId) {
+        articleService.deleteArticle(id, userId);
+        return ResponseEntity.noContent().build();
     }
 }

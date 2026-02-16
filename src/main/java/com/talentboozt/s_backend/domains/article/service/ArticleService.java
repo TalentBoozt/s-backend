@@ -60,8 +60,61 @@ public class ArticleService {
         return mapToResponse(article);
     }
 
+    public ArticleResponse getById(String id) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+        incrementViews(id);
+        return mapToResponse(article);
+    }
+
     public Page<ArticleResponse> search(String q, Pageable pageable) {
         return articleRepository.searchArticles(q, pageable).map(this::mapToResponse);
+    }
+
+    public Page<ArticleResponse> getMyArticles(String authorId, Pageable pageable) {
+        return articleRepository.findByAuthorId(authorId, pageable).map(this::mapToResponse);
+    }
+
+    public ArticleResponse updateArticle(String id, ArticleRequest request, String userId) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+
+        if (!article.getAuthorId().equals(userId)) {
+            throw new RuntimeException("Unauthorized to update this article");
+        }
+
+        List<String> tagIds = getOrCreateTags(request.getTags());
+
+        article.setTitle(request.getTitle());
+        article.setSlug(generateSlug(request.getTitle()));
+        article.setContent(request.getContent());
+        article.setExcerpt(request.getExcerpt());
+        article.setCoverImage(request.getCoverImage());
+        article.setTagIds(tagIds);
+        article.setStatus(request.getStatus() != null ? request.getStatus() : article.getStatus());
+        article.setFeatured(request.isFeatured());
+        article.setReadTime(calculateReadTime(request.getContent()));
+        article.setUpdatedAt(LocalDateTime.now());
+
+        Article saved = articleRepository.save(article);
+
+        if (saved.getStatus() == ArticleStatus.PUBLISHED) {
+            eventPublisher.publishEvent(
+                    new com.talentboozt.s_backend.domains.article.event.ArticlePublishedEvent(this, saved));
+        }
+
+        return mapToResponse(saved);
+    }
+
+    public void deleteArticle(String id, String userId) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+
+        if (!article.getAuthorId().equals(userId)) {
+            throw new RuntimeException("Unauthorized to delete this article");
+        }
+
+        articleRepository.delete(article);
     }
 
     public List<ArticleResponse> getFeatured() {
