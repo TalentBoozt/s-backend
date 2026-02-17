@@ -10,6 +10,8 @@ import java.util.List;
 public interface PostRepository extends MongoRepository<Post, String> {
     List<Post> findByCommunityId(String communityId);
 
+    long countByCommunityId(String communityId);
+
     Page<Post> findByCommunityId(String communityId, Pageable pageable);
 
     List<Post> findByAuthorId(String authorId);
