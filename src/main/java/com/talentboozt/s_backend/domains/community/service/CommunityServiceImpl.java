@@ -303,6 +303,29 @@ public class CommunityServiceImpl implements CommunityService {
                 null);
     }
 
+    @Override
+    public List<CommunityDTO> searchCommunities(String query, String userId) {
+        if (query == null || query.trim().isEmpty()) {
+            return communityRepository.findAll().stream()
+                    .map(community -> mapToDTO(community, userId))
+                    .collect(Collectors.toList());
+        }
+
+        String lowerQuery = query.toLowerCase();
+        return communityRepository.findAll().stream()
+                .filter(community -> (community.getName() != null
+                        && community.getName().toLowerCase().contains(lowerQuery)) ||
+                        (community.getDescription() != null
+                                && community.getDescription().toLowerCase().contains(lowerQuery))
+                        ||
+                        (community.getCategory() != null && community.getCategory().toLowerCase().contains(lowerQuery))
+                        ||
+                        (community.getTags() != null && community.getTags().stream()
+                                .anyMatch(tag -> tag.toLowerCase().contains(lowerQuery))))
+                .map(community -> mapToDTO(community, userId))
+                .collect(Collectors.toList());
+    }
+
     private boolean isCommunityAdmin(String communityId, String userId) {
         Community community = communityRepository.findById(communityId)
                 .orElseThrow(() -> new ResourceNotFoundException("Community", "id", communityId));
@@ -321,11 +344,28 @@ public class CommunityServiceImpl implements CommunityService {
         String userRole = null;
 
         if (userId != null) {
+            // Priority 1: Check CommunityMember collection for explicit status
             var memberOpt = communityMemberRepository.findByCommunityIdAndUserId(
                     community.getId(), userId);
             if (memberOpt.isPresent()) {
                 isJoined = true;
                 userRole = memberOpt.get().getRole().name();
+                if (memberOpt.get().isBanned()) {
+                    userRole = "BANNED";
+                }
+            } else {
+                // Priority 2: Check Community document arrays (adminIds, moderatorIds) as
+                // fallback
+                if (community.getAdminIds() != null && community.getAdminIds().contains(userId)) {
+                    isJoined = true;
+                    userRole = "ADMIN";
+                } else if (community.getModeratorIds() != null && community.getModeratorIds().contains(userId)) {
+                    isJoined = true;
+                    userRole = "MODERATOR";
+                } else if (userId.equals(community.getCreatorId())) {
+                    isJoined = true;
+                    userRole = "ADMIN";
+                }
             }
         }
 

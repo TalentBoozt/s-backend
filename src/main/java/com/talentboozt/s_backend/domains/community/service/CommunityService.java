@@ -40,4 +40,6 @@ public interface CommunityService {
     void banMember(String communityId, String userId, String reason);
 
     void unbanMember(String communityId, String userId);
+
+    List<CommunityDTO> searchCommunities(String query, String userId);
 }
