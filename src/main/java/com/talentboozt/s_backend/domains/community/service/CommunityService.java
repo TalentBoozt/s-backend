@@ -9,7 +9,7 @@ import com.talentboozt.s_backend.domains.community.dto.CommunityDTO;
 import com.talentboozt.s_backend.domains.community.model.CommunityMember;
 
 public interface CommunityService {
-    Page<CommunityDTO> getPaginatedCommunities(Pageable pageable);
+    Page<CommunityDTO> getPaginatedCommunities(Pageable pageable, String userId);
 
     List<CommunityDTO> getAllCommunities();
 
