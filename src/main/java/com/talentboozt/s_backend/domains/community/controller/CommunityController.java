@@ -3,10 +3,17 @@ package com.talentboozt.s_backend.domains.community.controller;
 import com.talentboozt.s_backend.domains.community.dto.CommunityDTO;
 import com.talentboozt.s_backend.domains.community.model.CommunityMember;
 import com.talentboozt.s_backend.domains.community.service.CommunityService;
+import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
+
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,11 +27,15 @@ public class CommunityController {
     private final CommunityService communityService;
 
     @GetMapping
-    public ResponseEntity<org.springframework.data.domain.Page<CommunityDTO>> getAllCommunities(
+    public ResponseEntity<Page<CommunityDTO>> getAllCommunities(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
-        return ResponseEntity.ok(communityService.getPaginatedCommunities(pageable));
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Pageable pageable = PageRequest.of(page, size);
+        if (userDetails != null) {
+            return ResponseEntity.ok(communityService.getPaginatedCommunities(pageable, userDetails.getUserId()));
+        }
+        return ResponseEntity.ok(communityService.getPaginatedCommunities(pageable, null));
     }
 
     @GetMapping("/all")
@@ -35,10 +46,10 @@ public class CommunityController {
     @GetMapping("/{id}")
     public ResponseEntity<CommunityDTO> getCommunityById(@PathVariable String id,
             @RequestParam(required = false) String userId,
-            java.security.Principal principal) {
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
         String currentUserId = userId;
-        if (currentUserId == null && principal != null) {
-            currentUserId = principal.getName();
+        if (currentUserId == null && userDetails != null) {
+            currentUserId = userDetails.getUserId();
         }
         return ResponseEntity.ok(communityService.getCommunityById(id, currentUserId));
     }

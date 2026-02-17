@@ -5,7 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.talentboozt.s_backend.domains.community.dto.CommunityDTO;
@@ -32,10 +33,10 @@ public class CommunityServiceImpl implements CommunityService {
     private final NotificationService notificationService;
 
     @Override
-    public org.springframework.data.domain.Page<CommunityDTO> getPaginatedCommunities(
-            org.springframework.data.domain.Pageable pageable) {
+    public Page<CommunityDTO> getPaginatedCommunities(
+            Pageable pageable, String userId) {
         return communityRepository.findAll(pageable)
-                .map(community -> mapToDTO(community, null));
+                .map(community -> mapToDTO(community, userId));
     }
 
     @Override
