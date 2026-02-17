@@ -46,6 +46,7 @@ public class EmployeeModel {
     private Object marketingNotifications;
     private Object profileCompleted;
     private String profileStatus;
+    private PlatformRole platformRole = PlatformRole.USER; // Platform-level role for RBAC
     private String companyId;
     private String expectedSalaryRange;
     private String currentExperience;

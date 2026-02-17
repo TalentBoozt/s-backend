@@ -19,6 +19,7 @@ public class ChatRoom {
     @Id
     private String id;
     private RoomType type;
+    private String name;
     private List<String> participants; // User IDs
     private String communityId; // For COMMUNITY type
     private LocalDateTime createdAt;

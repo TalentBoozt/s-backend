@@ -76,6 +76,19 @@ public class MessagingService {
         return enrichRoom(room, userId);
     }
 
+    public ChatRoomResponse createGroupRoom(String creatorId, CreateRoomRequest request) {
+        ChatRoom room = ChatRoom.builder()
+                .type(RoomType.GROUP)
+                .name(request.getName())
+                .participants(request.getParticipants())
+                .communityId(request.getCommunityId())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        ChatRoom saved = chatRoomRepository.save(room);
+        return enrichRoom(saved, creatorId);
+    }
+
     public void markAsRead(String messageId, String userId) {
         messageRepository.findById(messageId).ifPresent(message -> {
             if (message.getReadByUsers() == null) {

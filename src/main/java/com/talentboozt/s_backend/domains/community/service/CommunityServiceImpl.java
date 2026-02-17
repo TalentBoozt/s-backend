@@ -32,6 +32,13 @@ public class CommunityServiceImpl implements CommunityService {
     private final NotificationService notificationService;
 
     @Override
+    public org.springframework.data.domain.Page<CommunityDTO> getPaginatedCommunities(
+            org.springframework.data.domain.Pageable pageable) {
+        return communityRepository.findAll(pageable)
+                .map(community -> mapToDTO(community, null));
+    }
+
+    @Override
     public List<CommunityDTO> getAllCommunities() {
         return communityRepository.findAll().stream()
                 .map(community -> mapToDTO(community, null))

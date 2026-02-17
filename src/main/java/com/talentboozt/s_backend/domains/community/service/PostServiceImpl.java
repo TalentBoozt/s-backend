@@ -46,7 +46,7 @@ public class PostServiceImpl implements PostService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Override
-    public List<PostDTO> getAllPosts(Pageable pageable, String sort) {
+    public Page<PostDTO> getAllPosts(Pageable pageable, String sort) {
         Sort sorting = Sort.by(Sort.Direction.DESC, "timestamp");
         if ("trending".equals(sort)) {
             sorting = Sort.by(Sort.Direction.DESC, "trendingScore");
@@ -56,9 +56,8 @@ public class PostServiceImpl implements PostService {
 
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sorting);
 
-        return postRepository.findAll(sortedPageable).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+        return postRepository.findAll(sortedPageable)
+                .map(this::mapToDTO);
     }
 
     @Override
@@ -69,10 +68,9 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostDTO> searchPosts(String query, Pageable pageable) {
-        return postRepository.searchPosts(query, pageable).stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
+    public Page<PostDTO> searchPosts(String query, Pageable pageable) {
+        return postRepository.searchPosts(query, pageable)
+                .map(this::mapToDTO);
     }
 
     @Override

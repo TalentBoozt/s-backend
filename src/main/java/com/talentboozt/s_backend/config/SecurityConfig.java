@@ -71,7 +71,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/ws/**").permitAll());
+                        .requestMatchers("/ws/**").permitAll());
 
         return http.build();
     }
@@ -115,26 +115,49 @@ public class SecurityConfig {
                                         && !requestUri.equals("/actuator/env");
                             })
                             .permitAll()
+                            // Public endpoints (no auth required)
                             .requestMatchers(
                                     "/stripe/**", "/public/**", "/sso/**", "/docs/**",
                                     "/api/auth/**", "/oauth2/**", "/oauth/**",
                                     "/sitemap.xml", "/api/event/**", "/api/monitoring/**",
                                     "/api/security/**", "/api/v2/github/**", "/api/v2/facebook/**",
-                                    "/api/v2/linkedin/**", "/callback/google/**", "/api/v2/cmp_job-apply/addViewer/**",
+                                    "/api/v2/linkedin/**", "/callback/google/**",
                                     "/api/v2/ambassador/**", "/api/v2/courses/**", "/api/v2/password-reset/request",
                                     "/api/v2/payments/recorded/**", "/api/v2/news-latter/**", "/api/v2/email/**",
                                     "/api/security/verify-captcha", "/ws/**",
-                                    "/api/v2/posts/**", "/api/v2/notifications/**",
-                                    "/api/v2/batch/**", "/api/v2/employee/**", "/api/v2/communities/**",
-                                    "/api/v2/messaging/**", "/api/v2/emp_**") // Added API paths
+                                    "/api/v2/batch/**")
                             .permitAll()
+                            // Read-only public access (GET only)
+                            .requestMatchers(HttpMethod.GET, "/api/v2/posts/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v2/communities/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v2/employee/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v2/emp_**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v2/notifications/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v2/messaging/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/v2/cmp_job-apply/addViewer/**").permitAll()
+                            // Write operations require authentication
+                            .requestMatchers(HttpMethod.POST, "/api/v2/posts/**").authenticated()
+                            .requestMatchers(HttpMethod.PUT, "/api/v2/posts/**").authenticated()
+                            .requestMatchers(HttpMethod.DELETE, "/api/v2/posts/**").authenticated()
+                            .requestMatchers(HttpMethod.POST, "/api/v2/communities/**").authenticated()
+                            .requestMatchers(HttpMethod.PUT, "/api/v2/communities/**").authenticated()
+                            .requestMatchers(HttpMethod.DELETE, "/api/v2/communities/**").authenticated()
+                            .requestMatchers(HttpMethod.POST, "/api/v2/messaging/**").authenticated()
+                            .requestMatchers(HttpMethod.PUT, "/api/v2/messaging/**").authenticated()
+                            .requestMatchers(HttpMethod.DELETE, "/api/v2/messaging/**").authenticated()
+                            .requestMatchers(HttpMethod.POST, "/api/v2/employee/**").authenticated()
+                            .requestMatchers(HttpMethod.PUT, "/api/v2/employee/**").authenticated()
+                            .requestMatchers(HttpMethod.PUT, "/api/v2/emp_**").authenticated()
+                            .requestMatchers(HttpMethod.POST, "/api/v2/emp_**").authenticated()
+                            .requestMatchers(HttpMethod.DELETE, "/api/v2/emp_**").authenticated()
+                            .requestMatchers(HttpMethod.POST, "/api/v2/notifications/**").authenticated()
+                            .requestMatchers(HttpMethod.PUT, "/api/v2/notifications/**").authenticated()
+                            // Reports
                             .requestMatchers(HttpMethod.POST, "/api/v2/reports").authenticated()
-                            .requestMatchers("/api/v2/reports/**").authenticated() // Should be hasRole("ADMIN") in production
-                            // .requestMatchers("/actuator/**").permitAll() // for testing
+                            .requestMatchers("/api/v2/reports/**").authenticated()
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                            // Temporarily commented out to debug H1
-                            // .requestMatchers(HttpMethod.GET, "/**").permitAll()
                             .anyRequest().authenticated();
+
                 })
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
