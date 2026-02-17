@@ -27,7 +27,7 @@ public class PostController {
     private final LinkPreviewService linkPreviewService;
 
     @GetMapping("/all")
-    public ResponseEntity<List<PostDTO>> getAllPosts(
+    public ResponseEntity<Page<PostDTO>> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "new") String sort) {
@@ -37,7 +37,7 @@ public class PostController {
 
     @GetMapping("/search")
     @RateLimiter(name = "searchLimiter")
-    public ResponseEntity<List<PostDTO>> searchPosts(
+    public ResponseEntity<Page<PostDTO>> searchPosts(
             @RequestParam String query,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {

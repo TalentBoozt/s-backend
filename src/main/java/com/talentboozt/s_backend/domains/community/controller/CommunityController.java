@@ -20,6 +20,14 @@ public class CommunityController {
     private final CommunityService communityService;
 
     @GetMapping
+    public ResponseEntity<org.springframework.data.domain.Page<CommunityDTO>> getAllCommunities(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        return ResponseEntity.ok(communityService.getPaginatedCommunities(pageable));
+    }
+
+    @GetMapping("/all")
     public ResponseEntity<List<CommunityDTO>> getAllCommunities() {
         return ResponseEntity.ok(communityService.getAllCommunities());
     }

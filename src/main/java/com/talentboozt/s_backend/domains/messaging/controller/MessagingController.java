@@ -48,6 +48,13 @@ public class MessagingController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/rooms")
+    public ResponseEntity<ChatRoomResponse> createGroupRoom(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody com.talentboozt.s_backend.domains.messaging.dto.CreateRoomRequest request) {
+        return ResponseEntity.ok(messagingService.createGroupRoom(userDetails.getUserId(), request));
+    }
+
     @PostMapping("/messages/{messageId}/read")
     public ResponseEntity<Void> markAsRead(
             @AuthenticationPrincipal CustomUserDetails userDetails,

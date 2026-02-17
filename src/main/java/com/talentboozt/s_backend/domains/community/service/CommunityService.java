@@ -2,11 +2,15 @@ package com.talentboozt.s_backend.domains.community.service;
 
 import java.util.List;
 import java.util.Map;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.talentboozt.s_backend.domains.community.dto.CommunityDTO;
 import com.talentboozt.s_backend.domains.community.model.CommunityMember;
 
 public interface CommunityService {
+    Page<CommunityDTO> getPaginatedCommunities(Pageable pageable);
+
     List<CommunityDTO> getAllCommunities();
 
     CommunityDTO getCommunityById(String id);

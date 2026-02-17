@@ -1,21 +1,20 @@
 package com.talentboozt.s_backend.domains.messaging.dto;
 
 import com.talentboozt.s_backend.domains.messaging.model.RoomType;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @Builder
-public class ChatRoomResponse {
-    private String id;
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateRoomRequest {
     private RoomType type;
     private String name;
-    private List<ParticipantDTO> participants;
+    private List<String> participants;
     private String communityId;
-    private MessageResponse lastMessage;
-    private int unreadCount;
-    private LocalDateTime createdAt;
 }
