@@ -15,6 +15,10 @@ import com.talentboozt.s_backend.domains.community.model.CommunityMember;
 import com.talentboozt.s_backend.domains.community.repository.mongodb.CommunityRepository;
 import com.talentboozt.s_backend.domains.community.repository.mongodb.CommunityMemberRepository;
 import com.talentboozt.s_backend.domains.community.exception.AccessDeniedException;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.PostRepository;
+import com.talentboozt.s_backend.domains.community.repository.mongodb.CommentRepository;
+import com.talentboozt.s_backend.domains.community.model.Post;
+import com.talentboozt.s_backend.domains.community.model.Post.Reaction;
 import com.talentboozt.s_backend.domains.community.exception.ResourceNotFoundException;
 
 import java.time.LocalDateTime;
@@ -30,6 +34,8 @@ public class CommunityServiceImpl implements CommunityService {
 
     private final CommunityRepository communityRepository;
     private final CommunityMemberRepository communityMemberRepository;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
     private final NotificationService notificationService;
 
     @Override
@@ -156,28 +162,71 @@ public class CommunityServiceImpl implements CommunityService {
 
     @Override
     public List<CommunityDTO> getUserCommunities(String userId) {
-        List<CommunityMember> memberships = communityMemberRepository.findByUserId(userId);
-        return memberships.stream()
-                .map(member -> communityRepository.findById(Objects.requireNonNull(member.getCommunityId())))
+        // Collect all community IDs where user has a membership record
+        java.util.Set<String> communityIds = communityMemberRepository.findByUserId(userId).stream()
+                .map(member -> member.getCommunityId())
+                .collect(java.util.stream.Collectors.toSet());
+
+        // Also find communities where user is in adminIds or moderatorIds directly
+        // and communities created by the user
+        List<Community> directRoles = communityRepository.findAll().stream()
+                .filter(c -> (c.getAdminIds() != null && c.getAdminIds().contains(userId)) ||
+                        (c.getModeratorIds() != null && c.getModeratorIds().contains(userId)) ||
+                        userId.equals(c.getCreatorId()))
+                .collect(java.util.stream.Collectors.toList());
+
+        for (Community c : directRoles) {
+            communityIds.add(c.getId());
+        }
+
+        return communityIds.stream()
+                .map(id -> communityRepository.findById(id))
                 .filter(opt -> opt.isPresent())
                 .map(opt -> opt.get())
                 .map(community -> mapToDTO(community, userId))
-                .collect(Collectors.toList());
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override
     public java.util.Map<String, Object> getCommunityStats(String communityId) {
         long memberCount = communityMemberRepository.countByCommunityId(communityId);
+        long postCount = postRepository.countByCommunityId(communityId);
 
-        // Mock stats for now - can be enhanced with actual post/comment counting
+        List<Post> posts = postRepository.findByCommunityId(communityId);
+        List<String> postIds = posts.stream().map(Post::getId).collect(Collectors.toList());
+
+        long commentCount = postIds.isEmpty() ? 0 : commentRepository.countByPostIdIn(postIds);
+
+        // Count total reactions
+        long reactionCount = posts.stream()
+                .filter(p -> p.getReactions() != null)
+                .flatMap(p -> p.getReactions().stream())
+                .mapToLong(Reaction::getCount)
+                .sum();
+
+        // Calculate engagement rate: (comments + reactions) / members
+        double engagementRate = memberCount > 0 ? (double) (commentCount + reactionCount) / memberCount : 0.0;
+
         java.util.Map<String, Object> stats = new java.util.HashMap<>();
         stats.put("totalMembers", memberCount);
-        stats.put("totalPosts", 0); // TODO: Implement post counting
-        stats.put("totalComments", 0); // TODO: Implement comment counting
-        stats.put("totalReactions", 0); // TODO: Implement reaction counting
-        stats.put("engagementRate", 0.0); // TODO: Calculate engagement
-        stats.put("memberGrowth", new ArrayList<>()); // TODO: Implement growth tracking
-        stats.put("topContributors", new ArrayList<>()); // TODO: Implement contributor tracking
+        stats.put("totalPosts", postCount);
+        stats.put("totalComments", commentCount);
+        stats.put("totalReactions", reactionCount);
+        stats.put("engagementRate", Math.round(engagementRate * 100.0) / 100.0);
+
+        // Growth stats (last 30 days)
+        LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
+        long newMembers30d = communityMemberRepository.findByCommunityId(communityId).stream()
+                .filter(m -> m.getJoinedAt() != null && m.getJoinedAt().isAfter(thirtyDaysAgo))
+                .count();
+        stats.put("newMembersLast30Days", newMembers30d);
+
+        // Active today stats
+        LocalDateTime todayStart = LocalDateTime.now().toLocalDate().atStartOfDay();
+        long postsToday = posts.stream()
+                .filter(p -> p.getTimestamp() != null && p.getTimestamp().isAfter(todayStart))
+                .count();
+        stats.put("postsToday", postsToday);
 
         return stats;
     }
