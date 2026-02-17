@@ -127,4 +127,12 @@ public class CommunityController {
         communityService.unbanMember(communityId, userId);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<CommunityDTO>> searchCommunities(
+            @RequestParam String q,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String userId = userDetails != null ? userDetails.getUserId() : null;
+        return ResponseEntity.ok(communityService.searchCommunities(q, userId));
+    }
 }
