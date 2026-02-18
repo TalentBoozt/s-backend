@@ -32,8 +32,8 @@ public class UserManagementServiceImpl implements UserManagementService {
 
     @Override
     public PagedResponseDTO<UserManagementDTO> getUsers(String search, String role,
-                                                        String platform, Boolean active,
-                                                        int page, int size) {
+            String platform, Boolean active,
+            int page, int size) {
 
         Pageable pageable = PageRequest.of(page, size);
         List<CredentialsModel> filtered;
@@ -46,8 +46,9 @@ public class UserManagementServiceImpl implements UserManagementService {
 
         // Apply in-memory filters
         List<UserManagementDTO> result = filtered.stream()
-                .filter(c -> role.equals("") || (c.getRoles() != null && c.getRoles().contains(role)))
-                .filter(c -> platform.equals("") || (c.getAccessedPlatforms() != null && c.getAccessedPlatforms().contains(platform)))
+                .filter(c -> role == null || role.equals("") || (c.getRoles() != null && c.getRoles().contains(role)))
+                .filter(c -> platform == null || platform.equals("")
+                        || (c.getAccessedPlatforms() != null && c.getAccessedPlatforms().contains(platform)))
                 .filter(c -> active == null || c.isActive() == active)
                 .map(this::mapToDTO)
                 .toList();
@@ -55,7 +56,8 @@ public class UserManagementServiceImpl implements UserManagementService {
         int start = Math.min((int) pageable.getOffset(), result.size());
         int end = Math.min((start + pageable.getPageSize()), result.size());
 
-        return new PagedResponseDTO<>(new PageImpl<>(Objects.requireNonNull(result.subList(start, end)), pageable, result.size()));
+        return new PagedResponseDTO<>(
+                new PageImpl<>(Objects.requireNonNull(result.subList(start, end)), pageable, result.size()));
     }
 
     private UserManagementDTO mapToDTO(CredentialsModel model) {
