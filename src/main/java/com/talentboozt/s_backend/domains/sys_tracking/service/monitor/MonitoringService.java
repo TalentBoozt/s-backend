@@ -84,8 +84,8 @@ public class MonitoringService {
         return new PagedResponse<>(items, total);
     }
 
-    public List<LoginLocationAggregateDTO> getGeoLocationCounts(String trackingId, Instant from, Instant to) {
-        return loginRepo.aggregateLoginLocations(trackingId, from, to);
+    public List<LocationCountDTO> getGeoLocationCounts(String trackingId, Instant from, Instant to) {
+        return eventRepo.aggregateByLocation(trackingId, from, to);
     }
 
     public Map<String, Long> getDeviceInfo(String trackingId) {
