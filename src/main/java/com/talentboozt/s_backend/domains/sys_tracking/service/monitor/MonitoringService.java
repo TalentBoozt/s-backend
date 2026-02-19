@@ -41,11 +41,45 @@ public class MonitoringService {
     private final RoleService roleService;
     private final MongoTemplate mongoTemplate;
 
+    public List<org.bson.Document> getRawEvents(int limit) {
+        org.springframework.data.mongodb.core.query.Query query = new org.springframework.data.mongodb.core.query.Query()
+                .limit(limit);
+        return mongoTemplate.find(query, org.bson.Document.class, "events");
+    }
+
+    public String getDebugStats() {
+        try {
+            long total = mongoTemplate.getCollection("events").countDocuments();
+
+            // Count for 2026
+            java.time.Instant startOf2026 = java.time.Instant.parse("2026-01-01T00:00:00Z");
+            org.springframework.data.mongodb.core.query.Query query2026 = new org.springframework.data.mongodb.core.query.Query(
+                    org.springframework.data.mongodb.core.query.Criteria.where("timestamp").gte(startOf2026));
+            long recentCount = mongoTemplate.count(query2026, TrackingEvent.class);
+
+            // Simplified aggregation to get IDs
+            java.util.List<org.bson.Document> recentIdStats = mongoTemplate.getCollection("events").aggregate(
+                    java.util.Arrays.asList(
+                            new org.bson.Document("$match",
+                                    new org.bson.Document("timestamp",
+                                            new org.bson.Document("$gte", java.util.Date.from(startOf2026)))),
+                            new org.bson.Document("$group",
+                                    new org.bson.Document("_id", "$trackingId").append("count",
+                                            new org.bson.Document("$sum", 1)))))
+                    .into(new java.util.ArrayList<>());
+
+            return "Total documents: " + total + " | Recent (2026+): " + recentCount + " | Recent IDs: "
+                    + recentIdStats.toString();
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
     public DashboardOverviewDTO getOverview(String trackingId, Instant from, Instant to) {
         long activeNow = activityRepo.countByLastActiveAfter(Instant.now().minusSeconds(300));
         long dailyUsers = countUniqueUsersByDate(LocalDate.now().toString());
-        long sessions = eventRepo.countDistinctSessionIdByTrackingIdAndTimestampBetween(trackingId, from, to);
-        long errors = eventRepo.countByTrackingIdAndErrorMessageNotNullAndTimestampBetween(trackingId, from, to);
+        long sessions = eventRepo.countDistinctSessions(trackingId, from, to);
+        long errors = eventRepo.countByTrackingIdAndEventTypeAndTimestampBetweenFixed(trackingId, "error", from, to);
 
         return new DashboardOverviewDTO(activeNow, dailyUsers, sessions, errors);
     }
@@ -84,8 +118,8 @@ public class MonitoringService {
         return new PagedResponse<>(items, total);
     }
 
-    public List<LocationCountDTO> getGeoLocationCounts(String trackingId, Instant from, Instant to) {
-        return eventRepo.aggregateByLocation(trackingId, from, to);
+    public List<LoginLocationAggregateDTO> getGeoLocationCounts(String trackingId, Instant from, Instant to) {
+        return loginRepo.aggregateLoginLocations(trackingId, from, to);
     }
 
     public Map<String, Long> getDeviceInfo(String trackingId) {

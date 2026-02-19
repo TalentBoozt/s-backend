@@ -27,4 +27,9 @@ public class FeatureController {
     public FeatureModel updateAttachment(@RequestBody FeatureModel feature) {
         return featureService.updateAttachment(feature);
     }
+
+    @DeleteMapping("/delete/{id}")
+    public void deleteFeature(@PathVariable String id) {
+        featureService.deleteFeature(id);
+    }
 }

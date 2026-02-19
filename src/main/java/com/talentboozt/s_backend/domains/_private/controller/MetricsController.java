@@ -33,9 +33,15 @@ public class MetricsController {
     @GetMapping("/task-executor")
     public Map<String, Object> getTaskExecutorMetrics() {
         Map<String, Object> metrics = new HashMap<>();
-        metrics.put("active", meterRegistry.get("taskExecutor.active").gauge().value());
-        metrics.put("queueSize", meterRegistry.get("taskExecutor.queued").gauge().value());
-        metrics.put("poolSize", meterRegistry.get("taskExecutor.pool.size").gauge().value());
+        try {
+            metrics.put("active", meterRegistry.get("taskExecutor.active").gauge().value());
+            metrics.put("queueSize", meterRegistry.get("taskExecutor.queued").gauge().value());
+            metrics.put("poolSize", meterRegistry.get("taskExecutor.pool.size").gauge().value());
+        } catch (Exception e) {
+            metrics.put("active", 0);
+            metrics.put("queueSize", 0);
+            metrics.put("poolSize", 0);
+        }
         return metrics;
     }
 

@@ -32,4 +32,12 @@ public class FeatureService {
         }
         return null;
     }
+
+    public boolean deleteFeature(String id) {
+        if (featureRepository.existsById(id)) {
+            featureRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }
