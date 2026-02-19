@@ -40,6 +40,16 @@ public class MonitoringController {
         return monitoringService.getOverview(trackingId, fromInstant, toInstant);
     }
 
+    @GetMapping("/debug/raw-events")
+    public ResponseEntity<List<Document>> getRawEvents() {
+        return ResponseEntity.ok(monitoringService.getRawEvents(5));
+    }
+
+    @GetMapping("/debug/stats")
+    public ResponseEntity<String> getStats() {
+        return ResponseEntity.ok(monitoringService.getDebugStats());
+    }
+
     @GetMapping("/page-views")
     public List<TimeSeriesPoint> getPageViews(
             @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
@@ -94,8 +104,8 @@ public class MonitoringController {
     }
 
     @GetMapping("/geo")
-    public List<LocationCountDTO> getGeoLocations(
-            @RequestParam(defaultValue = "TALNOVA_JP_COMBINED") String trackingId,
+    public List<LoginLocationAggregateDTO> getGeoData(
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to) {
         return monitoringService.getGeoLocationCounts(trackingId, from, to);
@@ -103,13 +113,13 @@ public class MonitoringController {
 
     @GetMapping("/devices/deprecated")
     public Map<String, Long> getDeviceInfoDeprecated(
-        @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId) {
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId) {
         return monitoringService.getDeviceInfo(trackingId);
     }
 
     @GetMapping("/browsers/deprecated")
     public Map<String, Long> getBrowserStatsDeprecated(
-        @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId) {
+            @RequestParam(defaultValue = "TALENTBOOZT_JP_COMBINED") String trackingId) {
         return monitoringService.getBrowserStats(trackingId);
     }
 
@@ -166,7 +176,7 @@ public class MonitoringController {
 
     @GetMapping("/abnormal-session-durations/{minSeconds}/{maxSeconds}")
     public ResponseEntity<List<Document>> getAbnormalSessionDurations(@PathVariable long minSeconds,
-        @PathVariable long maxSeconds) {
+            @PathVariable long maxSeconds) {
         return ResponseEntity.ok(monitoringService.detectAbnormalSessionDurations(minSeconds, maxSeconds));
     }
 

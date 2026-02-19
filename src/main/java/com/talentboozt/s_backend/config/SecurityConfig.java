@@ -109,6 +109,7 @@ public class SecurityConfig {
                             .requestMatchers("/actuator/loggers").authenticated()
                             .requestMatchers("/actuator/beans").authenticated()
                             .requestMatchers("/actuator/configprops").authenticated()
+                            .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                             .requestMatchers(request -> {
                                 String requestUri = request.getRequestURI();
                                 return requestUri.startsWith("/actuator/")
@@ -125,7 +126,7 @@ public class SecurityConfig {
                                     "/api/v2/ambassador/**", "/api/v2/courses/**", "/api/v2/password-reset/request",
                                     "/api/v2/payments/recorded/**", "/api/v2/news-latter/**", "/api/v2/email/**",
                                     "/api/security/verify-captcha", "/ws/**",
-                                    "/api/v2/batch/**")
+                                    "/api/v2/batch/**", "/api/v2/metrics/**")
                             .permitAll()
                             // Read-only public access (GET only)
                             .requestMatchers(HttpMethod.GET, "/api/v2/posts/**").permitAll()
