@@ -78,10 +78,11 @@ public class MonitoringService {
     public DashboardOverviewDTO getOverview(String trackingId, Instant from, Instant to) {
         long activeNow = activityRepo.countByLastActiveAfter(Instant.now().minusSeconds(300));
         long dailyUsers = countUniqueUsersByDate(LocalDate.now().toString());
-        long sessions = eventRepo.countDistinctSessions(trackingId, from, to);
-        long errors = eventRepo.countByTrackingIdAndEventTypeAndTimestampBetweenFixed(trackingId, "error", from, to);
+        Long sessions = eventRepo.countDistinctSessions(trackingId, from, to);
+        Long errors = eventRepo.countByTrackingIdAndEventTypeAndTimestampBetweenFixed(trackingId, "error", from, to);
 
-        return new DashboardOverviewDTO(activeNow, dailyUsers, sessions, errors);
+        return new DashboardOverviewDTO(activeNow, dailyUsers, sessions != null ? sessions : 0L,
+                errors != null ? errors : 0L);
     }
 
     public long countUniqueUsersByDate(String date) {
@@ -111,7 +112,8 @@ public class MonitoringService {
 
     public PagedResponse<SessionViewDTO> getSessionViews(String trackingId, Instant from, Instant to, int page,
             int size) {
-        long total = eventRepo.countDistinctSessionIdByTrackingIdAndTimestampBetween(trackingId, from, to);
+        Long totalRes = eventRepo.countDistinctSessions(trackingId, from, to);
+        long total = totalRes != null ? totalRes : 0L;
 
         List<SessionViewDTO> items = eventRepo.aggregateSessionViewsPaginated(trackingId, from, to, page * size, size);
 
