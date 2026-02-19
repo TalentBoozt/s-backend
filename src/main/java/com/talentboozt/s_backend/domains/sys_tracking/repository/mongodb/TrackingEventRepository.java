@@ -16,10 +16,13 @@ public interface TrackingEventRepository extends MongoRepository<TrackingEvent, 
 
         // ========== BASIC QUERIES ==========
 
+        @Query("{ '$or': [{ 'trackingId': ?0 }, { 'tracking_id': ?0 }] }")
         List<TrackingEvent> findByTrackingId(String trackingId);
 
+        @Query("{ '$and': [ { '$or': [{ 'trackingId': ?0 }, { 'tracking_id': ?0 }] }, { 'timestamp': { '$gte': ?1, '$lte': ?2 } } ] }")
         List<TrackingEvent> findByTrackingIdAndTimestampBetween(String trackingId, Instant from, Instant to);
 
+        @Query("{ '$and': [ { '$or': [{ 'trackingId': ?0 }, { 'tracking_id': ?0 }] }, { 'eventType': ?1 }, { 'timestamp': { '$gte': ?2, '$lte': ?3 } } ] }")
         List<TrackingEvent> findByTrackingIdAndEventTypeAndTimestampBetween(
                         String trackingId, String eventType, Instant from, Instant to);
 
@@ -43,7 +46,7 @@ public interface TrackingEventRepository extends MongoRepository<TrackingEvent, 
                         "{ $group: { _id: '$sessionId' } }",
                         "{ $group: { _id: null, count: { $sum: 1 } } }"
         })
-        long countDistinctSessions(String trackingId, Instant from, Instant to);
+        Long countDistinctSessions(String trackingId, Instant from, Instant to);
 
         @Aggregation(pipeline = {
                         "{ $match: { $and: [ " +
@@ -53,7 +56,7 @@ public interface TrackingEventRepository extends MongoRepository<TrackingEvent, 
                                         "] } }",
                         "{ $count: 'count' }"
         })
-        long countByTrackingIdAndEventTypeAndTimestampBetweenFixed(String trackingId, String eventType, Instant from,
+        Long countByTrackingIdAndEventTypeAndTimestampBetweenFixed(String trackingId, String eventType, Instant from,
                         Instant to);
 
         @Aggregation(pipeline = {
@@ -119,7 +122,11 @@ public interface TrackingEventRepository extends MongoRepository<TrackingEvent, 
                         String trackingId, Instant from, Instant to, String unit);
 
         @Aggregation(pipeline = {
-                        "{ $match: { trackingId: ?0, timestamp: { $gte: ?1, $lte: ?2 }, eventType: 'page_performance' } }",
+                        "{ $match: { $and: [ " +
+                                        "  { $or: [{ 'trackingId': ?0 }, { 'tracking_id': ?0 }] }, " +
+                                        "  { 'timestamp': { $gte: ?1, $lte: ?2 } }, " +
+                                        "  { 'eventType': 'page_performance' } " +
+                                        "] } }",
                         "{ $group: { _id: { $dateTrunc: { date: '$timestamp', unit: ?3 } }, count: { $sum: 1 } } }",
                         "{ $project: { timestamp: '$_id', count: 1, _id: 0 } }",
                         "{ $sort: { timestamp: 1 } }"
@@ -129,7 +136,11 @@ public interface TrackingEventRepository extends MongoRepository<TrackingEvent, 
         // ========== PERFORMANCE METRICS ==========
 
         @Aggregation(pipeline = {
-                        "{ $match: { trackingId: ?0, timestamp: { $gte: ?1, $lte: ?2 }, eventType: 'page_performance' } }",
+                        "{ $match: { $and: [ " +
+                                        "  { $or: [{ 'trackingId': ?0 }, { 'tracking_id': ?0 }] }, " +
+                                        "  { 'timestamp': { $gte: ?1, $lte: ?2 } }, " +
+                                        "  { 'eventType': 'page_performance' } " +
+                                        "] } }",
                         "{ $group: { _id: null, " +
                                         "  avgDomLoadTime: { $avg: '$domLoadTime' }, " +
                                         "  avgFullLoadTime: { $avg: '$fullLoadTime' }, " +
@@ -141,7 +152,11 @@ public interface TrackingEventRepository extends MongoRepository<TrackingEvent, 
         PerformanceMetricsDTO aggregatePerformanceMetrics(String trackingId, Instant from, Instant to);
 
         @Aggregation(pipeline = {
-                        "{ $match: { trackingId: ?0, timestamp: { $gte: ?1, $lte: ?2 }, eventType: { $in: ['web_vital_lcp', 'web_vital_fid'] } } }",
+                        "{ $match: { $and: [ " +
+                                        "  { $or: [{ 'trackingId': ?0 }, { 'tracking_id': ?0 }] }, " +
+                                        "  { 'timestamp': { $gte: ?1, $lte: ?2 } }, " +
+                                        "  { 'eventType': { $in: ['web_vital_lcp', 'web_vital_fid'] } } " +
+                                        "] } }",
                         "{ $group: { _id: '$eventType', avgValue: { $avg: '$value' }, p75: { $percentile: { input: '$value', p: [0.75], method: 'approximate' } } } }"
         })
         List<WebVitalsDTO> aggregateWebVitals(String trackingId, Instant from, Instant to);
@@ -168,14 +183,22 @@ public interface TrackingEventRepository extends MongoRepository<TrackingEvent, 
         List<ScreenResolutionCount> countByScreenResolution(String trackingId, Instant from, Instant to);
 
         @Aggregation(pipeline = {
-                        "{ $match: { trackingId: ?0 } }",
+                        "{ $match: { $or: [{ 'trackingId': ?0 }, { 'tracking_id': ?0 }] } }",
                         "{ $group: { _id: '$browser', count: { $sum: 1 } } }"
         })
         Map<String, Long> countByBrowser(String trackingId);
 
         // ========== ERROR TRACKING ==========
 
-        long countByTrackingIdAndErrorMessageNotNullAndTimestampBetween(
+        @Aggregation(pipeline = {
+                        "{ $match: { $and: [ " +
+                                        "  { $or: [{ 'trackingId': ?0 }, { 'tracking_id': ?0 }] }, " +
+                                        "  { 'errorMessage': { $ne: null } }, " +
+                                        "  { 'timestamp': { $gte: ?1, $lte: ?2 } } " +
+                                        "] } }",
+                        "{ $count: 'count' }"
+        })
+        Long countByTrackingIdAndErrorMessageNotNullAndTimestampBetween(
                         String trackingId, Instant from, Instant to);
 
         @Aggregation(pipeline = {
@@ -266,11 +289,11 @@ public interface TrackingEventRepository extends MongoRepository<TrackingEvent, 
 
         // ========== HEATMAP DATA ==========
 
-        @Query("{ 'trackingId': ?0, 'eventType': 'heatmap_click', 'url': ?1, 'timestamp': { $gte: ?2, $lte: ?3 } }")
+        @Query("{ '$and': [ { '$or': [{ 'trackingId': ?0 }, { 'tracking_id': ?0 }] }, { 'eventType': 'heatmap_click' }, { 'url': ?1 }, { 'timestamp': { '$gte': ?2, '$lte': ?3 } } ] }")
         List<TrackingEvent> findHeatmapClicksForPage(
                         String trackingId, String url, Instant from, Instant to);
 
-        @Query("{ 'trackingId': ?0, 'eventType': 'heatmap_move', 'url': ?1, 'timestamp': { $gte: ?2, $lte: ?3 } }")
+        @Query("{ '$and': [ { '$or': [{ 'trackingId': ?0 }, { 'tracking_id': ?0 }] }, { 'eventType': 'heatmap_move' }, { 'url': ?1 }, { 'timestamp': { '$gte': ?2, '$lte': ?3 } } ] }")
         List<TrackingEvent> findHeatmapMovementsForPage(
                         String trackingId, String url, Instant from, Instant to);
 }
