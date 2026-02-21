@@ -62,6 +62,23 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     }
                 }
 
+                // Fallback to natively reading HttpOnly cookies from the handshake headers
+                if (token == null && request.getHeaders().get("Cookie") != null) {
+                    for (String cookieHeader : request.getHeaders().get("Cookie")) {
+                        for (String cookieStr : cookieHeader.split(";")) {
+                            cookieStr = cookieStr.trim();
+                            if (cookieStr.startsWith("TB_REFRESH=")) {
+                                token = cookieStr.substring("TB_REFRESH=".length());
+                                break;
+                            } else if (cookieStr.startsWith("jwtToken=")) {
+                                token = cookieStr.substring("jwtToken=".length());
+                            }
+                        }
+                        if (token != null)
+                            break;
+                    }
+                }
+
                 if (token != null) {
                     try {
                         // We need access to JwtUtil and CustomUserDetailsService, they are beans.
