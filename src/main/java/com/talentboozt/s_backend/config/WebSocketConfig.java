@@ -14,7 +14,12 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
+import com.talentboozt.s_backend.shared.utils.JwtUtil;
+import com.talentboozt.s_backend.domains.auth.service.CustomUserDetailsService;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import jakarta.servlet.ServletContext;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -45,6 +50,45 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 // request.getHeaders().getUpgrade(),
                 // request.getHeaders().getConnection(),
                 // request.getHeaders().getHost());
+
+                // Extract JWT token from "?token="
+                String token = null;
+                if (request.getURI().getQuery() != null) {
+                    for (String param : request.getURI().getQuery().split("&")) {
+                        if (param.startsWith("token=")) {
+                            token = param.substring(6);
+                            break;
+                        }
+                    }
+                }
+
+                if (token != null) {
+                    try {
+                        // We need access to JwtUtil and CustomUserDetailsService, they are beans.
+                        if (request instanceof org.springframework.http.server.ServletServerHttpRequest) {
+                            ServletContext servletContext = ((org.springframework.http.server.ServletServerHttpRequest) request)
+                                    .getServletRequest().getServletContext();
+                            ApplicationContext ctx = WebApplicationContextUtils
+                                    .getWebApplicationContext(servletContext);
+                            if (ctx != null) {
+                                JwtUtil jwtUtil = ctx.getBean(JwtUtil.class);
+                                CustomUserDetailsService userDetailsService = ctx
+                                        .getBean(CustomUserDetailsService.class);
+                                String username = jwtUtil.extractUsername(token);
+                                if (username != null) {
+                                    org.springframework.security.core.userdetails.UserDetails userDetails = userDetailsService
+                                            .loadUserByUsername(username);
+                                    if (jwtUtil.validateToken(token, userDetails.getUsername())
+                                            && userDetails instanceof CustomUserDetails) {
+                                        attributes.put("userId", ((CustomUserDetails) userDetails).getUserId());
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.warn("WebSocket token validation failed: " + e.getMessage());
+                    }
+                }
 
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
