@@ -95,17 +95,97 @@ public class MessagingService {
     }
 
     public void markAsRead(String messageId, String userId) {
-        messageRepository.findById(messageId).ifPresent(message -> {
-            if (message.getReadByUsers() == null) {
-                message.setReadByUsers(new HashMap<>());
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+        if (message.getReadByUsers() == null) {
+            message.setReadByUsers(new java.util.HashMap<>());
+        }
+        message.getReadByUsers().put(userId, LocalDateTime.now());
+        messageRepository.save(message);
+
+        // Notify sender or room about read status
+        messagingTemplate.convertAndSend("/topic/room/" + message.getRoomId() + "/read",
+                java.util.Map.of("messageId", messageId, "userId", userId));
+    }
+
+    public MessageResponse reactToMessage(String messageId, String userId, String emoji) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+
+        if (message.getReactions() == null) {
+            message.setReactions(new java.util.HashMap<>());
+        }
+
+        List<String> users = message.getReactions().computeIfAbsent(emoji, k -> new java.util.ArrayList<>());
+        if (users.contains(userId)) {
+            users.remove(userId);
+            if (users.isEmpty()) {
+                message.getReactions().remove(emoji);
             }
-            message.getReadByUsers().put(userId, LocalDateTime.now());
+        } else {
+            users.add(userId);
+        }
+
+        MessageResponse response = mapToResponse(messageRepository.save(message));
+        messagingTemplate.convertAndSend("/topic/room/" + message.getRoomId() + "/update", response);
+        return response;
+    }
+
+    public MessageResponse editMessage(String messageId, String userId, String newContent) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+
+        if (!message.getSenderId().equals(userId)) {
+            throw new RuntimeException("Not authorized to edit this message");
+        }
+
+        message.setContent(newContent);
+        message.setEdited(true);
+        message.setUpdatedAt(LocalDateTime.now());
+
+        MessageResponse response = mapToResponse(messageRepository.save(message));
+        messagingTemplate.convertAndSend("/topic/room/" + message.getRoomId() + "/update", response);
+        return response;
+    }
+
+    public void deleteMessage(String messageId, String userId, boolean forEveryone) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+
+        if (forEveryone) {
+            if (!message.getSenderId().equals(userId)) {
+                throw new RuntimeException("Not authorized to delete for everyone");
+            }
+            message.setDeleted(true);
+            message.setContent("This message was deleted");
             messageRepository.save(message);
 
-            // Notify sender or room about read status
-            messagingTemplate.convertAndSend("/topic/room/" + message.getRoomId() + "/read",
-                    java.util.Map.of("messageId", messageId, "userId", userId));
-        });
+            MessageResponse response = mapToResponse(message);
+            messagingTemplate.convertAndSend("/topic/room/" + message.getRoomId() + "/update", response);
+        } else {
+            if (message.getDeletedForUsers() == null) {
+                message.setDeletedForUsers(new java.util.ArrayList<>());
+            }
+            if (!message.getDeletedForUsers().contains(userId)) {
+                message.getDeletedForUsers().add(userId);
+                messageRepository.save(message);
+            }
+        }
+    }
+
+    public void pinMessage(String roomId, String messageId, boolean pin) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+
+        if (!message.getRoomId().equals(roomId)) {
+            throw new RuntimeException("Message does not belong to this room");
+        }
+
+        message.setPinned(pin);
+        messageRepository.save(message);
+
+        MessageResponse response = mapToResponse(message);
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/pin", response);
     }
 
     private ChatRoomResponse enrichRoom(ChatRoom room, String currentUserId) {
@@ -160,6 +240,17 @@ public class MessagingService {
                 .messageType(message.getMessageType())
                 .createdAt(message.getCreatedAt())
                 .readByUsers(message.getReadByUsers())
+                .isEdited(message.isEdited())
+                .updatedAt(message.getUpdatedAt())
+                .isDeleted(message.isDeleted())
+                .deletedForUsers(message.getDeletedForUsers())
+                .reactions(message.getReactions())
+                .metadata(message.getMetadata())
+                .isForwarded(message.isForwarded())
+                .forwardedFromId(message.getForwardedFromId())
+                .isPinned(message.isPinned())
+                .expiresAt(message.getExpiresAt())
+                .isEncrypted(message.isEncrypted())
                 .build();
     }
 }
