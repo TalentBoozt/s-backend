@@ -25,7 +25,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         String password = credentials.getPassword() != null ? credentials.getPassword() : "";
         return new CustomUserDetails(
-                credentials.getId(),
+                credentials.getEmployeeId(),
                 credentials.getEmail(),
                 password,
                 Collections.emptyList());

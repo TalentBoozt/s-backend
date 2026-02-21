@@ -11,6 +11,10 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
+
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -35,11 +39,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                     WebSocketHandler wsHandler, Map<String, Object> attributes) {
                 // Log essential headers to help diagnose proxy stripping
-                // logger.info("WebSocket Handshake Attempt: {} | Upgrade: {} | Connection: {} | Host: {}",
-                //         request.getURI(),
-                //         request.getHeaders().getUpgrade(),
-                //         request.getHeaders().getConnection(),
-                //         request.getHeaders().getHost());
+                // logger.info("WebSocket Handshake Attempt: {} | Upgrade: {} | Connection: {} |
+                // Host: {}",
+                // request.getURI(),
+                // request.getHeaders().getUpgrade(),
+                // request.getHeaders().getConnection(),
+                // request.getHeaders().getHost());
+
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null && auth.getPrincipal() instanceof CustomUserDetails) {
+                    CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
+                    attributes.put("userId", userDetails.getUserId());
+                }
 
                 if (request.getHeaders().getUpgrade() == null) {
                     logger.warn("CRITICAL: Upgrade header is MISSING from the request. WebSocket handshake will fail.");
