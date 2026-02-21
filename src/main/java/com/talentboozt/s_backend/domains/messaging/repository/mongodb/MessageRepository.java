@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 public interface MessageRepository extends MongoRepository<Message, String> {
     Page<Message> findByRoomId(String roomId, Pageable pageable);
 
-    @org.springframework.data.mongodb.repository.Query("{ 'roomId': ?0, 'senderId': { '$ne': ?1 }, 'readByUsers.?2': { '$exists': false } }")
+    @org.springframework.data.mongodb.repository.Query(value = "{ 'roomId': ?0, 'senderId': { '$ne': ?1 }, 'readByUsers.?2': { '$exists': false } }", count = true)
     Long countUnreadMessages(String roomId, String senderId, String userId);
 
     java.util.Optional<Message> findFirstByRoomIdOrderByCreatedAtDesc(String roomId);

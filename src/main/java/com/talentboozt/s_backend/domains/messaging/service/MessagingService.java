@@ -77,10 +77,15 @@ public class MessagingService {
     }
 
     public ChatRoomResponse createGroupRoom(String creatorId, CreateRoomRequest request) {
+        List<String> participants = new java.util.ArrayList<>(request.getParticipants());
+        if (!participants.contains(creatorId)) {
+            participants.add(creatorId);
+        }
+
         ChatRoom room = ChatRoom.builder()
                 .type(RoomType.GROUP)
                 .name(request.getName())
-                .participants(request.getParticipants())
+                .participants(participants)
                 .communityId(request.getCommunityId())
                 .createdAt(LocalDateTime.now())
                 .build();
@@ -137,6 +142,7 @@ public class MessagingService {
         return ChatRoomResponse.builder()
                 .id(room.getId())
                 .type(room.getType())
+                .name(room.getName())
                 .participants(participants)
                 .communityId(room.getCommunityId())
                 .lastMessage(lastMessage != null ? mapToResponse(lastMessage) : null)
