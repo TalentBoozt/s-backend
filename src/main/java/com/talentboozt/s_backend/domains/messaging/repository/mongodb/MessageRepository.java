@@ -15,5 +15,5 @@ public interface MessageRepository extends MongoRepository<Message, String> {
     Long countUnreadMessages(String roomId, String senderId, String userId);
 
     @org.springframework.data.mongodb.repository.Query(value = "{ 'roomId': ?0, 'deletedForUsers': { '$ne': ?1 } }", sort = "{ 'createdAt': -1 }")
-    java.util.Optional<Message> findLatestActiveMessage(String roomId, String userId);
+    java.util.List<Message> findLatestActiveMessage(String roomId, String userId, Pageable pageable);
 }
