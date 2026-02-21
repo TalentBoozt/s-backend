@@ -4,6 +4,7 @@ import com.talentboozt.s_backend.domains.messaging.model.MessageType;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,6 @@ public class MessageResponse {
     private boolean isForwarded;
     private String forwardedFromId;
     private boolean isPinned;
-    private LocalDateTime expiresAt;
+    private Instant expiresAt;
     private boolean isEncrypted;
 }

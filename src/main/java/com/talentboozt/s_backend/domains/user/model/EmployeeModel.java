@@ -51,6 +51,7 @@ public class EmployeeModel {
     private String expectedSalaryRange;
     private String currentExperience;
     private String keywords;
+    private String messagingPublicKey;
 
     public EmployeeModel() {
         // Default constructor

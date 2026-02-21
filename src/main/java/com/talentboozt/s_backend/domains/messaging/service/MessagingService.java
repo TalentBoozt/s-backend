@@ -49,6 +49,9 @@ public class MessagingService {
                 .messageType(request.getMessageType() != null ? request.getMessageType() : MessageType.TEXT)
                 .createdAt(LocalDateTime.now())
                 .readByUsers(new HashMap<>())
+                .metadata(request.getMetadata())
+                .isEncrypted(request.isEncrypted())
+                .expiresAt(request.getExpiresAt())
                 .build();
 
         Message saved = messageRepository.save(message);
@@ -66,8 +69,8 @@ public class MessagingService {
                 .collect(Collectors.toList());
     }
 
-    public Page<MessageResponse> getRoomMessages(String roomId, Pageable pageable) {
-        return messageRepository.findByRoomId(roomId, pageable)
+    public Page<MessageResponse> getRoomMessages(String roomId, String userId, Pageable pageable) {
+        return messageRepository.findByRoomIdAndDeletedForUsersNotContaining(roomId, userId, pageable)
                 .map(this::mapToResponse);
     }
 
@@ -188,6 +191,52 @@ public class MessagingService {
         messagingTemplate.convertAndSend("/topic/room/" + roomId + "/pin", response);
     }
 
+    public void setPublicKey(String userId, String publicKey) {
+        EmployeeModel employee = employeeRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        employee.setMessagingPublicKey(publicKey);
+        employeeRepository.save(employee);
+    }
+
+    public String getPublicKey(String userId) {
+        return employeeRepository.findById(userId)
+                .map(EmployeeModel::getMessagingPublicKey)
+                .orElse(null);
+    }
+
+    public java.util.Map<String, String> getRoomPublicKeys(String roomId) {
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+
+        java.util.Map<String, String> keys = new java.util.HashMap<>();
+        for (String userId : room.getParticipants()) {
+            employeeRepository.findById(userId)
+                    .map(EmployeeModel::getMessagingPublicKey)
+                    .ifPresent(key -> keys.put(userId, key));
+        }
+        return keys;
+    }
+
+    public void forwardMessage(String messageId, List<String> targetRoomIds, String userId) {
+        Message originalMessage = messageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
+
+        for (String roomId : targetRoomIds) {
+            Message forwardedMessage = Message.builder()
+                    .roomId(roomId)
+                    .senderId(userId)
+                    .content(originalMessage.getContent())
+                    .messageType(originalMessage.getMessageType())
+                    .createdAt(LocalDateTime.now())
+                    .isForwarded(true)
+                    .forwardedFromId(originalMessage.getId())
+                    .build();
+
+            Message saved = messageRepository.save(forwardedMessage);
+            messagingTemplate.convertAndSend("/topic/room/" + roomId, mapToResponse(saved));
+        }
+    }
+
     private ChatRoomResponse enrichRoom(ChatRoom room, String currentUserId) {
         List<ParticipantDTO> participants = room.getParticipants().stream()
                 .map(userId -> {
@@ -215,7 +264,7 @@ public class MessagingService {
                 })
                 .collect(Collectors.toList());
 
-        Message lastMessage = messageRepository.findFirstByRoomIdOrderByCreatedAtDesc(room.getId()).orElse(null);
+        Message lastMessage = messageRepository.findLatestActiveMessage(room.getId(), currentUserId).orElse(null);
         Long unreadCount = messageRepository.countUnreadMessages(room.getId(), currentUserId, currentUserId);
         long safeUnread = unreadCount != null ? unreadCount : 0L;
 
