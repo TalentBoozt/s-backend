@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ public class Message {
     private boolean isForwarded;
     private String forwardedFromId;
     private boolean isPinned;
-    private LocalDateTime expiresAt;
+    @Indexed(expireAfter = "PT0S")
+    private Instant expiresAt;
     private boolean isEncrypted;
 }

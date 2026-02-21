@@ -28,11 +28,12 @@ public class MessagingController {
 
     @GetMapping("/rooms/{roomId}/messages")
     public ResponseEntity<Page<MessageResponse>> getRoomMessages(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String roomId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        return ResponseEntity.ok(messagingService.getRoomMessages(roomId, pageable));
+        return ResponseEntity.ok(messagingService.getRoomMessages(roomId, userDetails.getUserId(), pageable));
     }
 
     @PostMapping("/rooms/direct/{targetUserId}")
@@ -89,6 +90,33 @@ public class MessagingController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String messageId) {
         messagingService.markAsRead(messageId, userDetails.getUserId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/keys")
+    public ResponseEntity<Void> setPublicKey(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestBody String publicKey) {
+        messagingService.setPublicKey(userDetails.getUserId(), publicKey);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/keys/user/{userId}")
+    public ResponseEntity<String> getPublicKey(@PathVariable String userId) {
+        return ResponseEntity.ok(messagingService.getPublicKey(userId));
+    }
+
+    @GetMapping("/keys/room/{roomId}")
+    public ResponseEntity<java.util.Map<String, String>> getRoomPublicKeys(@PathVariable String roomId) {
+        return ResponseEntity.ok(messagingService.getRoomPublicKeys(roomId));
+    }
+
+    @PostMapping("/messages/{messageId}/forward")
+    public ResponseEntity<Void> forwardMessage(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String messageId,
+            @RequestBody List<String> targetRoomIds) {
+        messagingService.forwardMessage(messageId, targetRoomIds, userDetails.getUserId());
         return ResponseEntity.ok().build();
     }
 }
