@@ -124,6 +124,11 @@ public class JwtService {
             return bearer.substring(7);
         }
 
+        String queryParamToken = request.getParameter("token");
+        if (queryParamToken != null && !queryParamToken.isEmpty()) {
+            return queryParamToken;
+        }
+
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if ("TB_REFRESH".equals(cookie.getName())) {
