@@ -12,6 +12,8 @@ public class MessageRequest {
     private String content;
     private MessageType messageType;
     private Map<String, Object> metadata;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isEncrypted")
     private boolean isEncrypted;
     private Instant expiresAt;
 }
