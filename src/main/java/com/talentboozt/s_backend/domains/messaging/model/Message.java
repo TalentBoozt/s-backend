@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -30,4 +31,16 @@ public class Message {
 
     // userId -> readAt
     private Map<String, LocalDateTime> readByUsers;
+
+    private boolean isEdited;
+    private LocalDateTime updatedAt;
+    private boolean isDeleted;
+    private List<String> deletedForUsers;
+    private Map<String, List<String>> reactions; // emoji -> userIds
+    private Map<String, Object> metadata;
+    private boolean isForwarded;
+    private String forwardedFromId;
+    private boolean isPinned;
+    private LocalDateTime expiresAt;
+    private boolean isEncrypted;
 }

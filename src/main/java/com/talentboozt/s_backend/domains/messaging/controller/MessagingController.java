@@ -23,10 +23,7 @@ public class MessagingController {
     @GetMapping("/rooms")
     public ResponseEntity<List<ChatRoomResponse>> getUserRooms(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails != null) {
-            return ResponseEntity.ok(messagingService.getUserRooms(userDetails.getUserId()));
-        }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(messagingService.getUserRooms(userDetails.getUserId()));
     }
 
     @GetMapping("/rooms/{roomId}/messages")
@@ -42,10 +39,7 @@ public class MessagingController {
     public ResponseEntity<ChatRoomResponse> getOrCreateDirectRoom(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String targetUserId) {
-        if (userDetails != null) {
-            return ResponseEntity.ok(messagingService.getOrCreateEnrichedDirectRoom(userDetails.getUserId(), targetUserId));
-        }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(messagingService.getOrCreateEnrichedDirectRoom(userDetails.getUserId(), targetUserId));
     }
 
     @PostMapping("/rooms")
@@ -55,13 +49,46 @@ public class MessagingController {
         return ResponseEntity.ok(messagingService.createGroupRoom(userDetails.getUserId(), request));
     }
 
+    @PostMapping("/messages/{messageId}/react")
+    public ResponseEntity<MessageResponse> reactToMessage(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String messageId,
+            @RequestParam String emoji) {
+        return ResponseEntity.ok(messagingService.reactToMessage(messageId, userDetails.getUserId(), emoji));
+    }
+
+    @PutMapping("/messages/{messageId}")
+    public ResponseEntity<MessageResponse> editMessage(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String messageId,
+            @RequestBody String content) {
+        return ResponseEntity.ok(messagingService.editMessage(messageId, userDetails.getUserId(), content));
+    }
+
+    @DeleteMapping("/messages/{messageId}")
+    public ResponseEntity<Void> deleteMessage(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String messageId,
+            @RequestParam(defaultValue = "false") boolean forEveryone) {
+        messagingService.deleteMessage(messageId, userDetails.getUserId(), forEveryone);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/rooms/{roomId}/pin/{messageId}")
+    public ResponseEntity<Void> pinMessage(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String roomId,
+            @PathVariable String messageId,
+            @RequestParam boolean pin) {
+        messagingService.pinMessage(roomId, messageId, pin);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/messages/{messageId}/read")
     public ResponseEntity<Void> markAsRead(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String messageId) {
-        if (userDetails != null) {
-            messagingService.markAsRead(messageId, userDetails.getUserId());
-        }
+        messagingService.markAsRead(messageId, userDetails.getUserId());
         return ResponseEntity.ok().build();
     }
 }
