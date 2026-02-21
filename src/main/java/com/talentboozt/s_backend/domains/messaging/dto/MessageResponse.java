@@ -20,15 +20,24 @@ public class MessageResponse {
     private LocalDateTime createdAt;
     private Map<String, LocalDateTime> readByUsers;
 
+    @com.fasterxml.jackson.annotation.JsonProperty("isEdited")
     private boolean isEdited;
     private LocalDateTime updatedAt;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isDeleted")
     private boolean isDeleted;
     private List<String> deletedForUsers;
     private Map<String, List<String>> reactions;
     private Map<String, Object> metadata;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isForwarded")
     private boolean isForwarded;
     private String forwardedFromId;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isPinned")
     private boolean isPinned;
     private Instant expiresAt;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isEncrypted")
     private boolean isEncrypted;
 }
