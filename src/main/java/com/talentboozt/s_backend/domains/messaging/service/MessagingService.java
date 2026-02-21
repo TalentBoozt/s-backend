@@ -9,6 +9,7 @@ import com.talentboozt.s_backend.domains.user.repository.mongodb.EmployeeReposit
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -264,7 +265,9 @@ public class MessagingService {
                 })
                 .collect(Collectors.toList());
 
-        Message lastMessage = messageRepository.findLatestActiveMessage(room.getId(), currentUserId).orElse(null);
+        Message lastMessage = messageRepository
+                .findLatestActiveMessage(room.getId(), currentUserId, PageRequest.of(0, 1))
+                .stream().findFirst().orElse(null);
         Long unreadCount = messageRepository.countUnreadMessages(room.getId(), currentUserId, currentUserId);
         long safeUnread = unreadCount != null ? unreadCount : 0L;
 
