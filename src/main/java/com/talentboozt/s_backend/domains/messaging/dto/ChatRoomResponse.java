@@ -18,4 +18,11 @@ public class ChatRoomResponse {
     private MessageResponse lastMessage;
     private int unreadCount;
     private LocalDateTime createdAt;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isPinned")
+    private boolean isPinned;
+    @com.fasterxml.jackson.annotation.JsonProperty("isArchived")
+    private boolean isArchived;
+    @com.fasterxml.jackson.annotation.JsonProperty("isFavorite")
+    private boolean isFavorite;
 }

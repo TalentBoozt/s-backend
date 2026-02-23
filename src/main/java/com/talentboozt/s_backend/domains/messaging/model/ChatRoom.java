@@ -19,8 +19,12 @@ public class ChatRoom {
     @Id
     private String id;
     private RoomType type;
-    private String name;
+    private String name; // For GROUP rooms
     private List<String> participants; // User IDs
     private String communityId; // For COMMUNITY type
     private LocalDateTime createdAt;
+
+    private List<String> pinnedBy;
+    private List<String> archivedBy;
+    private List<String> favoritedBy;
 }

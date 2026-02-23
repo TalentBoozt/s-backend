@@ -36,6 +36,7 @@ public class Notification {
         POST_SHARE,
         COMMUNITY_POST,
         COMMUNITY_MEMBER_JOIN,
-        COMMUNITY_ROLE_CHANGE
+        COMMUNITY_ROLE_CHANGE,
+        MESSAGE
     }
 }

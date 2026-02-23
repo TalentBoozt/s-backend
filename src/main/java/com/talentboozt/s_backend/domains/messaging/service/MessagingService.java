@@ -12,6 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import com.talentboozt.s_backend.domains.community.model.Notification;
+import com.talentboozt.s_backend.domains.community.service.NotificationService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,7 @@ public class MessagingService {
     private final SimpMessagingTemplate messagingTemplate;
     private final EmployeeRepository employeeRepository;
     private final PresenceService presenceService;
+    private final NotificationService notificationService;
 
     public ChatRoom getOrCreateDirectRoom(String user1, String user2) {
         List<String> participants = List.of(user1, user2);
@@ -53,6 +56,7 @@ public class MessagingService {
                 .metadata(request.getMetadata())
                 .isEncrypted(request.isEncrypted())
                 .expiresAt(request.getExpiresAt())
+                .replyToId(request.getReplyToId())
                 .build();
 
         Message saved = messageRepository.save(message);
@@ -60,6 +64,19 @@ public class MessagingService {
 
         // Broadcast to room
         messagingTemplate.convertAndSend("/topic/room/" + request.getRoomId(), response);
+
+        // Send notifications to other participants
+        chatRoomRepository.findById(request.getRoomId()).ifPresent(room -> {
+            room.getParticipants().stream()
+                    .filter(participantId -> !participantId.equals(senderId))
+                    .forEach(participantId -> {
+                        notificationService.createNotification(
+                                participantId,
+                                senderId,
+                                Notification.NotificationType.MESSAGE,
+                                request.getRoomId());
+                    });
+        });
 
         return response;
     }
@@ -92,10 +109,83 @@ public class MessagingService {
                 .participants(participants)
                 .communityId(request.getCommunityId())
                 .createdAt(LocalDateTime.now())
+                .pinnedBy(new java.util.ArrayList<>())
+                .archivedBy(new java.util.ArrayList<>())
+                .favoritedBy(new java.util.ArrayList<>())
                 .build();
 
         ChatRoom saved = chatRoomRepository.save(room);
         return enrichRoom(saved, creatorId);
+    }
+
+    public void pinRoom(String roomId, String userId, boolean pin) {
+        chatRoomRepository.findById(roomId).ifPresent(room -> {
+            if (room.getPinnedBy() == null)
+                room.setPinnedBy(new java.util.ArrayList<>());
+            if (pin && !room.getPinnedBy().contains(userId))
+                room.getPinnedBy().add(userId);
+            else if (!pin)
+                room.getPinnedBy().remove(userId);
+            chatRoomRepository.save(room);
+        });
+    }
+
+    public void archiveRoom(String roomId, String userId, boolean archive) {
+        chatRoomRepository.findById(roomId).ifPresent(room -> {
+            if (room.getArchivedBy() == null)
+                room.setArchivedBy(new java.util.ArrayList<>());
+            if (archive && !room.getArchivedBy().contains(userId))
+                room.getArchivedBy().add(userId);
+            else if (!archive)
+                room.getArchivedBy().remove(userId);
+            chatRoomRepository.save(room);
+        });
+    }
+
+    public void favoriteRoom(String roomId, String userId, boolean favorite) {
+        chatRoomRepository.findById(roomId).ifPresent(room -> {
+            if (room.getFavoritedBy() == null)
+                room.setFavoritedBy(new java.util.ArrayList<>());
+            if (favorite && !room.getFavoritedBy().contains(userId))
+                room.getFavoritedBy().add(userId);
+            else if (!favorite)
+                room.getFavoritedBy().remove(userId);
+            chatRoomRepository.save(room);
+        });
+    }
+
+    public void deleteRoom(String roomId, String userId) {
+        chatRoomRepository.findById(roomId).ifPresent(room -> {
+            room.getParticipants().remove(userId);
+            if (room.getParticipants().isEmpty()) {
+                chatRoomRepository.delete(room);
+            } else {
+                chatRoomRepository.save(room);
+            }
+        });
+    }
+
+    public void markRoomAsRead(String roomId, String userId) {
+        List<Message> unreadMessages = messageRepository.findUnreadMessagesInRoom(roomId, userId);
+        unreadMessages.forEach(msg -> {
+            if (msg.getReadByUsers() == null)
+                msg.setReadByUsers(new java.util.HashMap<>());
+            msg.getReadByUsers().put(userId, LocalDateTime.now());
+        });
+        messageRepository.saveAll(unreadMessages);
+    }
+
+    public void exitGroup(String roomId, String userId) {
+        chatRoomRepository.findById(roomId).ifPresent(room -> {
+            if (room.getType() == RoomType.GROUP) {
+                room.getParticipants().remove(userId);
+                if (room.getParticipants().isEmpty()) {
+                    chatRoomRepository.delete(room);
+                } else {
+                    chatRoomRepository.save(room);
+                }
+            }
+        });
     }
 
     public void markAsRead(String messageId, String userId) {
@@ -280,6 +370,9 @@ public class MessagingService {
                 .lastMessage(lastMessage != null ? mapToResponse(lastMessage) : null)
                 .unreadCount((int) safeUnread)
                 .createdAt(room.getCreatedAt())
+                .isPinned(room.getPinnedBy() != null && room.getPinnedBy().contains(currentUserId))
+                .isArchived(room.getArchivedBy() != null && room.getArchivedBy().contains(currentUserId))
+                .isFavorite(room.getFavoritedBy() != null && room.getFavoritedBy().contains(currentUserId))
                 .build();
     }
 
@@ -303,6 +396,21 @@ public class MessagingService {
                 .isPinned(message.isPinned())
                 .expiresAt(message.getExpiresAt())
                 .isEncrypted(message.isEncrypted())
+                .replyToId(message.getReplyToId())
+                .replyToMessage(message.getReplyToId() != null
+                        ? messageRepository.findById(message.getReplyToId()).map(this::mapToResponseSimple).orElse(null)
+                        : null)
+                .build();
+    }
+
+    private MessageResponse mapToResponseSimple(Message message) {
+        return MessageResponse.builder()
+                .id(message.getId())
+                .roomId(message.getRoomId())
+                .senderId(message.getSenderId())
+                .content(message.getContent())
+                .messageType(message.getMessageType())
+                .createdAt(message.getCreatedAt())
                 .build();
     }
 }

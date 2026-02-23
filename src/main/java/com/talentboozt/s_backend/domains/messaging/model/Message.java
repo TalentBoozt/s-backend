@@ -45,4 +45,5 @@ public class Message {
     @Indexed(expireAfter = "PT0S")
     private Instant expiresAt;
     private boolean isEncrypted;
+    private String replyToId;
 }

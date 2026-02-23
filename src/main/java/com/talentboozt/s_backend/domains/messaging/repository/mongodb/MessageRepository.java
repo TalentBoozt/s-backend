@@ -16,4 +16,7 @@ public interface MessageRepository extends MongoRepository<Message, String> {
 
     @org.springframework.data.mongodb.repository.Query(value = "{ 'roomId': ?0, 'deletedForUsers': { '$ne': ?1 } }", sort = "{ 'createdAt': -1 }")
     java.util.List<Message> findLatestActiveMessage(String roomId, String userId, Pageable pageable);
+
+    @org.springframework.data.mongodb.repository.Query(value = "{ 'roomId': ?0, 'senderId': { '$ne': ?1 }, 'readByUsers.?1': { '$exists': false }, 'deletedForUsers': { '$ne': ?1 } }")
+    java.util.List<Message> findUnreadMessagesInRoom(String roomId, String userId);
 }

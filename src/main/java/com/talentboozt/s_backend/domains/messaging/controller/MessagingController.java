@@ -119,4 +119,55 @@ public class MessagingController {
         messagingService.forwardMessage(messageId, targetRoomIds, userDetails.getUserId());
         return ResponseEntity.ok().build();
     }
+    
+    @PostMapping("/rooms/{roomId}/pin")
+    public ResponseEntity<Void> pinRoom(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String roomId,
+            @RequestParam boolean pin) {
+        messagingService.pinRoom(roomId, userDetails.getUserId(), pin);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/rooms/{roomId}/archive")
+    public ResponseEntity<Void> archiveRoom(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String roomId,
+            @RequestParam boolean archive) {
+        messagingService.archiveRoom(roomId, userDetails.getUserId(), archive);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/rooms/{roomId}/favorite")
+    public ResponseEntity<Void> favoriteRoom(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String roomId,
+            @RequestParam boolean favorite) {
+        messagingService.favoriteRoom(roomId, userDetails.getUserId(), favorite);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/rooms/{roomId}")
+    public ResponseEntity<Void> deleteRoom(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String roomId) {
+        messagingService.deleteRoom(roomId, userDetails.getUserId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/rooms/{roomId}/read-all")
+    public ResponseEntity<Void> markRoomAsRead(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String roomId) {
+        messagingService.markRoomAsRead(roomId, userDetails.getUserId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/rooms/{roomId}/exit")
+    public ResponseEntity<Void> exitGroup(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PathVariable String roomId) {
+        messagingService.exitGroup(roomId, userDetails.getUserId());
+        return ResponseEntity.ok().build();
+    }
 }

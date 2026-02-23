@@ -40,4 +40,6 @@ public class MessageResponse {
 
     @com.fasterxml.jackson.annotation.JsonProperty("isEncrypted")
     private boolean isEncrypted;
+    private String replyToId;
+    private MessageResponse replyToMessage;
 }
