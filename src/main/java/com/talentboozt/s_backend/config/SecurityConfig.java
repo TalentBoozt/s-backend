@@ -196,7 +196,7 @@ public class SecurityConfig {
                 configUtil.getProperty("ALLOWED_ORIGIN_8"),
                 configUtil.getProperty("ALLOWED_ORIGIN_9"),
                 configUtil.getProperty("ALLOWED_ORIGIN_10")));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*", "Upgrade", "Connection", "Sec-WebSocket-Key",
                 "Sec-WebSocket-Version", "Sec-WebSocket-Extensions", "Sec-WebSocket-Protocol"));
         configuration.setExposedHeaders(
