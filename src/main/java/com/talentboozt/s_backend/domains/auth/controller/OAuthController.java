@@ -40,7 +40,7 @@ public class OAuthController {
     public ResponseEntity<CredentialsModel> handleGoogleCallback(
             @RequestBody Map<String, String> body,
             HttpServletResponse response) throws IOException {
-        System.out.println(body);
+        // System.out.println(body);
 
         String code = body.get("code");
         String codeVerifier = body.get("codeVerifier");
@@ -122,15 +122,15 @@ public class OAuthController {
 
         try {
             ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
-            System.out.println("Response Status: " + response.getStatusCode());
-            System.out.println("Response Body: " + response.getBody());
+            // System.out.println("Response Status: " + response.getStatusCode());
+            // System.out.println("Response Body: " + response.getBody());
 
             Map<String, Object> body = response.getBody();
             if (body != null && body.containsKey("access_token")) {
                 return body.get("access_token").toString();
             } else {
                 // Log error message if access_token is not present
-                System.out.println("Error in response: " + body);
+                // System.out.println("Error in response: " + body);
             }
         } catch (Exception e) {
             // Log the exception stack trace

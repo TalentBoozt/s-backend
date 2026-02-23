@@ -59,22 +59,22 @@ public class JwtService {
             Jwts.parserBuilder().setSigningKey(Keys.hmacShaKeyFor(this.token.getBytes())).build().parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException e) {
-            System.out.println("Token has expired: " + e.getMessage());
+            // System.out.println("Token has expired: " + e.getMessage());
             return false;
         } catch (UnsupportedJwtException e) {
-            System.out.println("Unsupported JWT token: " + e.getMessage());
+            // System.out.println("Unsupported JWT token: " + e.getMessage());
             return false;
         } catch (MalformedJwtException e) {
-            System.out.println("Malformed JWT token: " + e.getMessage());
+            // System.out.println("Malformed JWT token: " + e.getMessage());
             return false;
         } catch (SignatureException e) {
-            System.out.println("Invalid JWT signature: " + e.getMessage());
+            // System.out.println("Invalid JWT signature: " + e.getMessage());
             return false;
         } catch (IllegalArgumentException e) {
-            System.out.println("Illegal argument while parsing JWT: " + e.getMessage());
+            // System.out.println("Illegal argument while parsing JWT: " + e.getMessage());
             return false;
         } catch (Exception e) {
-            System.out.println("Error while parsing JWT: " + e.getMessage());
+            // System.out.println("Error while parsing JWT: " + e.getMessage());
             return false;
         }
     }

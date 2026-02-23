@@ -6,6 +6,8 @@ import com.talentboozt.s_backend.domains.user.service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.data.domain.Page;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -22,12 +24,12 @@ public class EmployeeController {
     }
 
     @GetMapping("/getAll")
-    public List<EmployeeModel> getAllEmployees(@RequestParam int page, @RequestParam int size) {
+    public Page<EmployeeModel> getAllEmployees(@RequestParam int page, @RequestParam int size) {
         return employeeService.getEmployeesPaginated(page, size);
     }
 
     @GetMapping("/search")
-    public List<EmployeeModel> searchEmployees(
+    public Page<EmployeeModel> searchEmployees(
             @RequestParam String query,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
