@@ -54,6 +54,6 @@ public class LoginDataMigration implements CommandLineRunner {
             loginRepository.save(login);
         }
 
-        System.out.println("✅ Login data migration complete.");
+        // System.out.println("✅ Login data migration complete.");
     }
 }

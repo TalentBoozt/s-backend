@@ -10,6 +10,7 @@ import com.talentboozt.s_backend.domains.user.dto.EmpFollowingDTO;
 import com.talentboozt.s_backend.domains.user.model.*;
 import com.talentboozt.s_backend.domains.user.repository.mongodb.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
@@ -69,12 +70,12 @@ public class EmployeeService {
         return employeeRepository.findAll();
     }
 
-    public List<EmployeeModel> getEmployeesPaginated(int page, int size) {
+    public Page<EmployeeModel> getEmployeesPaginated(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return employeeRepository.findAllBy(pageable);
     }
 
-    public List<EmployeeModel> searchEmployees(String query, int page, int size) {
+    public Page<EmployeeModel> searchEmployees(String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         return employeeRepository.findByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(query, query,
                 pageable);
@@ -262,7 +263,7 @@ public class EmployeeService {
                 favJobs = new ArrayList<>();
             }
             for (FavJobDTO favJob : favJobs) {
-                if (!employee.getEmail().isEmpty()){
+                if (!employee.getEmail().isEmpty()) {
                     if (jobDto.getStatus().equals("inprogress")) {
                         emailService.sendSelectionNotification(employee.getEmail(), employee.getFirstname());
                     } else if (jobDto.getStatus().equals("rejected")) {
@@ -341,19 +342,19 @@ public class EmployeeService {
             if (empEducationModel != null) {
                 empEducationRepository.deleteByEmployeeId(id);
             }
-            if (empContactModel != null){
+            if (empContactModel != null) {
                 empContactRepository.deleteByEmployeeId(id);
             }
-            if (empExperienceModel != null){
+            if (empExperienceModel != null) {
                 empExperiencesRepository.deleteByEmployeeId(id);
             }
-            if (empSkillsModel != null){
+            if (empSkillsModel != null) {
                 empSkillsRepository.deleteByEmployeeId(id);
             }
-            if (empFollowersModel != null){
+            if (empFollowersModel != null) {
                 empFollowersRepository.deleteByEmployeeId(id);
             }
-            if (empFollowingModel != null){
+            if (empFollowingModel != null) {
                 empFollowingRepository.deleteByEmployeeId(id);
             }
 
@@ -423,4 +424,3 @@ public class EmployeeService {
         return employeeRepository.findByIdNotIn(excludedIds, pageable);
     }
 }
-

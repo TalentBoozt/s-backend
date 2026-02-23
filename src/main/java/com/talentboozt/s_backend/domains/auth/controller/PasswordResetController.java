@@ -50,8 +50,8 @@ public class PasswordResetController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiResponse("Invalid token."));
         } else {
             PasswordResetTokenModel token = optionalToken.get();
-            System.out.println(token.getUserId());
-            System.out.println(request.getNewPassword());
+            // System.out.println(token.getUserId());
+            // System.out.println(request.getNewPassword());
 
             CredentialsModel credentials = credentialsService.updatePassword(token.getUserId(), request.getNewPassword());
             if (credentials == null) {

@@ -63,7 +63,7 @@ public ResponseEntity<?> verifyCaptcha(
         session.setAttribute("captchaVerifiedAt", Instant.now());
         return ResponseEntity.ok().build();
     } else {
-        System.out.println("CAPTCHA failed: " + body.get("error-codes"));
+        // System.out.println("CAPTCHA failed: " + body.get("error-codes"));
         return ResponseEntity
                 .status(HttpStatus.FORBIDDEN)
                 .body("CAPTCHA failed");

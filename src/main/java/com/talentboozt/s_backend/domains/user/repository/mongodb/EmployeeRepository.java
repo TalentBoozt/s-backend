@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.user.repository.mongodb;
 
 import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
@@ -14,9 +15,9 @@ public interface EmployeeRepository extends MongoRepository<EmployeeModel, Strin
 
     boolean existsByEmail(String email);
 
-    List<EmployeeModel> findAllBy(Pageable pageable);
+    Page<EmployeeModel> findAllBy(Pageable pageable);
 
-    List<EmployeeModel> findByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(String firstname,
+    Page<EmployeeModel> findByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(String firstname,
             String lastname, Pageable pageable);
 
     List<EmployeeModel> findByIdNotIn(List<String> ids, Pageable pageable);

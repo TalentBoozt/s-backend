@@ -42,7 +42,7 @@ public class CourseEnrollsCleanupScheduler {
             if (deduplicated.size() < originalCourses.size()) {
                 emp.setCourses(deduplicated);
                 empCoursesRepository.save(emp);
-                System.out.println("Updated employee " + emp.getEmployeeId() + " with deduplicated courses.");
+                // System.out.println("Updated employee " + emp.getEmployeeId() + " with deduplicated courses.");
             }
         }
     }
