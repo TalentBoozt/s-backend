@@ -23,6 +23,11 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.createArticle(request, userId));
     }
 
+    @GetMapping("/top")
+    public ResponseEntity<List<ArticleResponse>> getTopArticles() {
+        return ResponseEntity.ok(articleService.getTopArticles());
+    }
+
     @GetMapping("/{slug}")
     public ResponseEntity<ArticleResponse> getBySlug(@PathVariable String slug) {
         return ResponseEntity.ok(articleService.getBySlug(slug));

@@ -26,4 +26,7 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
     Page<Article> searchArticles(String query, Pageable pageable);
 
     Page<Article> findByAuthorId(String authorId, Pageable pageable);
+
+    @Query("{ 'status': 'PUBLISHED' }")
+    List<Article> findTopArticles();
 }

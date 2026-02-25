@@ -52,6 +52,14 @@ public class ArticleService {
         return mapToResponse(saved);
     }
 
+    public List<ArticleResponse> getTopArticles() {
+        // first 6 articles
+        return articleRepository.findTopArticles().stream()
+                .limit(6)
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     public ArticleResponse getBySlug(String slug) {
         Article article = articleRepository.findBySlug(slug)
                 .orElseThrow(() -> new RuntimeException("Article not found"));
