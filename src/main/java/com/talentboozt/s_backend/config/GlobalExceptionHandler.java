@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
 import java.util.HashMap;
@@ -132,6 +133,16 @@ public class GlobalExceptionHandler {
                 "Endpoint not found",
                 HttpStatus.NOT_FOUND.value(),
                 "NOT_FOUND");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNoResourceFoundException(NoResourceFoundException ex) {
+        logger.debug("No static resource found: {}", ex.getResourcePath());
+        ApiErrorResponse error = new ApiErrorResponse(
+                "Resource not found",
+                HttpStatus.NOT_FOUND.value(),
+                "RESOURCE_NOT_FOUND");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
