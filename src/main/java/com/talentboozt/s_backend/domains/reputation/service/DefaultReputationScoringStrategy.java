@@ -9,15 +9,15 @@ import java.util.Map;
 public class DefaultReputationScoringStrategy implements ReputationScoringStrategy {
 
     private final Map<ReputationSourceType, Integer> weights = Map.of(
-            ReputationSourceType.ARTICLE_PUBLISH, 20,
-            ReputationSourceType.ARTICLE_LIKE, 5,
-            ReputationSourceType.ARTICLE_BOOKMARK, 3,
-            ReputationSourceType.POST_CREATE, 2,
-            ReputationSourceType.POST_UPVOTE, 2,
-            ReputationSourceType.COMMENT_CREATE, 3,
-            ReputationSourceType.COMMENT_UPVOTE, 3,
-            ReputationSourceType.REACTION_RECEIVE, 1,
-            ReputationSourceType.SPAM_PENALTY, -10);
+            ReputationSourceType.ARTICLE_PUBLISH, 50,
+            ReputationSourceType.ARTICLE_LIKE, 10,
+            ReputationSourceType.ARTICLE_BOOKMARK, 10,
+            ReputationSourceType.POST_CREATE, 20,
+            ReputationSourceType.POST_UPVOTE, 5,
+            ReputationSourceType.COMMENT_CREATE, 10,
+            ReputationSourceType.COMMENT_UPVOTE, 5,
+            ReputationSourceType.REACTION_RECEIVE, 2,
+            ReputationSourceType.SPAM_PENALTY, -50);
 
     @Override
     public int getScoreFor(ReputationSourceType type) {
