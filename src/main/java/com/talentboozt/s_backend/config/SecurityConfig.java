@@ -105,6 +105,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> {
                     auth
+                            // Actuator
                             .requestMatchers("/actuator/env").authenticated()
                             .requestMatchers("/actuator/loggers").authenticated()
                             .requestMatchers("/actuator/beans").authenticated()
@@ -114,28 +115,26 @@ public class SecurityConfig {
                                 String requestUri = request.getRequestURI();
                                 return requestUri.startsWith("/actuator/")
                                         && !requestUri.equals("/actuator/env");
-                            })
-                            .permitAll()
-                            // Public endpoints (no auth required)
+                            }).permitAll()
+
+                            // ✅ Make ALL GET endpoints public
+                            .requestMatchers(HttpMethod.GET, "/**").permitAll()
+
+                            // Public endpoints (any method)
                             .requestMatchers(
                                     "/stripe/**", "/public/**", "/sso/**", "/docs/**",
                                     "/api/auth/**", "/oauth2/**", "/oauth/**",
                                     "/sitemap.xml", "/api/event/**", "/api/monitoring/**",
                                     "/api/security/**", "/api/v2/github/**", "/api/v2/facebook/**",
                                     "/api/v2/linkedin/**", "/callback/google/**",
-                                    "/api/v2/ambassador/**", "/api/v2/courses/**", "/api/v2/password-reset/request",
-                                    "/api/v2/payments/recorded/**", "/api/v2/news-latter/**", "/api/v2/email/**",
-                                    "/api/security/verify-captcha", "/ws/**", "/api/v2/batch/**", "/api/v2/metrics/**", 
+                                    "/api/v2/ambassador/**", "/api/v2/courses/**",
+                                    "/api/v2/password-reset/request",
+                                    "/api/v2/payments/recorded/**", "/api/v2/news-latter/**",
+                                    "/api/v2/email/**", "/api/security/verify-captcha",
+                                    "/ws/**", "/api/v2/batch/**", "/api/v2/metrics/**",
                                     "/api/v2/articles/**")
                             .permitAll()
-                            // Read-only public access (GET only)
-                            .requestMatchers(HttpMethod.GET, "/api/v2/posts/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v2/communities/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v2/employee/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v2/emp_**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v2/notifications/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v2/messaging/**").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/v2/cmp_job-apply/addViewer/**").permitAll()
+
                             // Write operations require authentication
                             .requestMatchers(HttpMethod.POST, "/api/v2/posts/**").authenticated()
                             .requestMatchers(HttpMethod.PUT, "/api/v2/posts/**").authenticated()
@@ -153,12 +152,14 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.DELETE, "/api/v2/emp_**").authenticated()
                             .requestMatchers(HttpMethod.POST, "/api/v2/notifications/**").authenticated()
                             .requestMatchers(HttpMethod.PUT, "/api/v2/notifications/**").authenticated()
+
                             // Reports
                             .requestMatchers(HttpMethod.POST, "/api/v2/reports").authenticated()
                             .requestMatchers("/api/v2/reports/**").authenticated()
-                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                            .anyRequest().authenticated();
 
+                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                            .anyRequest().authenticated();
                 })
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
