@@ -125,8 +125,8 @@ public class SecurityConfig {
                                     "/api/v2/linkedin/**", "/callback/google/**",
                                     "/api/v2/ambassador/**", "/api/v2/courses/**", "/api/v2/password-reset/request",
                                     "/api/v2/payments/recorded/**", "/api/v2/news-latter/**", "/api/v2/email/**",
-                                    "/api/security/verify-captcha", "/ws/**",
-                                    "/api/v2/batch/**", "/api/v2/metrics/**")
+                                    "/api/security/verify-captcha", "/ws/**", "/api/v2/batch/**", "/api/v2/metrics/**", 
+                                    "/api/v2/articles/**")
                             .permitAll()
                             // Read-only public access (GET only)
                             .requestMatchers(HttpMethod.GET, "/api/v2/posts/**").permitAll()
