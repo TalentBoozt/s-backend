@@ -254,15 +254,29 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<compilerArguments>
-						<arg>-Xlint:deprecation</arg>
-					</compilerArguments>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.13.0</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<fork>true</fork>
+					<meminitial>256m</meminitial>
+					<maxmem>512m</maxmem>
+					<compilerArgs>
+						<arg>-Xlint:deprecation</arg>
+						<arg>-J-Xms256m</arg>
+						<arg>-J-Xmx512m</arg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 		</plugins>
