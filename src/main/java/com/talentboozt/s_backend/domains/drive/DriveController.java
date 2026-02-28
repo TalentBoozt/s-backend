@@ -8,12 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/drive")
 @RequiredArgsConstructor
+@Slf4j
 public class DriveController {
 
     private final GoogleDriveService googleDriveService;
@@ -25,6 +27,7 @@ public class DriveController {
             List<DriveFileDTO> files = googleDriveService.listFiles(parentId);
             return ResponseEntity.ok(files);
         } catch (IOException e) {
+            log.error("Error listing files for parentId: {}", parentId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
