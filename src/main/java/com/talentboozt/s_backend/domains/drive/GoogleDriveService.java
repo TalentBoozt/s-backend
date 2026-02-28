@@ -2,16 +2,17 @@ package com.talentboozt.s_backend.domains.drive;
 
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.FileContent;
+import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
+import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
-import com.google.api.services.drive.model.File;
-import com.google.api.services.drive.model.FileList;
+import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.GoogleCredentials;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.ByteArrayResource;
 
 import jakarta.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
@@ -24,19 +25,26 @@ import java.util.stream.Collectors;
 @Service
 public class GoogleDriveService {
 
-    @Value("${GOOGLE_DRIVE_API:}")
-    private String apiKey;
+    @Value("${google.drive.credentials.file.path:}")
+    private String credentialsFilePath;
 
     private Drive driveService;
 
     @PostConstruct
     public void init() throws Exception {
-        driveService = new Drive.Builder(
-                GoogleNetHttpTransport.newTrustedTransport(),
-                GsonFactory.getDefaultInstance(),
-                null)
-                .setApplicationName("Talentboozt Console Drive")
-                .build();
+        if (credentialsFilePath != null && !credentialsFilePath.isEmpty()) {
+            GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(credentialsFilePath))
+                    .createScoped(Collections.singleton(DriveScopes.DRIVE));
+
+            HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
+
+            driveService = new Drive.Builder(
+                    GoogleNetHttpTransport.newTrustedTransport(),
+                    GsonFactory.getDefaultInstance(),
+                    requestInitializer)
+                    .setApplicationName("Talentboozt Console Drive")
+                    .build();
+        }
     }
 
     public List<DriveFileDTO> listFiles(String parentId) throws IOException {
@@ -44,7 +52,6 @@ public class GoogleDriveService {
         FileList result = driveService.files().list()
                 .setQ(query)
                 .setFields("files(id, name, mimeType, size, modifiedTime, parents)")
-                .setKey(apiKey)
                 .execute();
 
         return result.getFiles().stream().map(this::mapToFileDTO).collect(Collectors.toList());
@@ -62,7 +69,6 @@ public class GoogleDriveService {
 
         File uploadedFile = driveService.files().create(fileMetadata, mediaContent)
                 .setFields("id, name, mimeType, size, modifiedTime, parents")
-                .setKey(apiKey)
                 .execute();
 
         tempFile.delete();
@@ -71,12 +77,12 @@ public class GoogleDriveService {
     }
 
     public void deleteFile(String fileId) throws IOException {
-        driveService.files().delete(fileId).setKey(apiKey).execute();
+        driveService.files().delete(fileId).execute();
     }
 
     public byte[] downloadFile(String fileId) throws IOException {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        driveService.files().get(fileId).setKey(apiKey).executeMediaAndDownloadTo(outputStream);
+        driveService.files().get(fileId).executeMediaAndDownloadTo(outputStream);
         return outputStream.toByteArray();
     }
 
@@ -88,7 +94,6 @@ public class GoogleDriveService {
 
         File folder = driveService.files().create(fileMetadata)
                 .setFields("id, name, mimeType, size, modifiedTime, parents")
-                .setKey(apiKey)
                 .execute();
 
         return mapToFileDTO(folder);
