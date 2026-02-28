@@ -10,10 +10,10 @@ import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.FileList;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.GoogleCredentials;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
 import jakarta.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class GoogleDriveService {
 
     @Value("${google.drive.credentials.file.path:}")
@@ -32,35 +33,59 @@ public class GoogleDriveService {
 
     @PostConstruct
     public void init() throws Exception {
+        log.info("Initializing Google Drive Service with credentials path: {}", credentialsFilePath);
         if (credentialsFilePath != null && !credentialsFilePath.isEmpty()) {
-            GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(credentialsFilePath))
-                    .createScoped(Collections.singleton(DriveScopes.DRIVE));
+            try {
+                GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(credentialsFilePath))
+                        .createScoped(Collections.singleton(DriveScopes.DRIVE));
 
-            HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
+                HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(credentials);
 
-            driveService = new Drive.Builder(
-                    GoogleNetHttpTransport.newTrustedTransport(),
-                    GsonFactory.getDefaultInstance(),
-                    requestInitializer)
-                    .setApplicationName("Talentboozt Console Drive")
-                    .build();
+                driveService = new Drive.Builder(
+                        GoogleNetHttpTransport.newTrustedTransport(),
+                        GsonFactory.getDefaultInstance(),
+                        requestInitializer)
+                        .setApplicationName("Talentboozt Console Drive")
+                        .build();
+                log.info("Google Drive Service initialized successfully.");
+            } catch (Exception e) {
+                log.error("Failed to initialize Google Drive Service: {}", e.getMessage(), e);
+                // We don't rethrow here to allow the application to start,
+                // but any subsequent calls will check if driveService is null.
+            }
+        } else {
+            log.warn("Google Drive credentials file path is empty! Drive features will not work.");
+        }
+    }
+
+    private void checkState() {
+        if (driveService == null) {
+            throw new IllegalStateException(
+                    "Google Drive Service is not initialized. Please check credentials configuration.");
         }
     }
 
     public List<DriveFileDTO> listFiles(String parentId) throws IOException {
-        String query = "'" + (parentId != null ? parentId : "root") + "' in parents and trashed = false";
+        checkState();
+        String query = "'" + (parentId != null ? parentId : "1eUPryxCXSjSpe2wkNycGDgTyhP5WkFkF")
+                + "' in parents and trashed = false";
         FileList result = driveService.files().list()
                 .setQ(query)
                 .setFields("files(id, name, mimeType, size, modifiedTime, parents)")
                 .execute();
 
-        return result.getFiles().stream().map(this::mapToFileDTO).collect(Collectors.toList());
+        List<File> files = result.getFiles();
+        if (files == null) {
+            return Collections.emptyList();
+        }
+        return files.stream().map(this::mapToFileDTO).collect(Collectors.toList());
     }
 
     public DriveFileDTO uploadFile(MultipartFile file, String parentId) throws IOException {
         File fileMetadata = new File();
         fileMetadata.setName(file.getOriginalFilename());
-        fileMetadata.setParents(Collections.singletonList(parentId != null ? parentId : "root"));
+        fileMetadata.setParents(
+                Collections.singletonList(parentId != null ? parentId : "1eUPryxCXSjSpe2wkNycGDgTyhP5WkFkF"));
 
         java.io.File tempFile = java.io.File.createTempFile("upload_", file.getOriginalFilename());
         file.transferTo(tempFile);
@@ -90,7 +115,8 @@ public class GoogleDriveService {
         File fileMetadata = new File();
         fileMetadata.setName(folderName);
         fileMetadata.setMimeType("application/vnd.google-apps.folder");
-        fileMetadata.setParents(Collections.singletonList(parentId != null ? parentId : "root"));
+        fileMetadata.setParents(
+                Collections.singletonList(parentId != null ? parentId : "1eUPryxCXSjSpe2wkNycGDgTyhP5WkFkF"));
 
         File folder = driveService.files().create(fileMetadata)
                 .setFields("id, name, mimeType, size, modifiedTime, parents")

@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.drive;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -8,8 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import lombok.extern.slf4j.Slf4j;
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -22,11 +21,11 @@ public class DriveController {
 
     @GetMapping("/files")
     public ResponseEntity<List<DriveFileDTO>> listFiles(
-            @RequestParam(required = false, defaultValue = "root") String parentId) {
+            @RequestParam(required = false, defaultValue = "1eUPryxCXSjSpe2wkNycGDgTyhP5WkFkF") String parentId) {
         try {
             List<DriveFileDTO> files = googleDriveService.listFiles(parentId);
             return ResponseEntity.ok(files);
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Error listing files for parentId: {}", parentId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
@@ -35,11 +34,12 @@ public class DriveController {
     @PostMapping("/files")
     public ResponseEntity<DriveFileDTO> uploadFile(
             @RequestParam("file") MultipartFile file,
-            @RequestParam(required = false, defaultValue = "root") String parentId) {
+            @RequestParam(required = false, defaultValue = "1eUPryxCXSjSpe2wkNycGDgTyhP5WkFkF") String parentId) {
         try {
             DriveFileDTO uploadedFile = googleDriveService.uploadFile(file, parentId);
             return ResponseEntity.ok(uploadedFile);
-        } catch (IOException e) {
+        } catch (Exception e) {
+            log.error("Error uploading file to parentId: {}", parentId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -49,7 +49,8 @@ public class DriveController {
         try {
             googleDriveService.deleteFile(id);
             return ResponseEntity.ok().build();
-        } catch (IOException e) {
+        } catch (Exception e) {
+            log.error("Error deleting file with id: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -62,7 +63,8 @@ public class DriveController {
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.setContentDispositionFormData("attachment", "downloaded_file");
             return new ResponseEntity<>(data, headers, HttpStatus.OK);
-        } catch (IOException e) {
+        } catch (Exception e) {
+            log.error("Error downloading file with id: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -70,11 +72,12 @@ public class DriveController {
     @PostMapping("/folders")
     public ResponseEntity<DriveFileDTO> createFolder(
             @RequestParam("name") String name,
-            @RequestParam(required = false, defaultValue = "root") String parentId) {
+            @RequestParam(required = false, defaultValue = "1eUPryxCXSjSpe2wkNycGDgTyhP5WkFkF") String parentId) {
         try {
             DriveFileDTO folder = googleDriveService.createFolder(name, parentId);
             return ResponseEntity.ok(folder);
-        } catch (IOException e) {
+        } catch (Exception e) {
+            log.error("Error creating folder with name: {} in parentId: {}", name, parentId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
