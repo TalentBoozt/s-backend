@@ -12,4 +12,7 @@ public interface JobApplyRepository extends MongoRepository<JobApplyModel, Strin
     Optional<List<JobApplyModel>> findAllByJobId(String jobId);
 
     Optional<JobApplyModel> findByJobId(String id);
+
+    @org.springframework.data.mongodb.repository.Query("{ 'applicants.employeeId': ?0 }")
+    List<JobApplyModel> findByEmployeeIdInApplicants(String employeeId);
 }

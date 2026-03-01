@@ -33,4 +33,3 @@ public class SubscriptionController {
         return ResponseEntity.notFound().build();
     }
 }
-

@@ -29,10 +29,10 @@ public class CompanyModel {
     private String headquarters;
     private String numberOfEmployees;
     private String website;
-    private String socialLinks; //id
+    private String socialLinks; // id
     private String contactEmail;
     private String contactNumber;
-    private String postedJobs; //id
+    private String postedJobs; // id
     private String joinedDate;
     private String isVerified;
     private String followers;
@@ -45,4 +45,5 @@ public class CompanyModel {
     private String subscription_id;
     private String payment_method_id;
     private String billing_address_id;
+    private boolean systemOwner = false;
 }

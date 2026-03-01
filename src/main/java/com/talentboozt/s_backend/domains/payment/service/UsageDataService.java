@@ -12,8 +12,17 @@ public class UsageDataService {
     @Autowired
     private UsageDataRepository usageDataRepository;
 
+    @Autowired
+    private SubscriptionService subscriptionService;
+
     public UsageDataModel getUsageData(String companyId) {
+        if (subscriptionService.isExempt(companyId)) {
+            UsageDataModel unlimited = new UsageDataModel();
+            unlimited.setCompanyId(companyId);
+            unlimited.setUsers(0);
+            unlimited.setStorage(0);
+            return unlimited;
+        }
         return usageDataRepository.findByCompanyId(companyId);
     }
 }
-

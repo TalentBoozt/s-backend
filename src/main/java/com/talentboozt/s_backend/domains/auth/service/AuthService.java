@@ -26,7 +26,8 @@ public class AuthService {
     @Autowired
     private UserPermissionsService userPermissionsService;
 
-    // Add JWTService if you need to generate token inside service level (for flexibility)
+    // Add JWTService if you need to generate token inside service level (for
+    // flexibility)
 
     public AuthResponse login(String email, String password) {
         CredentialsModel user = credentialsService.getCredentialsByEmail(email);
@@ -41,6 +42,7 @@ public class AuthService {
         userPayload.setUserLevel(user.getUserLevel());
         userPayload.setRoles(user.getRoles());
         userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
+        userPayload.setOrganizations(user.getOrganizations());
 
         // Determine redirect URL based on user or platform type if needed
         String redirectUri = determineRedirectUri(user);
@@ -64,7 +66,7 @@ public class AuthService {
         Set<String> userPermissions = new HashSet<>();
         for (String roleName : userRoles) {
             Optional<RoleModel> role = roleService.getRoleByName(roleName);
-            if (role.isPresent()){
+            if (role.isPresent()) {
                 RoleModel optRole = role.get();
                 if (optRole.getPermissions() != null) {
                     userPermissions.addAll(optRole.getPermissions());
@@ -100,6 +102,7 @@ public class AuthService {
         userPayload.setUserLevel(savedUser.getUserLevel());
         userPayload.setRoles(savedUser.getRoles());
         userPayload.setPermissions(savedUser.getPermissions());
+        userPayload.setOrganizations(savedUser.getOrganizations());
 
         // Determine where to redirect after successful registration
         String redirectUri = determineRedirectUri(savedUser);
@@ -119,4 +122,3 @@ public class AuthService {
         }
     }
 }
-

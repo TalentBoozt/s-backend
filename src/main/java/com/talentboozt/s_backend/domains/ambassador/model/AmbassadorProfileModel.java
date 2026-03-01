@@ -23,12 +23,15 @@ public class AmbassadorProfileModel {
     private String id;
 
     // ✅ Application Info
-    private String name;
+    private String firstName;
+    private String lastName;
+    private String name; // Keep for legacy/combined name
     private String email;
     private String motivation;
     private String profileLink;
     private boolean consentGiven;
     private Instant appliedAt;
+    private AmbassadorLifecycle lifecycle;
     private String applicationStatus; // REQUESTED, REVIEWING, ACCEPTED, REJECTED
 
     // ✅ Assigned after approval

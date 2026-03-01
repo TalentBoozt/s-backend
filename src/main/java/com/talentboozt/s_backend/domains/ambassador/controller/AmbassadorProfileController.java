@@ -25,6 +25,7 @@ public class AmbassadorProfileController {
     }
 
     @PostMapping("/ambassador")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
     public AmbassadorProfileModel addAmbassadorProfile(@RequestBody AmbassadorProfileModel ambassadorProfileModel) {
         return ambassadorProfileService.addAmbassadorProfile(ambassadorProfileModel);
     }
@@ -35,41 +36,50 @@ public class AmbassadorProfileController {
     }
 
     @GetMapping("/get/all")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
     public Iterable<AmbassadorProfileModel> getAllAmbassadorProfiles() {
         return ambassadorProfileService.getAllAmbassadorProfiles();
     }
 
     @PutMapping("/update/{id}")
-    public AmbassadorProfileModel updateAmbassadorProfile(@PathVariable String id, @RequestBody AmbassadorProfileModel ambassadorProfileModel) {
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage') or #id == authentication.principal.id")
+    public AmbassadorProfileModel updateAmbassadorProfile(@PathVariable String id,
+            @RequestBody AmbassadorProfileModel ambassadorProfileModel) {
         return ambassadorProfileService.updateAmbassadorProfile(id, ambassadorProfileModel);
     }
 
     @PutMapping("/approve/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
     public AmbassadorProfileModel approveAmbassadorProfile(@PathVariable String id) {
         return ambassadorProfileService.approveAmbassadorProfile(id);
     }
 
     @PutMapping("/reject/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
     public AmbassadorProfileModel rejectAmbassadorProfile(@PathVariable String id) {
         return ambassadorProfileService.rejectAmbassadorProfile(id);
     }
 
     @PutMapping("/suspend/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
     public AmbassadorProfileModel suspendAmbassadorProfile(@PathVariable String id) {
         return ambassadorProfileService.suspendAmbassadorProfile(id);
     }
 
     @PutMapping("/update/application")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
     public AmbassadorProfileModel applicationAcceptance(@RequestBody AmbassadorProfileModel ambassadorProfileModel) {
         return ambassadorProfileService.applicationAcceptance(ambassadorProfileModel);
     }
 
     @PutMapping("/promote/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
     public AmbassadorProfileModel promoteAmbassador(@PathVariable String id) {
         return ambassadorProfileService.promoteAmbassador(id);
     }
 
     @PutMapping("/demote/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
     public AmbassadorProfileModel demoteAmbassador(@PathVariable String id) {
         return ambassadorProfileService.demoteAmbassador(id);
     }

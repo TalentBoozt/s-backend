@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.ambassador.service;
 
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorLeaderboardModel;
+import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorLifecycle;
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
 import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbassadorLeaderboardRepository;
 import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbassadorProfileRepository;
@@ -59,9 +60,9 @@ class LeaderboardServiceTest {
         );
 
         when(progressRepo.findByTaskType(type)).thenReturn(progresses);
-        when(ambassadorRepo.findById("amb1")).thenReturn(Optional.of(new AmbassadorProfileModel("1", "John", "john@example.com", null, null, false, null, null, "amb1", "BRONZE", 50, 10, 2, 1, true, null, null, null, null, null, null, null, null, 250, null, 150, 100, null)));
-        when(ambassadorRepo.findById("amb2")).thenReturn(Optional.of(new AmbassadorProfileModel("2", "Jane", "jane@example.com", null, null, false, null, null, "amb2", "SILVER", 30, 10, 2, 1, true, null, null, null, null, null, null, null, null, 250, null, 150, 100, null)));
-        when(ambassadorRepo.findById("amb3")).thenReturn(Optional.of(new AmbassadorProfileModel("3", "Bob", "bob@example.com", null, null, false, null, null, "amb3", "GOLD", 70, 10, 2, 1, true, null, null, null, null, null, null, null, null, 250, null, 150, 100, null)));
+        when(ambassadorRepo.findById("amb1")).thenReturn(Optional.of(new AmbassadorProfileModel("1", "John", "doe", "john doe", "john@example.com", null, null, false, null, AmbassadorLifecycle.REQUESTED, null, "amb1", "BRONZE", 50, 10, 2, 1, true, null, null, null, null, null, null, null, null, 250, null, 150, 100, null)));
+        when(ambassadorRepo.findById("amb2")).thenReturn(Optional.of(new AmbassadorProfileModel("2", "Jane", "doe", "Jane Doe", "jane@example.com", null, null, false, null, AmbassadorLifecycle.REQUESTED, null, "amb2", "SILVER", 30, 10, 2, 1, true, null, null, null, null, null, null, null, null, 250, null, 150, 100, null)));
+        when(ambassadorRepo.findById("amb3")).thenReturn(Optional.of(new AmbassadorProfileModel("3", "Bob", "doe", "Bob Doe", "bob@example.com", null, null, false, null, AmbassadorLifecycle.REQUESTED, null, "amb3", "GOLD", 70, 10, 2, 1, true, null, null, null, null, null, null, null, null, 250, null, 150, 100, null)));
 //        doNothing().when(leaderboardRepo).deleteAll(anyListOf());
         when(leaderboardRepo.saveAll(anyListOf())).thenAnswer(invocation -> invocation.getArgument(0));
 

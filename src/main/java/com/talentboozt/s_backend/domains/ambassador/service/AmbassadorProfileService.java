@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.ambassador.service;
 
+import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorLifecycle;
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
 import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbassadorProfileRepository;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
@@ -19,7 +20,8 @@ public class AmbassadorProfileService {
     private final AmbassadorLevelService ambassadorLevelService;
     private final CredentialsRepository credentialsRepository;
 
-    public AmbassadorProfileService(AmbassadorProfileRepository ambassadorProfileRepository, AmbassadorLevelService ambassadorLevelService, CredentialsRepository credentialsRepository) {
+    public AmbassadorProfileService(AmbassadorProfileRepository ambassadorProfileRepository,
+            AmbassadorLevelService ambassadorLevelService, CredentialsRepository credentialsRepository) {
         this.ambassadorProfileRepository = ambassadorProfileRepository;
         this.ambassadorLevelService = ambassadorLevelService;
         this.credentialsRepository = credentialsRepository;
@@ -28,21 +30,27 @@ public class AmbassadorProfileService {
     public AmbassadorProfileModel applyAmbassador(AmbassadorProfileModel request) {
         AmbassadorProfileModel existingProfile = ambassadorProfileRepository.findByEmail(request.getEmail());
         if (existingProfile != null) {
-            // If a profile with the same email already exists, return it
             return existingProfile;
         }
         AmbassadorProfileModel profile = new AmbassadorProfileModel();
-        profile.setName(request.getName());
+        profile.setFirstName(request.getFirstName());
+        profile.setLastName(request.getLastName());
+        profile.setName(request.getName() != null ? request.getName()
+                : (request.getFirstName() + " " + request.getLastName()).trim());
         profile.setEmail(request.getEmail());
         profile.setMotivation(request.getMotivation());
         profile.setProfileLink(request.getProfileLink());
         profile.setConsentGiven(request.isConsentGiven());
         profile.setEmployeeId(request.getEmployeeId());
-        profile.setReferralCode(generateReferralCode(request.getName()));
+
+        String refBasis = request.getFirstName() != null ? request.getFirstName() : request.getName();
+        profile.setReferralCode(generateReferralCode(refBasis));
+
         profile.setAppliedAt(Instant.now());
         profile.setLevel("BRONZE");
-        profile.setApplicationStatus("REQUESTED");
-        profile.setStatus("REQUESTED");
+        profile.setLifecycle(AmbassadorLifecycle.REQUESTED);
+        profile.setApplicationStatus("PENDING");
+        profile.setStatus("PENDING");
         profile.setActive(false);
 
         return ambassadorProfileRepository.save(profile);
@@ -53,13 +61,19 @@ public class AmbassadorProfileService {
     }
 
     public AmbassadorProfileModel getAmbassadorProfile(String id) {
-        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository.findById(Objects.requireNonNull(id));
+        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository
+                .findById(Objects.requireNonNull(id));
         return ambassadorProfileModel.orElse(null);
     }
 
     public AmbassadorProfileModel updateAmbassadorProfile(String id, AmbassadorProfileModel ambassadorProfileModel) {
-        AmbassadorProfileModel ambassadorProfile = ambassadorProfileRepository.findById(Objects.requireNonNull(id)).orElse(null);
+        AmbassadorProfileModel ambassadorProfile = ambassadorProfileRepository.findById(Objects.requireNonNull(id))
+                .orElse(null);
         if (ambassadorProfile != null) {
+            ambassadorProfile.setFirstName(ambassadorProfileModel.getFirstName());
+            ambassadorProfile.setLastName(ambassadorProfileModel.getLastName());
+            ambassadorProfile.setName(ambassadorProfileModel.getName() != null ? ambassadorProfileModel.getName()
+                    : (ambassadorProfileModel.getFirstName() + " " + ambassadorProfileModel.getLastName()).trim());
             ambassadorProfile.setEmployeeId(ambassadorProfileModel.getEmployeeId());
             ambassadorProfile.setLevel(ambassadorLevelService.evaluateLevel(ambassadorProfile));
             ambassadorProfile.setTotalReferrals(ambassadorProfileModel.getTotalReferrals());
@@ -75,6 +89,11 @@ public class AmbassadorProfileService {
             ambassadorProfile.setInterviewNote(ambassadorProfileModel.getInterviewNote());
             ambassadorProfile.setBadgeHistory(ambassadorProfileModel.getBadgeHistory());
             ambassadorProfile.setPerks(ambassadorProfileModel.getPerks());
+            ambassadorProfile.setPoints(ambassadorProfileModel.getPoints());
+            ambassadorProfile.setTotalLogins(ambassadorProfileModel.getTotalLogins());
+            ambassadorProfile.setConsecutiveLoginDays(ambassadorProfileModel.getConsecutiveLoginDays());
+            ambassadorProfile.setLastLoginDate(ambassadorProfileModel.getLastLoginDate());
+            ambassadorProfile.setLastPointEarnedAt(ambassadorProfileModel.getLastPointEarnedAt());
             return ambassadorProfileRepository.save(ambassadorProfile);
         }
         return null;
@@ -85,21 +104,33 @@ public class AmbassadorProfileService {
     }
 
     public AmbassadorProfileModel approveAmbassadorProfile(String id) {
-        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository.findById(Objects.requireNonNull(id));
+        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository
+                .findById(Objects.requireNonNull(id));
         if (ambassadorProfileModel.isPresent()) {
             AmbassadorProfileModel ambassadorProfile = ambassadorProfileModel.get();
-            ambassadorProfile.setStatus("ACTIVE");
-            ambassadorProfile.setApplicationStatus("ACCEPTED");
+            ambassadorProfile.setLifecycle(AmbassadorLifecycle.ACTIVE);
+            ambassadorProfile.setStatus("APPROVED");
+            ambassadorProfile.setApplicationStatus("APPROVED");
             ambassadorProfile.setActive(true);
             ambassadorProfile.setJoinedAt(Instant.now());
             ambassadorProfile.setLastActivity(Instant.now());
             AmbassadorProfileModel savedAmbassadorProfile = ambassadorProfileRepository.save(ambassadorProfile);
 
-            CredentialsModel credentialsModel = credentialsRepository.findByEmployeeId(savedAmbassadorProfile.getEmployeeId()).orElse(null);
+            CredentialsModel credentialsModel = credentialsRepository
+                    .findByEmployeeId(savedAmbassadorProfile.getEmployeeId()).orElse(null);
             if (credentialsModel != null) {
                 credentialsModel.setAmbassador(true);
                 credentialsModel.setAmbassadorId(savedAmbassadorProfile.getId());
                 credentialsModel.setActive(true);
+
+                // Add AMBASSADOR role to the roles list
+                if (credentialsModel.getRoles() == null) {
+                    credentialsModel.setRoles(new java.util.ArrayList<>());
+                }
+                if (!credentialsModel.getRoles().contains("AMBASSADOR")) {
+                    credentialsModel.getRoles().add("AMBASSADOR");
+                }
+
                 credentialsRepository.save(credentialsModel);
             }
             return ambassadorProfile;
@@ -108,9 +139,11 @@ public class AmbassadorProfileService {
     }
 
     public AmbassadorProfileModel rejectAmbassadorProfile(String id) {
-        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository.findById(Objects.requireNonNull(id));
+        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository
+                .findById(Objects.requireNonNull(id));
         if (ambassadorProfileModel.isPresent()) {
             AmbassadorProfileModel ambassadorProfile = ambassadorProfileModel.get();
+            ambassadorProfile.setLifecycle(AmbassadorLifecycle.REJECTED);
             ambassadorProfile.setStatus("REJECTED");
             ambassadorProfile.setApplicationStatus("REJECTED");
             ambassadorProfile.setLastActivity(Instant.now());
@@ -120,18 +153,33 @@ public class AmbassadorProfileService {
     }
 
     public AmbassadorProfileModel suspendAmbassadorProfile(String id) {
-        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository.findById(Objects.requireNonNull(id));
+        Optional<AmbassadorProfileModel> ambassadorProfileModel = ambassadorProfileRepository
+                .findById(Objects.requireNonNull(id));
         if (ambassadorProfileModel.isPresent()) {
             AmbassadorProfileModel ambassadorProfile = ambassadorProfileModel.get();
+            ambassadorProfile.setLifecycle(AmbassadorLifecycle.SUSPENDED);
             ambassadorProfile.setStatus("SUSPENDED");
+            ambassadorProfile.setActive(false);
             ambassadorProfile.setLastActivity(Instant.now());
-            return ambassadorProfileRepository.save(ambassadorProfile);
+            AmbassadorProfileModel savedProfile = ambassadorProfileRepository.save(ambassadorProfile);
+
+            // Update user credentials
+            credentialsRepository.findByEmployeeId(savedProfile.getEmployeeId()).ifPresent(credentials -> {
+                credentials.setAmbassador(false);
+                if (credentials.getRoles() != null) {
+                    credentials.getRoles().remove("AMBASSADOR");
+                }
+                credentialsRepository.save(credentials);
+            });
+
+            return savedProfile;
         }
         return null;
     }
 
     public AmbassadorProfileModel applicationAcceptance(AmbassadorProfileModel ambassadorProfileModel) {
-        Optional<AmbassadorProfileModel> ambassadorProfile = ambassadorProfileRepository.findById(Objects.requireNonNull(ambassadorProfileModel.getId()));
+        Optional<AmbassadorProfileModel> ambassadorProfile = ambassadorProfileRepository
+                .findById(Objects.requireNonNull(ambassadorProfileModel.getId()));
         if (ambassadorProfile.isPresent()) {
             AmbassadorProfileModel ambassadorProfile1 = ambassadorProfile.get();
             ambassadorProfile1.setApplicationStatus(ambassadorProfileModel.getApplicationStatus());
@@ -143,7 +191,8 @@ public class AmbassadorProfileService {
     }
 
     public AmbassadorProfileModel promoteAmbassador(String id) {
-        Optional<AmbassadorProfileModel> ambassadorProfile = ambassadorProfileRepository.findById(Objects.requireNonNull(id));
+        Optional<AmbassadorProfileModel> ambassadorProfile = ambassadorProfileRepository
+                .findById(Objects.requireNonNull(id));
         if (ambassadorProfile.isPresent()) {
             AmbassadorProfileModel profile = ambassadorProfile.get();
 
@@ -164,7 +213,8 @@ public class AmbassadorProfileService {
     }
 
     public AmbassadorProfileModel demoteAmbassador(String id) {
-        Optional<AmbassadorProfileModel> ambassadorProfile = ambassadorProfileRepository.findById(Objects.requireNonNull(id));
+        Optional<AmbassadorProfileModel> ambassadorProfile = ambassadorProfileRepository
+                .findById(Objects.requireNonNull(id));
         if (ambassadorProfile.isPresent()) {
             AmbassadorProfileModel profile = ambassadorProfile.get();
             // Check if the level is not already at the lowest level (BRONZE)

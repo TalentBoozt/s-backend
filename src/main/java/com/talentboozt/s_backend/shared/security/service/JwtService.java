@@ -43,6 +43,7 @@ public class JwtService {
         claims.put("userLevel", user.getUserLevel());
         claims.put("roles", user.getRoles());
         claims.put("permissions", userPermissionsService.resolvePermissions(user.getRoles()));
+        claims.put("organizations", user.getOrganizations());
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -115,7 +116,26 @@ public class JwtService {
         user.setEmployeeId((String) claims.get("userId"));
         user.setEmail((String) claims.get("sub"));
         user.setUserLevel((String) claims.get("userLevel"));
+        user.setOrganizations((java.util.List<java.util.Map<String, String>>) claims.get("organizations"));
         return user;
+    }
+
+    public String extractCompanyId(String encodedToken) {
+        validateJwtSecret();
+        SecretKey key = Keys.hmacShaKeyFor(token.getBytes(StandardCharsets.UTF_8));
+
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(encodedToken)
+                .getBody();
+
+        java.util.List<java.util.Map<String, String>> organizations = (java.util.List<java.util.Map<String, String>>) claims
+                .get("organizations");
+        if (organizations != null && !organizations.isEmpty()) {
+            return organizations.get(0).get("companyId");
+        }
+        return null;
     }
 
     public String extractTokenFromHeaderOrCookie(HttpServletRequest request) {

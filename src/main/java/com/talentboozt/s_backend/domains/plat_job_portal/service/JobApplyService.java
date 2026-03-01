@@ -153,7 +153,8 @@ public class JobApplyService {
         return null;
     }
 
-    public JobApplicantDTO updateSingleJobApplyByJobId(String jobId, String applicantId, JobApplicantDTO updatedJobApply) {
+    public JobApplicantDTO updateSingleJobApplyByJobId(String jobId, String applicantId,
+            JobApplicantDTO updatedJobApply) {
         Optional<JobApplyModel> jobApplyList = jobApplyRepository.findByJobId(jobId);
 
         if (jobApplyList.isPresent()) {
@@ -205,5 +206,9 @@ public class JobApplyService {
             jobApplyModel.setApplicants(applicantList);
             jobApplyRepository.save(jobApplyModel);
         }
+    }
+
+    public List<JobApplyModel> getJobApplicationsByEmployeeId(String employeeId) {
+        return jobApplyRepository.findByEmployeeIdInApplicants(employeeId);
     }
 }

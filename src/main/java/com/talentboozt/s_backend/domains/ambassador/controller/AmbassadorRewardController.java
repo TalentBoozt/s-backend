@@ -14,7 +14,9 @@ public class AmbassadorRewardController {
     AmbassadorRewardService ambassadorRewardService;
 
     @PostMapping("/add/{ambassadorId}")
-    public AmbassadorRewardModel addAmbassadorReward(@PathVariable String ambassadorId, @RequestBody AmbassadorRewardModel ambassadorRewardModel) {
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
+    public AmbassadorRewardModel addAmbassadorReward(@PathVariable String ambassadorId,
+            @RequestBody AmbassadorRewardModel ambassadorRewardModel) {
         return ambassadorRewardService.addAmbassadorReward(ambassadorId, ambassadorRewardModel);
     }
 
@@ -34,21 +36,26 @@ public class AmbassadorRewardController {
     }
 
     @PutMapping("/update/status/{id}/{status}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
     public AmbassadorRewardModel updateAmbassadorRewardStatus(@PathVariable String id, @PathVariable String status) {
         return ambassadorRewardService.updateAmbassadorRewardStatus(id, status);
     }
 
     @PutMapping("/update/{id}")
-    public AmbassadorRewardModel updateAmbassadorReward(@PathVariable String id, @RequestBody AmbassadorRewardModel ambassadorRewardModel) {
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
+    public AmbassadorRewardModel updateAmbassadorReward(@PathVariable String id,
+            @RequestBody AmbassadorRewardModel ambassadorRewardModel) {
         return ambassadorRewardService.updateAmbassadorReward(id, ambassadorRewardModel);
     }
 
     @PutMapping("/{id}/reward")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
     public AmbassadorRewardModel markAsShipped(@PathVariable String id) {
         return ambassadorRewardService.markAsShipped(id);
     }
 
     @DeleteMapping("/delete/{id}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ambassador:manage')")
     public ResponseEntity<?> deleteAmbassadorReward(@PathVariable String id) {
         ambassadorRewardService.deleteAmbassadorReward(id);
         return ResponseEntity.ok().build();
