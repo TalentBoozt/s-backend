@@ -28,14 +28,18 @@ public class SsoAuthController {
     private final CredentialsRepository credentialsRepository;
     private final JwtUtil jwtUtil;
     private final UserPermissionsService userPermissionsService;
+    private final com.talentboozt.s_backend.domains.payment.service.SubscriptionService subscriptionService;
 
-    public SsoAuthController(AuthService authService, JwtService jwtService, CredentialsRepository credentialsRepository,
-                             JwtUtil jwtUtil, UserPermissionsService userPermissionsService) {
+    public SsoAuthController(AuthService authService, JwtService jwtService,
+            CredentialsRepository credentialsRepository,
+            JwtUtil jwtUtil, UserPermissionsService userPermissionsService,
+            com.talentboozt.s_backend.domains.payment.service.SubscriptionService subscriptionService) {
         this.authService = authService;
         this.jwtService = jwtService;
         this.credentialsRepository = credentialsRepository;
         this.jwtUtil = jwtUtil;
         this.userPermissionsService = userPermissionsService;
+        this.subscriptionService = subscriptionService;
     }
 
     @PostMapping("/login")
@@ -142,6 +146,7 @@ public class SsoAuthController {
                 payload.setUserLevel(dbUser.getUserLevel());
                 payload.setRoles(dbUser.getRoles());
                 payload.setPermissions(dbUser.getPermissions());
+                payload.setOrganizations(dbUser.getOrganizations());
 
                 // Rotate tokens
                 String newAccessToken = jwtService.generateToken(payload);
@@ -157,7 +162,8 @@ public class SsoAuthController {
                         .maxAge(3600) // 1 hour
                         .build();
 
-                ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", Objects.requireNonNull(newRefreshToken))
+                ResponseCookie refreshCookie = ResponseCookie
+                        .from("TB_REFRESH", Objects.requireNonNull(newRefreshToken))
                         .httpOnly(true)
                         .secure(true)
                         .sameSite("None")
@@ -190,7 +196,11 @@ public class SsoAuthController {
         session.setEmployeeId(user.getEmployeeId());
         session.setEmail(user.getEmail());
         session.setRoles(existingUser.getRoles());
-        session.setPermissions(userPermissionsService.resolvePermissions(existingUser.getRoles()));
+
+        boolean isExempt = subscriptionService.isExempt(existingUser.getCompanyId());
+        session.setPermissions(
+                userPermissionsService.resolvePermissionsWithSystemBypass(existingUser.getRoles(), isExempt));
+
         session.setUserLevel(existingUser.getUserLevel());
         session.setCompanyId(existingUser.getCompanyId());
         session.setAccessedPlatforms(existingUser.getAccessedPlatforms());

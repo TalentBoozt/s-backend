@@ -1,5 +1,7 @@
 package com.talentboozt.s_backend.domains.payment.service;
 
+import com.talentboozt.s_backend.domains.com_job_portal.model.CompanyModel;
+import com.talentboozt.s_backend.domains.com_job_portal.repository.mongodb.CompanyRepository;
 import com.talentboozt.s_backend.domains.payment.model.BillingHistoryModel;
 import com.talentboozt.s_backend.domains.payment.model.SubscriptionsModel;
 import com.talentboozt.s_backend.domains.payment.repository.mongodb.BillingHistoryRepository;
@@ -23,7 +25,27 @@ public class SubscriptionService {
     @Autowired
     private BillingHistoryRepository billingHistoryRepository;
 
+    @Autowired
+    private CompanyRepository companyRepository;
+
+    public boolean isExempt(String companyId) {
+        if (companyId == null)
+            return false;
+        return companyRepository.findById(companyId)
+                .map(CompanyModel::isSystemOwner)
+                .orElse(false);
+    }
+
     public SubscriptionsModel getSubscription(String companyId) {
+        if (isExempt(companyId)) {
+            SubscriptionsModel systemOwnerSub = new SubscriptionsModel();
+            systemOwnerSub.setPlan_name("System Owner (Root)");
+            systemOwnerSub.set_active(true);
+            systemOwnerSub.setCost("0");
+            systemOwnerSub.setBilling_cycle("PERPETUAL");
+            systemOwnerSub.setCompanyId(companyId);
+            return systemOwnerSub;
+        }
         return subscriptionRepository.findByCompanyId(companyId);
     }
 
@@ -75,11 +97,11 @@ public class SubscriptionService {
     }
 
     public void markAsInactive(String subscriptionId) {
-        SubscriptionsModel subscription = subscriptionRepository.findById(Objects.requireNonNull(subscriptionId)).orElse(null);
+        SubscriptionsModel subscription = subscriptionRepository.findById(Objects.requireNonNull(subscriptionId))
+                .orElse(null);
         if (subscription != null) {
             subscription.set_active(false);
             subscriptionRepository.save(subscription);
         }
     }
 }
-

@@ -21,6 +21,6 @@ public class RoleModel {
     @Indexed(unique = true)
     private String name;
     private List<String> permissions;
+    private List<String> inheritsFrom; // Role names that this role inherits from
     private String description;
 }
-

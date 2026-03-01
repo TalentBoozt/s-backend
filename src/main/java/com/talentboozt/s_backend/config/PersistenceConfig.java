@@ -11,12 +11,12 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 
 @Configuration
 @EnableMongoRepositories(basePackages = {
-                "com.talentboozt.s_backend.domains.*.repository.mongodb",
-                "com.talentboozt.s_backend.shared.*.repository.mongodb"
+                "com.talentboozt.s_backend.domains",
+                "com.talentboozt.s_backend.shared"
 })
 @EnableRedisRepositories(basePackages = {
-                "com.talentboozt.s_backend.domains.*.repository.redis",
-                "com.talentboozt.s_backend.shared.*.repository.redis"
+                "com.talentboozt.s_backend.domains",
+                "com.talentboozt.s_backend.shared"
 }, redisTemplateRef = "redisRepoTemplate")
 public class PersistenceConfig {
 

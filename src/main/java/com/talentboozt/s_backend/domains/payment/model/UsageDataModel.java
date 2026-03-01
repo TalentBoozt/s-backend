@@ -20,4 +20,7 @@ public class UsageDataModel {
     private String applicant_views_allowed;
     private String applicant_views_used;
     private String overage_charges; //Any extra charges for exceeding usage limits
+    private Integer users;
+    private Integer storage;
+    private Integer bandwidth;
 }

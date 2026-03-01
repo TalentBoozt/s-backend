@@ -159,7 +159,9 @@ public class CredentialsService {
         List<CredentialsModel> credentials = credentialsRepository.findAll();
         for (CredentialsModel credential : credentials) {
             credential.setPassword(null);
-            credential.setPermissions(userPermissionsService.resolvePermissions(credential.getRoles()));
+            boolean isOwner = isSystemOwner(credential.getCompanyId());
+            credential.setPermissions(
+                    userPermissionsService.resolvePermissionsWithSystemBypass(credential.getRoles(), isOwner));
         }
         return credentials;
     }
@@ -172,7 +174,9 @@ public class CredentialsService {
         Optional<CredentialsModel> credentials = credentialsRepository.findByEmployeeId(employeeId);
         if (credentials.isPresent()) {
             credentials.get().setPassword(null);
-            credentials.get().setPermissions(userPermissionsService.resolvePermissions(credentials.get().getRoles()));
+            boolean isOwner = isSystemOwner(credentials.get().getCompanyId());
+            credentials.get().setPermissions(
+                    userPermissionsService.resolvePermissionsWithSystemBypass(credentials.get().getRoles(), isOwner));
             return credentials;
         }
         return Optional.empty();
@@ -181,7 +185,9 @@ public class CredentialsService {
     public CredentialsModel getCredentialsByEmail(String email) {
         CredentialsModel credentials = credentialsRepository.findByEmail(email);
         if (credentials != null) {
-            credentials.setPermissions(userPermissionsService.resolvePermissions(credentials.getRoles()));
+            boolean isOwner = isSystemOwner(credentials.getCompanyId());
+            credentials.setPermissions(
+                    userPermissionsService.resolvePermissionsWithSystemBypass(credentials.getRoles(), isOwner));
         }
         return credentials;
     }
@@ -190,7 +196,9 @@ public class CredentialsService {
         Optional<CredentialsModel> credentials = credentialsRepository.findByEmployeeId(employeeId);
         if (credentials.isPresent()) {
             credentials.get().setPassword(null);
-            credentials.get().setPermissions(userPermissionsService.resolvePermissions(credentials.get().getRoles()));
+            boolean isOwner = isSystemOwner(credentials.get().getCompanyId());
+            credentials.get().setPermissions(
+                    userPermissionsService.resolvePermissionsWithSystemBypass(credentials.get().getRoles(), isOwner));
             return credentials;
         }
         return Optional.empty();
@@ -249,5 +257,13 @@ public class CredentialsService {
 
     public long getUserCountByLevel(String userLevel) {
         return credentialsRepository.countByUserLevel(userLevel);
+    }
+
+    private boolean isSystemOwner(String companyId) {
+        if (companyId == null)
+            return false;
+        return companyRepository.findById(companyId)
+                .map(CompanyModel::isSystemOwner)
+                .orElse(false);
     }
 }
