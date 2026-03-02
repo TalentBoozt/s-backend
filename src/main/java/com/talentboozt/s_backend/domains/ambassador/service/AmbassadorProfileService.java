@@ -6,6 +6,8 @@ import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.Ambassado
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
 
+import com.talentboozt.s_backend.domains.auth.service.UserPermissionsService;
+import com.talentboozt.s_backend.domains.payment.service.SubscriptionService;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -19,12 +21,17 @@ public class AmbassadorProfileService {
     private final AmbassadorProfileRepository ambassadorProfileRepository;
     private final AmbassadorLevelService ambassadorLevelService;
     private final CredentialsRepository credentialsRepository;
+    private final UserPermissionsService userPermissionsService;
+    private final SubscriptionService subscriptionService;
 
     public AmbassadorProfileService(AmbassadorProfileRepository ambassadorProfileRepository,
-            AmbassadorLevelService ambassadorLevelService, CredentialsRepository credentialsRepository) {
+            AmbassadorLevelService ambassadorLevelService, CredentialsRepository credentialsRepository,
+            UserPermissionsService userPermissionsService, SubscriptionService subscriptionService) {
         this.ambassadorProfileRepository = ambassadorProfileRepository;
         this.ambassadorLevelService = ambassadorLevelService;
         this.credentialsRepository = credentialsRepository;
+        this.userPermissionsService = userPermissionsService;
+        this.subscriptionService = subscriptionService;
     }
 
     public AmbassadorProfileModel applyAmbassador(AmbassadorProfileModel request) {
@@ -131,6 +138,12 @@ public class AmbassadorProfileService {
                     credentialsModel.getRoles().add("AMBASSADOR");
                 }
 
+                // Refresh permissions
+                boolean isExempt = subscriptionService.isExempt(credentialsModel.getCompanyId());
+                credentialsModel.setPermissions(
+                        userPermissionsService.resolvePermissionsWithSystemBypass(credentialsModel.getRoles(),
+                                isExempt));
+
                 credentialsRepository.save(credentialsModel);
             }
             return ambassadorProfile;
@@ -169,6 +182,12 @@ public class AmbassadorProfileService {
                 if (credentials.getRoles() != null) {
                     credentials.getRoles().remove("AMBASSADOR");
                 }
+
+                // Refresh permissions
+                boolean isExempt = subscriptionService.isExempt(credentials.getCompanyId());
+                credentials.setPermissions(
+                        userPermissionsService.resolvePermissionsWithSystemBypass(credentials.getRoles(), isExempt));
+
                 credentialsRepository.save(credentials);
             });
 

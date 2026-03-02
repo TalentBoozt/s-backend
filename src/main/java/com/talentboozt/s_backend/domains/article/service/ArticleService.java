@@ -23,6 +23,8 @@ public class ArticleService {
     private final TagRepository tagRepository;
     private final MongoTemplate mongoTemplate;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final ArticleValidationService articleValidationService;
+    private final ArticleEvaluationLogRepository evaluationLogRepository;
 
     public ArticleResponse createArticle(ArticleRequest request, String authorId) {
         List<String> tagIds = getOrCreateTags(request.getTags());
@@ -44,7 +46,10 @@ public class ArticleService {
 
         Article saved = articleRepository.save(article);
 
-        if (saved.getStatus() == ArticleStatus.PUBLISHED) {
+        if (saved.getStatus() == ArticleStatus.AI_VALIDATION_PENDING) {
+            // Alternatively, could be async. For now, doing it synchronously.
+            articleValidationService.validateArticle(saved);
+        } else if (saved.getStatus() == ArticleStatus.PUBLISHED) {
             eventPublisher.publishEvent(
                     new com.talentboozt.s_backend.domains.article.event.ArticlePublishedEvent(this, saved));
         }
@@ -106,7 +111,9 @@ public class ArticleService {
 
         Article saved = articleRepository.save(article);
 
-        if (saved.getStatus() == ArticleStatus.PUBLISHED) {
+        if (saved.getStatus() == ArticleStatus.AI_VALIDATION_PENDING) {
+            articleValidationService.validateArticle(saved);
+        } else if (saved.getStatus() == ArticleStatus.PUBLISHED) {
             eventPublisher.publishEvent(
                     new com.talentboozt.s_backend.domains.article.event.ArticlePublishedEvent(this, saved));
         }
@@ -123,6 +130,36 @@ public class ArticleService {
         }
 
         articleRepository.delete(article);
+    }
+
+    public Page<ArticleResponse> getPendingArticles(Pageable pageable) {
+        return articleRepository.findByStatus(ArticleStatus.PENDING_MANUAL_REVIEW, pageable).map(this::mapToResponse);
+    }
+
+    public ArticleResponse approveArticle(String id) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+        article.setStatus(ArticleStatus.PUBLISHED);
+        article.setUpdatedAt(LocalDateTime.now());
+        Article saved = articleRepository.save(article);
+        eventPublisher
+                .publishEvent(new com.talentboozt.s_backend.domains.article.event.ArticlePublishedEvent(this, saved));
+        return mapToResponse(saved);
+    }
+
+    public ArticleResponse rejectArticle(String id) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+        article.setStatus(ArticleStatus.REJECTED);
+        article.setUpdatedAt(LocalDateTime.now());
+        Article saved = articleRepository.save(article);
+        return mapToResponse(saved);
+    }
+
+    public ArticleEvaluationDTO getArticleEvaluation(String articleId) {
+        return evaluationLogRepository.findFirstByArticleIdOrderByEvaluatedAtDesc(articleId)
+                .map(ArticleEvaluationLog::getEvaluationResult)
+                .orElseThrow(() -> new RuntimeException("Evaluation not found for article " + articleId));
     }
 
     public List<ArticleResponse> getFeatured() {
@@ -214,6 +251,10 @@ public class ArticleService {
         response.setAiHighlights(article.getAiHighlights());
         response.setAiSnippet(article.getAiSnippet());
         response.setAiSeoDescription(article.getAiSeoDescription());
+
+        response.setMarkAsHighValue(article.isMarkAsHighValue());
+        response.setMarkAsInformative(article.isMarkAsInformative());
+        response.setManualReviewRequired(article.isManualReviewRequired());
 
         if (article.getTagIds() != null) {
             response.setTags(tagRepository.findAllById(article.getTagIds()).stream()

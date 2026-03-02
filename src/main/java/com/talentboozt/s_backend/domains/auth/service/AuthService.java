@@ -26,6 +26,9 @@ public class AuthService {
     @Autowired
     private UserPermissionsService userPermissionsService;
 
+    @Autowired
+    private com.talentboozt.s_backend.domains.payment.service.SubscriptionService subscriptionService;
+
     // Add JWTService if you need to generate token inside service level (for
     // flexibility)
 
@@ -36,12 +39,15 @@ public class AuthService {
             return null;
         }
 
+        boolean isExempt = subscriptionService.isExempt(user.getCompanyId());
+
         JwtUserPayload userPayload = new JwtUserPayload();
         userPayload.setUserId(user.getEmployeeId());
         userPayload.setEmail(user.getEmail());
         userPayload.setUserLevel(user.getUserLevel());
         userPayload.setRoles(user.getRoles());
-        userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
+        userPayload
+                .setPermissions(userPermissionsService.resolvePermissionsWithSystemBypass(user.getRoles(), isExempt));
         userPayload.setOrganizations(user.getOrganizations());
 
         // Determine redirect URL based on user or platform type if needed
