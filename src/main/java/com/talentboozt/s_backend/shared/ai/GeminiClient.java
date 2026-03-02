@@ -20,7 +20,7 @@ public class GeminiClient {
 
     public <T> AiResponse<T> callStructuredApiWithRaw(String systemInstruction, String prompt, Class<T> responseType) {
         WebClient client = WebClient.builder()
-                .baseUrl("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent")
+                .baseUrl("https://generativelanguage.googleapis.com")
                 .build();
 
         Map<String, Object> body = Map.of(
@@ -36,7 +36,10 @@ public class GeminiClient {
         String raw;
         try {
             Map<String, Object> res = client.post()
-                    .uri(builder -> builder.queryParam("key", apiKey).build())
+                    .uri(builder -> builder
+                            .path("/v1beta/models/gemini-1.5-pro:generateContent")
+                            .queryParam("key", apiKey)
+                            .build())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(body)
                     .retrieve()
