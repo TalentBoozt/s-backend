@@ -61,28 +61,28 @@ public class GeminiClient {
                 + "The response must be pure, parseable JSON matching the requested schema (if provided).";
 
         Map<String, Object> generationConfig = Map.ofEntries(
-                Map.entry("responseMimeType", "application/json"),
+                Map.entry("response_mime_type", "application/json"),
                 Map.entry("temperature", 0.1),
-                Map.entry("topP", 0.95),
-                Map.entry("maxOutputTokens", 2048));
+                Map.entry("top_p", 0.95),
+                Map.entry("max_output_tokens", 2048));
 
         if (responseSchema != null) {
             generationConfig = Map.ofEntries(
-                    Map.entry("responseMimeType", "application/json"),
-                    Map.entry("responseSchema", responseSchema),
+                    Map.entry("response_mime_type", "application/json"),
+                    Map.entry("response_schema", responseSchema),
                     Map.entry("temperature", 0.0), // stricter with schema
-                    Map.entry("topP", 0.9),
-                    Map.entry("maxOutputTokens", 2048));
+                    Map.entry("top_p", 0.9),
+                    Map.entry("max_output_tokens", 2048));
         }
 
         Map<String, Object> requestBody = Map.of(
-                "systemInstruction", Map.of(
+                "system_instruction", Map.of(
                         "parts", List.of(Map.of("text", systemInstruction))),
                 "contents", List.of(Map.of(
                         "role", "user",
                         "parts", List.of(Map.of("text", enforcedPrompt)))),
-                "generationConfig", generationConfig,
-                "safetySettings", List.of( // optional but helps avoid 400/403 in some cases
+                "generation_config", generationConfig,
+                "safety_settings", List.of( // optional but helps avoid 400/403 in some cases
                         Map.of("category", "HARM_CATEGORY_HATE_SPEECH", "threshold", "BLOCK_NONE"),
                         Map.of("category", "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold", "BLOCK_NONE"),
                         Map.of("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold", "BLOCK_NONE"),
@@ -111,7 +111,7 @@ public class GeminiClient {
             }
 
             Map<String, Object> candidate = candidates.get(0);
-            String finishReason = (String) candidate.get("finishReason");
+            String finishReason = (String) candidate.get("finish_reason");
             if (!"STOP".equals(finishReason)) {
                 throw new RuntimeException("Generation stopped early: " + finishReason);
             }
