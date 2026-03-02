@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.shared.ai;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GeminiClient {
@@ -20,7 +22,6 @@ public class GeminiClient {
     private String apiKey;
 
     private final ObjectMapper mapper;
-
     private final WebClient webClient = WebClient.builder()
             .baseUrl("https://generativelanguage.googleapis.com")
             .build();
@@ -33,17 +34,7 @@ public class GeminiClient {
     }
 
     /**
-     * Calls Gemini with structured (JSON) output.
-     *
-     * @param systemInstruction System-level instruction (e.g. "You are a strict
-     *                          article validator...")
-     * @param userPrompt        The actual user prompt/content to analyze
-     * @param responseType      The Java class/type to deserialize the JSON into
-     * @param responseSchema    Optional JSON Schema (Map) — pass null for loose
-     *                          JSON mode
-     * @param <T>               The response type
-     * @return AiResponse with parsed object and raw JSON string
-     * @throws RuntimeException on API failure (with detailed Google error message)
+     * Calls Gemini with structured (JSON) output and robust error handling.
      */
     public <T> AiResponse<T> callStructuredApiWithRaw(
             String systemInstruction,
@@ -51,28 +42,27 @@ public class GeminiClient {
             Class<T> responseType,
             Map<String, Object> responseSchema) {
 
-        if (apiKey == null || apiKey.trim().isEmpty() || "default_key".equals(apiKey)) {
+        if (apiKey == null || "default_key".equals(apiKey)) {
             throw new IllegalStateException("Gemini API key is not configured");
         }
 
-        // IMPROVEMENT: Use native JSON mode without cluttering the prompt
-        // This prevents the "json errors" you saw with 2.5/3.x models
-        String effectivePrompt = userPrompt;
-
+        // Configuration
         Map<String, Object> generationConfig = new HashMap<>();
         generationConfig.put("response_mime_type", "application/json");
-        generationConfig.put("temperature", 0.1);
+
+        // Use temperature 0.0 for strict schema, 0.1 for loose JSON to allow creativity
+        generationConfig.put("temperature", responseSchema != null ? 0.0 : 0.1);
 
         if (responseSchema != null) {
             generationConfig.put("response_schema", responseSchema);
-            generationConfig.put("temperature", 0.0); // Required for strict schema adherence
         }
 
+        // Request Body construction
         Map<String, Object> requestBody = Map.of(
                 "system_instruction", Map.of("parts", List.of(Map.of("text", systemInstruction))),
-                "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", effectivePrompt)))),
+                "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userPrompt)))),
                 "generation_config", generationConfig,
-                "safety_settings", List.of( // optional but helps avoid 400/403 in some cases
+                "safety_settings", List.of(
                         Map.of("category", "HARM_CATEGORY_HATE_SPEECH", "threshold", "BLOCK_NONE"),
                         Map.of("category", "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold", "BLOCK_NONE"),
                         Map.of("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold", "BLOCK_NONE"),
@@ -81,8 +71,7 @@ public class GeminiClient {
         try {
             Map<String, Object> response = webClient.post()
                     .uri(uriBuilder -> uriBuilder
-                            // FIX: Updated to the 2026 stable model string
-                            .path("/v1beta/models/gemini-2.5-flash:generateContent")
+                            .path("/v1beta/models/gemini-2.0-flash:generateContent") // Stable 2026 endpoint
                             .queryParam("key", apiKey)
                             .build())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -91,47 +80,51 @@ public class GeminiClient {
                     .bodyToMono(Map.class)
                     .block();
 
-            if (response == null || !response.containsKey("candidates")) {
-                throw new RuntimeException("Invalid Gemini response - no candidates: " + response);
-            }
-
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
-            if (candidates.isEmpty()) {
-                throw new RuntimeException("Gemini returned no candidates");
-            }
-
-            Map<String, Object> candidate = candidates.get(0);
-            String finishReason = (String) candidate.get("finish_reason");
-            if (!"STOP".equals(finishReason)) {
-                throw new RuntimeException("Generation stopped early: " + finishReason);
-            }
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> content = (Map<String, Object>) candidate.get("content");
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
-
-            if (parts.isEmpty() || !parts.get(0).containsKey("text")) {
-                throw new RuntimeException("No text part in Gemini response");
-            }
-
-            String rawJson = (String) parts.get(0).get("text");
-
-            // Robust cleanup of potential markdown blocks
-            String cleaned = rawJson.replaceAll("(?s)^\\s*```(?:json)?\\s*(.*?)\\s*```\\s*$", "$1").trim();
-
-            T parsed = mapper.readValue(cleaned, responseType);
-
-            return new AiResponse<>(parsed, rawJson);
+            return processResponse(response, responseType);
 
         } catch (WebClientResponseException e) {
-            String errorBody = e.getResponseBodyAsString();
-            throw new RuntimeException(
-                    "Gemini API failed with HTTP " + e.getStatusCode() + ":\n" + errorBody, e);
+            log.error("Gemini API HTTP Error: {} - Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
+            throw new RuntimeException("Gemini API failed with HTTP " + e.getStatusCode(), e);
         } catch (Exception e) {
-            throw new RuntimeException("Gemini API call or parsing failed", e);
+            log.error("Gemini processing failed", e);
+            throw new RuntimeException("Gemini API call or parsing failed: " + e.getMessage(), e);
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private <T> AiResponse<T> processResponse(Map<String, Object> response, Class<T> responseType) throws Exception {
+        if (response == null)
+            throw new RuntimeException("Empty response from Gemini");
+
+        // 1. Handle Candidate extraction
+        List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
+        if (candidates == null || candidates.isEmpty()) {
+            Object feedback = response.get("promptFeedback");
+            throw new RuntimeException("No candidates returned. Possible safety block. Feedback: " + feedback);
+        }
+
+        Map<String, Object> candidate = candidates.get(0);
+        Map<String, Object> content = (Map<String, Object>) candidate.get("content");
+
+        // 2. Validate content presence (Fixes the "Generation stopped early: null"
+        // error)
+        if (content == null || !content.containsKey("parts")) {
+            String finishReason = (String) candidate.get("finish_reason");
+            Object safetyRatings = candidate.get("safetyRatings");
+            throw new RuntimeException(
+                    "AI stopped before generating content. Reason: " + finishReason + ". Safety: " + safetyRatings);
+        }
+
+        List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
+        String rawJson = (String) parts.get(0).get("text");
+
+        // 3. Clean Markdown blocks if present
+        String cleaned = rawJson.replaceAll("(?s)^\\s*```(?:json)?\\s*(.*?)\\s*```\\s*$", "$1").trim();
+
+        // 4. Map to Java Object
+        T parsed = mapper.readValue(cleaned, responseType);
+
+        return new AiResponse<>(parsed, cleaned);
     }
 
     public record AiResponse<T>(T parsed, String raw) {

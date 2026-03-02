@@ -8,6 +8,8 @@ import com.talentboozt.s_backend.domains.article.repository.mongodb.ArticleEvalu
 import com.talentboozt.s_backend.domains.article.repository.mongodb.ArticleRepository;
 import com.talentboozt.s_backend.shared.ai.GeminiClient;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,6 +25,7 @@ public class ArticleValidationService {
     private final ArticleRepository articleRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
+    @Async
     public void validateArticle(Article article) {
         // 1. Define the schema based on your ArticleEvaluationDTO structure
         Map<String, Object> schema = Map.of(
