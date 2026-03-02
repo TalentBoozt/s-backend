@@ -91,7 +91,7 @@ public class GeminiClient {
         try {
             Map<String, Object> response = webClient.post()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/v1/models/gemini-2.5-flash:generateContent")
+                            .path("/v1beta/models/gemini-1.5-flash:generateContent")
                             .queryParam("key", apiKey)
                             .build())
                     .contentType(MediaType.APPLICATION_JSON)
