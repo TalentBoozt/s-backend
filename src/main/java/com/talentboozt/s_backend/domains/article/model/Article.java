@@ -57,4 +57,8 @@ public class Article {
     private List<String> aiHighlights;
     private String aiSnippet;
     private String aiSeoDescription;
+
+    private boolean markAsHighValue;
+    private boolean markAsInformative;
+    private boolean manualReviewRequired;
 }

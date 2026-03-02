@@ -33,10 +33,13 @@ public class IpCaptureFilter extends OncePerRequestFilter {
     private final TimeZoneMismatchService timeZoneMisMatchService;
     private final ClientActAuditLogService clientActAuditLogService;
     private final CreditService creditService;
+    private final com.talentboozt.s_backend.domains.payment.service.SubscriptionService subscriptionService;
 
-    public IpCaptureFilter(UserActivityService userActivityService, RateLimiterService rateLimiterService, JwtService jwtService,
-                           IpTimeZoneService ipTimeZoneService, TimeZoneMismatchService timeZoneMisMatchService,
-                           ClientActAuditLogService clientActAuditLogService, CreditService creditService) {
+    public IpCaptureFilter(UserActivityService userActivityService, RateLimiterService rateLimiterService,
+            JwtService jwtService,
+            IpTimeZoneService ipTimeZoneService, TimeZoneMismatchService timeZoneMisMatchService,
+            ClientActAuditLogService clientActAuditLogService, CreditService creditService,
+            com.talentboozt.s_backend.domains.payment.service.SubscriptionService subscriptionService) {
         this.userActivityService = userActivityService;
         this.rateLimiterService = rateLimiterService;
         this.jwtService = jwtService;
@@ -44,6 +47,7 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         this.timeZoneMisMatchService = timeZoneMisMatchService;
         this.clientActAuditLogService = clientActAuditLogService;
         this.creditService = creditService;
+        this.subscriptionService = subscriptionService;
     }
 
     private String getClientIp(HttpServletRequest request) {
@@ -66,7 +70,8 @@ public class IpCaptureFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
         String endpointAccessed = request.getRequestURI();
 
         // Skip logging for actuator metrics endpoint
@@ -81,11 +86,18 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         String token = jwtService.extractTokenFromHeaderOrCookie(request);
 
         String userId = "Anonymous";
+        boolean isExempt = false;
         if (token != null && jwtService.validateToken(token)) {
             // Get user info from the JWT token
             try {
                 CredentialsModel user = jwtService.getUserFromToken(token);
                 userId = user.getEmployeeId(); // Use the userId from the JWT token
+
+                // Check for system owner bypass
+                if (user.getOrganizations() != null && !user.getOrganizations().isEmpty()) {
+                    String companyId = (String) user.getOrganizations().get(0).values().iterator().next();
+                    isExempt = subscriptionService.isExempt(companyId);
+                }
             } catch (Exception e) {
                 Map<String, Object> detail = new HashMap<>();
                 detail.put("token", token);
@@ -93,38 +105,43 @@ public class IpCaptureFilter extends OncePerRequestFilter {
                 clientActAuditLogService.log("Anonymous", ipAddress, null, "INVALID_JWT", "IpCaptureFilter", detail);
             }
         } else if (token != null) {
-            clientActAuditLogService.log("Anonymous", ipAddress, null, "INVALID_OR_EXPIRED_JWT", "IpCaptureFilter", safeMapOf("token", token));
+            clientActAuditLogService.log("Anonymous", ipAddress, null, "INVALID_OR_EXPIRED_JWT", "IpCaptureFilter",
+                    safeMapOf("token", token));
         } else {
-            clientActAuditLogService.log("Anonymous", ipAddress, null, "ANONYMOUS_ACCESS", "IpCaptureFilter", safeMapOf("uri", endpointAccessed));
+            clientActAuditLogService.log("Anonymous", ipAddress, null, "ANONYMOUS_ACCESS", "IpCaptureFilter",
+                    safeMapOf("uri", endpointAccessed));
         }
 
-        // Check rate-limiting: If the user/IP exceeds the limit, we handle it accordingly
-        String uri = request.getRequestURI();
-        String category = categorizeEndpoint(uri); // custom function
-        String rateLimitKey = userId.equals("Anonymous") ? ipAddress : ipAddress + ":" + userId;
-        boolean allowed = rateLimiterService.checkRateLimit(rateLimitKey, category);
-        if (!allowed) {
-            Map<String, Object> detail = new HashMap<>();
-            detail.put("category", category);
-            detail.put("ipAddress", ipAddress);
-            detail.put("userId", userId);
-            detail.put("uri", uri);
-            detail.put("rateLimitKey", rateLimitKey);
-            clientActAuditLogService.log(userId, ipAddress, null, "RATE_LIMIT_EXCEEDED", "IpCaptureFilter", detail);
-            response.setStatus(429); // 429 Too Many Requests
-            response.setHeader("Retry-After", "60");
-            return;
-        }
-
-        if (uri.startsWith("/api/ai/")) {
-            if (!creditService.hasCredits(rateLimitKey)) {
-                response.setStatus(429);
-                response.setHeader("Remaining-Credits", creditService.getRemainingCredits(rateLimitKey).toString());
-                response.getWriter().write("Daily AI credit limit reached. Try again tomorrow.");
+        if (!isExempt) {
+            // Check rate-limiting: If the user/IP exceeds the limit, we handle it
+            // accordingly
+            String uri = request.getRequestURI();
+            String category = categorizeEndpoint(uri); // custom function
+            String rateLimitKey = userId.equals("Anonymous") ? ipAddress : ipAddress + ":" + userId;
+            boolean allowed = rateLimiterService.checkRateLimit(rateLimitKey, category);
+            if (!allowed) {
+                Map<String, Object> detail = new HashMap<>();
+                detail.put("category", category);
+                detail.put("ipAddress", ipAddress);
+                detail.put("userId", userId);
+                detail.put("uri", uri);
+                detail.put("rateLimitKey", rateLimitKey);
+                clientActAuditLogService.log(userId, ipAddress, null, "RATE_LIMIT_EXCEEDED", "IpCaptureFilter", detail);
+                response.setStatus(429); // 429 Too Many Requests
+                response.setHeader("Retry-After", "60");
                 return;
             }
-            creditService.useCredit(rateLimitKey);
-            response.setHeader("Remaining-Credits", creditService.getRemainingCredits(rateLimitKey).toString());
+
+            if (uri.startsWith("/api/ai/")) {
+                if (!creditService.hasCredits(rateLimitKey)) {
+                    response.setStatus(429);
+                    response.setHeader("Remaining-Credits", creditService.getRemainingCredits(rateLimitKey).toString());
+                    response.getWriter().write("Daily AI credit limit reached. Try again tomorrow.");
+                    return;
+                }
+                creditService.useCredit(rateLimitKey);
+                response.setHeader("Remaining-Credits", creditService.getRemainingCredits(rateLimitKey).toString());
+            }
         }
 
         // Log the activity
@@ -137,11 +154,13 @@ public class IpCaptureFilter extends OncePerRequestFilter {
         boolean captcha = captchaVerified(request);
 
         if (captcha) {
-            clientActAuditLogService.log(userId, ipAddress, sessionId, "CAPTCHA_PREVIOUSLY_VERIFIED", "IpCaptureFilter", safeMapOf("userAgent", userAgent));
+            clientActAuditLogService.log(userId, ipAddress, sessionId, "CAPTCHA_PREVIOUSLY_VERIFIED", "IpCaptureFilter",
+                    safeMapOf("userAgent", userAgent));
         }
 
         if (offset == null) {
-            clientActAuditLogService.log(userId, ipAddress, sessionId, "OFFSET_NOT_PROVIDED", "IpCaptureFilter", safeMapOf("userAgent", userAgent));
+            clientActAuditLogService.log(userId, ipAddress, sessionId, "OFFSET_NOT_PROVIDED", "IpCaptureFilter",
+                    safeMapOf("userAgent", userAgent));
         }
 
         // Detect timezone mismatch
@@ -173,8 +192,7 @@ public class IpCaptureFilter extends OncePerRequestFilter {
             "/api/user", "user",
             "/api/public", "public",
             "/api/v2/courses/coupons/validate-coupon", "coupon-validation",
-            "/api/v2/password-reset/request", "password-reset"
-    );
+            "/api/v2/password-reset/request", "password-reset");
 
     private String categorizeEndpoint(String uri) {
         return CATEGORY_MAP.entrySet()

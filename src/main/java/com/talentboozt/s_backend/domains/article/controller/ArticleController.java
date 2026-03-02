@@ -74,6 +74,27 @@ public class ArticleController {
         return ResponseEntity.ok(articleService.updateArticle(id, request, userId));
     }
 
+    @GetMapping("/pending")
+    public ResponseEntity<Page<ArticleResponse>> getPending(Pageable pageable) {
+        return ResponseEntity.ok(articleService.getPendingArticles(pageable));
+    }
+
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<ArticleResponse> approve(@PathVariable String id) {
+        return ResponseEntity.ok(articleService.approveArticle(id));
+    }
+
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<ArticleResponse> reject(@PathVariable String id) {
+        return ResponseEntity.ok(articleService.rejectArticle(id));
+    }
+
+    @GetMapping("/{id}/evaluation")
+    public ResponseEntity<com.talentboozt.s_backend.domains.article.dto.ArticleEvaluationDTO> getEvaluation(
+            @PathVariable String id) {
+        return ResponseEntity.ok(articleService.getArticleEvaluation(id));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable String id,
             @RequestHeader("X-User-Id") String userId) {
