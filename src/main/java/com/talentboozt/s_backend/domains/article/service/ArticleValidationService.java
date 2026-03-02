@@ -65,8 +65,10 @@ public class ArticleValidationService {
         String userPrompt = "Title: " + article.getTitle() + "\n\nExcerpt: " + article.getExcerpt() + "\n\nContent:\n"
                 + article.getContent();
 
-        GeminiClient.AiResponse<ArticleEvaluationDTO> response = geminiClient.callStructuredApiWithRaw(systemPrompt,
-                userPrompt, ArticleEvaluationDTO.class);
+        GeminiClient.AiResponse<ArticleEvaluationDTO> response = geminiClient.callStructuredApiWithRaw(
+                systemPrompt,
+                userPrompt,
+                ArticleEvaluationDTO.class);
 
         ArticleEvaluationDTO result = response.parsed();
 
