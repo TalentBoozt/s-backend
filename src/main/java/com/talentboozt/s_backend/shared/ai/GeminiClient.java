@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -54,33 +55,22 @@ public class GeminiClient {
             throw new IllegalStateException("Gemini API key is not configured");
         }
 
-        // Enforce clean JSON-only output
-        String enforcedPrompt = userPrompt + "\n\n"
-                + "Respond **ONLY** with valid JSON. "
-                + "Do NOT include any markdown, code blocks (```), explanations, comments, or extra text. "
-                + "The response must be pure, parseable JSON matching the requested schema (if provided).";
+        // IMPROVEMENT: Use native JSON mode without cluttering the prompt
+        // This prevents the "json errors" you saw with 2.5/3.x models
+        String effectivePrompt = userPrompt;
 
-        Map<String, Object> generationConfig = Map.ofEntries(
-                Map.entry("response_mime_type", "application/json"),
-                Map.entry("temperature", 0.1),
-                Map.entry("top_p", 0.95),
-                Map.entry("max_output_tokens", 2048));
+        Map<String, Object> generationConfig = new HashMap<>();
+        generationConfig.put("response_mime_type", "application/json");
+        generationConfig.put("temperature", 0.1);
 
         if (responseSchema != null) {
-            generationConfig = Map.ofEntries(
-                    Map.entry("response_mime_type", "application/json"),
-                    Map.entry("response_schema", responseSchema),
-                    Map.entry("temperature", 0.0), // stricter with schema
-                    Map.entry("top_p", 0.9),
-                    Map.entry("max_output_tokens", 2048));
+            generationConfig.put("response_schema", responseSchema);
+            generationConfig.put("temperature", 0.0); // Required for strict schema adherence
         }
 
         Map<String, Object> requestBody = Map.of(
-                "system_instruction", Map.of(
-                        "parts", List.of(Map.of("text", systemInstruction))),
-                "contents", List.of(Map.of(
-                        "role", "user",
-                        "parts", List.of(Map.of("text", enforcedPrompt)))),
+                "system_instruction", Map.of("parts", List.of(Map.of("text", systemInstruction))),
+                "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", effectivePrompt)))),
                 "generation_config", generationConfig,
                 "safety_settings", List.of( // optional but helps avoid 400/403 in some cases
                         Map.of("category", "HARM_CATEGORY_HATE_SPEECH", "threshold", "BLOCK_NONE"),
@@ -91,7 +81,8 @@ public class GeminiClient {
         try {
             Map<String, Object> response = webClient.post()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/v1beta/models/gemini-1.5-flash:generateContent")
+                            // FIX: Updated to the 2026 stable model string
+                            .path("/v1beta/models/gemini-2.5-flash:generateContent")
                             .queryParam("key", apiKey)
                             .build())
                     .contentType(MediaType.APPLICATION_JSON)

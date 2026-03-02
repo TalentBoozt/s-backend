@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +24,29 @@ public class ArticleValidationService {
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     public void validateArticle(Article article) {
+        // 1. Define the schema based on your ArticleEvaluationDTO structure
+        Map<String, Object> schema = Map.of(
+                "type", "object",
+                "properties", Map.of(
+                        "category",
+                        Map.of("type", "string", "enum",
+                                List.of("Technology", "Business", "Finance", "Health", "Education", "Science",
+                                        "Politics", "Lifestyle", "Entertainment", "Sports", "Opinion", "General")),
+                        "scores", Map.of("type", "object", "properties", Map.of(
+                                "contentQuality", Map.of("type", "integer"),
+                                "informationalValue", Map.of("type", "integer"),
+                                "safety", Map.of("type", "integer"))),
+                        "decision", Map.of("type", "object", "properties", Map.of(
+                                "publishStatus",
+                                Map.of("type", "string", "enum",
+                                        List.of("APPROVED", "PENDING_MANUAL_REVIEW", "REJECTED")),
+                                "reasoning", Map.of("type", "string"))),
+                        "flags", Map.of("type", "object", "properties", Map.of(
+                                "markAsHighValue", Map.of("type", "boolean"),
+                                "markAsInformative", Map.of("type", "boolean"),
+                                "manualReviewRequired", Map.of("type", "boolean")))),
+                "required", List.of("category", "scores", "decision", "flags"));
+
         String systemPrompt = """
                 Role:
                 You are an AI Article Quality Evaluation and Moderation Agent operating inside a publishing platform backend.
@@ -68,7 +93,8 @@ public class ArticleValidationService {
         GeminiClient.AiResponse<ArticleEvaluationDTO> response = geminiClient.callStructuredApiWithRaw(
                 systemPrompt,
                 userPrompt,
-                ArticleEvaluationDTO.class);
+                ArticleEvaluationDTO.class,
+                schema);
 
         ArticleEvaluationDTO result = response.parsed();
 
