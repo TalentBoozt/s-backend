@@ -157,6 +157,15 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.POST, "/api/v2/reports").authenticated()
                             .requestMatchers("/api/v2/reports/**").authenticated()
 
+                            // ── Resume Builder ──────────────────────────────────────
+                            // AI generation always requires authentication
+                            .requestMatchers(HttpMethod.POST, "/api/v2/resumes/ai/**").authenticated()
+                            // Write ops on resumes require authentication
+                            .requestMatchers(HttpMethod.POST, "/api/v2/resumes/**").authenticated()
+                            .requestMatchers(HttpMethod.PUT, "/api/v2/resumes/**").authenticated()
+                            .requestMatchers(HttpMethod.PATCH, "/api/v2/resumes/**").authenticated()
+                            .requestMatchers(HttpMethod.DELETE, "/api/v2/resumes/**").authenticated()
+
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                             .anyRequest().authenticated();
