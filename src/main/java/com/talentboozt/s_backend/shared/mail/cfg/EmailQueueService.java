@@ -39,11 +39,13 @@ public class EmailQueueService {
 
     private void processNextEmail() {
         EmailJob job = emailQueue.poll();
-        if (job == null) return;
+        if (job == null)
+            return;
 
         try {
             boolean sent = sendEmail(job);
-            if (!sent) throw new RuntimeException("Failed to send email");
+            if (!sent)
+                throw new RuntimeException("Failed to send email");
 
         } catch (Exception e) {
             job.setRetryCount(job.getRetryCount() + 1);
@@ -53,7 +55,8 @@ public class EmailQueueService {
                 return;
             }
 
-            logger.log("email-queue", "ERROR", "Retrying email to " + job.getTo() + " (" + job.getRetryCount() + "/" + MAX_RETRY_COUNT + ")");
+            logger.log("email-queue", "ERROR",
+                    "Retrying email to " + job.getTo() + " (" + job.getRetryCount() + "/" + MAX_RETRY_COUNT + ")");
 
             scheduler.schedule(() -> {
                 boolean requeued = emailQueue.offer(job);
@@ -70,7 +73,7 @@ public class EmailQueueService {
 
     private boolean sendEmail(EmailJob job) {
         try {
-            emailService.sendHtmlEmail(job.getTo(), job.getSubject(), job.getHtmlBody());
+            emailService.sendHtmlEmail(job.getTo(), job.getCc(), job.getSubject(), job.getHtmlBody());
             return true;
         } catch (Exception e) {
             e.printStackTrace();

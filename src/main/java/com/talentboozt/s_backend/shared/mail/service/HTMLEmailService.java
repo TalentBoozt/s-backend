@@ -23,14 +23,24 @@ public class HTMLEmailService {
     }
 
     public void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
+        sendHtmlEmail(to, null, subject, htmlContent);
+    }
+
+    public void sendHtmlEmail(String to, String[] cc, String subject, String htmlContent) throws MessagingException {
         if (!EmailValidator.isValid(to)) {
             throw new IllegalArgumentException("Invalid email format: " + to);
         }
-        sendHtmlEmailWithAttachment(to, subject, htmlContent, null, null);
+        sendHtmlEmailWithAttachment(to, cc, subject, htmlContent, null, null);
     }
 
     public void sendHtmlEmailWithAttachment(String to, String subject, String htmlContent,
-                                            String attachmentName, DataSource attachmentDataSource)
+            String attachmentName, DataSource attachmentDataSource)
+            throws MessagingException {
+        sendHtmlEmailWithAttachment(to, null, subject, htmlContent, attachmentName, attachmentDataSource);
+    }
+
+    public void sendHtmlEmailWithAttachment(String to, String[] cc, String subject, String htmlContent,
+            String attachmentName, DataSource attachmentDataSource)
             throws MessagingException {
         if (!EmailValidator.isValid(to)) {
             throw new IllegalArgumentException("Invalid email format: " + to);
@@ -39,6 +49,9 @@ public class HTMLEmailService {
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
         helper.setTo(Objects.requireNonNull(to));
+        if (cc != null && cc.length > 0) {
+            helper.setCc(cc);
+        }
         helper.setSubject(Objects.requireNonNull(subject));
         helper.setText(Objects.requireNonNull(htmlContent), true);
 
