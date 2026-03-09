@@ -9,10 +9,18 @@ public class EmailJob {
     private final String to;
     private final String subject;
     private final String htmlBody;
+    private String[] cc;
     private int retryCount = 0;
 
     public EmailJob(String to, String subject, String htmlBody) {
         this.to = to;
+        this.subject = subject;
+        this.htmlBody = htmlBody;
+    }
+
+    public EmailJob(String to, String[] cc, String subject, String htmlBody) {
+        this.to = to;
+        this.cc = cc;
         this.subject = subject;
         this.htmlBody = htmlBody;
     }

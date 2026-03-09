@@ -33,7 +33,8 @@ public class EmailService {
     private final EmailQueueService emailQueueService;
 
     @Autowired
-    public EmailService(JavaMailSender javaMailSender, EmailTemplateLoader emailTemplateLoader, ConfigUtility configUtil, ValidateTokenService validateTokenService, EmailQueueService emailQueueService) {
+    public EmailService(JavaMailSender javaMailSender, EmailTemplateLoader emailTemplateLoader,
+            ConfigUtility configUtil, ValidateTokenService validateTokenService, EmailQueueService emailQueueService) {
         this.javaMailSender = javaMailSender;
         this.emailTemplateLoader = emailTemplateLoader;
         this.configUtil = configUtil;
@@ -41,11 +42,12 @@ public class EmailService {
         this.emailQueueService = emailQueueService;
     }
 
-//    @Autowired
-//    public EmailService(JavaMailSender javaMailSender, EmailTemplateLoader emailTemplateLoader) {
-//        this.javaMailSender = javaMailSender;
-//        this.emailTemplateLoader = emailTemplateLoader;
-//    }
+    // @Autowired
+    // public EmailService(JavaMailSender javaMailSender, EmailTemplateLoader
+    // emailTemplateLoader) {
+    // this.javaMailSender = javaMailSender;
+    // this.emailTemplateLoader = emailTemplateLoader;
+    // }
 
     public void sendSimpleEmail(String to, String subject, String text) {
         if (!EmailValidator.isValid(to)) {
@@ -61,7 +63,7 @@ public class EmailService {
 
     private void sendEmail(Session session, String toEmail, String subject, String body) throws MessagingException {
         MimeMessage message = new MimeMessage(session);
-        //message.setFrom(new InternetAddress(FROM_EMAIL));
+        // message.setFrom(new InternetAddress(FROM_EMAIL));
         message.addRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
         message.setSubject(subject);
         message.setText(body);
@@ -78,8 +80,7 @@ public class EmailService {
         String resetUrl = configUtil.getProperty("PASSWORD_REST_URL") + resetToken;
         Map<String, String> variables = Map.of(
                 "resetLink", resetUrl,
-                "year", String.valueOf(Year.now().getValue())
-        );
+                "year", String.valueOf(Year.now().getValue()));
 
         String htmlContent = emailTemplateLoader.loadTemplate("password-reset.html", variables);
         EmailJob job = new EmailJob(toEmail, subject, htmlContent);
@@ -102,8 +103,7 @@ public class EmailService {
                 "email", contactUsDTO.getEmail(),
                 "subject", contactUsDTO.getSubject(),
                 "message", contactUsDTO.getMessage(),
-                "year", String.valueOf(Year.now().getValue())
-        );
+                "year", String.valueOf(Year.now().getValue()));
 
         String htmlContent = emailTemplateLoader.loadTemplate("contact-us.html", variables);
         EmailJob job = new EmailJob(to, mailSubject, htmlContent);
@@ -119,8 +119,7 @@ public class EmailService {
                 "toEmail", personalContactDTO.getToEmail(),
                 "subject", personalContactDTO.getSubject(),
                 "message", personalContactDTO.getMessage(),
-                "year", String.valueOf(Year.now().getValue())
-        );
+                "year", String.valueOf(Year.now().getValue()));
 
         if (!EmailValidator.isValid(to)) {
             // System.out.println("Invalid email skipped: " + to);
@@ -140,8 +139,7 @@ public class EmailService {
         String subject = "Application Status";
         Map<String, String> variables = Map.of(
                 "candidateName", candidateName,
-                "year", String.valueOf(Year.now().getValue())
-        );
+                "year", String.valueOf(Year.now().getValue()));
 
         String htmlContent = emailTemplateLoader.loadTemplate("rejection-notice.html", variables);
         EmailJob job = new EmailJob(to, subject, htmlContent);
@@ -156,8 +154,7 @@ public class EmailService {
         String subject = "Application Status";
         Map<String, String> variables = Map.of(
                 "candidateName", candidateName,
-                "year", String.valueOf(Year.now().getValue())
-        );
+                "year", String.valueOf(Year.now().getValue()));
 
         String htmlContent = emailTemplateLoader.loadTemplate("selection-notice.html", variables);
         EmailJob job = new EmailJob(to, subject, htmlContent);
@@ -172,8 +169,7 @@ public class EmailService {
         String subject = "Talent Boozt Newsletter";
         Map<String, String> variables = Map.of(
                 "name", "Team Talent Boozt",
-                "year", String.valueOf(Year.now().getValue())
-        );
+                "year", String.valueOf(Year.now().getValue()));
 
         String htmlContent = emailTemplateLoader.loadTemplate("newsletter.html", variables);
         EmailJob job = new EmailJob(to, subject, htmlContent);
@@ -187,14 +183,14 @@ public class EmailService {
         }
         String userName = to.split("@")[0];
         String token = validateTokenService.generateToken(userName);
-        String link = "https://talnova.io/private/interview-questions?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+        String link = "https://talnova.io/private/interview-questions?token="
+                + URLEncoder.encode(token, StandardCharsets.UTF_8);
         String subject = "Your Interview Question Access Link";
 
         Map<String, String> variables = Map.of(
                 "username", userName,
                 "accessLink", link,
-                "year", String.valueOf(Year.now().getValue())
-        );
+                "year", String.valueOf(Year.now().getValue()));
 
         String htmlContent = emailTemplateLoader.loadTemplate("interview-access.html", variables);
         EmailJob job = new EmailJob(to, subject, htmlContent);
@@ -208,14 +204,14 @@ public class EmailService {
         }
         String userName = to.split("@")[0];
         String token = validateTokenService.generateToken(userName);
-        String link = "https://talnova.io/private/system-notifications?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+        String link = "https://talnova.io/private/system-notifications?token="
+                + URLEncoder.encode(token, StandardCharsets.UTF_8);
         String subject = "Your System Notification Management Link";
 
         Map<String, String> variables = Map.of(
                 "userName", userName,
                 "notificationLink", link,
-                "year", String.valueOf(Year.now().getValue())
-        );
+                "year", String.valueOf(Year.now().getValue()));
 
         String htmlContent = emailTemplateLoader.loadTemplate("system-token.html", variables);
         EmailJob job = new EmailJob(to, subject, htmlContent);
@@ -230,8 +226,7 @@ public class EmailService {
         String subject = "Pre-Order Success";
         Map<String, String> variables = Map.of(
                 "name", "Team Talent Boozt",
-                "year", String.valueOf(Year.now().getValue())
-        );
+                "year", String.valueOf(Year.now().getValue()));
 
         String htmlContent = emailTemplateLoader.loadTemplate("pre-order.html", variables);
         EmailJob job = new EmailJob(to, subject, htmlContent);
@@ -248,8 +243,7 @@ public class EmailService {
                 "phone", bankPaymentDTO.getPhone(),
                 "companyId", bankPaymentDTO.getCompanyId(),
                 "slipUrl", bankPaymentDTO.getSlipUrl(),
-                "year", String.valueOf(Year.now().getValue())
-        );
+                "year", String.valueOf(Year.now().getValue()));
 
         String htmlContent = emailTemplateLoader.loadTemplate("bank-payment.html", variables);
         EmailJob job = new EmailJob(to, mailSubject, htmlContent);
@@ -267,8 +261,7 @@ public class EmailService {
                 "jobTitle", cvRequestDTO.getJobTitle(),
                 "link", cvRequestDTO.getLink(),
                 "message", cvRequestDTO.getMessage(),
-                "year", String.valueOf(Year.now().getValue())
-        );
+                "year", String.valueOf(Year.now().getValue()));
 
         String htmlContent = emailTemplateLoader.loadTemplate("cv-request.html", variables);
         EmailJob job = new EmailJob(to, mailSubject, htmlContent);
@@ -319,7 +312,8 @@ public class EmailService {
         String to = configUtil.getProperty("CONTACT_ME_EMAIL");
         String mailSubject = "Lead - " + leadsDTO.getCtaType();
         String text = "New Lead received from " + leadsDTO.getName() + " - " + leadsDTO.getEmail() + "\n\n" +
-                "ctaType: " + leadsDTO.getCtaType() + "\nserviceType: " + leadsDTO.getServiceType() + "\nfocusArea: " + leadsDTO.getFocusArea() + "\nmessage: " + leadsDTO.getMessage();
+                "ctaType: " + leadsDTO.getCtaType() + "\nserviceType: " + leadsDTO.getServiceType() + "\nfocusArea: "
+                + leadsDTO.getFocusArea() + "\nmessage: " + leadsDTO.getMessage();
 
         sendSimpleEmail(to, mailSubject, text);
 
@@ -328,7 +322,7 @@ public class EmailService {
                 leadsAck(leadsDTO);
                 break;
             case "booking":
-                //todo: implement booking
+                // todo: implement booking
                 break;
         }
     }
@@ -337,11 +331,29 @@ public class EmailService {
         String contactSubject = "Contact Us - " + leadsDTO.getServiceType();
         Map<String, String> contactVariables = Map.of(
                 "name", leadsDTO.getName(),
-                "serviceName", leadsDTO.getEmail()
-        );
+                "serviceName", leadsDTO.getEmail());
 
         String htmlContent = emailTemplateLoader.loadTemplate("leads.html", contactVariables);
         EmailJob job = new EmailJob(leadsDTO.getEmail(), contactSubject, htmlContent);
+        emailQueueService.queueEmail(job);
+    }
+
+    public void sendSupportRequestNotification(
+            com.talentboozt.s_backend.domains.support.model.SupportRequestModel request) {
+        String to = "info@talnova.io";
+        String[] cc = { "kavindu@talnova.io", "dilum@talnova.io" };
+        String subject = "New Resume Builder Request - " + request.getService();
+
+        String htmlContent = "<html><body>" +
+                "<h2>New Service Request Received</h2>" +
+                "<p><strong>Name:</strong> " + request.getName() + "</p>" +
+                "<p><strong>Email:</strong> " + request.getEmail() + "</p>" +
+                "<p><strong>Service:</strong> " + request.getService() + "</p>" +
+                "<p><strong>Message:</strong> " + request.getMessage() + "</p>" +
+                "<p><strong>Submitted At:</strong> " + request.getCreatedAt() + "</p>" +
+                "</body></html>";
+
+        EmailJob job = new EmailJob(to, cc, subject, htmlContent);
         emailQueueService.queueEmail(job);
     }
 }
