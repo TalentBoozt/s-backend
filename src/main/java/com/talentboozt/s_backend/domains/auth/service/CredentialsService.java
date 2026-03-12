@@ -43,11 +43,12 @@ public class CredentialsService {
         if (optionalCredentials.isPresent()) {
             CredentialsModel existingUser = optionalCredentials.get();
 
-            // Ensure accessedPlatforms is a Set to prevent duplicates
-            Set<String> platforms = new HashSet<>(existingUser.getAccessedPlatforms());
-            if (platforms.add(platform)) { // Adds only if it's not already present
-                existingUser.setAccessedPlatforms(new ArrayList<>(platforms));
-                credentialsRepository.save(existingUser);
+            if (platform != null) {
+                Set<String> platforms = new HashSet<>(existingUser.getAccessedPlatforms() != null ? existingUser.getAccessedPlatforms() : Collections.emptyList());
+                if (platforms.add(platform)) {
+                    existingUser.setAccessedPlatforms(new ArrayList<>(platforms));
+                    credentialsRepository.save(existingUser);
+                }
             }
             // Evict the existing user's cache entry if updated
             if (existingUser.getEmployeeId() != null) {
@@ -60,6 +61,10 @@ public class CredentialsService {
         } else {
             credentials.setRegisteredFrom(platform);
             credentials.setReferrerId(referrer);
+            credentials.setActive(true);
+            if (credentials.getUserLevel() == null) credentials.setUserLevel("1");
+            if (credentials.getPlatformRole() == null) credentials.setPlatformRole("USER");
+
             if (credentials.getAccessedPlatforms() == null)
                 credentials.setAccessedPlatforms(new ArrayList<>());
             if (credentials.getRoles() == null)
@@ -89,7 +94,11 @@ public class CredentialsService {
                 }
             }
 
-            credentials.setAccessedPlatforms(new ArrayList<>(Set.of(platform))); // Ensures uniqueness
+            if (platform != null) {
+                credentials.setAccessedPlatforms(new ArrayList<>(Set.of(platform)));
+            } else {
+                credentials.setAccessedPlatforms(new ArrayList<>());
+            }
             credentials.setRoles(new ArrayList<>(userRoles));
             credentials.setPermissions(new ArrayList<>(userPermissions));
 
@@ -117,8 +126,8 @@ public class CredentialsService {
             emp.setProfileCompleted(profileCompleted);
 
             // Check if user is an employer or higher level
-            if (credentials.getUserLevel().equals("2") || credentials.getUserLevel().equals("3")
-                    || credentials.getUserLevel().equals("4") || credentials.getUserLevel().equals("5")) {
+            if ("2".equals(credentials.getUserLevel()) || "3".equals(credentials.getUserLevel())
+                    || "4".equals(credentials.getUserLevel()) || "5".equals(credentials.getUserLevel())) {
                 CompanyModel cmp = new CompanyModel();
 
                 Map<String, Boolean> cmpProfileCompleted = new HashMap<>();
@@ -144,8 +153,12 @@ public class CredentialsService {
                 emp.setCompanyId(savedCmp.getId());
                 credentials.setCompanyId(savedCmp.getId());
                 Map<String, String> orgs = new HashMap<>();
-                orgs.put(platform, savedCmp.getId());
-                credentials.setOrganizations(new ArrayList<>(Set.of(orgs))); // Ensures uniqueness
+                if (platform != null) {
+                    orgs.put(platform, savedCmp.getId());
+                    credentials.setOrganizations(new ArrayList<>(Set.of(orgs)));
+                } else {
+                    credentials.setOrganizations(new ArrayList<>());
+                }
             }
 
             EmployeeModel savedEmp = employeeRepository.save(emp);
