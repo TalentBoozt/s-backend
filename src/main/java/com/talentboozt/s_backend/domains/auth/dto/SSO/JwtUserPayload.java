@@ -11,6 +11,7 @@ public class JwtUserPayload {
     private String userId;
     private String email;
     private String userLevel;
+    private String platformRole;
     private List<String> roles;
     private List<String> permissions;
     private java.util.List<java.util.Map<String, String>> organizations;

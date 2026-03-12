@@ -166,6 +166,16 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.PATCH, "/api/v2/resumes/**").authenticated()
                             .requestMatchers(HttpMethod.DELETE, "/api/v2/resumes/**").authenticated()
 
+                            // ── Life Planner ──────────────────────────────────────
+                            // POST user creation is public (registration)
+                            .requestMatchers(HttpMethod.POST, "/api/lifeplanner/users").permitAll()
+                            // Stripe Webhook is public
+                            .requestMatchers(HttpMethod.POST, "/api/lifeplanner/stripe/webhook").permitAll()
+                            // All other write ops require authentication
+                            .requestMatchers(HttpMethod.POST, "/api/lifeplanner/**").authenticated()
+                            .requestMatchers(HttpMethod.PUT, "/api/lifeplanner/**").authenticated()
+                            .requestMatchers(HttpMethod.DELETE, "/api/lifeplanner/**").authenticated()
+
                             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                             .anyRequest().authenticated();
@@ -210,7 +220,7 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of("*", "Upgrade", "Connection", "Sec-WebSocket-Key",
                 "Sec-WebSocket-Version", "Sec-WebSocket-Extensions", "Sec-WebSocket-Protocol"));
         configuration.setExposedHeaders(
-                List.of("Stripe-Signature", "X-Demo-Mode", "X-Timezone-Mismatch", "Remaining-Credits"));
+                List.of("Stripe-Signature", "X-Demo-Mode", "X-Timezone-Mismatch", "Remaining-Credits", "x-user-id"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

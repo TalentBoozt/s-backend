@@ -60,6 +60,7 @@ public class AuthController {
             userPayload.setUserId(user.getEmployeeId());
             userPayload.setEmail(user.getEmail());
             userPayload.setUserLevel(user.getUserLevel());
+            userPayload.setPlatformRole(user.getPlatformRole());
             userPayload.setRoles(user.getRoles());
             userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
 
@@ -77,7 +78,7 @@ public class AuthController {
                 String token = jwtService.generateToken(userPayload);
                 String refreshToken = jwtService.generateRefreshToken(userPayload);
 
-                return ResponseEntity.ok(new AuthResponse(token, refreshToken, user.getEmployeeId(), user.getEmail(), user.getUserLevel(), user.getOrganizations(), user.getPermissions(), user.getRoles(), user.isActive()));
+                return ResponseEntity.ok(new AuthResponse(token, refreshToken, user.getEmployeeId(), user.getEmail(), user.getUserLevel(), user.getPlatformRole(), user.getOrganizations(), user.getPermissions(), user.getRoles(), user.isActive()));
 
             } catch (Exception e) {
                 return ResponseEntity.status(500).body(new ErrorResponse("Decryption failed: " + e.getMessage()));
@@ -103,6 +104,7 @@ public class AuthController {
                 userPayload.setUserId(newUser.getEmployeeId());
                 userPayload.setEmail(newUser.getEmail());
                 userPayload.setUserLevel(newUser.getUserLevel());
+                userPayload.setPlatformRole(newUser.getPlatformRole());
                 userPayload.setRoles(newUser.getRoles());
                 userPayload.setPermissions(userPermissionsService.resolvePermissions(newUser.getRoles()));
 
@@ -110,7 +112,7 @@ public class AuthController {
                 String token = jwtService.generateToken(userPayload);
                 String refreshToken = jwtService.generateRefreshToken(userPayload);
 
-                return ResponseEntity.ok(new AuthResponse(token, refreshToken, newUser.getEmployeeId(), newUser.getEmail(), newUser.getUserLevel(), newUser.getOrganizations(), newUser.getPermissions(), newUser.getRoles(), newUser.isActive()));
+                return ResponseEntity.ok(new AuthResponse(token, refreshToken, newUser.getEmployeeId(), newUser.getEmail(), newUser.getUserLevel(), newUser.getPlatformRole(), newUser.getOrganizations(), newUser.getPermissions(), newUser.getRoles(), newUser.isActive()));
 
             } catch (Exception e) {
                 return ResponseEntity.status(500).body(new ErrorResponse("Encryption failed: " + e.getMessage()));
@@ -134,6 +136,7 @@ public class AuthController {
             userPayload.setUserId(user.getEmployeeId());
             userPayload.setEmail(user.getEmail());
             userPayload.setUserLevel(user.getUserLevel());
+            userPayload.setPlatformRole(user.getPlatformRole());
             userPayload.setRoles(user.getRoles());
             userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
 
@@ -142,7 +145,7 @@ public class AuthController {
             String newRefreshToken = jwtService.generateRefreshToken(userPayload);
 
             // Return new access token
-            return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken, user.getEmployeeId(), user.getEmail(), user.getUserLevel(), user.getOrganizations(), user.getPermissions(), user.getRoles(), user.isActive()));
+            return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken, user.getEmployeeId(), user.getEmail(), user.getUserLevel(), user.getPlatformRole(), user.getOrganizations(), user.getPermissions(), user.getRoles(), user.isActive()));
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid refresh token"));
@@ -156,6 +159,7 @@ public class AuthController {
         userPayload.setUserId(savedUser.getEmployeeId());
         userPayload.setEmail(savedUser.getEmail());
         userPayload.setUserLevel(savedUser.getUserLevel());
+        userPayload.setPlatformRole(savedUser.getPlatformRole());
         userPayload.setRoles(savedUser.getRoles());
         userPayload.setPermissions(userPermissionsService.resolvePermissions(savedUser.getRoles()));
 
@@ -205,6 +209,7 @@ public class AuthController {
         userPayload.setUserId(credentials.getEmployeeId());
         userPayload.setEmail(credentials.getEmail());
         userPayload.setUserLevel(credentials.getUserLevel());
+        userPayload.setPlatformRole(credentials.getPlatformRole());
         userPayload.setRoles(credentials.getRoles());
         userPayload.setPermissions(userPermissionsService.resolvePermissions(credentials.getRoles()));
 
@@ -251,14 +256,16 @@ class AuthResponse {
     private List<String> permissions;
     private List<String> roles;
     private String userLevel;
+    private String platformRole;
     private boolean active;
 
-    public AuthResponse(String token, String refreshToken, String employeeId, String  email, String userLevel, List<Map<String, String>> organizations, List<String> permissions, List<String> roles, boolean active) {
+    public AuthResponse(String token, String refreshToken, String employeeId, String email, String userLevel, String platformRole, List<Map<String, String>> organizations, List<String> permissions, List<String> roles, boolean active) {
         this.token = token;
         this.refreshToken = refreshToken;
         this.employeeId = employeeId;
         this.email = email;
         this.userLevel = userLevel;
+        this.platformRole = platformRole;
         this.organizations = organizations;
         this.permissions = permissions;
         this.roles = roles;

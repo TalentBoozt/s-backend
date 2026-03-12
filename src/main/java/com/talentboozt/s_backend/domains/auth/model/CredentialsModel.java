@@ -28,6 +28,7 @@ public class CredentialsModel {
     private List<String> permissions; // ["CAN_POST_JOBS", "CAN_CREATE_COURSES"]
     private List<Map<String, String>> organizations; // ["companyId1", "companyId2"]
     private String userLevel; // Free, Pro
+    private String platformRole; // PLATFORM_ADMIN, PLATFORM_MODERATOR, USER
     private String registeredFrom; // JobPortal, ResumeBuilder, TrainingPlatform
     private String promotion; // facebook, linkedin
     private String referrerId; // Stores the referrer (e.g., partner company ID or promo source)
