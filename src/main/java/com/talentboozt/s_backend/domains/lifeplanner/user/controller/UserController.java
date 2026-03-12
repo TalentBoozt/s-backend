@@ -6,7 +6,6 @@ import com.talentboozt.s_backend.domains.lifeplanner.user.model.User;
 import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserProfile;
 import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserPreferences;
 import com.talentboozt.s_backend.domains.lifeplanner.user.service.UserService;
-import com.talentboozt.s_backend.domains.lifeplanner.shared.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -24,10 +23,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<User> getCurrentUser(@RequestHeader("x-user-id") String userId) {
-        return ResponseEntity.ok(
-                userService.getUserById(userId)
-                        .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId))
-        );
+        return ResponseEntity.ok(userService.getOrCreateUser(userId));
     }
 
     // ── Profile ──
@@ -41,10 +37,7 @@ public class UserController {
 
     @GetMapping("/profile")
     public ResponseEntity<UserProfile> getProfile(@RequestHeader("x-user-id") String userId) {
-        return ResponseEntity.ok(
-                userService.getProfileByUserId(userId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Profile not found for user: " + userId))
-        );
+        return ResponseEntity.ok(userService.getOrCreateProfile(userId));
     }
 
     // ── Preferences ──
@@ -58,9 +51,6 @@ public class UserController {
 
     @GetMapping("/preferences")
     public ResponseEntity<UserPreferences> getPreferences(@RequestHeader("x-user-id") String userId) {
-        return ResponseEntity.ok(
-                userService.getPreferencesByUserId(userId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Preferences not found for user: " + userId))
-        );
+        return ResponseEntity.ok(userService.getOrCreatePreferences(userId));
     }
 }
