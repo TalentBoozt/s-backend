@@ -123,6 +123,26 @@ public class DailyScheduleService {
         dailyScheduleRepository.save(schedule);
     }
 
+    public void reorderTasks(String userId, String scheduleId, List<String> taskIds) {
+        DailySchedule schedule = dailyScheduleRepository.findById(scheduleId).orElse(null);
+        if (schedule != null && schedule.getUserId().equals(userId)) {
+            List<DailySchedule.ScheduleTask> reordered = new ArrayList<>();
+            for (String tid : taskIds) {
+                schedule.getTasks().stream()
+                    .filter(t -> t.getTaskId().equals(tid))
+                    .findFirst()
+                    .ifPresent(reordered::add);
+            }
+            // Add any missing tasks that weren't in the taskId list
+            schedule.getTasks().stream()
+                .filter(t -> !taskIds.contains(t.getTaskId()))
+                .forEach(reordered::add);
+                
+            schedule.setTasks(reordered);
+            dailyScheduleRepository.save(schedule);
+        }
+    }
+
     public DailySchedule save(DailySchedule schedule) {
         return dailyScheduleRepository.save(schedule);
     }

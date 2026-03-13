@@ -12,4 +12,6 @@ public class ScheduleResponseDTO {
     private DailySchedule schedule;
     private int currentStreak;
     private Integer todayMood;
+    private int missedTaskCount;
+    private boolean hasDrift;
 }
