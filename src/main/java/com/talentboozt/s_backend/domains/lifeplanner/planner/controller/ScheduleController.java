@@ -34,7 +34,12 @@ public class ScheduleController {
             .map(MoodEntry::getScore)
             .orElse(null);
         
-        return ResponseEntity.ok(new ScheduleResponseDTO(schedule, streak, moodScore));
+        int missedCount = 0;
+        if (schedule != null && schedule.getPlanId() != null) {
+            missedCount = scheduleRepairService.getMissedTaskCountByPlan(schedule.getPlanId());
+        }
+        
+        return ResponseEntity.ok(new ScheduleResponseDTO(schedule, streak, moodScore, missedCount, missedCount > 0));
     }
 
     @GetMapping("/plan/{planId}")
@@ -62,6 +67,14 @@ public class ScheduleController {
         String category = payload.get("category");
         String estimatedTime = payload.get("estimatedTime");
         dailyScheduleService.addTaskToToday(userId, title, category, estimatedTime);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reorder-tasks")
+    public ResponseEntity<Void> reorderTasks(@RequestBody Map<String, Object> payload, @RequestHeader("x-user-id") String userId) {
+        String scheduleId = (String) payload.get("scheduleId");
+        List<String> taskIds = (List<String>) payload.get("taskIds");
+        dailyScheduleService.reorderTasks(userId, scheduleId, taskIds);
         return ResponseEntity.ok().build();
     }
 }

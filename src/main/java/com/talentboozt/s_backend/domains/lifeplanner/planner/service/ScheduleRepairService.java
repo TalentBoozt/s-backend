@@ -25,6 +25,23 @@ public class ScheduleRepairService {
     private final StudyPlanRepository studyPlanRepository;
     private final ScheduleOptimizer scheduleOptimizer;
 
+    public int getMissedTaskCountByPlan(String planId) {
+        LocalDate today = LocalDate.now();
+        List<DailySchedule> pastSchedules = dailyScheduleRepository.findByPlanId(planId).stream()
+                .filter(schedule -> schedule.getScheduleDate().isBefore(today) && !schedule.isCompleted())
+                .collect(Collectors.toList());
+
+        int count = 0;
+        for (DailySchedule schedule : pastSchedules) {
+            for (DailySchedule.ScheduleTask task : schedule.getTasks()) {
+                if (!task.isCompleted()) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
     public OptimizedScheduleResponse repairSchedule(String planId, String requestUserId) {
         LocalDate today = LocalDate.now();
 
