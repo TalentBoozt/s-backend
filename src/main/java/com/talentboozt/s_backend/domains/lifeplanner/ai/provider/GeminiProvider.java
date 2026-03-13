@@ -103,7 +103,7 @@ public class GeminiProvider implements AIProvider {
             config.put("response_mime_type", "application/json");
         }
         config.put("temperature", 0.7);
-        config.put("maxOutputTokens", 4096);
+        config.put("max_output_tokens", 8192);
 
         Map<String, Object> requestBody = Map.of(
             "system_instruction", Map.of("parts", List.of(Map.of("text", system))),
@@ -124,14 +124,34 @@ public class GeminiProvider implements AIProvider {
 
             JsonNode root = objectMapper.readTree(responseBody);
             JsonNode candidates = root.path("candidates");
+            
             if (candidates.isArray() && !candidates.isEmpty()) {
-                String text = candidates.get(0).path("content").path("parts").get(0).path("text").asText();
+                JsonNode firstCandidate = candidates.get(0);
+                String finishReason = firstCandidate.path("finishReason").asText();
+                if (!"STOP".equals(finishReason) && !"null".equals(finishReason)) {
+                    log.warn("Gemini generation finished with reason: {} for model {}", finishReason, currentModel);
+                }
+
+                JsonNode parts = firstCandidate.path("content").path("parts");
+                StringBuilder fullText = new StringBuilder();
+                if (parts.isArray()) {
+                    for (JsonNode part : parts) {
+                        fullText.append(part.path("text").asText());
+                    }
+                }
+
+                String text = fullText.toString();
+                if (text.isEmpty() && "SAFETY".equals(finishReason)) {
+                    log.error("Gemini response was blocked by safety filters for model {}", currentModel);
+                    throw new AIProviderException("Gemini response blocked by safety filters");
+                }
+
                 if (isJsonResponse) {
                     text = text.replaceAll("(?s)^\\s*```(?:json)?\\s*(.*?)\\s*```\\s*$", "$1").trim();
                 }
                 return text;
             }
-            throw new AIProviderException("No candidates in Gemini response");
+            throw new AIProviderException("No candidates in Gemini response. Root: " + responseBody);
         } catch (Exception e) {
             log.warn("Gemini request failed for model {}: {}", currentModel, e.getMessage());
             return attemptWithModel(modelIndex + 1, system, user, isJsonResponse);
