@@ -12,6 +12,7 @@ import com.talentboozt.s_backend.domains.lifeplanner.ai.model.OptimizedScheduleR
 import com.talentboozt.s_backend.domains.lifeplanner.credits.model.SubscriptionTier;
 import com.talentboozt.s_backend.domains.lifeplanner.credits.model.UserCredits;
 import com.talentboozt.s_backend.domains.lifeplanner.credits.service.LifePlannerCreditService;
+import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserPreferences;
 import java.util.List;
 
 @Service
@@ -54,6 +55,10 @@ public class AIClient {
 
     public String generateJournalPrompt(UserProfile userProfile, String prompt) {
         return getActiveProviderForUser(userProfile.getUserId()).generateJournalPrompt(userProfile, prompt);
+    }
+
+    public String generateJournalInsight(UserProfile userProfile, String reflection, UserPreferences prefs) {
+        return getActiveProviderForUser(userProfile.getUserId()).generateJournalInsight(userProfile, reflection, prefs);
     }
     
     public OptimizedScheduleResponse optimizeSchedule(String userId, List<String> missedTasks, String prompt) {

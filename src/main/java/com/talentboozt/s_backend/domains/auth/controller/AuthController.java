@@ -44,7 +44,7 @@ public class AuthController {
         this.userPermissionsService = userPermissionsService;
     }
 
-    @PostMapping({"/login", "/login/{platform}"})
+    @PostMapping({"/login", "/login/{platform}", "/register", "/register/{platform}"})
     public ResponseEntity<?> loginOrRegister(@PathVariable(value = "platform", required = false) String platform, @RequestBody CredentialsModel loginRequest) {
         Optional<CredentialsModel> userOptional = Optional.ofNullable(credentialsService.getCredentialsByEmail(loginRequest.getEmail()));
 

@@ -28,6 +28,8 @@ public class DailySchedule {
         private String title;
         private String estimatedTime;
         private String category;
+        private String startTime;
+        private String endTime;
         private boolean isCompleted;
         private String completedAt;
     }

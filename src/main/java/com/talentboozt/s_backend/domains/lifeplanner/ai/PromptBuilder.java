@@ -3,12 +3,13 @@ package com.talentboozt.s_backend.domains.lifeplanner.ai;
 import org.springframework.stereotype.Component;
 import com.talentboozt.s_backend.domains.lifeplanner.goal.model.Goal;
 import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserProfile;
+import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserPreferences;
 import java.util.List;
 
 @Component
 public class PromptBuilder {
 
-    public String buildPlanGenerationPrompt(Goal goal, UserProfile userProfile) {
+    public String buildPlanGenerationPrompt(Goal goal, UserProfile userProfile, UserPreferences prefs) {
         return """
                 You are an expert AI life coach and study planner.
 
@@ -20,6 +21,13 @@ public class PromptBuilder {
                 - Daily Focus Time Available: %s
                 - Stress Level: %s
                 - Hobbies/Interests: %s
+                
+                ## SCHEDULING PREFERENCES
+                - Work Hours: %s to %s
+                - Productivity Cycle: %s
+                - Preferred Break Frequency: every %d minutes
+                - Preferred Session Length: %d minutes
+                - Planning Aesthetic: %s
 
                 ## INSTRUCTIONS
                 Generate a comprehensive, adaptive study/action plan. Break it down into:
@@ -27,7 +35,10 @@ public class PromptBuilder {
                 2. A week-by-week breakdown with focus areas
                 3. Daily actionable tasks with estimated durations
 
-                Each daily task must be achievable within the user's available focus time.
+                Each daily task must be achievable within the user's available focus time and should ideally fit within their specified work hours and productivity cycle.
+                
+                %s
+                
                 Balance intensity based on stress level (lower stress = can handle more load).
                 Incorporate hobby-related breaks for engagement.
 
@@ -68,23 +79,38 @@ public class PromptBuilder {
                 goal.getDifficulty() != null ? goal.getDifficulty() : "Medium",
                 userProfile.getFocusTime() != null ? userProfile.getFocusTime() : "2 hours",
                 userProfile.getStressLevel() != null ? userProfile.getStressLevel() : "Medium",
-                userProfile.getHobbies() != null ? String.join(", ", userProfile.getHobbies()) : "N/A"
+                userProfile.getHobbies() != null ? String.join(", ", userProfile.getHobbies()) : "N/A",
+                prefs.getWorkHoursStart() != null ? prefs.getWorkHoursStart() : "09:00",
+                prefs.getWorkHoursEnd() != null ? prefs.getWorkHoursEnd() : "17:00",
+                prefs.getProductivityCycle() != null ? prefs.getProductivityCycle() : "flexible",
+                prefs.getBreakFrequency() > 0 ? prefs.getBreakFrequency() : 25,
+                prefs.getStudySessionLength() > 0 ? prefs.getStudySessionLength() : 50,
+                prefs.getPlannerLayoutStyle() != null ? prefs.getPlannerLayoutStyle() : "clean",
+                goal.getType() == com.talentboozt.s_backend.domains.lifeplanner.goal.model.GoalType.HABIT_BUILDING 
+                    ? "As this is a HABIT BUILDING goal, focus on repetitive consistency. The daily tasks should be small, sustainable, and build towards a streak."
+                    : "As this is a results-oriented goal, focus on sequential progress and milestones."
         );
     }
 
-    public String buildScheduleOptimizationPrompt(List<String> missedTasks) {
+    public String buildScheduleOptimizationPrompt(List<String> missedTasks, UserPreferences prefs) {
         return """
                 You are a schedule optimization assistant.
 
                 ## MISSED TASKS
                 The user has not completed the following tasks from their plan:
-                %s
+                - %s
+
+                ## USER PREFERENCES
+                - Work Window: %s to %s
+                - Peak Productivity: %s
+                - Break Frequency: every %d minutes
 
                 ## INSTRUCTIONS
                 Redistribute these tasks over the next 7 days, ensuring:
                 1. No single day is overloaded (max 3 hours of catch-up per day)
                 2. Higher priority tasks come first
-                3. Provide a rationale for the redistribution strategy
+                3. Respect the user's work window and productivity peaks
+                4. Provide a rationale for the redistribution strategy
 
                 ## REQUIRED JSON RESPONSE FORMAT
                 ```json
@@ -100,10 +126,16 @@ public class PromptBuilder {
                   "rationale": "Brief explanation of the rescheduling strategy"
                 }
                 ```
-                """.formatted(String.join("\n- ", missedTasks));
+                """.formatted(
+                        String.join("\n- ", missedTasks),
+                        prefs.getWorkHoursStart() != null ? prefs.getWorkHoursStart() : "09:00",
+                        prefs.getWorkHoursEnd() != null ? prefs.getWorkHoursEnd() : "17:00",
+                        prefs.getProductivityCycle() != null ? prefs.getProductivityCycle() : "flexible",
+                        prefs.getBreakFrequency() > 0 ? prefs.getBreakFrequency() : 25
+                );
     }
 
-    public String buildJournalPrompt(UserProfile userProfile) {
+    public String buildJournalPrompt(UserProfile userProfile, UserPreferences prefs) {
         return """
                 You are an empathetic journaling coach.
 
@@ -111,17 +143,21 @@ public class PromptBuilder {
                 - Stress Level: %s
                 - Hobbies: %s
                 - Focus Time Preference: %s
+                - Journaling Style: %s
 
                 Generate a single thoughtful journaling prompt (1-2 sentences) that:
                 1. Encourages self-reflection on today's progress
                 2. Connects to their interests when possible
-                3. Is appropriate for their current stress level
+                3. Matches their preferred journaling style (%s)
+                4. Is appropriate for their current stress level
 
                 Return the prompt as a plain text string, not JSON.
                 """.formatted(
                 userProfile.getStressLevel() != null ? userProfile.getStressLevel() : "Medium",
                 userProfile.getHobbies() != null ? String.join(", ", userProfile.getHobbies()) : "general interests",
-                userProfile.getFocusTime() != null ? userProfile.getFocusTime() : "moderate"
+                userProfile.getFocusTime() != null ? userProfile.getFocusTime() : "moderate",
+                prefs.getJournalingStyle() != null ? prefs.getJournalingStyle() : "freeform",
+                prefs.getJournalingStyle() != null ? prefs.getJournalingStyle() : "freeform"
         );
     }
 }

@@ -20,6 +20,7 @@ public class PlanResponse {
     public static class WeeklyPlan {
         private int weekNumber;
         private String focusArea;
+        private List<String> objectives;
     }
 
     @Data

@@ -23,16 +23,20 @@ public class JournalService {
         LocalDate today = LocalDate.now();
         JournalEntry entry = journalEntryRepository.findByUserIdAndDate(userId, today)
                 .orElse(new JournalEntry());
-        
+
         entry.setUserId(userId);
         entry.setDate(today);
         entry.setReflection(reflection);
-        if (entry.getId() == null) {
+        if (entry.getId() == null || entry.getAiInsight() == null || entry.getAiInsight().startsWith("AI insights")) {
             entry.setCreatedAt(Instant.now());
-            // Optional: generate AI insight based on this reflection asynchronously
-            entry.setAiInsight("AI insights will be generated based on your reflection."); 
+            try {
+                String insight = journalGenerator.generateInsight(userId, reflection);
+                entry.setAiInsight(insight);
+            } catch (Exception e) {
+                entry.setAiInsight("Great reflection. Keep focusing on your goals and maintaining consistency.");
+            }
         }
-        
+
         return journalEntryRepository.save(entry);
     }
 

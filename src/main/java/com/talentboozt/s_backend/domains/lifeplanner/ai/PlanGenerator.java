@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.talentboozt.s_backend.domains.lifeplanner.goal.model.Goal;
 import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserProfile;
+import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserPreferences;
+import com.talentboozt.s_backend.domains.lifeplanner.user.service.UserService;
 import com.talentboozt.s_backend.domains.lifeplanner.ai.model.PlanResponse;
 import com.talentboozt.s_backend.domains.lifeplanner.ai.cache.AICacheService;
 import com.talentboozt.s_backend.domains.lifeplanner.credits.service.LifePlannerCreditService;
@@ -21,12 +23,14 @@ public class PlanGenerator {
     private final PromptBuilder promptBuilder;
     private final AICacheService aiCacheService;
     private final LifePlannerCreditService lifePlannerCreditService;
+    private final UserService userService;
 
     @Value("${lifeplanner.ai.provider:GEMINI}")
     private String activeProvider;
 
     public PlanResponse generatePlanForGoal(Goal goal, UserProfile profile) {
-        String prompt = promptBuilder.buildPlanGenerationPrompt(goal, profile);
+        UserPreferences prefs = userService.getOrCreatePreferences(goal.getUserId());
+        String prompt = promptBuilder.buildPlanGenerationPrompt(goal, profile, prefs);
 
         // Check cache first
         Optional<PlanResponse> cached = aiCacheService.getCachedPlan(prompt, activeProvider);
