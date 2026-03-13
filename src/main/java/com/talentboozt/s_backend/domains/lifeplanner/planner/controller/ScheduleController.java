@@ -9,6 +9,8 @@ import com.talentboozt.s_backend.domains.lifeplanner.planner.service.ScheduleRep
 import com.talentboozt.s_backend.domains.lifeplanner.ai.model.OptimizedScheduleResponse;
 import com.talentboozt.s_backend.domains.lifeplanner.planner.service.StreakService;
 import com.talentboozt.s_backend.domains.lifeplanner.planner.dto.ScheduleResponseDTO;
+import com.talentboozt.s_backend.domains.lifeplanner.journal.service.MoodTrackingService;
+import com.talentboozt.s_backend.domains.lifeplanner.journal.model.MoodEntry;
 import java.util.Map;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -22,13 +24,17 @@ public class ScheduleController {
     private final TaskCompletionService taskCompletionService;
     private final ScheduleRepairService scheduleRepairService;
     private final StreakService streakService;
+    private final MoodTrackingService moodTrackingService;
 
     @GetMapping("/today")
     public ResponseEntity<ScheduleResponseDTO> getTodaySchedule(@RequestHeader("x-user-id") String userId) {
         DailySchedule schedule = dailyScheduleService.getTodaySchedule(userId);
         int streak = streakService.calculateCurrentStreak(userId);
+        Integer moodScore = moodTrackingService.getTodayMood(userId)
+            .map(MoodEntry::getScore)
+            .orElse(null);
         
-        return ResponseEntity.ok(new ScheduleResponseDTO(schedule, streak));
+        return ResponseEntity.ok(new ScheduleResponseDTO(schedule, streak, moodScore));
     }
 
     @GetMapping("/plan/{planId}")

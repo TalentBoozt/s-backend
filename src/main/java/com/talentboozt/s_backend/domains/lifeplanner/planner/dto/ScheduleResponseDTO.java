@@ -11,4 +11,5 @@ import lombok.AllArgsConstructor;
 public class ScheduleResponseDTO {
     private DailySchedule schedule;
     private int currentStreak;
+    private Integer todayMood;
 }
