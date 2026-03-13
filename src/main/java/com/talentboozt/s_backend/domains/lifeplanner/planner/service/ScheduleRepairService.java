@@ -59,6 +59,7 @@ public class ScheduleRepairService {
 
         // 2. Call AI to figure out how to redistribute
         OptimizedScheduleResponse aiResult = scheduleOptimizer.optimizeMissedTasks(userId, missedTasks);
+        aiResult.setMissedTasks(missedTasks);
 
         // 3. Write the rescheduled tasks back into future DailySchedules
         if (aiResult.getRescheduledTasks() != null) {

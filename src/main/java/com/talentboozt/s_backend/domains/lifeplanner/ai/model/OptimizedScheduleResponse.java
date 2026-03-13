@@ -5,6 +5,7 @@ import java.util.List;
 
 @Data
 public class OptimizedScheduleResponse {
+    private List<String> missedTasks;
     private List<RescheduledTask> rescheduledTasks;
     private String rationale;
 

@@ -50,4 +50,26 @@ public class PlanController {
 
         return ResponseEntity.ok(plan);
     }
+
+    @GetMapping("/{goalId}/progress")
+    public ResponseEntity<Map<String, Object>> getPlanProgress(@PathVariable String goalId, @RequestHeader("x-user-id") String userId) {
+        StudyPlan plan = studyPlanService.getPlanByGoalId(goalId)
+                .orElseThrow(() -> new ResourceNotFoundException("Plan not found for goal: " + goalId));
+
+        if (!plan.getUserId().equals(userId)) {
+            return ResponseEntity.status(403).build();
+        }
+
+        // Force a recalculation to be sure
+        studyPlanService.updatePlanProgress(plan.getPlanId());
+        
+        // Fetch updated plan
+        StudyPlan updatedPlan = studyPlanService.findById(plan.getPlanId()).get();
+
+        return ResponseEntity.ok(Map.of(
+            "progressPercentage", updatedPlan.getProgressPercentage(),
+            "status", updatedPlan.getStatus(),
+            "lastUpdated", updatedPlan.getUpdatedAt()
+        ));
+    }
 }

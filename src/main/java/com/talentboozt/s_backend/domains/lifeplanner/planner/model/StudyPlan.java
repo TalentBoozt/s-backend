@@ -24,4 +24,5 @@ public class StudyPlan {
     private Instant createdAt;
     private Instant updatedAt;
     private double progressPercentage;
+    private List<Integer> reachedMilestones = new java.util.ArrayList<>();
 }

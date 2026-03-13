@@ -10,6 +10,7 @@ import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserProfile;
 import com.talentboozt.s_backend.domains.lifeplanner.ai.model.PlanResponse;
 import com.talentboozt.s_backend.domains.lifeplanner.ai.model.OptimizedScheduleResponse;
 import com.talentboozt.s_backend.domains.lifeplanner.shared.exception.AIProviderException;
+import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserPreferences;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -41,7 +42,7 @@ public class GeminiProvider implements AIProvider {
     @Override
     public PlanResponse generatePlan(Goal goal, UserProfile userProfile, String prompt) {
         try {
-            String rawJson = callGemini(prompt);
+            String rawJson = callGemini(prompt, true);
             return objectMapper.readValue(rawJson, PlanResponse.class);
         } catch (Exception e) {
             log.error("Gemini generatePlan failed: {}", e.getMessage(), e);
@@ -52,7 +53,7 @@ public class GeminiProvider implements AIProvider {
     @Override
     public String generateJournalPrompt(UserProfile userProfile, String prompt) {
         try {
-            return callGemini(prompt);
+            return callGemini(prompt, false);
         } catch (Exception e) {
             log.error("Gemini generateJournalPrompt failed: {}", e.getMessage(), e);
             return "What did you learn about yourself today? Reflect on a moment of growth.";
@@ -60,9 +61,21 @@ public class GeminiProvider implements AIProvider {
     }
 
     @Override
+    public String generateJournalInsight(UserProfile userProfile, String reflection, UserPreferences prefs) {
+        try {
+            String prompt = String.format("Analyze this journal reflection: \"%s\". Provide a short, insightful, and motivating response (max 3 sentences) in the style of a wise life coach. User's background: %s. Preferred journaling style: %s.", 
+                reflection, userProfile.getLifestyleData(), prefs.getJournalingStyle());
+            return callGemini(prompt, false);
+        } catch (Exception e) {
+            log.error("Gemini generateJournalInsight failed: {}", e.getMessage(), e);
+            return "Great reflection. Keep focusing on your goals and maintaining consistency.";
+        }
+    }
+
+    @Override
     public OptimizedScheduleResponse optimizeSchedule(List<String> missedTasks, String prompt) {
         try {
-            String rawJson = callGemini(prompt);
+            String rawJson = callGemini(prompt, true);
             return objectMapper.readValue(rawJson, OptimizedScheduleResponse.class);
         } catch (Exception e) {
             log.error("Gemini optimizeSchedule failed: {}", e.getMessage(), e);
@@ -70,18 +83,22 @@ public class GeminiProvider implements AIProvider {
         }
     }
 
-    private String callGemini(String prompt) {
+    private String callGemini(String prompt, boolean isJsonResponse) {
+        String systemPrefix = isJsonResponse ? "You are a structured JSON planner assistant. Always respond with valid JSON only.\n\n" : "";
         Map<String, Object> requestBody = new LinkedHashMap<>();
         requestBody.put("contents", List.of(
                 Map.of("parts", List.of(
-                        Map.of("text", "You are a structured JSON planner assistant. Always respond with valid JSON only.\n\n" + prompt)
+                        Map.of("text", systemPrefix + prompt)
                 ))
         ));
-        requestBody.put("generationConfig", Map.of(
-                "responseMimeType", "application/json",
-                "temperature", 0.7,
-                "maxOutputTokens", 4096
-        ));
+        
+        Map<String, Object> config = new HashMap<>();
+        config.put("temperature", 0.7);
+        config.put("maxOutputTokens", 4096);
+        if (isJsonResponse) {
+            config.put("responseMimeType", "application/json");
+        }
+        requestBody.put("generationConfig", config);
 
         String uri = "/models/" + model + ":generateContent?key=" + apiKey;
 

@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.lifeplanner.journal.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.talentboozt.s_backend.domains.lifeplanner.journal.model.JournalEntry;
+import com.talentboozt.s_backend.domains.lifeplanner.journal.model.WeeklyMoodSummary;
 import com.talentboozt.s_backend.domains.lifeplanner.journal.model.MoodEntry;
 import com.talentboozt.s_backend.domains.lifeplanner.journal.service.JournalService;
 import com.talentboozt.s_backend.domains.lifeplanner.journal.service.MoodTrackingService;
@@ -24,6 +25,16 @@ public class JournalController {
         String label = (String) payload.get("label");
         MoodEntry entry = moodTrackingService.logMood(userId, score, label);
         return ResponseEntity.ok(entry);
+    }
+
+    @GetMapping("/mood/weekly")
+    public ResponseEntity<List<WeeklyMoodSummary>> getWeeklyMoodSummaries(@RequestHeader("x-user-id") String userId) {
+        return ResponseEntity.ok(moodTrackingService.getWeeklySummaries(userId));
+    }
+
+    @GetMapping("/mood/trends")
+    public ResponseEntity<List<MoodEntry>> getMoodTrends(@RequestHeader("x-user-id") String userId) {
+        return ResponseEntity.ok(moodTrackingService.getMoodTrends(userId));
     }
 
     @PostMapping

@@ -10,6 +10,7 @@ import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserProfile;
 import com.talentboozt.s_backend.domains.lifeplanner.ai.model.PlanResponse;
 import com.talentboozt.s_backend.domains.lifeplanner.ai.model.OptimizedScheduleResponse;
 import com.talentboozt.s_backend.domains.lifeplanner.shared.exception.AIProviderException;
+import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserPreferences;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -57,10 +58,50 @@ public class OpenAIProvider implements AIProvider {
     @Override
     public String generateJournalPrompt(UserProfile userProfile, String prompt) {
         try {
-            return callChatCompletion(prompt);
+            return callChatCompletionWithCustomSystem(prompt, "You are a concise journaling coach. Generate a single reflection prompt as a plain string.");
         } catch (Exception e) {
             log.error("OpenAI generateJournalPrompt failed: {}", e.getMessage(), e);
             return "How was your day? Reflect on your main accomplishments and challenges.";
+        }
+    }
+
+    @Override
+    public String generateJournalInsight(UserProfile userProfile, String reflection, UserPreferences prefs) {
+        try {
+            String prompt = String.format("Analyze this journal reflection: \"%s\". Provide a short, insightful, and motivating response (max 3 sentences) in the style of a wise life coach. User's background: %s. Preferred journaling style: %s.", 
+                reflection, userProfile.getLifestyleData(), prefs.getJournalingStyle());
+            // Insights don't need JSON format, but OpenAI provider is configured for JSON
+            // We'll override the system prompt specifically for this call
+            return callChatCompletionWithCustomSystem(prompt, "You are a wise life coach. Respond with a single concise insight.");
+        } catch (Exception e) {
+            log.error("OpenAI generateJournalInsight failed: {}", e.getMessage(), e);
+            return "Great reflection. Keep focusing on your goals and maintaining consistency.";
+        }
+    }
+
+    private String callChatCompletionWithCustomSystem(String prompt, String systemMessage) {
+        Map<String, Object> requestBody = new LinkedHashMap<>();
+        requestBody.put("model", model);
+        requestBody.put("max_tokens", 200); // Shorter for insights
+        requestBody.put("temperature", temperature);
+        requestBody.put("messages", List.of(
+                Map.of("role", "system", "content", systemMessage),
+                Map.of("role", "user", "content", prompt)
+        ));
+
+        String responseBody = webClient.post()
+                .uri("/chat/completions")
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+
+        try {
+            JsonNode root = objectMapper.readTree(responseBody);
+            return root.path("choices").get(0).path("message").path("content").asText();
+        } catch (Exception e) {
+            log.error("Failed to parse OpenAI response: {}", responseBody, e);
+            throw new AIProviderException("Failed to parse OpenAI response", e);
         }
     }
 
