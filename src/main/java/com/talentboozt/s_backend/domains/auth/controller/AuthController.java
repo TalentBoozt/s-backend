@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.auth.controller;
 
 import com.talentboozt.s_backend.domains.auth.service.UserPermissionsService;
 import com.talentboozt.s_backend.domains.common.dto.ErrorResponse;
+import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
+import com.talentboozt.s_backend.domains.user.service.EmployeeService;
 import com.talentboozt.s_backend.domains.auth.dto.SSO.JwtUserPayload;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
@@ -28,6 +30,7 @@ import java.util.Optional;
 public class AuthController {
 
     private final CredentialsService credentialsService;
+    private final EmployeeService employeeService;
     private final JwtService jwtService;
     private final KeyService keyService;
     private final JwtUtil jwtUtil;
@@ -35,9 +38,10 @@ public class AuthController {
 
     private final int COOKIE_EXPIRATION = 60 * 60 * 24 * 7;
 
-    public AuthController(CredentialsService credentialsService, JwtService jwtService, KeyService keyService,
+    public AuthController(CredentialsService credentialsService, EmployeeService employeeService, JwtService jwtService, KeyService keyService,
                           JwtUtil jwtUtil, UserPermissionsService userPermissionsService) {
         this.credentialsService = credentialsService;
+        this.employeeService = employeeService;
         this.jwtService = jwtService;
         this.keyService = keyService;
         this.jwtUtil = jwtUtil;
@@ -47,10 +51,12 @@ public class AuthController {
     @PostMapping({"/login", "/login/{platform}", "/register", "/register/{platform}"})
     public ResponseEntity<?> loginOrRegister(@PathVariable(value = "platform", required = false) String platform, @RequestBody CredentialsModel loginRequest) {
         Optional<CredentialsModel> userOptional = Optional.ofNullable(credentialsService.getCredentialsByEmail(loginRequest.getEmail()));
+        Optional<EmployeeModel> employeeOptional = Optional.ofNullable(employeeService.getEmployeeByEmail(loginRequest.getEmail()));
 
         // If user exists → LOGIN
-        if (userOptional.isPresent()) {
+        if (userOptional.isPresent() && employeeOptional.isPresent()) {
             CredentialsModel user = userOptional.get();
+            EmployeeModel emp = employeeOptional.get();
 
             if (user.isDisabled()) {
                 return ResponseEntity.badRequest().body(new ErrorResponse("Your account is disabled"));
@@ -60,7 +66,7 @@ public class AuthController {
             userPayload.setUserId(user.getEmployeeId());
             userPayload.setEmail(user.getEmail());
             userPayload.setUserLevel(user.getUserLevel());
-            userPayload.setPlatformRole(user.getPlatformRole());
+            userPayload.setPlatformRole(emp.getPlatformRole().toString());
             userPayload.setRoles(user.getRoles());
             userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
 
