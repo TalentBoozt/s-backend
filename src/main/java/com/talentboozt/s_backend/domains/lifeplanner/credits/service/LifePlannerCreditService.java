@@ -19,11 +19,19 @@ public class LifePlannerCreditService {
     private final UserCreditsRepository userCreditsRepository;
 
     public void deductCredits(String userId, int amount) {
+        if (userId == null || userId.trim().isEmpty()) {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Credit deduction amount must be positive");
+        }
+
         UserCredits credits = userCreditsRepository.findByUserId(userId)
                 .orElseGet(() -> initializeFreeTier(userId));
 
         // Let's implement auto-refresh if more than a month has passed
-        if (credits.getLastRefreshedAt() != null &&
+        if (credits.getTier() != null && 
+            credits.getLastRefreshedAt() != null &&
             credits.getLastRefreshedAt().isBefore(Instant.now().minus(30, ChronoUnit.DAYS))) {
             credits.setCreditsAvailable(credits.getTier().getMonthlyCredits());
             credits.setLastRefreshedAt(Instant.now());
@@ -41,6 +49,9 @@ public class LifePlannerCreditService {
     }
 
     public UserCredits getUserCreditsInfo(String userId) {
+        if (userId == null || userId.trim().isEmpty()) {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
         return userCreditsRepository.findByUserId(userId)
                 .orElseGet(() -> {
                     UserCredits newCredits = initializeFreeTier(userId);
@@ -49,8 +60,15 @@ public class LifePlannerCreditService {
     }
 
     public UserCredits upgradeTier(String userId, SubscriptionTier newTier) {
+        if (userId == null || userId.trim().isEmpty()) {
+            throw new IllegalArgumentException("User ID cannot be null or empty");
+        }
+        if (newTier == null) {
+            throw new IllegalArgumentException("New subscription tier cannot be null");
+        }
+
         UserCredits credits = userCreditsRepository.findByUserId(userId)
-                .orElse(initializeFreeTier(userId));
+                .orElseGet(() -> initializeFreeTier(userId));
 
         credits.setTier(newTier);
         credits.setCreditsAvailable(newTier.getMonthlyCredits()); // reset immediately on upgrade
