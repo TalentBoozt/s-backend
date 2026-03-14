@@ -81,6 +81,10 @@ public class EmployeeService {
                 pageable);
     }
 
+    public EmployeeModel getEmployeeByEmail(String email) {
+        return employeeRepository.findByEmail(email).orElse(null);
+    }
+
     public EmployeeModel getEmployee(String id) {
         return employeeRepository.findById(Objects.requireNonNull(id)).orElse(null);
     }

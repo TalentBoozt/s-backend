@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.lifeplanner.planner.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
@@ -20,6 +21,7 @@ public class DailySchedule {
     private String userId;
     private LocalDate scheduleDate;
     private List<ScheduleTask> tasks;
+    @JsonProperty("isCompleted")
     private boolean isCompleted;
 
     @Data
@@ -30,6 +32,7 @@ public class DailySchedule {
         private String category;
         private String startTime;
         private String endTime;
+        @JsonProperty("isCompleted")
         private boolean isCompleted;
         private String completedAt;
     }
