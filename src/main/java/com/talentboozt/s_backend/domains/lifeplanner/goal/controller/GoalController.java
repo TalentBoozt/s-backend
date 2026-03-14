@@ -4,8 +4,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.talentboozt.s_backend.domains.lifeplanner.goal.model.Goal;
 import com.talentboozt.s_backend.domains.lifeplanner.goal.service.GoalService;
+import com.talentboozt.s_backend.domains.lifeplanner.goal.dto.GoalResponseDTO;
+import com.talentboozt.s_backend.domains.lifeplanner.planner.service.StudyPlanService;
+import com.talentboozt.s_backend.domains.lifeplanner.planner.model.StudyPlan;
 import java.util.List;
+import java.util.Optional;
+import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/lifeplanner/goals")
@@ -13,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 public class GoalController {
 
     private final GoalService goalService;
+    private final StudyPlanService studyPlanService;
 
     @PostMapping
     public ResponseEntity<Goal> createGoal(@RequestBody Goal goal, @RequestHeader("x-user-id") String userId) {
@@ -22,16 +29,30 @@ public class GoalController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Goal>> getGoals(@RequestHeader("x-user-id") String userId) {
+    public ResponseEntity<List<GoalResponseDTO>> getGoals(@RequestHeader("x-user-id") String userId) {
         List<Goal> goals = goalService.getGoalsByUserId(userId);
-        return ResponseEntity.ok(goals);
+        List<GoalResponseDTO> responses = new ArrayList<>();
+        
+        for (Goal goal : goals) {
+            Optional<StudyPlan> plan = studyPlanService.getPlanByGoalId(goal.getGoalId());
+            String planStatus = plan.map(StudyPlan::getStatus).orElse("NO_PLAN");
+            double progress = plan.map(StudyPlan::getProgressPercentage).orElse(0.0);
+            responses.add(GoalResponseDTO.fromEntity(goal, planStatus, progress));
+        }
+        
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Goal> getGoalById(@PathVariable String id, @RequestHeader("x-user-id") String userId) {
-        return goalService.getGoalById(id)
-                .filter(goal -> goal.getUserId().equals(userId))
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(403).build());
+    public ResponseEntity<GoalResponseDTO> getGoalById(@PathVariable String id, @RequestHeader("x-user-id") String userId) {
+        Goal goal = goalService.getGoalById(id)
+                .filter(g -> g.getUserId().equals(userId))
+                .orElseThrow(() -> new NoSuchElementException("Goal not found"));
+
+        Optional<StudyPlan> plan = studyPlanService.getPlanByGoalId(goal.getGoalId());
+        String planStatus = plan.map(StudyPlan::getStatus).orElse("NO_PLAN");
+        double progress = plan.map(StudyPlan::getProgressPercentage).orElse(0.0);
+        
+        return ResponseEntity.ok(GoalResponseDTO.fromEntity(goal, planStatus, progress));
     }
 }
