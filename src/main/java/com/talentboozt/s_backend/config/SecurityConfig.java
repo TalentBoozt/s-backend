@@ -128,7 +128,7 @@ public class SecurityConfig {
                                     "/api/security/**", "/api/v2/github/**", "/api/v2/facebook/**",
                                     "/api/v2/linkedin/**", "/callback/google/**",
                                     "/api/v2/ambassador/**", "/api/v2/courses/**",
-                                    "/api/v2/password-reset/request",
+                                    "/api/v2/password-reset/**",
                                     "/api/v2/payments/recorded/**", "/api/v2/news-latter/**",
                                     "/api/v2/email/**", "/api/security/verify-captcha",
                                     "/ws/**", "/api/v2/batch/**", "/api/v2/metrics/**",
