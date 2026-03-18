@@ -38,6 +38,7 @@ build/
 .env
 talnova-488815-4df99c8c918b.json
 *~
+tmp
 
 ### Cleaned Data Frame ###
 /src/main/resources/training/events_data_cleaned.csv
