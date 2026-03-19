@@ -33,6 +33,9 @@ public class PlanController {
         UserProfile profile = userService.getProfileByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Profile not found for user: " + userId));
 
+        // Delete existing plan to allow clean regeneration
+        studyPlanService.deletePlanByGoalId(goalId);
+
         PlanResponse response = planGenerator.generatePlanForGoal(goal, profile);
         StudyPlan studyPlan = studyPlanService.createPlanFromAIResponse(goal, response);
 

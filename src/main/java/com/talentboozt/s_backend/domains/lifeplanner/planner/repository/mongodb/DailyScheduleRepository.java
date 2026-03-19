@@ -11,5 +11,6 @@ import java.util.List;
 public interface DailyScheduleRepository extends MongoRepository<DailySchedule, String> {
     Optional<DailySchedule> findByUserIdAndScheduleDate(String userId, LocalDate scheduleDate);
     List<DailySchedule> findByPlanId(String planId);
+    void deleteByPlanId(String planId);
     List<DailySchedule> findByUserId(String userId);
 }

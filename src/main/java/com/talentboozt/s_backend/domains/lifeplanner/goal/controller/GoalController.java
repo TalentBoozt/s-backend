@@ -55,4 +55,22 @@ public class GoalController {
         
         return ResponseEntity.ok(GoalResponseDTO.fromEntity(goal, planStatus, progress));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<GoalResponseDTO> updateGoal(@PathVariable String id, @RequestBody Goal goal, @RequestHeader("x-user-id") String userId) {
+        Goal updatedGoal = goalService.updateGoal(id, userId, goal);
+        
+        Optional<StudyPlan> plan = studyPlanService.getPlanByGoalId(updatedGoal.getGoalId());
+        String planStatus = plan.map(StudyPlan::getStatus).orElse("NO_PLAN");
+        double progress = plan.map(StudyPlan::getProgressPercentage).orElse(0.0);
+
+        return ResponseEntity.ok(GoalResponseDTO.fromEntity(updatedGoal, planStatus, progress));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGoal(@PathVariable String id, @RequestHeader("x-user-id") String userId) {
+        studyPlanService.deletePlanByGoalId(id);
+        goalService.deleteGoal(id, userId);
+        return ResponseEntity.noContent().build();
+    }
 }

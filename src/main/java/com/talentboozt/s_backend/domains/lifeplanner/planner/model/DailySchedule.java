@@ -35,5 +35,7 @@ public class DailySchedule {
         @JsonProperty("isCompleted")
         private boolean isCompleted;
         private String completedAt;
+        private String priority;
+        private String notes;
     }
 }

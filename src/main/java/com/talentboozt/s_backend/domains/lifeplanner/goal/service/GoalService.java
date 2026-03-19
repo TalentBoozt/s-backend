@@ -28,4 +28,26 @@ public class GoalService {
     public Optional<Goal> getGoalById(String goalId) {
         return goalRepository.findById(goalId);
     }
+
+    public Goal updateGoal(String goalId, String userId, Goal updatedGoal) {
+        return goalRepository.findById(goalId)
+            .filter(g -> g.getUserId().equals(userId))
+            .map(goal -> {
+                goal.setTitle(updatedGoal.getTitle());
+                goal.setDescription(updatedGoal.getDescription());
+                goal.setDeadline(updatedGoal.getDeadline());
+                goal.setDifficulty(updatedGoal.getDifficulty());
+                goal.setType(updatedGoal.getType());
+                goal.setTimeline(updatedGoal.getTimeline());
+                goal.setUpdatedAt(Instant.now());
+                return goalRepository.save(goal);
+            }).orElseThrow(() -> new java.util.NoSuchElementException("Goal not found or unauthorized"));
+    }
+
+    public void deleteGoal(String goalId, String userId) {
+        Goal goal = goalRepository.findById(goalId)
+            .filter(g -> g.getUserId().equals(userId))
+            .orElseThrow(() -> new java.util.NoSuchElementException("Goal not found or unauthorized"));
+        goalRepository.delete(goal);
+    }
 }

@@ -249,6 +249,20 @@ public class AuthController {
 
         return ResponseEntity.ok(responseBody);
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("Email is required"));
+        }
+        return ResponseEntity.ok(Map.of("message", "Password reset instructions sent to " + email));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(Map.of("message", "Password reset successfully."));
+    }
 }
 
 @Getter

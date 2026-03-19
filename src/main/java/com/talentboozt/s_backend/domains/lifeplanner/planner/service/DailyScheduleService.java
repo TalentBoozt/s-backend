@@ -90,7 +90,7 @@ public class DailyScheduleService {
         return dailyScheduleRepository.findByUserIdAndScheduleDate(userId, LocalDate.now()).orElse(null);
     }
 
-    public void addTaskToToday(String userId, String title, String category, String estimatedTime) {
+    public void addTaskToToday(String userId, String title, String category, String estimatedTime, String priority, String notes) {
         DailySchedule schedule = getTodaySchedule(userId);
         if (schedule == null) {
             // Create a basic schedule if none exists for today
@@ -106,6 +106,8 @@ public class DailyScheduleService {
         task.setTitle(title);
         task.setCategory(category);
         task.setEstimatedTime(estimatedTime);
+        task.setPriority(priority);
+        task.setNotes(notes);
         task.setCompleted(false);
         
         // Find last task end time or start at 9 AM
@@ -121,6 +123,31 @@ public class DailyScheduleService {
 
         schedule.getTasks().add(task);
         dailyScheduleRepository.save(schedule);
+    }
+
+    public void updateTask(String userId, String scheduleId, String taskId, String title, String category, String estimatedTime, String priority, String notes) {
+        DailySchedule schedule = dailyScheduleRepository.findById(scheduleId).orElse(null);
+        if (schedule != null && schedule.getUserId().equals(userId)) {
+            schedule.getTasks().stream()
+                .filter(t -> t.getTaskId().equals(taskId))
+                .findFirst()
+                .ifPresent(t -> {
+                    if (title != null) t.setTitle(title);
+                    if (category != null) t.setCategory(category);
+                    if (estimatedTime != null) t.setEstimatedTime(estimatedTime);
+                    t.setPriority(priority);
+                    t.setNotes(notes);
+                });
+            dailyScheduleRepository.save(schedule);
+        }
+    }
+
+    public void deleteTask(String userId, String scheduleId, String taskId) {
+        DailySchedule schedule = dailyScheduleRepository.findById(scheduleId).orElse(null);
+        if (schedule != null && schedule.getUserId().equals(userId)) {
+            schedule.getTasks().removeIf(t -> t.getTaskId().equals(taskId));
+            dailyScheduleRepository.save(schedule);
+        }
     }
 
     public void reorderTasks(String userId, String scheduleId, List<String> taskIds) {

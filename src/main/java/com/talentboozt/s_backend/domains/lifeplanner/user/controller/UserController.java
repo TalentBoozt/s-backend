@@ -26,6 +26,12 @@ public class UserController {
         return ResponseEntity.ok(userService.getOrCreateUser(userId));
     }
 
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteAccount(@RequestHeader("x-user-id") String userId) {
+        userService.deleteAccount(userId);
+        return ResponseEntity.noContent().build();
+    }
+
     // ── Profile ──
 
     @PostMapping("/profile")
