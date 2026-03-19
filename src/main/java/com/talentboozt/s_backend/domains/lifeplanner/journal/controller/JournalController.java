@@ -53,4 +53,16 @@ public class JournalController {
     public ResponseEntity<Map<String, String>> getPrompt(@RequestHeader("x-user-id") String userId) {
         return ResponseEntity.ok(Map.of("prompt", journalService.getPromptForToday(userId)));
     }
+
+    @PutMapping("/{entryId}")
+    public ResponseEntity<JournalEntry> updateJournal(@PathVariable String entryId, @RequestBody Map<String, String> payload, @RequestHeader("x-user-id") String userId) {
+        String reflection = payload.get("reflection");
+        return ResponseEntity.ok(journalService.updatePastEntry(userId, entryId, reflection));
+    }
+
+    @DeleteMapping("/{entryId}")
+    public ResponseEntity<Void> deleteJournal(@PathVariable String entryId, @RequestHeader("x-user-id") String userId) {
+        journalService.deleteEntry(userId, entryId);
+        return ResponseEntity.noContent().build();
+    }
 }

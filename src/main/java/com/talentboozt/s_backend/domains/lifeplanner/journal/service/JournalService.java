@@ -49,4 +49,23 @@ public class JournalService {
     public List<JournalEntry> getAllEntries(String userId) {
         return journalEntryRepository.findByUserIdOrderByDateDesc(userId);
     }
+
+    public JournalEntry updatePastEntry(String userId, String entryId, String reflection) {
+        JournalEntry entry = journalEntryRepository.findById(entryId)
+                .filter(e -> e.getUserId().equals(userId))
+                .orElseThrow(() -> new java.util.NoSuchElementException("Entry not found"));
+        entry.setReflection(reflection);
+        try {
+            String insight = journalGenerator.generateInsight(userId, reflection);
+            entry.setAiInsight(insight);
+        } catch (Exception e) {}
+        return journalEntryRepository.save(entry);
+    }
+
+    public void deleteEntry(String userId, String entryId) {
+        JournalEntry entry = journalEntryRepository.findById(entryId)
+                .filter(e -> e.getUserId().equals(userId))
+                .orElseThrow(() -> new java.util.NoSuchElementException("Entry not found"));
+        journalEntryRepository.delete(entry);
+    }
 }

@@ -9,6 +9,7 @@ import java.util.Optional;
 @Repository
 public interface StudyPlanRepository extends MongoRepository<StudyPlan, String> {
     Optional<StudyPlan> findByGoalId(String goalId);
+    void deleteByGoalId(String goalId);
     List<StudyPlan> findByUserId(String userId);
     long countByStatus(String status);
     List<StudyPlan> findByStatus(String status);

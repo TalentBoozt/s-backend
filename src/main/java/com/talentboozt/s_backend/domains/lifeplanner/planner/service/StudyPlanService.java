@@ -100,4 +100,12 @@ public class StudyPlanService {
     public List<StudyPlan> findByUserId(String userId) {
         return studyPlanRepository.findByUserId(userId);
     }
+
+    public void deletePlanByGoalId(String goalId) {
+        Optional<StudyPlan> plan = studyPlanRepository.findByGoalId(goalId);
+        if (plan.isPresent()) {
+            dailyScheduleRepository.deleteByPlanId(plan.get().getPlanId());
+            studyPlanRepository.deleteByGoalId(goalId);
+        }
+    }
 }

@@ -66,7 +66,30 @@ public class ScheduleController {
         String title = payload.get("title");
         String category = payload.get("category");
         String estimatedTime = payload.get("estimatedTime");
-        dailyScheduleService.addTaskToToday(userId, title, category, estimatedTime);
+        String priority = payload.get("priority");
+        String notes = payload.get("notes");
+        dailyScheduleService.addTaskToToday(userId, title, category, estimatedTime, priority, notes);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/update-task")
+    public ResponseEntity<Void> updateTask(@RequestBody Map<String, String> payload, @RequestHeader("x-user-id") String userId) {
+        String scheduleId = payload.get("scheduleId");
+        String taskId = payload.get("taskId");
+        String title = payload.get("title");
+        String category = payload.get("category");
+        String estimatedTime = payload.get("estimatedTime");
+        String priority = payload.get("priority");
+        String notes = payload.get("notes");
+        dailyScheduleService.updateTask(userId, scheduleId, taskId, title, category, estimatedTime, priority, notes);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/delete-task")
+    public ResponseEntity<Void> deleteTask(@RequestBody Map<String, String> payload, @RequestHeader("x-user-id") String userId) {
+        String scheduleId = payload.get("scheduleId");
+        String taskId = payload.get("taskId");
+        dailyScheduleService.deleteTask(userId, scheduleId, taskId);
         return ResponseEntity.ok().build();
     }
 

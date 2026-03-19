@@ -85,4 +85,10 @@ public class UserService {
     public Optional<UserPreferences> getPreferencesByUserId(String userId) {
         return userPreferencesRepository.findByUserId(userId);
     }
+
+    public void deleteAccount(String userId) {
+        userRepository.deleteById(userId);
+        userProfileRepository.findByUserId(userId).ifPresent(userProfileRepository::delete);
+        userPreferencesRepository.findByUserId(userId).ifPresent(userPreferencesRepository::delete);
+    }
 }
