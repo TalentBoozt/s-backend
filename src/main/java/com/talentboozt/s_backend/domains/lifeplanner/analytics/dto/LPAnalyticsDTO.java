@@ -7,7 +7,7 @@ import java.util.Map;
 
 @Data
 @Builder
-public class AnalyticsDTO {
+public class LPAnalyticsDTO {
     private int totalTasksCompleted;
     private int totalTasksPending;
     private double completionRate;

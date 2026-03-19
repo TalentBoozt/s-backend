@@ -2,19 +2,19 @@ package com.talentboozt.s_backend.domains.lifeplanner.notification.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.talentboozt.s_backend.domains.lifeplanner.notification.model.Notification;
-import com.talentboozt.s_backend.domains.lifeplanner.notification.service.NotificationService;
+import com.talentboozt.s_backend.domains.lifeplanner.notification.model.LPNotification;
+import com.talentboozt.s_backend.domains.lifeplanner.notification.service.LPNotificationService;
 import lombok.RequiredArgsConstructor;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/lifeplanner/notifications")
 @RequiredArgsConstructor
-public class NotificationController {
-    private final NotificationService notificationService;
+public class LPNotificationController {
+    private final LPNotificationService notificationService;
 
     @GetMapping
-    public ResponseEntity<List<Notification>> getNotifications(@RequestHeader("x-user-id") String userId) {
+    public ResponseEntity<List<LPNotification>> getNotifications(@RequestHeader("x-user-id") String userId) {
         return ResponseEntity.ok(notificationService.getUserNotifications(userId));
     }
 

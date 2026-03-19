@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.lifeplanner.analytics.service;
 
 import org.springframework.stereotype.Service;
-import com.talentboozt.s_backend.domains.lifeplanner.analytics.dto.AnalyticsDTO;
+import com.talentboozt.s_backend.domains.lifeplanner.analytics.dto.LPAnalyticsDTO;
 import com.talentboozt.s_backend.domains.lifeplanner.planner.model.DailySchedule;
 import com.talentboozt.s_backend.domains.lifeplanner.planner.repository.mongodb.DailyScheduleRepository;
 import com.talentboozt.s_backend.domains.lifeplanner.planner.service.StreakService;
@@ -15,13 +15,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AnalyticsService {
+public class LPAnalyticsService {
 
     private final DailyScheduleRepository dailyScheduleRepository;
     private final MoodEntryRepository moodEntryRepository;
     private final StreakService streakService;
 
-    public AnalyticsDTO getAnalytics(String userId) {
+    public LPAnalyticsDTO getAnalytics(String userId) {
         List<DailySchedule> allSchedules = dailyScheduleRepository.findByUserId(userId);
 
         // Flatten all tasks
@@ -60,7 +60,7 @@ public class AnalyticsService {
         Map<LocalDate, Integer> moodByDate = moodEntries.stream()
                 .collect(Collectors.toMap(MoodEntry::getDate, MoodEntry::getScore, (a, b) -> b));
 
-        List<AnalyticsDTO.DailyStats> dailyStats = new ArrayList<>();
+        List<LPAnalyticsDTO.DailyStats> dailyStats = new ArrayList<>();
         for (int i = 0; i < 14; i++) {
             LocalDate date = twoWeeksAgo.plusDays(i);
             DailySchedule schedule = allSchedules.stream()
@@ -74,7 +74,7 @@ public class AnalyticsService {
                 completed = (int) schedule.getTasks().stream().filter(DailySchedule.ScheduleTask::isCompleted).count();
             }
 
-            dailyStats.add(AnalyticsDTO.DailyStats.builder()
+            dailyStats.add(LPAnalyticsDTO.DailyStats.builder()
                     .date(date.toString())
                     .tasksCompleted(completed)
                     .totalTasks(total)
@@ -99,7 +99,7 @@ public class AnalyticsService {
                 })
                 .sum();
 
-        return AnalyticsDTO.builder()
+        return LPAnalyticsDTO.builder()
                 .totalTasksCompleted(totalCompleted)
                 .totalTasksPending(totalPending)
                 .completionRate(Math.round(completionRate * 10.0) / 10.0)

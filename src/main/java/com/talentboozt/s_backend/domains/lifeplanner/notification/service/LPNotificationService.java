@@ -1,19 +1,19 @@
 package com.talentboozt.s_backend.domains.lifeplanner.notification.service;
 
 import org.springframework.stereotype.Service;
-import com.talentboozt.s_backend.domains.lifeplanner.notification.model.Notification;
-import com.talentboozt.s_backend.domains.lifeplanner.notification.repository.mongodb.NotificationRepository;
+import com.talentboozt.s_backend.domains.lifeplanner.notification.model.LPNotification;
+import com.talentboozt.s_backend.domains.lifeplanner.notification.repository.mongodb.LPNotificationRepository;
 import lombok.RequiredArgsConstructor;
 import java.time.Instant;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class NotificationService {
-    private final NotificationRepository notificationRepository;
+public class LPNotificationService {
+    private final LPNotificationRepository notificationRepository;
 
-    public Notification createNotification(String userId, String title, String message, String type) {
-        Notification notification = new Notification();
+    public LPNotification createNotification(String userId, String title, String message, String type) {
+        LPNotification notification = new LPNotification();
         notification.setUserId(userId);
         notification.setTitle(title);
         notification.setMessage(message);
@@ -23,7 +23,7 @@ public class NotificationService {
         return notificationRepository.save(notification);
     }
 
-    public List<Notification> getUserNotifications(String userId) {
+    public List<LPNotification> getUserNotifications(String userId) {
         return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 

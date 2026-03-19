@@ -8,7 +8,7 @@ import java.time.Instant;
 
 @Data
 @Document(collection = "lp_notifications")
-public class Notification {
+public class LPNotification {
     @Id
     private String id;
     @Indexed
