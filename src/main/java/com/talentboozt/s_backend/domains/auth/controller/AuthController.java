@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.auth.controller;
 import com.talentboozt.s_backend.domains.auth.service.UserPermissionsService;
 import com.talentboozt.s_backend.domains.common.dto.ErrorResponse;
 import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
+import com.talentboozt.s_backend.domains.user.model.PlatformRole;
 import com.talentboozt.s_backend.domains.user.service.EmployeeService;
 import com.talentboozt.s_backend.domains.auth.dto.SSO.JwtUserPayload;
 import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
@@ -38,8 +39,9 @@ public class AuthController {
 
     private final int COOKIE_EXPIRATION = 60 * 60 * 24 * 7;
 
-    public AuthController(CredentialsService credentialsService, EmployeeService employeeService, JwtService jwtService, KeyService keyService,
-                          JwtUtil jwtUtil, UserPermissionsService userPermissionsService) {
+    public AuthController(CredentialsService credentialsService, EmployeeService employeeService, JwtService jwtService,
+            KeyService keyService,
+            JwtUtil jwtUtil, UserPermissionsService userPermissionsService) {
         this.credentialsService = credentialsService;
         this.employeeService = employeeService;
         this.jwtService = jwtService;
@@ -48,10 +50,13 @@ public class AuthController {
         this.userPermissionsService = userPermissionsService;
     }
 
-    @PostMapping({"/login", "/login/{platform}", "/register", "/register/{platform}"})
-    public ResponseEntity<?> loginOrRegister(@PathVariable(value = "platform", required = false) String platform, @RequestBody CredentialsModel loginRequest) {
-        Optional<CredentialsModel> userOptional = Optional.ofNullable(credentialsService.getCredentialsByEmail(loginRequest.getEmail()));
-        Optional<EmployeeModel> employeeOptional = Optional.ofNullable(employeeService.getEmployeeByEmail(loginRequest.getEmail()));
+    @PostMapping({ "/login", "/login/{platform}", "/register", "/register/{platform}" })
+    public ResponseEntity<?> loginOrRegister(@PathVariable(value = "platform", required = false) String platform,
+            @RequestBody CredentialsModel loginRequest) {
+        Optional<CredentialsModel> userOptional = Optional
+                .ofNullable(credentialsService.getCredentialsByEmail(loginRequest.getEmail()));
+        Optional<EmployeeModel> employeeOptional = Optional
+                .ofNullable(employeeService.getEmployeeByEmail(loginRequest.getEmail()));
 
         // If user exists → LOGIN
         if (userOptional.isPresent() && employeeOptional.isPresent()) {
@@ -66,7 +71,7 @@ public class AuthController {
             userPayload.setUserId(user.getEmployeeId());
             userPayload.setEmail(user.getEmail());
             userPayload.setUserLevel(user.getUserLevel());
-            userPayload.setPlatformRole(emp.getPlatformRole().toString());
+            userPayload.setPlatformRole(emp.getPlatformRole());
             userPayload.setRoles(user.getRoles());
             userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
 
@@ -84,7 +89,9 @@ public class AuthController {
                 String token = jwtService.generateToken(userPayload);
                 String refreshToken = jwtService.generateRefreshToken(userPayload);
 
-                return ResponseEntity.ok(new AuthResponse(token, refreshToken, user.getEmployeeId(), user.getEmail(), user.getUserLevel(), user.getPlatformRole(), user.getOrganizations(), user.getPermissions(), user.getRoles(), user.isActive()));
+                return ResponseEntity.ok(new AuthResponse(token, refreshToken, user.getEmployeeId(), user.getEmail(),
+                        user.getUserLevel(), user.getPlatformRole(), user.getOrganizations(), user.getPermissions(),
+                        user.getRoles(), user.isActive()));
 
             } catch (Exception e) {
                 return ResponseEntity.status(500).body(new ErrorResponse("Decryption failed: " + e.getMessage()));
@@ -94,7 +101,8 @@ public class AuthController {
         // If user does NOT exist AND username is provided → REGISTER
         if (loginRequest.getFirstname() != null && !loginRequest.getFirstname().trim().isEmpty()) {
             try {
-                ResponseEntity<Map<String, String>> encryptedPassword = keyService.encryptData(loginRequest.getPassword());
+                ResponseEntity<Map<String, String>> encryptedPassword = keyService
+                        .encryptData(loginRequest.getPassword());
                 String password = Objects.requireNonNull(encryptedPassword.getBody()).get("data");
                 String referrer = loginRequest.getReferrerId();
 
@@ -103,14 +111,15 @@ public class AuthController {
                 CredentialsModel newUser = credentialsService.addCredentials(loginRequest, platform, referrer);
 
                 if (newUser.isDisabled()) {
-                    return ResponseEntity.status(403).body(new ErrorResponse("Registered user but your account is disabled"));
+                    return ResponseEntity.status(403)
+                            .body(new ErrorResponse("Registered user but your account is disabled"));
                 }
 
                 JwtUserPayload userPayload = new JwtUserPayload();
                 userPayload.setUserId(newUser.getEmployeeId());
                 userPayload.setEmail(newUser.getEmail());
                 userPayload.setUserLevel(newUser.getUserLevel());
-                userPayload.setPlatformRole(newUser.getPlatformRole());
+                userPayload.setPlatformRole(PlatformRole.USER);
                 userPayload.setRoles(newUser.getRoles());
                 userPayload.setPermissions(userPermissionsService.resolvePermissions(newUser.getRoles()));
 
@@ -118,7 +127,9 @@ public class AuthController {
                 String token = jwtService.generateToken(userPayload);
                 String refreshToken = jwtService.generateRefreshToken(userPayload);
 
-                return ResponseEntity.ok(new AuthResponse(token, refreshToken, newUser.getEmployeeId(), newUser.getEmail(), newUser.getUserLevel(), newUser.getPlatformRole(), newUser.getOrganizations(), newUser.getPermissions(), newUser.getRoles(), newUser.isActive()));
+                return ResponseEntity.ok(new AuthResponse(token, refreshToken, newUser.getEmployeeId(),
+                        newUser.getEmail(), newUser.getUserLevel(), newUser.getPlatformRole(),
+                        newUser.getOrganizations(), newUser.getPermissions(), newUser.getRoles(), newUser.isActive()));
 
             } catch (Exception e) {
                 return ResponseEntity.status(500).body(new ErrorResponse("Encryption failed: " + e.getMessage()));
@@ -138,11 +149,12 @@ public class AuthController {
             // Extract user information from refresh token or database
             String email = jwtUtil.extractUsername(refreshToken);
             CredentialsModel user = credentialsService.getCredentialsByEmail(email);
+            EmployeeModel emp = employeeService.getEmployeeByEmail(email);
             JwtUserPayload userPayload = new JwtUserPayload();
             userPayload.setUserId(user.getEmployeeId());
             userPayload.setEmail(user.getEmail());
             userPayload.setUserLevel(user.getUserLevel());
-            userPayload.setPlatformRole(user.getPlatformRole());
+            userPayload.setPlatformRole(emp.getPlatformRole());
             userPayload.setRoles(user.getRoles());
             userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
 
@@ -151,21 +163,25 @@ public class AuthController {
             String newRefreshToken = jwtService.generateRefreshToken(userPayload);
 
             // Return new access token
-            return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken, user.getEmployeeId(), user.getEmail(), user.getUserLevel(), user.getPlatformRole(), user.getOrganizations(), user.getPermissions(), user.getRoles(), user.isActive()));
+            return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken, user.getEmployeeId(),
+                    user.getEmail(), user.getUserLevel(), user.getPlatformRole(), user.getOrganizations(),
+                    user.getPermissions(), user.getRoles(), user.isActive()));
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid refresh token"));
     }
 
     @PostMapping("/social-login-process/{platform}")
-    public ResponseEntity<?> socialLoginProcess(@RequestBody CredentialsModel credentials, @PathVariable String platform, HttpServletResponse response) {
-        CredentialsModel savedUser = credentialsService.addCredentials(credentials, platform, credentials.getReferrerId());
+    public ResponseEntity<?> socialLoginProcess(@RequestBody CredentialsModel credentials,
+            @PathVariable String platform, HttpServletResponse response) {
+        CredentialsModel savedUser = credentialsService.addCredentials(credentials, platform,
+                credentials.getReferrerId());
 
         JwtUserPayload userPayload = new JwtUserPayload();
         userPayload.setUserId(savedUser.getEmployeeId());
         userPayload.setEmail(savedUser.getEmail());
         userPayload.setUserLevel(savedUser.getUserLevel());
-        userPayload.setPlatformRole(savedUser.getPlatformRole());
+        userPayload.setPlatformRole(PlatformRole.USER);
         userPayload.setRoles(savedUser.getRoles());
         userPayload.setPermissions(userPermissionsService.resolvePermissions(savedUser.getRoles()));
 
@@ -209,13 +225,15 @@ public class AuthController {
     @GetMapping("/getTokens/{email}")
     public ResponseEntity<?> getCredentialsByEmail(@PathVariable String email, HttpServletResponse response) {
         CredentialsModel credentials = credentialsService.getCredentialsByEmail(email);
-        if (credentials == null) return null;
+        EmployeeModel emp = employeeService.getEmployeeByEmail(email);
+        if (credentials == null)
+            return null;
 
         JwtUserPayload userPayload = new JwtUserPayload();
         userPayload.setUserId(credentials.getEmployeeId());
         userPayload.setEmail(credentials.getEmail());
         userPayload.setUserLevel(credentials.getUserLevel());
-        userPayload.setPlatformRole(credentials.getPlatformRole());
+        userPayload.setPlatformRole(emp.getPlatformRole());
         userPayload.setRoles(credentials.getRoles());
         userPayload.setPermissions(userPermissionsService.resolvePermissions(credentials.getRoles()));
 
@@ -279,7 +297,9 @@ class AuthResponse {
     private String platformRole;
     private boolean active;
 
-    public AuthResponse(String token, String refreshToken, String employeeId, String email, String userLevel, String platformRole, List<Map<String, String>> organizations, List<String> permissions, List<String> roles, boolean active) {
+    public AuthResponse(String token, String refreshToken, String employeeId, String email, String userLevel,
+            String platformRole, List<Map<String, String>> organizations, List<String> permissions, List<String> roles,
+            boolean active) {
         this.token = token;
         this.refreshToken = refreshToken;
         this.employeeId = employeeId;
