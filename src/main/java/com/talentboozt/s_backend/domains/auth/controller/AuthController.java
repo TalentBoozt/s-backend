@@ -90,7 +90,7 @@ public class AuthController {
                 String refreshToken = jwtService.generateRefreshToken(userPayload);
 
                 return ResponseEntity.ok(new AuthResponse(token, refreshToken, user.getEmployeeId(), user.getEmail(),
-                        user.getUserLevel(), user.getPlatformRole(), user.getOrganizations(), user.getPermissions(),
+                        user.getUserLevel(), emp.getPlatformRole(), user.getOrganizations(), user.getPermissions(),
                         user.getRoles(), user.isActive()));
 
             } catch (Exception e) {
@@ -128,7 +128,7 @@ public class AuthController {
                 String refreshToken = jwtService.generateRefreshToken(userPayload);
 
                 return ResponseEntity.ok(new AuthResponse(token, refreshToken, newUser.getEmployeeId(),
-                        newUser.getEmail(), newUser.getUserLevel(), newUser.getPlatformRole(),
+                        newUser.getEmail(), newUser.getUserLevel(), PlatformRole.USER,
                         newUser.getOrganizations(), newUser.getPermissions(), newUser.getRoles(), newUser.isActive()));
 
             } catch (Exception e) {
@@ -164,7 +164,7 @@ public class AuthController {
 
             // Return new access token
             return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken, user.getEmployeeId(),
-                    user.getEmail(), user.getUserLevel(), user.getPlatformRole(), user.getOrganizations(),
+                    user.getEmail(), user.getUserLevel(), emp.getPlatformRole(), user.getOrganizations(),
                     user.getPermissions(), user.getRoles(), user.isActive()));
         }
 
@@ -294,11 +294,12 @@ class AuthResponse {
     private List<String> permissions;
     private List<String> roles;
     private String userLevel;
-    private String platformRole;
+    private PlatformRole platformRole;
     private boolean active;
 
     public AuthResponse(String token, String refreshToken, String employeeId, String email, String userLevel,
-            String platformRole, List<Map<String, String>> organizations, List<String> permissions, List<String> roles,
+            PlatformRole platformRole, List<Map<String, String>> organizations, List<String> permissions,
+            List<String> roles,
             boolean active) {
         this.token = token;
         this.refreshToken = refreshToken;
