@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.shared.utils;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.apache.poi.xwpf.extractor.XWPFWordExtractor;
@@ -28,8 +29,9 @@ public class DocumentExtractionService {
     }
 
     private String extractTextFromPdf(InputStream inputStream) throws IOException {
-        try (PDDocument document = PDDocument.load(inputStream)) {
+        try (PDDocument document = Loader.loadPDF(inputStream.readAllBytes())) {
             PDFTextStripper stripper = new PDFTextStripper();
+            stripper.setSortByPosition(true);
             return stripper.getText(document);
         }
     }
