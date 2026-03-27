@@ -34,6 +34,11 @@ public class AtsController {
             // 1. Extract text
             String text = documentExtractionService.extractText(file);
 
+            if (text == null || text.isBlank()) {
+                log.warn("Extracted text is empty for file: {}", file.getOriginalFilename());
+                return ResponseEntity.badRequest().build();
+            }
+
             // 2. Real AI analysis
             AtsService.AtsAnalysisResult result = atsService.analyze(text, jobDescription);
 

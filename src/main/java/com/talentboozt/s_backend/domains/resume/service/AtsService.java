@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -73,16 +74,30 @@ public class AtsService {
                 schema);
 
         Map<String, Object> data = response.parsed();
-
         AtsAnalysisResult result = new AtsAnalysisResult();
-        result.setScore((Integer) data.get("score"));
-        result.setImprovements((List<String>) data.get("improvements"));
 
+        // 1. Score with null boundary check
+        Object scoreObj = data.get("score");
+        result.setScore(scoreObj instanceof Number ? ((Number) scoreObj).intValue() : 0);
+
+        // 2. Improvements with null check
+        List<String> improvements = (List<String>) data.get("improvements");
+        result.setImprovements(improvements != null ? improvements : List.of());
+
+        // 3. Keywords with null check and safe stream
         List<Map<String, Object>> keywordsRaw = (List<Map<String, Object>>) data.get("keywords");
-        List<KeywordMatch> keywords = keywordsRaw.stream()
-                .map(m -> new KeywordMatch((String) m.get("keyword"), (Boolean) m.get("found")))
-                .toList();
-        result.setKeywords(keywords);
+        if (keywordsRaw != null) {
+            List<KeywordMatch> keywords = keywordsRaw.stream()
+                    .filter(Objects::nonNull)
+                    .map(m -> new KeywordMatch(
+                            (String) m.getOrDefault("keyword", "Unknown"), 
+                            Boolean.TRUE.equals(m.get("found"))
+                    ))
+                    .toList();
+            result.setKeywords(keywords);
+        } else {
+            result.setKeywords(List.of());
+        }
 
         return result;
     }
