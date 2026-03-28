@@ -103,8 +103,19 @@ public class EduEnrollmentService {
                 .orElseThrow(() -> new RuntimeException("Enrollment not found"));
     }
 
-    public EEnrollments recordProgress(String enrollmentId, String lessonId) {
+    public EEnrollments getEnrollmentByCourseAndUser(String courseId, String userId) {
+        return enrollmentsRepository.findByUserIdAndCourseId(userId, courseId)
+                .orElseThrow(() -> new RuntimeException("Enrollment for course/user not found"));
+    }
+
+    public EEnrollments recordProgress(String enrollmentId, String lessonId, Long watchTime) {
         EEnrollments enrollment = getEnrollmentDetails(enrollmentId);
+
+        // Update watch time if provided
+        if (watchTime != null) {
+            long current = enrollment.getTotalWatchTime() != null ? enrollment.getTotalWatchTime() : 0L;
+            enrollment.setTotalWatchTime(current + watchTime);
+        }
 
         // Simplified progress incrementing
         enrollment.setCompletedLessons(enrollment.getCompletedLessons() + 1);

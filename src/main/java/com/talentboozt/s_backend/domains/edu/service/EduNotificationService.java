@@ -52,4 +52,18 @@ public class EduNotificationService {
         unread.forEach(n -> n.setIsRead(true));
         notificationsRepository.saveAll(unread);
     }
+
+    public long getUnreadCount(String userId) {
+        return notificationsRepository.countByUserIdAndIsReadFalse(userId);
+    }
+
+    public void deleteNotification(String notificationId) {
+        notificationsRepository.deleteById(notificationId);
+    }
+
+    public void markRead(List<String> notificationIds) {
+        List<ENotifications> notifications = notificationsRepository.findAllById(notificationIds);
+        notifications.forEach(n -> n.setIsRead(true));
+        notificationsRepository.saveAll(notifications);
+    }
 }

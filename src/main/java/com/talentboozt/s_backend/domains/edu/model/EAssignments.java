@@ -27,6 +27,9 @@ public class EAssignments {
     @Indexed
     private String sectionId;
     
+    @Indexed
+    private String lessonId;
+    
     private String title;
     private String description;
     private String instructions;

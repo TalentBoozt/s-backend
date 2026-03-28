@@ -24,15 +24,19 @@ public class EduMarketplaceService {
                 .collect(Collectors.toList());
     }
 
-    public List<ECourses> searchCourses(String keyword, String category) {
+    public List<ECourses> searchCourses(String keyword, String category, String level, Double priceMax) {
         return courseRepository.findAll().stream()
                 .filter(c -> Boolean.TRUE.equals(c.getPublished()) && !Boolean.TRUE.equals(c.getIsPrivate()))
                 .filter(c -> {
                     boolean matchesKeyword = keyword == null || keyword.isEmpty()
-                            || c.getTitle().toLowerCase().contains(keyword.toLowerCase());
+                            || (c.getTitle() != null && c.getTitle().toLowerCase().contains(keyword.toLowerCase()));
                     boolean matchesCategory = category == null || category.isEmpty()
-                            || (c.getCategories() != null && List.of(c.getCategories()).contains(category));
-                    return matchesKeyword && matchesCategory;
+                            || (c.getCategories() != null && java.util.Arrays.asList(c.getCategories()).contains(category));
+                    boolean matchesLevel = level == null || level.isEmpty()
+                            || (c.getLevel() != null && c.getLevel().name().equalsIgnoreCase(level));
+                    boolean matchesPrice = priceMax == null 
+                            || (c.getPrice() != null && c.getPrice() <= priceMax);
+                    return matchesKeyword && matchesCategory && matchesLevel && matchesPrice;
                 })
                 .collect(Collectors.toList());
     }

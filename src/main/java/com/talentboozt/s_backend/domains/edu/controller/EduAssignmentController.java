@@ -20,14 +20,19 @@ public class EduAssignmentController {
         this.assignmentService = assignmentService;
     }
 
-    @PostMapping("/course/{courseId}/section/{sectionId}")
+    @PostMapping("/course/{courseId}/lesson/{lessonId}")
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<EAssignments> createAssignment(
             @PathVariable String courseId,
-            @PathVariable String sectionId,
+            @PathVariable String lessonId,
             @RequestParam String creatorId,
             @RequestBody AssignmentRequest request) {
-        return ResponseEntity.ok(assignmentService.createAssignment(courseId, sectionId, creatorId, request));
+        return ResponseEntity.ok(assignmentService.createAssignment(courseId, "legacy-section", lessonId, creatorId, request));
+    }
+
+    @GetMapping("/lesson/{lessonId}")
+    public ResponseEntity<EAssignments> getAssignmentByLessonId(@PathVariable String lessonId) {
+        return ResponseEntity.ok(assignmentService.getAssignmentByLesson(lessonId));
     }
 
     @GetMapping("/{id}")
@@ -49,12 +54,26 @@ public class EduAssignmentController {
     }
 
     @PostMapping("/{assignmentId}/submit")
-    @PreAuthorize("hasAuthority('LEARNER')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<EAssignmentSubmissions> submitAssignment(
             @PathVariable String assignmentId,
             @RequestParam String userId,
             @RequestBody SubmissionRequest request) {
         return ResponseEntity.ok(assignmentService.submitAssignment(assignmentId, userId, request));
+    }
+
+    @GetMapping("/{assignmentId}/submission/{userId}")
+    public ResponseEntity<EAssignmentSubmissions> getSubmissionStatus(
+            @PathVariable String assignmentId,
+            @PathVariable String userId) {
+        return ResponseEntity.ok(assignmentService.getSubmissionStatus(assignmentId, userId));
+    }
+
+    @GetMapping("/submissions/course/{courseId}/user/{userId}")
+    public ResponseEntity<java.util.List<EAssignmentSubmissions>> getLearnerSubmissions(
+            @PathVariable String courseId,
+            @PathVariable String userId) {
+        return ResponseEntity.ok(assignmentService.getLearnerSubmissions(courseId, userId));
     }
 
     @PutMapping("/submissions/{submissionId}/grade")

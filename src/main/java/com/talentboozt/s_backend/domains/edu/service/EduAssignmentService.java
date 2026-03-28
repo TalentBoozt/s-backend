@@ -11,6 +11,8 @@ import com.talentboozt.s_backend.domains.edu.repository.mongodb.EAssignmentsRepo
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EduAssignmentService {
@@ -24,11 +26,12 @@ public class EduAssignmentService {
         this.submissionsRepository = submissionsRepository;
     }
 
-    public EAssignments createAssignment(String courseId, String sectionId, String creatorId,
+    public EAssignments createAssignment(String courseId, String sectionId, String lessonId, String creatorId,
             AssignmentRequest request) {
         EAssignments assignment = EAssignments.builder()
                 .courseId(courseId)
                 .sectionId(sectionId)
+                .lessonId(lessonId)
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .instructions(request.getInstructions())
@@ -100,5 +103,23 @@ public class EduAssignmentService {
         submission.setGradedAt(Instant.now());
 
         return submissionsRepository.save(submission);
+    }
+
+    public EAssignments getAssignmentByLesson(String lessonId) {
+        return assignmentsRepository.findByLessonId(lessonId).orElseThrow(() -> new RuntimeException("Assignment for lesson not found"));
+    }
+
+    public EAssignmentSubmissions getSubmissionStatus(String assignmentId, String userId) {
+        return submissionsRepository.findByAssignmentIdAndUserId(assignmentId, userId).orElse(null);
+    }
+
+    public List<EAssignmentSubmissions> getLearnerSubmissions(String courseId, String userId) {
+        List<EAssignments> assignments = assignmentsRepository.findAll(); 
+        List<String> assignmentIds = assignments.stream()
+                .filter(a -> courseId.equals(a.getCourseId()))
+                .map(EAssignments::getId)
+                .collect(Collectors.toList());
+        
+        return submissionsRepository.findByAssignmentIdInAndUserId(assignmentIds, userId);
     }
 }
