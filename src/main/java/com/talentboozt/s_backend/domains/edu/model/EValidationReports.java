@@ -38,6 +38,7 @@ public class EValidationReports {
     private String status;
     
     private EValidationBreackdownDTO breakdown;
+    private String feedback;
     private String createdBy;
     
     @CreatedDate

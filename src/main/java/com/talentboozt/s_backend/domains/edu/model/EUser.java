@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.talentboozt.s_backend.domains.edu.enums.ERoles;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,18 +31,26 @@ public class EUser {
     @Indexed(sparse = true)
     private String phone;
     
+    @JsonIgnore
     private String passwordHash;
     private String ssoProvider;
     private String ssoProviderId;
+    @Builder.Default
     private Boolean isEmailVerified = false;
+    @Builder.Default
     private Boolean isPhoneVerified = false;
     private String displayName;
     private String avatarUrl;
+    @Builder.Default
     private Boolean isActive = true;
+    @Builder.Default
     private Boolean isBanned = false;
     private String banReason;
     private Instant lastLoginAt;
     private ERoles[] roles;
+    private String emailVerificationToken;
+    private String passwordResetToken;
+    private Instant passwordResetExpiry;
     
     @CreatedDate
     private Instant createdAt;

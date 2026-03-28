@@ -20,7 +20,7 @@ public class EduEnrollmentController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<EEnrollments> enrollInCourse(
             @RequestParam String userId,
             @RequestBody EnrollmentRequest request) {
@@ -28,7 +28,7 @@ public class EduEnrollmentController {
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<List<EEnrollments>> getUserEnrollments(@PathVariable String userId) {
         return ResponseEntity.ok(enrollmentService.getUserEnrollments(userId));
     }

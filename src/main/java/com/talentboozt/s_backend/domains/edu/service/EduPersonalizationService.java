@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
+import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.model.EUserPreferences;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
@@ -50,6 +51,8 @@ public class EduPersonalizationService {
         List<ECourses> allCourses = coursesRepository.findAll().stream()
                 .filter(c -> Boolean.TRUE.equals(c.getPublished()))
                 .filter(c -> !Boolean.TRUE.equals(c.getIsPrivate()))
+                .filter(c -> c.getStatus() == ECourseStatus.PUBLISHED
+                        || (c.getStatus() == null && Boolean.TRUE.equals(c.getPublished())))
                 .collect(Collectors.toList());
 
         if (pref.getInterests() == null || pref.getInterests().isEmpty()) {

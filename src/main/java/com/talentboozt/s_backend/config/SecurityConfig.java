@@ -117,7 +117,26 @@ public class SecurityConfig {
                                         && !requestUri.equals("/actuator/env");
                             }).permitAll()
 
-                            // ✅ Make ALL GET endpoints public
+                            // Sensitive GETs must not be public (global GET permitAll below would otherwise
+                            // expose them)
+                            .requestMatchers(HttpMethod.GET, "/api/edu/admin/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/admin/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/enrollments/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/notifications/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/finance/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/analytics/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/monetization/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/courses/creator/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/progress/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/quizzes/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/assignments/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/certificates/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/personalization/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/workspaces/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/subscriptions/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/trust/reports/**").authenticated()
+
+                            // ✅ Public read access for marketplace and catalog (everything else GET)
                             .requestMatchers(HttpMethod.GET, "/**").permitAll()
 
                             // Public endpoints (any method)
@@ -171,6 +190,7 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.POST, "/api/lifeplanner/users").permitAll()
                             // Stripe Webhook is public
                             .requestMatchers(HttpMethod.POST, "/api/lifeplanner/stripe/webhook").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/api/monetization/stripe/webhook").permitAll()
                             // All other write ops require authentication
                             .requestMatchers(HttpMethod.POST, "/api/lifeplanner/**").authenticated()
                             .requestMatchers(HttpMethod.PUT, "/api/lifeplanner/**").authenticated()

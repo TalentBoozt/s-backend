@@ -28,6 +28,7 @@ public class EPayouts {
     private String creatorId;
     
     private Double amount;
+    @Builder.Default
     private String currency = "USD";
     
     @Indexed

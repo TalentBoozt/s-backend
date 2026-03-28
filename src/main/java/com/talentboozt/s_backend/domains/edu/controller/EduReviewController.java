@@ -47,4 +47,9 @@ public class EduReviewController {
         reviewService.deleteReview(reviewId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/{reviewId}/helpful")
+    public ResponseEntity<EReviews> markReviewHelpful(@PathVariable String reviewId) {
+        return ResponseEntity.ok(reviewService.incrementHelpful(reviewId));
+    }
 }

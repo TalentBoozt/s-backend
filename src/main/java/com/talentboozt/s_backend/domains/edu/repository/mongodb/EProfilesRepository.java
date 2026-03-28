@@ -10,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface EProfilesRepository extends MongoRepository<EProfiles, String> {
     Optional<EProfiles> findByUserId(String userId);
+    void deleteByUserId(String userId);
 }

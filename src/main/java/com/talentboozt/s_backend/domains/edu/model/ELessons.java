@@ -41,8 +41,11 @@ public class ELessons {
     private ELessonType type;
     
     private Integer duration; // in minutes
+    @Builder.Default
     private Boolean isFreePreview = false;
+    @Builder.Default
     private Boolean isPublished = true;
+    @Builder.Default
     private Boolean isDrmProtected = false;
     private String videoThumbnail;
     private String[] attachments; // File URLs

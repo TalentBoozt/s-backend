@@ -8,62 +8,72 @@ import org.springframework.stereotype.Service;
 public class EduAIEngineService {
 
     private final EduAICreditService creditService;
+    private final LLMClient llmClient;
 
-    public EduAIEngineService(EduAICreditService creditService) {
+    public EduAIEngineService(EduAICreditService creditService, LLMClient llmClient) {
         this.creditService = creditService;
+        this.llmClient = llmClient;
     }
 
-    // Emulating LLM API Calls mapping dummy output structures for MVP
     public String generateCourseOutline(String userId, String courseId, AIGenerationRequest request) {
-        int tokenCost = 15; // fixed token cost rule for outline mapping
+        int tokenCost = 15;
         
-        // Emulated LLM output response
-        String mockupResponse = """
+        String systemPrompt = """
+            You are an expert curriculum designer. 
+            Respond ONLY with a valid JSON object following this structure:
             {
               "sections": [
-                 {
-                   "title": "Introduction to %s",
-                   "lessons": ["What is it?", "Core Mechanics", "Setting up Environment"]
-                 },
-                 {
-                   "title": "Advanced Strategies",
-                   "lessons": ["Optimization Techniques", "Deployment Models"]
-                 }
+                {
+                  "title": "Section Title",
+                  "lessons": ["Lesson 1", "Lesson 2"]
+                }
               ]
             }
-            """.formatted(request.getTopic());
+            """;
+        
+        String userPrompt = String.format("Generate a comprehensive course outline for the topic: '%s'. Target audience: %s.", 
+            request.getTopic(), request.getAudienceLevel());
 
-        // Deduct tokens. If failing, will throw standard error natively defined in CreditService
+        String aiResponse = llmClient.generate(systemPrompt, userPrompt, true);
+
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_OUTLINE_GENERATION, 
-            "Generate " + request.getAudienceLevel() + " outline about " + request.getTopic(), mockupResponse);
+            "Generate " + request.getAudienceLevel() + " outline about " + request.getTopic(), aiResponse);
 
-        return mockupResponse;
+        return aiResponse;
     }
 
     public String generateLessonContent(String userId, String courseId, String lessonObjective) {
-        int tokenCost = 30; // heavy generations cost more logically
+        int tokenCost = 30;
         
-        String mockupResponse = "### Welcome to this Lesson:\\n\\nToday we cover: " + lessonObjective + "\\n\\n1. **Core Concept**: Understanding variables.\\n2. **Best Practices**: Keep them nested safely.";
+        String systemPrompt = "You are a world-class educator. Write detailed, engaging, and professional lesson content in Markdown format.";
+        String userPrompt = String.format("Write a detailed lesson teaching: '%s'. Include core concepts and best practices.", lessonObjective);
+
+        String aiResponse = llmClient.generate(systemPrompt, userPrompt, false);
         
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_CONTENT_GENERATION, 
-            "Write a dynamic long-form article teaching: " + lessonObjective, mockupResponse);
+            "Write a dynamic long-form article teaching: " + lessonObjective, aiResponse);
             
-        return mockupResponse;
+        return aiResponse;
     }
 
     public String generateSystemQuiz(String userId, String courseId, String topic) {
         int tokenCost = 10;
         
-        String mockupResponse = """
+        String systemPrompt = """
+            You are an educational quiz generator. 
+            Respond ONLY with a valid JSON array of objects following this structure:
             [
-              {"question": "What is the primary function?", "options": ["A", "B", "C"], "answer": "B"},
-              {"question": "How do you start?", "options": ["X", "Y", "Z"], "answer": "X"}
+              {"question": "Question text", "options": ["Option A", "Option B", "Option C"], "answer": "Option B"}
             ]
             """;
+        
+        String userPrompt = String.format("Create a 5-question multiple choice quiz on the topic: '%s'.", topic);
+
+        String aiResponse = llmClient.generate(systemPrompt, userPrompt, true);
             
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_QUIZ_GENERATION, 
-            "Create a 5-question multiple choice quiz on: " + topic, mockupResponse);
+            "Create quiz on: " + topic, aiResponse);
             
-        return mockupResponse;
+        return aiResponse;
     }
 }

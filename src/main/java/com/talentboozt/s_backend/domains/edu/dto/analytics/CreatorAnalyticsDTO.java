@@ -13,4 +13,7 @@ public class CreatorAnalyticsDTO {
     private Integer currentMonthEnrollments;
     private Double averageCompletionRate;
     private Map<String, Integer> courseViews;
+    private Map<String, Double> monthlyRevenueTimeline;
+    private Double revenueTrendPercent;
+    private Double enrollmentTrendPercent;
 }

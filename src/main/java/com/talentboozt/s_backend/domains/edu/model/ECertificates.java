@@ -39,6 +39,7 @@ public class ECertificates {
     private String url;
     private String templateId;
     
+    @Builder.Default
     private Boolean isVerified = true;
     private String shareableLink;
     

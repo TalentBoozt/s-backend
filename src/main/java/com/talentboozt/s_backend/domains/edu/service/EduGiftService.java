@@ -56,7 +56,9 @@ public class EduGiftService {
         gift.setStatus(EGiftStatus.REDEEMED);
         gift.setRedeemedAt(Instant.now());
         gift.setUpdatedAt(Instant.now());
+        giftsRepository.save(gift);
 
-        return giftsRepository.save(gift);
+        enrollmentService.enrollFromGift(userId, gift.getCourseId());
+        return gift;
     }
 }

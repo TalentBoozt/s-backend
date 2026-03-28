@@ -38,8 +38,10 @@ public class ESubscriptions {
     private Integer totalCredits;
     
     private Double price;
+    @Builder.Default
     private String currency = "USD";
     private String billingCycle;
+    @Builder.Default
     private Boolean autoRenew = true;
     private String paymentGatewayId;
     private String stripeCustomerId;
@@ -53,6 +55,7 @@ public class ESubscriptions {
     private Instant endDate;
     private Instant trialEndDate;
     private Instant cancelledAt;
+    private Instant lastPaymentAt;
     
     @CreatedDate
     private Instant createdAt;

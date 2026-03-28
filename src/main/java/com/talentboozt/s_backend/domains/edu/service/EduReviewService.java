@@ -95,6 +95,15 @@ public class EduReviewService {
         }
     }
 
+    public EReviews incrementHelpful(String reviewId) {
+        EReviews review = reviewsRepository.findById(reviewId)
+                .orElseThrow(() -> new RuntimeException("Review not found"));
+        int votes = review.getHelpfulVotes() != null ? review.getHelpfulVotes() : 0;
+        review.setHelpfulVotes(votes + 1);
+        review.setUpdatedAt(Instant.now());
+        return reviewsRepository.save(review);
+    }
+
     private void updateCourseAverageRating(String courseId) {
         List<EReviews> allReviews = reviewsRepository.findByCourseId(courseId);
         ECourses course = coursesRepository.findById(courseId).orElse(null);

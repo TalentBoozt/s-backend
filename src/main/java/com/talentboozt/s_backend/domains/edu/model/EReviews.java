@@ -39,11 +39,15 @@ public class EReviews {
     private String title;
     private String content;
 
+    @Builder.Default
     private Boolean isVerifiedPurchase = true;
+    @Builder.Default
     private Integer helpfulVotes = 0;
+    @Builder.Default
     private Boolean isReported = false;
 
     @Indexed
+    @Builder.Default
     private Boolean isVisible = true;
 
     private String createdBy;

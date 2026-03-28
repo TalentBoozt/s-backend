@@ -29,6 +29,11 @@ public class EduQuizController {
         return ResponseEntity.ok(quizService.createQuiz(courseId, sectionId, creatorId, request));
     }
 
+    @GetMapping("/lesson/{lessonId}")
+    public ResponseEntity<EQuizzes> getQuizByLesson(@PathVariable String lessonId) {
+        return ResponseEntity.ok(quizService.getQuizByLessonId(lessonId));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<EQuizzes> getQuiz(@PathVariable String id) {
         return ResponseEntity.ok(quizService.getQuiz(id));
@@ -54,5 +59,13 @@ public class EduQuizController {
             @RequestParam String userId,
             @RequestBody QuizAttemptRequest request) {
         return ResponseEntity.ok(quizService.submitQuizAttempt(quizId, userId, request));
+    }
+
+    @GetMapping("/{quizId}/attempts/user/{userId}")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    public ResponseEntity<java.util.List<EQuizAttempts>> getAttempts(
+            @PathVariable String quizId,
+            @PathVariable String userId) {
+        return ResponseEntity.ok(quizService.getAttemptsForUser(quizId, userId));
     }
 }

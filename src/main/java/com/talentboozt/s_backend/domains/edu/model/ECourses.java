@@ -99,6 +99,9 @@ public class ECourses {
     private ECourseValidationStatus validationStatus;
     private Double aiScore;
     private Boolean talnovaVerified;
+
+    /** Set when moderation rejects a submission (shown to creator). */
+    private String moderationRejectionReason;
     
     private Instant publishedAt;
     private String createdBy;
