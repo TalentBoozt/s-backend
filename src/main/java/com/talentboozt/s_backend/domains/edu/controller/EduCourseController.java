@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
 import com.talentboozt.s_backend.domains.edu.dto.course.CourseRequest;
+import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.service.EduCourseService;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +37,15 @@ public class EduCourseController {
     @GetMapping("/creator/{creatorId}")
     public ResponseEntity<List<ECourses>> getCreatorCourses(@PathVariable String creatorId) {
         return ResponseEntity.ok(courseService.getCoursesByCreator(creatorId));
+    }
+
+    @GetMapping("/creator/{creatorId}/students")
+    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    public ResponseEntity<List<EEnrollments>> getCreatorStudents(
+            @PathVariable String creatorId,
+            @RequestParam(required = false) String courseId,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(courseService.getCreatorStudentEnrollments(creatorId, courseId, search));
     }
 
     @PutMapping("/{id}")

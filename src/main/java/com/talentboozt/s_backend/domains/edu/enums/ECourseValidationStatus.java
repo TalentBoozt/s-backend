@@ -7,5 +7,7 @@ public enum ECourseValidationStatus {
     MANUAL_PENDING,
     VALIDATED,
     REJECTED,
-    DRAFT
+    DRAFT,
+    NEEDS_IMPROVEMENT,
+    AI_REJECTED
 }

@@ -37,6 +37,7 @@ public class EduQuizService {
         EQuizzes quiz = EQuizzes.builder()
                 .courseId(courseId)
                 .sectionId(sectionId)
+                .lessonId(request.getLessonId())
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .type(request.getType())
@@ -55,8 +56,15 @@ public class EduQuizService {
         return quizzesRepository.findById(id).orElseThrow(() -> new RuntimeException("Quiz not found"));
     }
 
+    public EQuizzes getQuizByLessonId(String lessonId) {
+        return quizzesRepository.findByLessonId(lessonId)
+                .orElseThrow(() -> new RuntimeException("Quiz for lesson not found"));
+    }
+
     public EQuizzes updateQuiz(String id, QuizRequest request) {
         EQuizzes quiz = getQuiz(id);
+        if (request.getLessonId() != null)
+            quiz.setLessonId(request.getLessonId());
         if (request.getTitle() != null)
             quiz.setTitle(request.getTitle());
         if (request.getDescription() != null)
@@ -87,7 +95,6 @@ public class EduQuizService {
         quizzesRepository.deleteById(id);
     }
 
-    @Transactional
     public EQuizAttempts submitQuizAttempt(String quizId, String userId, QuizAttemptRequest request) {
         EQuizzes quiz = getQuiz(quizId);
 
@@ -133,5 +140,9 @@ public class EduQuizService {
 
         // In reality, we should mark previous attempts as isLatest=false
         return attemptsRepository.save(attempt);
+    }
+
+    public java.util.List<EQuizAttempts> getAttemptsForUser(String quizId, String userId) {
+        return attemptsRepository.findByQuizIdAndUserId(quizId, userId);
     }
 }

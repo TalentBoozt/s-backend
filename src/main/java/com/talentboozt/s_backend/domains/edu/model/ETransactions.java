@@ -47,6 +47,10 @@ public class ETransactions {
     
     @Indexed(unique = true)
     private String transactionId;
+
+    /** Stripe Checkout Session id for one-time course purchases (idempotency). */
+    @Indexed
+    private String stripeCheckoutSessionId;
     
     private String paymentGateway;
     private String paymentGatewayResponse;

@@ -29,6 +29,10 @@ public class EQuizzes {
     
     @Indexed
     private String sectionId;
+
+    /** When the quiz is attached to a specific lesson (LMS lesson player looks up by lesson id). */
+    @Indexed
+    private String lessonId;
     
     private String title;
     private String description;

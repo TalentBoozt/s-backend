@@ -5,6 +5,9 @@ import org.springframework.stereotype.Repository;
 
 import com.talentboozt.s_backend.domains.edu.model.EQuizAttempts;
 
+import java.util.List;
+
 @Repository
 public interface EQuizAttemptsRepository extends MongoRepository<EQuizAttempts, String> {
+    List<EQuizAttempts> findByQuizIdAndUserId(String quizId, String userId);
 }

@@ -42,10 +42,13 @@ public class EWorkspaces {
     private String description;
     private String logoUrl;
     
+    @Builder.Default
     private Boolean isActive = true;
     
     private Integer maxMembers;
+    @Builder.Default
     private Integer totalMembers = 0;
+    @Builder.Default
     private Integer totalCourses = 0;
     
     private String[] departmentTags;

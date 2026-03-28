@@ -24,6 +24,10 @@ public class RateLimiterService {
             case "public" -> 200;
             case "coupon-validation" -> 25;
             case "password-reset" -> 5;
+            case "edu-register" -> 5;
+            case "edu-login" -> 10;
+            case "edu-forgot-password" -> 3;
+            case "edu-ai-generate" -> 20;
             default -> 300;
         };
 

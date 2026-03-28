@@ -28,6 +28,10 @@ public class EduAnalyticsController {
     public ResponseEntity<LearnerAnalyticsDTO> getLearnerAnalytics(@PathVariable String learnerId) {
         return ResponseEntity.ok(analyticsDataService.getLearnerAnalytics(learnerId));
     }
-    
-    // Platform endpoint could be mapped heavily through Mongo Template queries mapping all sums...
+
+    @GetMapping("/creator/{creatorId}/revenue-timeline")
+    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    public ResponseEntity<java.util.Map<String, Double>> getRevenueTimeline(@PathVariable String creatorId) {
+        return ResponseEntity.ok(analyticsDataService.getRevenueTimeline(creatorId));
+    }
 }

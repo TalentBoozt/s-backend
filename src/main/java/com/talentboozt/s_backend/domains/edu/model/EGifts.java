@@ -49,6 +49,6 @@ public class EGifts {
     
     private Instant redeemedAt;
     
-    @Indexed(expireAfterSeconds = 0)
+    @Indexed(name = "gifts_expireAt_idx", expireAfter = "0s")
     private Instant expiresAt; // Will be set to 30 days dynamically for DB auto-purging
 }

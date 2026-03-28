@@ -6,6 +6,8 @@ import java.util.List;
 
 @Data
 public class QuizRequest {
+    /** Optional link so learners can fetch the quiz via lesson id. */
+    private String lessonId;
     private String title;
     private String description;
     private EQuizType type;

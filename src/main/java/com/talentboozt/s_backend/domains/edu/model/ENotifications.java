@@ -47,9 +47,11 @@ public class ENotifications {
     private String entityType; // COURSE, ENROLLMENT, PAYMENT etc.
 
     @Indexed
+    @Builder.Default
     private Boolean isRead = false;
 
     @Indexed
+    @Builder.Default
     private Boolean isArchived = false;
 
     private Instant readAt;
@@ -57,6 +59,6 @@ public class ENotifications {
     @CreatedDate
     private Instant createdAt;
 
-    @Indexed(expireAfterSeconds = 0)
+    @Indexed(name = "notifications_expireAt_idx", expireAfter = "0s")
     private Instant expiresAt;
 }

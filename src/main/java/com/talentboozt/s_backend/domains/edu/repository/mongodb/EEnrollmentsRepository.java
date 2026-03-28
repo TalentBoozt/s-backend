@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface EEnrollmentsRepository extends MongoRepository<EEnrollments, String> {
     Optional<EEnrollments> findByUserIdAndCourseId(String userId, String courseId);
     List<EEnrollments> findByUserId(String userId);
+    List<EEnrollments> findByCourseId(String courseId);
 }

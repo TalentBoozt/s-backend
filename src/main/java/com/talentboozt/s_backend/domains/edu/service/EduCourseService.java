@@ -2,20 +2,27 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.dto.course.CourseRequest;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
+import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
+import com.talentboozt.s_backend.domains.edu.repository.mongodb.EEnrollmentsRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class EduCourseService {
 
     private final ECoursesRepository courseRepository;
+    private final EEnrollmentsRepository enrollmentsRepository;
 
-    public EduCourseService(ECoursesRepository courseRepository) {
+    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository) {
         this.courseRepository = courseRepository;
+        this.enrollmentsRepository = enrollmentsRepository;
     }
 
     public ECourses createCourse(String creatorId, String workspaceId, CourseRequest request) {
@@ -49,12 +56,7 @@ public class EduCourseService {
     }
 
     public List<ECourses> getCoursesByCreator(String creatorId) {
-        // Since we don't have custom robust queries in ECoursesRepository yet,
-        // we'll just findAll and filter (temporary placeholder) or ideally, we'll write
-        // the query.
-        return courseRepository.findAll().stream()
-                .filter(c -> creatorId.equals(c.getCreatorId()))
-                .toList();
+        return courseRepository.findByCreatorId(creatorId);
     }
 
     public ECourses updateCourse(String id, CourseRequest request) {
@@ -76,16 +78,68 @@ public class EduCourseService {
         return courseRepository.save(course);
     }
 
+    /**
+     * Creator submits course for platform moderation. Not visible in marketplace
+     * until approved.
+     */
     public ECourses publishCourse(String id) {
         ECourses course = getCourseById(id);
+        course.setStatus(ECourseStatus.PENDING_REVIEW);
+        course.setPublished(false);
+        course.setModerationRejectionReason(null);
+        course.setUpdatedAt(Instant.now());
+        return courseRepository.save(course);
+    }
+
+    public List<ECourses> listCoursesPendingModeration() {
+        return courseRepository.findByStatus(ECourseStatus.PENDING_REVIEW);
+    }
+
+    public ECourses approveCourseForMarketplace(String courseId) {
+        ECourses course = getCourseById(courseId);
+        if (course.getStatus() != ECourseStatus.PENDING_REVIEW) {
+            throw new RuntimeException("Course is not awaiting moderation");
+        }
         course.setStatus(ECourseStatus.PUBLISHED);
         course.setPublished(true);
         course.setPublishedAt(Instant.now());
+        course.setModerationRejectionReason(null);
+        course.setUpdatedAt(Instant.now());
+        return courseRepository.save(course);
+    }
+
+    public ECourses rejectCourseReview(String courseId, String reason) {
+        ECourses course = getCourseById(courseId);
+        if (course.getStatus() != ECourseStatus.PENDING_REVIEW) {
+            throw new RuntimeException("Course is not awaiting moderation");
+        }
+        course.setStatus(ECourseStatus.DRAFT);
+        course.setPublished(false);
+        course.setModerationRejectionReason(reason != null ? reason : "");
         course.setUpdatedAt(Instant.now());
         return courseRepository.save(course);
     }
 
     public void deleteCourse(String id) {
         courseRepository.deleteById(id);
+    }
+
+    /**
+     * All enrollments for courses owned by a creator (optional filter by course and
+     * user id text).
+     */
+    public List<EEnrollments> getCreatorStudentEnrollments(String creatorId, String courseId, String search) {
+        List<ECourses> owned = courseRepository.findAll().stream()
+                .filter(c -> creatorId.equals(c.getCreatorId()))
+                .filter(c -> courseId == null || courseId.isEmpty() || c.getId().equals(courseId))
+                .toList();
+        String needle = search != null ? search.trim().toLowerCase(Locale.ROOT) : "";
+        Stream<EEnrollments> stream = owned.stream()
+                .flatMap(c -> enrollmentsRepository.findByCourseId(c.getId()).stream());
+        if (!needle.isEmpty()) {
+            stream = stream
+                    .filter(e -> e.getUserId() != null && e.getUserId().toLowerCase(Locale.ROOT).contains(needle));
+        }
+        return stream.collect(Collectors.toList());
     }
 }
