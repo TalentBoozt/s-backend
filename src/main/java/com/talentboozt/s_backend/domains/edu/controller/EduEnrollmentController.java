@@ -43,7 +43,16 @@ public class EduEnrollmentController {
     @PreAuthorize("hasAuthority('LEARNER')")
     public ResponseEntity<EEnrollments> recordProgress(
             @PathVariable String enrollmentId,
-            @RequestParam String lessonId) {
-        return ResponseEntity.ok(enrollmentService.recordProgress(enrollmentId, lessonId));
+            @RequestParam String lessonId,
+            @RequestParam(required = false) Long watchTime) {
+        return ResponseEntity.ok(enrollmentService.recordProgress(enrollmentId, lessonId, watchTime));
+    }
+
+    @GetMapping("/course/{courseId}/user/{userId}")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    public ResponseEntity<EEnrollments> getCourseProgress(
+            @PathVariable String courseId,
+            @PathVariable String userId) {
+        return ResponseEntity.ok(enrollmentService.getEnrollmentByCourseAndUser(courseId, userId));
     }
 }

@@ -36,36 +36,52 @@ public class EEnrollments {
     @Indexed
     private String workspaceId;
     
+    @Builder.Default
     private Integer progress = 0;
     
+    @Builder.Default
     private Integer completedLessons = 0;
+    @Builder.Default
     private Integer totalLessons = 0;
     
+    @Builder.Default
     private Integer completedSections = 0;
+    @Builder.Default
     private Integer totalSections = 0;
     
+    @Builder.Default
     private Integer completedQuizzes = 0;
+    @Builder.Default
     private Integer totalQuizzes = 0;
     
+    @Builder.Default
     private Integer completedAssignments = 0;
+    @Builder.Default
     private Integer totalAssignments = 0;
     
+    @Builder.Default
     private Integer completedProjects = 0;
+    @Builder.Default
     private Integer totalProjects = 0;
     
     @Indexed
+    @Builder.Default
     private Boolean completed = false;
     
     private String[] completedLessonIds;
     private String lastAccessedLessonId;
     private Instant lastAccessedAt;
+    @Builder.Default
+    private Long totalWatchTime = 0L; // in seconds
     
     private Instant completedAt;
     
     @Indexed
     private Instant enrolledAt;
     
+    @Builder.Default
     private Integer currentStreak = 0;
+    @Builder.Default
     private Integer longestStreak = 0;
     private Instant lastStreakDate;
     

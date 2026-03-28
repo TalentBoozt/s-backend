@@ -5,6 +5,9 @@ import org.springframework.stereotype.Repository;
 
 import com.talentboozt.s_backend.domains.edu.model.EAssignments;
 
+import java.util.Optional;
+
 @Repository
 public interface EAssignmentsRepository extends MongoRepository<EAssignments, String> {
+    Optional<EAssignments> findByLessonId(String lessonId);
 }

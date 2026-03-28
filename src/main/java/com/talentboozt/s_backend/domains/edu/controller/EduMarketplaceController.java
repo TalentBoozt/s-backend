@@ -25,8 +25,10 @@ public class EduMarketplaceController {
     @GetMapping("/search")
     public ResponseEntity<List<ECourses>> searchCourses(
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String category) {
-        return ResponseEntity.ok(marketplaceService.searchCourses(keyword, category));
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String level,
+            @RequestParam(required = false) Double priceMax) {
+        return ResponseEntity.ok(marketplaceService.searchCourses(keyword, category, level, priceMax));
     }
 
     @GetMapping("/courses/{courseId}")

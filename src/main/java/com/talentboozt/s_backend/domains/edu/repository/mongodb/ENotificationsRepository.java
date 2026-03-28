@@ -10,4 +10,5 @@ import java.util.List;
 public interface ENotificationsRepository extends MongoRepository<ENotifications, String> {
     List<ENotifications> findByUserIdOrderByCreatedAtDesc(String userId);
     List<ENotifications> findByUserIdAndIsReadFalse(String userId);
+    long countByUserIdAndIsReadFalse(String userId);
 }
