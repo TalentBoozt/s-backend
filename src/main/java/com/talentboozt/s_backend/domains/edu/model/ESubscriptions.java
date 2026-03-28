@@ -42,6 +42,9 @@ public class ESubscriptions {
     private String billingCycle;
     private Boolean autoRenew = true;
     private String paymentGatewayId;
+    private String stripeCustomerId;
+    private String stripeSubscriptionId;
+    private String stripePriceId;
     private Double commissionRate;
     private Integer maxCourses;
     private String[] features;
