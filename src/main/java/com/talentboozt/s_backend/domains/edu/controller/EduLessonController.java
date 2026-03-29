@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
+import jakarta.validation.Valid;
 import com.talentboozt.s_backend.domains.edu.dto.course.LessonRequest;
 import com.talentboozt.s_backend.domains.edu.dto.course.OrderUpdateRequest;
 import com.talentboozt.s_backend.domains.edu.model.ELessons;
@@ -26,7 +27,7 @@ public class EduLessonController {
             @PathVariable String courseId,
             @PathVariable String sectionId,
             @RequestParam String creatorId,
-            @RequestBody LessonRequest request) {
+            @Valid @RequestBody LessonRequest request) {
         return ResponseEntity.ok(lessonService.createLesson(courseId, sectionId, creatorId, request));
     }
 
@@ -35,11 +36,16 @@ public class EduLessonController {
         return ResponseEntity.ok(lessonService.getLessonsBySectionId(sectionId));
     }
 
+    @GetMapping("/{lessonId}")
+    public ResponseEntity<ELessons> getLesson(@PathVariable String lessonId) {
+        return ResponseEntity.ok(lessonService.getLessonById(lessonId));
+    }
+
     @PutMapping("/{lessonId}")
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<ELessons> updateLesson(
             @PathVariable String lessonId, 
-            @RequestBody LessonRequest request) {
+            @Valid @RequestBody LessonRequest request) {
         return ResponseEntity.ok(lessonService.updateLesson(lessonId, request));
     }
 
@@ -47,7 +53,7 @@ public class EduLessonController {
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<Void> reorderLessons(
             @PathVariable String sectionId, 
-            @RequestBody OrderUpdateRequest request) {
+            @Valid @RequestBody OrderUpdateRequest request) {
         lessonService.reorderLessons(sectionId, request);
         return ResponseEntity.ok().build();
     }
