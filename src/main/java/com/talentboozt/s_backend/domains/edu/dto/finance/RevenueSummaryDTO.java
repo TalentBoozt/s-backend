@@ -9,6 +9,8 @@ public class RevenueSummaryDTO {
     private String creatorId;
     private Double totalEarnings;
     private Double pendingBalance;
+    private Double availableBalance;
+    private Double pendingClearance;
     private Double withdrawnAmount;
     private Integer totalTransactions;
 }

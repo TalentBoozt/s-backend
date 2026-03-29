@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
+import jakarta.validation.Valid;
 import com.talentboozt.s_backend.domains.edu.dto.course.CourseRequest;
 import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
@@ -25,7 +26,7 @@ public class EduCourseController {
     public ResponseEntity<ECourses> createCourse(
             @RequestParam String creatorId, 
             @RequestParam String workspaceId, 
-            @RequestBody CourseRequest request) {
+            @Valid @RequestBody CourseRequest request) {
         return ResponseEntity.ok(courseService.createCourse(creatorId, workspaceId, request));
     }
 
@@ -37,6 +38,11 @@ public class EduCourseController {
     @GetMapping("/creator/{creatorId}")
     public ResponseEntity<List<ECourses>> getCreatorCourses(@PathVariable String creatorId) {
         return ResponseEntity.ok(courseService.getCoursesByCreator(creatorId));
+    }
+
+    @GetMapping("/workspace/{workspaceId}")
+    public ResponseEntity<List<ECourses>> getCoursesByWorkspace(@PathVariable String workspaceId) {
+        return ResponseEntity.ok(courseService.getCoursesByWorkspace(workspaceId));
     }
 
     @GetMapping("/creator/{creatorId}/students")
@@ -52,7 +58,7 @@ public class EduCourseController {
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<ECourses> updateCourse(
             @PathVariable String id, 
-            @RequestBody CourseRequest request) {
+            @Valid @RequestBody CourseRequest request) {
         return ResponseEntity.ok(courseService.updateCourse(id, request));
     }
 

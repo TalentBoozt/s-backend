@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.dto.course;
 
+import com.talentboozt.s_backend.domains.edu.enums.ECourseContentType;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseLevel;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseType;
 import lombok.Data;
@@ -15,6 +16,7 @@ public class CourseRequest {
     private String description;
     private String shortDescription;
     private ECourseType type;
+    private ECourseContentType contentType;
     private String language;
     private ECourseLevel level;
     private String[] categories;

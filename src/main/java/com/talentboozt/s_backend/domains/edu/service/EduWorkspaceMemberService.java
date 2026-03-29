@@ -4,7 +4,10 @@ import com.talentboozt.s_backend.domains.edu.enums.ERoles;
 import com.talentboozt.s_backend.domains.edu.model.EWorkspaceMembers;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EWorkspaceMembersRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EWorkspacesRepository;
+import com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository;
 import com.talentboozt.s_backend.domains.edu.model.EWorkspaces;
+import com.talentboozt.s_backend.domains.edu.model.EUser;
+import com.talentboozt.s_backend.domains.edu.dto.workspace.WorkspaceMemberDTO;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -15,13 +18,17 @@ public class EduWorkspaceMemberService {
 
     private final EWorkspaceMembersRepository memberRepository;
     private final EWorkspacesRepository workspaceRepository;
+    private final EUserRepository userRepository;
 
-    public EduWorkspaceMemberService(EWorkspaceMembersRepository memberRepository, EWorkspacesRepository workspaceRepository) {
+    public EduWorkspaceMemberService(EWorkspaceMembersRepository memberRepository, 
+                                     EWorkspacesRepository workspaceRepository,
+                                     EUserRepository userRepository) {
         this.memberRepository = memberRepository;
         this.workspaceRepository = workspaceRepository;
+        this.userRepository = userRepository;
     }
 
-    public EWorkspaceMembers addMember(String workspaceId, String userId, ERoles role, String inviterId) {
+    public WorkspaceMemberDTO addMember(String workspaceId, String userId, ERoles role, String inviterId) {
         EWorkspaces ws = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new RuntimeException("Workspace missing"));
 
@@ -48,7 +55,23 @@ public class EduWorkspaceMemberService {
         ws.setTotalMembers(ws.getTotalMembers() + 1);
         workspaceRepository.save(ws);
 
-        return memberRepository.save(member);
+        EWorkspaceMembers saved = memberRepository.save(member);
+        return mapToDTO(saved);
+    }
+
+    private WorkspaceMemberDTO mapToDTO(EWorkspaceMembers m) {
+        EUser u = userRepository.findById(m.getUserId()).orElse(null);
+        return WorkspaceMemberDTO.builder()
+                .id(m.getId())
+                .workspaceId(m.getWorkspaceId())
+                .userId(m.getUserId())
+                .userName(u != null ? u.getDisplayName() : "Unknown User")
+                .userEmail(u != null ? u.getEmail() : "No Email")
+                .userAvatar(u != null ? u.getAvatarUrl() : null)
+                .role(m.getRole())
+                .status(m.getStatus())
+                .joinedAt(m.getJoinedAt())
+                .build();
     }
     
     // Simulating quick Bulk Import
@@ -73,7 +96,9 @@ public class EduWorkspaceMemberService {
             });
     }
 
-    public List<EWorkspaceMembers> getMembers(String workspaceId) {
-        return memberRepository.findByWorkspaceId(workspaceId);
+    public List<WorkspaceMemberDTO> getMembers(String workspaceId) {
+        return memberRepository.findByWorkspaceId(workspaceId).stream()
+                .map(this::mapToDTO)
+                .toList();
     }
 }
