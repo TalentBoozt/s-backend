@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface ECoursesRepository extends MongoRepository<ECourses, String> {
     List<ECourses> findByCreatorId(String creatorId);
+    List<ECourses> findByWorkspaceId(String workspaceId);
 
     List<ECourses> findByStatus(ECourseStatus status);
 }

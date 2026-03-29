@@ -50,6 +50,8 @@ public class EWorkspaces {
     private Integer totalMembers = 0;
     @Builder.Default
     private Integer totalCourses = 0;
+    @Builder.Default
+    private Integer totalLearningPaths = 0;
     
     private String[] departmentTags;
     

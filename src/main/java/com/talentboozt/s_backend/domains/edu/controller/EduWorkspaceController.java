@@ -1,10 +1,11 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
+import jakarta.validation.Valid;
 import com.talentboozt.s_backend.domains.edu.dto.workspace.LearningPathRequest;
+import com.talentboozt.s_backend.domains.edu.dto.workspace.WorkspaceMemberDTO;
 import com.talentboozt.s_backend.domains.edu.dto.workspace.WorkspaceRequest;
 import com.talentboozt.s_backend.domains.edu.enums.ERoles;
 import com.talentboozt.s_backend.domains.edu.model.ELearningPaths;
-import com.talentboozt.s_backend.domains.edu.model.EWorkspaceMembers;
 import com.talentboozt.s_backend.domains.edu.model.EWorkspaces;
 import com.talentboozt.s_backend.domains.edu.service.EduLearningPathService;
 import com.talentboozt.s_backend.domains.edu.service.EduWorkspaceMemberService;
@@ -37,7 +38,7 @@ public class EduWorkspaceController {
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('CREATOR')")
     public ResponseEntity<EWorkspaces> createWorkspace(
             @PathVariable String ownerId,
-            @RequestBody WorkspaceRequest request) {
+            @Valid @RequestBody WorkspaceRequest request) {
         return ResponseEntity.ok(workspaceService.createWorkspace(ownerId, request));
     }
 
@@ -57,7 +58,7 @@ public class EduWorkspaceController {
 
     @PostMapping("/{workspaceId}/members/{userId}")
     @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('ADMIN')")
-    public ResponseEntity<EWorkspaceMembers> addMember(
+    public ResponseEntity<WorkspaceMemberDTO> addMember(
             @PathVariable String workspaceId,
             @PathVariable String userId,
             @RequestParam(required = false) ERoles role,
@@ -69,7 +70,7 @@ public class EduWorkspaceController {
     @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('ADMIN')")
     public ResponseEntity<Void> bulkImportMembers(
             @PathVariable String workspaceId,
-            @RequestBody List<String> userIds,
+            @Valid @RequestBody List<String> userIds,
             @RequestParam String inviterId) {
         memberService.bulkImportMembers(workspaceId, userIds, inviterId);
         return ResponseEntity.ok().build();
@@ -77,7 +78,7 @@ public class EduWorkspaceController {
 
     @GetMapping("/{workspaceId}/members")
     @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('ADMIN')")
-    public ResponseEntity<List<EWorkspaceMembers>> getMembers(@PathVariable String workspaceId) {
+    public ResponseEntity<List<WorkspaceMemberDTO>> getMembers(@PathVariable String workspaceId) {
         return ResponseEntity.ok(memberService.getMembers(workspaceId));
     }
 
@@ -97,7 +98,7 @@ public class EduWorkspaceController {
     public ResponseEntity<ELearningPaths> createPath(
             @PathVariable String workspaceId,
             @RequestParam String creatorId,
-            @RequestBody LearningPathRequest request) {
+            @Valid @RequestBody LearningPathRequest request) {
         return ResponseEntity.ok(pathService.createPath(workspaceId, creatorId, request));
     }
 

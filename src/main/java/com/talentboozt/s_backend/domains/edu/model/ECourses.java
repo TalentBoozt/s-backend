@@ -11,6 +11,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.talentboozt.s_backend.domains.edu.enums.ECourseContentType;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseLevel;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseType;
@@ -51,6 +52,9 @@ public class ECourses {
     
     @Indexed
     private ECourseType type;
+    
+    @Indexed
+    private ECourseContentType contentType;
     
     private Double price;
     private Double compareAtPrice;

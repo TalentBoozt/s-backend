@@ -1,9 +1,12 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
+import jakarta.validation.Valid;
 import com.talentboozt.s_backend.domains.edu.dto.finance.PayoutRequest;
 import com.talentboozt.s_backend.domains.edu.dto.finance.RevenueSummaryDTO;
 import com.talentboozt.s_backend.domains.edu.enums.EPayoutStatus;
+import com.talentboozt.s_backend.domains.edu.model.ECreatorFinanceSettings;
 import com.talentboozt.s_backend.domains.edu.model.EPayouts;
+import com.talentboozt.s_backend.domains.edu.model.ETransactions;
 import com.talentboozt.s_backend.domains.edu.service.EduFinanceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,7 +34,7 @@ public class EduFinanceController {
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<EPayouts> requestPayout(
             @RequestParam String creatorId,
-            @RequestBody PayoutRequest request) {
+            @Valid @RequestBody PayoutRequest request) {
         return ResponseEntity.ok(financeService.requestPayout(creatorId, request));
     }
 
@@ -39,6 +42,24 @@ public class EduFinanceController {
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<List<EPayouts>> getPayoutHistory(@PathVariable String creatorId) {
         return ResponseEntity.ok(financeService.getPayoutHistory(creatorId));
+    }
+
+    @GetMapping("/transactions/{creatorId}")
+    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    public ResponseEntity<List<ETransactions>> getCreatorTransactions(@PathVariable String creatorId) {
+        return ResponseEntity.ok(financeService.getCreatorTransactions(creatorId));
+    }
+
+    @GetMapping("/settings/{userId}")
+    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    public ResponseEntity<ECreatorFinanceSettings> getFinanceSettings(@PathVariable String userId) {
+        return ResponseEntity.ok(financeService.getFinanceSettings(userId));
+    }
+
+    @PutMapping("/settings/{userId}")
+    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    public ResponseEntity<ECreatorFinanceSettings> updateFinanceSettings(@PathVariable String userId, @RequestBody ECreatorFinanceSettings settings) {
+        return ResponseEntity.ok(financeService.updateFinanceSettings(userId, settings));
     }
 
     // Only internal admins should be capable of marking payouts completed

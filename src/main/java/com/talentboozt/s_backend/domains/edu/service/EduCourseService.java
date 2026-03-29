@@ -6,6 +6,7 @@ import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EEnrollmentsRepository;
+import com.talentboozt.s_backend.domains.edu.repository.mongodb.EWorkspacesRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -19,10 +20,12 @@ public class EduCourseService {
 
     private final ECoursesRepository courseRepository;
     private final EEnrollmentsRepository enrollmentsRepository;
+    private final EWorkspacesRepository workspaceRepository;
 
-    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository) {
+    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository, EWorkspacesRepository workspaceRepository) {
         this.courseRepository = courseRepository;
         this.enrollmentsRepository = enrollmentsRepository;
+        this.workspaceRepository = workspaceRepository;
     }
 
     public ECourses createCourse(String creatorId, String workspaceId, CourseRequest request) {
@@ -33,6 +36,7 @@ public class EduCourseService {
                 .description(request.getDescription())
                 .shortDescription(request.getShortDescription())
                 .type(request.getType())
+                .contentType(request.getContentType())
                 .language(request.getLanguage())
                 .level(request.getLevel())
                 .categories(request.getCategories())
@@ -47,7 +51,17 @@ public class EduCourseService {
                 .sections(new String[0])
                 .createdAt(Instant.now())
                 .build();
-        return courseRepository.save(course);
+                
+        ECourses saved = courseRepository.save(course);
+        
+        if (workspaceId != null && !workspaceId.isEmpty() && !"default".equals(workspaceId)) {
+            workspaceRepository.findById(workspaceId).ifPresent(ws -> {
+                ws.setTotalCourses(ws.getTotalCourses() + 1);
+                workspaceRepository.save(ws);
+            });
+        }
+        
+        return saved;
     }
 
     public ECourses getCourseById(String id) {
@@ -59,12 +73,17 @@ public class EduCourseService {
         return courseRepository.findByCreatorId(creatorId);
     }
 
+    public List<ECourses> getCoursesByWorkspace(String workspaceId) {
+        return courseRepository.findByWorkspaceId(workspaceId);
+    }
+
     public ECourses updateCourse(String id, CourseRequest request) {
         ECourses course = getCourseById(id);
         course.setTitle(request.getTitle());
         course.setDescription(request.getDescription());
         course.setShortDescription(request.getShortDescription());
         course.setType(request.getType());
+        course.setContentType(request.getContentType());
         course.setLanguage(request.getLanguage());
         course.setLevel(request.getLevel());
         course.setCategories(request.getCategories());
@@ -79,8 +98,7 @@ public class EduCourseService {
     }
 
     /**
-     * Creator submits course for platform moderation. Not visible in marketplace
-     * until approved.
+     * Creator submits course for platform moderation. Not visible in marketplace until approved.
      */
     public ECourses publishCourse(String id) {
         ECourses course = getCourseById(id);
@@ -125,8 +143,7 @@ public class EduCourseService {
     }
 
     /**
-     * All enrollments for courses owned by a creator (optional filter by course and
-     * user id text).
+     * All enrollments for courses owned by a creator (optional filter by course and user id text).
      */
     public List<EEnrollments> getCreatorStudentEnrollments(String creatorId, String courseId, String search) {
         List<ECourses> owned = courseRepository.findAll().stream()
@@ -137,8 +154,7 @@ public class EduCourseService {
         Stream<EEnrollments> stream = owned.stream()
                 .flatMap(c -> enrollmentsRepository.findByCourseId(c.getId()).stream());
         if (!needle.isEmpty()) {
-            stream = stream
-                    .filter(e -> e.getUserId() != null && e.getUserId().toLowerCase(Locale.ROOT).contains(needle));
+            stream = stream.filter(e -> e.getUserId() != null && e.getUserId().toLowerCase(Locale.ROOT).contains(needle));
         }
         return stream.collect(Collectors.toList());
     }
