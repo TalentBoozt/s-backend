@@ -6,7 +6,6 @@ import com.talentboozt.s_backend.domains.edu.dto.monetization.CourseCheckoutRequ
 import com.talentboozt.s_backend.domains.edu.dto.monetization.CoursePurchaseConfirmRequest;
 import com.talentboozt.s_backend.domains.edu.dto.monetization.PortalRequest;
 import com.talentboozt.s_backend.domains.edu.dto.monetization.MultiCourseCheckoutRequest;
-import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
 import com.talentboozt.s_backend.domains.edu.model.ESubscriptions;
 import com.talentboozt.s_backend.domains.edu.service.EduCoursePurchaseService;
 import com.talentboozt.s_backend.domains.edu.service.EduMonetizationService;
