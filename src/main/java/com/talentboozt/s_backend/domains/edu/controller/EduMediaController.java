@@ -22,17 +22,32 @@ public class EduMediaController {
             return ResponseEntity.badRequest().body("File is empty");
         }
 
-        // Size limit (currently 50MB, matching frontendMaxSize)
-        if (file.getSize() > 50 * 1024 * 1024) {
-            return ResponseEntity.badRequest().body("File size exceeds 50MB limit");
+        // Size limit (currently 512MB, matching application.properties)
+        if (file.getSize() > 512 * 1024 * 1024) {
+            return ResponseEntity.badRequest().body("File size exceeds 512MB limit");
         }
 
-        // File type validation (MP4, PDF, Images)
+        // Expanded File type validation (MP4, PDF, Images, ZIP, DOCX)
         String contentType = file.getContentType();
-        if (contentType == null || (!contentType.startsWith("video/mp4") && 
-            !contentType.equals("application/pdf") && 
-            !contentType.startsWith("image/"))) {
-            return ResponseEntity.badRequest().body("Invalid file type. Only MP4, PDF, and Images (JPG/PNG/WEBP) are allowed.");
+        String originalName = file.getOriginalFilename() != null ? file.getOriginalFilename().toLowerCase() : "";
+        
+        boolean isValidType = (contentType != null && (
+            contentType.startsWith("video/") || 
+            contentType.startsWith("image/") || 
+            contentType.equals("application/pdf") ||
+            contentType.equals("application/zip") ||
+            contentType.equals("application/x-zip-compressed") ||
+            contentType.contains("officedocument") ||
+            contentType.contains("msword")
+        )) || (
+            originalName.endsWith(".mp4") || 
+            originalName.endsWith(".pdf") || 
+            originalName.endsWith(".zip") || 
+            originalName.endsWith(".docx")
+        );
+
+        if (!isValidType) {
+            return ResponseEntity.badRequest().body("Invalid file type. Supported: Videos, Images, PDFs, ZIP, and Documents.");
         }
 
         try {
