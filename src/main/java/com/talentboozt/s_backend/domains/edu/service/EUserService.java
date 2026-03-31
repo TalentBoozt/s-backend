@@ -36,7 +36,7 @@ public class EUserService {
     private final EduSubscriptionService subscriptionService;
     private final JavaMailSender mailSender;
 
-    @Value("${app.frontend-url:http://localhost:4200}")
+    @Value("${app.frontend-url:http://localhost:5173}")
     private String frontendUrl;
 
     public EUserService(EUserRepository userRepository, EProfilesRepository profileRepository,
@@ -62,12 +62,23 @@ public class EUserService {
         Set<ERoles> roles = new HashSet<>();
         roles.add(ERoles.LEARNER);
 
-        if ("INSTRUCTOR".equals(request.getRole())) {
+        String requestedRole = request.getRole() != null ? request.getRole().trim().toUpperCase() : "LEARNER";
+        System.out.println("[REGISTRATION] Mapping requested role: " + requestedRole);
+
+        if (requestedRole.contains("INSTRUCTOR")) {
             roles.add(ERoles.ENTERPRISE_INSTRUCTOR);
-        } else if ("CREATOR".equals(request.getRole())) {
+        } else if (requestedRole.contains("CREATOR") || requestedRole.contains("SELLER")) {
             roles.add(ERoles.SELLER_FREE);
-        } else if ("ADMIN".equals(request.getRole())) {
+        } else if (requestedRole.contains("ADMIN")) {
             roles.add(ERoles.ENTERPRISE_ADMIN);
+        } else if (requestedRole.contains("ENTERPRISE_LEARNER")) {
+            roles.add(ERoles.ENTERPRISE_LEARNER);
+        } else if (requestedRole.contains("MANAGER")) {
+            roles.add(ERoles.ENTERPRISE_MANAGER);
+        } else if (requestedRole.contains("REVIEWER")) {
+            roles.add(ERoles.REVIEWER);
+        } else if (requestedRole.contains("LEARNER")) {
+            // Already added as default
         }
 
         // Link with SSO user if exists to avoid ID conflict
@@ -159,13 +170,20 @@ public class EUserService {
     }
 
     public AuthResponse refreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+             throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNAUTHORIZED, "No refresh token provided");
+        }
+
         if (!jwtService.validateToken(refreshToken)) {
-            throw new RuntimeException("Invalid refresh token");
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNAUTHORIZED, "Invalid or expired refresh token");
         }
 
         String userId = jwtService.extractUserId(refreshToken);
         EUser user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "User identity lost. Please login again."));
 
         return buildAuthResponse(user);
     }
