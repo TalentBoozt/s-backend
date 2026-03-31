@@ -10,6 +10,7 @@ public enum ERoles {
     
     // Enterprise roles
     ENTERPRISE_ADMIN,
+    ENTERPRISE_MANAGER,
     ENTERPRISE_INSTRUCTOR,
     ENTERPRISE_LEARNER
 }

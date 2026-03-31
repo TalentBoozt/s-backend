@@ -150,7 +150,10 @@ public class JwtService {
         }
 
         if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("edu_access_token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
                 if ("TB_REFRESH".equals(cookie.getName())) {
                     return cookie.getValue();
                 }

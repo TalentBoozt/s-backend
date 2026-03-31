@@ -8,6 +8,8 @@ import com.talentboozt.s_backend.domains.edu.model.EProfiles;
 import com.talentboozt.s_backend.domains.edu.model.EUser;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository;
+import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
+import com.talentboozt.s_backend.domains.user.repository.mongodb.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -28,20 +30,23 @@ public class EUserService {
 
     private final EUserRepository userRepository;
     private final EProfilesRepository profileRepository;
+    private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
     private final EduJwtService jwtService;
     private final EduSubscriptionService subscriptionService;
     private final JavaMailSender mailSender;
 
-    @Value("${app.frontend-url:http://localhost:5173}")
+    @Value("${app.frontend-url:http://localhost:4200}")
     private String frontendUrl;
 
     public EUserService(EUserRepository userRepository, EProfilesRepository profileRepository,
+            EmployeeRepository employeeRepository,
             PasswordEncoder passwordEncoder, EduJwtService jwtService,
             EduSubscriptionService subscriptionService,
             JavaMailSender mailSender) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
+        this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.subscriptionService = subscriptionService;
@@ -65,9 +70,17 @@ public class EUserService {
             roles.add(ERoles.ENTERPRISE_ADMIN);
         }
 
+        // Link with SSO user if exists to avoid ID conflict
+        String userIdToUse = null;
+        Optional<EmployeeModel> portalEmp = employeeRepository.findByEmail(request.getEmail());
+        if (portalEmp.isPresent()) {
+            userIdToUse = portalEmp.get().getId();
+        }
+
         String verificationToken = UUID.randomUUID().toString();
 
         EUser newUser = EUser.builder()
+                .id(userIdToUse) // Set the ID if we found a portal user
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .displayName(request.getFirstName() + " " + request.getLastName())

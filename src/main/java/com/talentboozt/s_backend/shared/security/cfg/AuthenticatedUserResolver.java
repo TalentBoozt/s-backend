@@ -34,12 +34,16 @@ public class AuthenticatedUserResolver implements HandlerMethodArgumentResolver 
         if (token != null && jwtService.validateToken(token)) {
             CredentialsModel user = jwtService.getUserFromToken(token);
             if (user != null) {
-                return user.getEmployeeId(); // This is the user ID
+                String userId = user.getEmployeeId();
+                if (userId != null && !userId.isEmpty() && !"n/a".equals(userId)) {
+                    return userId;
+                }
             }
         }
 
-        // Return null or throw exception if user is not authenticated but @AuthenticatedUser is present
-        // Since we have @PreAuthorize on controllers, we expect the token to be valid here.
-        throw new RuntimeException("Unauthorized: Valid JWT required for @AuthenticatedUser access.");
+        // Check if the parameter is required. Typically, we expect authentication because of @PreAuthorize,
+        // but this resolver should be robust.
+        throw new RuntimeException("Authentication Required: No valid JWT found in cookies or headers for " + 
+            parameter.getParameterName() + ". Please check your login status.");
     }
 }
