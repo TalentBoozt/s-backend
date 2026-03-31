@@ -5,6 +5,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.http.ResponseCookie;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,42 @@ public class EduJwtService {
 
     private final long EXPIRE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     private final long REFRESH_EXPIRE_DURATION = 30L * 24 * 60 * 60 * 1000; // 30 days
+
+    public ResponseCookie generateAccessTokenCookie(EUser user) {
+        String token = generateToken(user);
+        return ResponseCookie.from("edu_access_token", token)
+                .httpOnly(true)
+                .secure(true) // Should be true in production
+                .path("/")
+                .maxAge(EXPIRE_DURATION / 1000)
+                .sameSite("Strict")
+                .build();
+    }
+
+    public ResponseCookie generateRefreshTokenCookie(EUser user) {
+        String token = generateRefreshToken(user);
+        return ResponseCookie.from("edu_refresh_token", token)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(REFRESH_EXPIRE_DURATION / 1000)
+                .sameSite("Strict")
+                .build();
+    }
+
+    public ResponseCookie getCleanAccessTokenCookie() {
+        return ResponseCookie.from("edu_access_token", null)
+                .path("/")
+                .maxAge(0)
+                .build();
+    }
+
+    public ResponseCookie getCleanRefreshTokenCookie() {
+        return ResponseCookie.from("edu_refresh_token", null)
+                .path("/")
+                .maxAge(0)
+                .build();
+    }
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(tokenSecret.getBytes());

@@ -4,6 +4,8 @@ import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
 import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionStatus;
 import com.talentboozt.s_backend.domains.edu.model.ESubscriptions;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ESubscriptionsRepository;
+import com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository;
+import com.talentboozt.s_backend.domains.edu.enums.ERoles;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,8 @@ import java.time.Instant;
 public class EduSubscriptionService {
 
     private final ESubscriptionsRepository subscriptionsRepository;
+    private final EUserRepository userRepository;
+    private final EduAICreditService creditService;
 
     @Value("${stripe.edu.price.pro.monthly:}")
     private String stripePriceProMonthly;
@@ -23,8 +27,10 @@ public class EduSubscriptionService {
     @Value("${stripe.edu.price.premium.yearly:}")
     private String stripePricePremiumYearly;
 
-    public EduSubscriptionService(ESubscriptionsRepository subscriptionsRepository) {
+    public EduSubscriptionService(ESubscriptionsRepository subscriptionsRepository, EUserRepository userRepository, EduAICreditService creditService) {
         this.subscriptionsRepository = subscriptionsRepository;
+        this.userRepository = userRepository;
+        this.creditService = creditService;
     }
 
     public ESubscriptions getUserSubscription(String userId) {
@@ -69,7 +75,10 @@ public class EduSubscriptionService {
             current.setMaxCourses(Integer.MAX_VALUE);
             current.setRemainingCredits(500);
             current.setTotalCredits(500);
+            creditService.grantMonthlyCredits(userId, 500, 30, "SYSTEM_UPGRADE");
         }
+
+        syncUserRoles(userId, newPlan);
 
         return subscriptionsRepository.save(current);
     }
@@ -79,6 +88,7 @@ public class EduSubscriptionService {
         current.setStatus(ESubscriptionStatus.CANCELLED);
         current.setAutoRenew(false);
         current.setCancelledAt(Instant.now());
+        syncUserRoles(userId, ESubscriptionPlan.FREE);
         return subscriptionsRepository.save(current);
     }
 
@@ -123,6 +133,7 @@ public class EduSubscriptionService {
             }
 
             subscriptionsRepository.save(sub);
+            syncUserRoles(sub.getUserId(), sub.getPlan());
         });
     }
 
@@ -130,6 +141,12 @@ public class EduSubscriptionService {
         subscriptionsRepository.findByStripeCustomerId(stripeCustomerId).ifPresent(sub -> {
             sub.setLastPaymentAt(Instant.now());
             sub.setStatus(ESubscriptionStatus.ACTIVE);
+            
+            // Re-grant cycle if Premium
+            if (sub.getPlan() == ESubscriptionPlan.PREMIUM) {
+                creditService.grantMonthlyCredits(sub.getUserId(), 500, 30, "STRIPE_RENEWAL");
+            }
+            
             subscriptionsRepository.save(sub);
         });
     }
@@ -138,6 +155,36 @@ public class EduSubscriptionService {
         subscriptionsRepository.findByStripeCustomerId(stripeCustomerId).ifPresent(sub -> {
             sub.setStatus(ESubscriptionStatus.PAST_DUE);
             subscriptionsRepository.save(sub);
+        });
+    }
+
+    private void syncUserRoles(String userId, ESubscriptionPlan newPlan) {
+        userRepository.findById(userId).ifPresent(user -> {
+            boolean isSeller = false;
+            java.util.Set<ERoles> roles = new java.util.HashSet<>();
+            if (user.getRoles() != null) {
+                for (ERoles r : user.getRoles()) {
+                    if (r.name().startsWith("SELLER_")) {
+                        isSeller = true;
+                    } else {
+                        roles.add(r);
+                    }
+                }
+            }
+            
+            // Only update seller tier if they are a seller 
+            // (or if we want all learners to optionally become sellers by subscribing)
+            // Assuming upgrading automatically grants the seller role:
+            if (newPlan == ESubscriptionPlan.PRO) {
+                roles.add(ERoles.SELLER_PRO);
+            } else if (newPlan == ESubscriptionPlan.PREMIUM) {
+                roles.add(ERoles.SELLER_PREMIUM);
+            } else if (newPlan == ESubscriptionPlan.FREE && isSeller) {
+                roles.add(ERoles.SELLER_FREE);
+            }
+
+            user.setRoles(roles.toArray(new ERoles[0]));
+            userRepository.save(user);
         });
     }
 }

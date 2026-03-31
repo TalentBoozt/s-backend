@@ -10,6 +10,7 @@ import java.util.Optional;
 @Repository
 public interface ETransactionsRepository extends MongoRepository<ETransactions, String> {
     List<ETransactions> findBySellerId(String sellerId);
+    List<ETransactions> findByBuyerId(String buyerId);
 
     Optional<ETransactions> findByStripeCheckoutSessionId(String stripeCheckoutSessionId);
 

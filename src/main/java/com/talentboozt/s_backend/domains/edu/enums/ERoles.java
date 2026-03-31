@@ -2,9 +2,14 @@ package com.talentboozt.s_backend.domains.edu.enums;
 
 public enum ERoles {
     LEARNER,
-    CREATOR,
-    ADMIN, // enterprise
-    INSTRUCTOR, // enterprise
-    MANAGER, // enterprise
-    EMPLOYEE // enterprise
+    SELLER_FREE,
+    SELLER_PRO,
+    SELLER_PREMIUM,
+    PLATFORM_ADMIN,
+    REVIEWER,
+    
+    // Enterprise roles
+    ENTERPRISE_ADMIN,
+    ENTERPRISE_INSTRUCTOR,
+    ENTERPRISE_LEARNER
 }

@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
+import jakarta.validation.Valid;
 import com.talentboozt.s_backend.domains.edu.model.ECoupons;
 import com.talentboozt.s_backend.domains.edu.service.EduCouponService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class EduCouponController {
     @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('INSTRUCTOR')")
     public ResponseEntity<ECoupons> createCoupon(
             @RequestParam String creatorId,
-            @RequestBody ECoupons request) {
+            @Valid @RequestBody ECoupons request) {
         return ResponseEntity.ok(couponService.createCoupon(creatorId, request));
     }
 
@@ -36,7 +37,7 @@ public class EduCouponController {
     public ResponseEntity<ECoupons> updateCoupon(
             @PathVariable String couponId,
             @RequestParam String creatorId,
-            @RequestBody ECoupons request) {
+            @Valid @RequestBody ECoupons request) {
         return ResponseEntity.ok(couponService.updateCoupon(couponId, creatorId, request));
     }
 
@@ -51,14 +52,16 @@ public class EduCouponController {
 
     @PostMapping("/validate")
     public ResponseEntity<Map<String, Object>> validateCoupon(
-            @RequestBody Map<String, Object> request) {
+            @Valid @RequestBody Map<String, Object> request) {
         String code = (String) request.get("code");
         String courseId = (String) request.get("courseId");
         
         Object currentPriceObj = request.get("currentPrice");
         Double currentPrice = currentPriceObj != null ? Double.parseDouble(currentPriceObj.toString()) : 0.0;
         
-        Double discountAmount = couponService.validateCoupon(code, courseId, currentPrice);
+        String userId = (String) request.get("userId");
+        
+        Double discountAmount = couponService.validateCoupon(code, courseId, userId, currentPrice);
         return ResponseEntity.ok(Map.of(
             "valid", discountAmount > 0 || (currentPriceObj != null && discountAmount >= 0),
             "discountAmount", discountAmount

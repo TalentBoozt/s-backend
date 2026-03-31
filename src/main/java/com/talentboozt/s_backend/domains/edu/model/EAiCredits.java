@@ -7,6 +7,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.annotation.Version;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,6 +29,12 @@ public class EAiCredits {
     private Integer balance;
     private Integer lifetimePurchased;
     private Integer lifetimeUsed;
+    
+    @Indexed
+    private Instant expiresAt;
+    
+    @Version
+    private Long version;
     
     @CreatedDate
     private Instant createdAt;

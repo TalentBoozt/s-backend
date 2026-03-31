@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
+import com.talentboozt.s_backend.domains.edu.enums.ECourseValidationStatus;
 
 import java.util.List;
 
@@ -14,4 +15,5 @@ public interface ECoursesRepository extends MongoRepository<ECourses, String> {
     List<ECourses> findByWorkspaceId(String workspaceId);
 
     List<ECourses> findByStatus(ECourseStatus status);
+    List<ECourses> findByValidationStatusIn(List<ECourseValidationStatus> statuses);
 }

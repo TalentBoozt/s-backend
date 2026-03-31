@@ -5,6 +5,7 @@ import com.talentboozt.s_backend.domains.edu.dto.course.CourseRequest;
 import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.service.EduCourseService;
+import com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class EduCourseController {
     @PostMapping
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<ECourses> createCourse(
-            @RequestParam String creatorId, 
+            @AuthenticatedUser String creatorId, 
             @RequestParam String workspaceId, 
             @Valid @RequestBody CourseRequest request) {
         return ResponseEntity.ok(courseService.createCourse(creatorId, workspaceId, request));
@@ -35,8 +36,9 @@ public class EduCourseController {
         return ResponseEntity.ok(courseService.getCourseById(id));
     }
 
-    @GetMapping("/creator/{creatorId}")
-    public ResponseEntity<List<ECourses>> getCreatorCourses(@PathVariable String creatorId) {
+    @GetMapping("/creator")
+    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    public ResponseEntity<List<ECourses>> getCreatorCourses(@AuthenticatedUser String creatorId) {
         return ResponseEntity.ok(courseService.getCoursesByCreator(creatorId));
     }
 
@@ -45,10 +47,10 @@ public class EduCourseController {
         return ResponseEntity.ok(courseService.getCoursesByWorkspace(workspaceId));
     }
 
-    @GetMapping("/creator/{creatorId}/students")
+    @GetMapping("/creator/students")
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<List<EEnrollments>> getCreatorStudents(
-            @PathVariable String creatorId,
+            @AuthenticatedUser String creatorId,
             @RequestParam(required = false) String courseId,
             @RequestParam(required = false) String search) {
         return ResponseEntity.ok(courseService.getCreatorStudentEnrollments(creatorId, courseId, search));

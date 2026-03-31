@@ -21,14 +21,21 @@ public class EduCourseService {
     private final ECoursesRepository courseRepository;
     private final EEnrollmentsRepository enrollmentsRepository;
     private final EWorkspacesRepository workspaceRepository;
+    private final EduWorkspaceGuardService guardService;
+    private final EduTrustScoreService trustScoreService;
 
-    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository, EWorkspacesRepository workspaceRepository) {
+    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository, EWorkspacesRepository workspaceRepository, EduWorkspaceGuardService guardService, EduTrustScoreService trustScoreService) {
         this.courseRepository = courseRepository;
         this.enrollmentsRepository = enrollmentsRepository;
         this.workspaceRepository = workspaceRepository;
+        this.guardService = guardService;
+        this.trustScoreService = trustScoreService;
     }
 
     public ECourses createCourse(String creatorId, String workspaceId, CourseRequest request) {
+        if (workspaceId != null && !workspaceId.isEmpty() && !"default".equals(workspaceId)) {
+            guardService.enforceMembership(workspaceId, creatorId);
+        }
         ECourses course = ECourses.builder()
                 .creatorId(creatorId)
                 .workspaceId(workspaceId)
@@ -65,16 +72,23 @@ public class EduCourseService {
     }
 
     public ECourses getCourseById(String id) {
-        return courseRepository.findById(id)
+        ECourses course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
+        populateTrustData(course);
+        return course;
     }
 
     public List<ECourses> getCoursesByCreator(String creatorId) {
-        return courseRepository.findByCreatorId(creatorId);
+        List<ECourses> courses = courseRepository.findByCreatorId(creatorId);
+        courses.forEach(this::populateTrustData);
+        return courses;
     }
 
     public List<ECourses> getCoursesByWorkspace(String workspaceId) {
-        return courseRepository.findByWorkspaceId(workspaceId);
+        guardService.enforceCurrentContext(null); // Uses TenantContext
+        List<ECourses> courses = courseRepository.findByWorkspaceId(workspaceId);
+        courses.forEach(this::populateTrustData);
+        return courses;
     }
 
     public ECourses updateCourse(String id, CourseRequest request) {
@@ -157,5 +171,14 @@ public class EduCourseService {
             stream = stream.filter(e -> e.getUserId() != null && e.getUserId().toLowerCase(Locale.ROOT).contains(needle));
         }
         return stream.collect(Collectors.toList());
+    }
+    private void populateTrustData(ECourses course) {
+        if (course.getCreatorId() != null) {
+            var trust = trustScoreService.getTrustScore(course.getCreatorId());
+            course.setCreatorTier(trust.getCurrentTier());
+            if ("BRONZE".equals(trust.getCurrentTier())) {
+                course.setTrustWarning("Marketplace Warning: This creator has a low trust score. Exercise caution.");
+            }
+        }
     }
 }

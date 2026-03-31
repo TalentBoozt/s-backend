@@ -12,16 +12,22 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import com.talentboozt.s_backend.domains.edu.service.EduJwtService;
+
 @RestController
 @RequestMapping("/api/edu/auth")
 public class EduAuthController {
 
     private final EUserService userService;
     private final RateLimiterService rateLimiterService;
+    private final EduJwtService jwtService;
 
-    public EduAuthController(EUserService userService, RateLimiterService rateLimiterService) {
+    public EduAuthController(EUserService userService, RateLimiterService rateLimiterService, EduJwtService jwtService) {
         this.userService = userService;
         this.rateLimiterService = rateLimiterService;
+        this.jwtService = jwtService;
     }
 
     private String getClientIp(HttpServletRequest request) {
@@ -37,7 +43,15 @@ public class EduAuthController {
         if (!rateLimiterService.checkRateLimit(getClientIp(request), "edu-register")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
-        return ResponseEntity.ok(userService.register(requestBody));
+        AuthResponse response = userService.register(requestBody);
+        
+        ResponseCookie cookie = jwtService.generateAccessTokenCookie(response.getUser());
+        ResponseCookie refreshCookie = jwtService.generateRefreshTokenCookie(response.getUser());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(response);
     }
 
     @PostMapping("/login")
@@ -45,7 +59,15 @@ public class EduAuthController {
         if (!rateLimiterService.checkRateLimit(getClientIp(request), "edu-login")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
-        return ResponseEntity.ok(userService.login(requestBody));
+        AuthResponse response = userService.login(requestBody);
+        
+        ResponseCookie cookie = jwtService.generateAccessTokenCookie(response.getUser());
+        ResponseCookie refreshCookie = jwtService.generateRefreshTokenCookie(response.getUser());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                .body(response);
     }
 
     @PostMapping("/verify-email")
@@ -71,6 +93,22 @@ public class EduAuthController {
 
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
-        return ResponseEntity.ok(userService.refreshToken(request.getRefreshToken()));
+        AuthResponse response = userService.refreshToken(request.getRefreshToken());
+        
+        ResponseCookie cookie = jwtService.generateAccessTokenCookie(response.getUser());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .body(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout() {
+        ResponseCookie cleanCookie = jwtService.getCleanAccessTokenCookie();
+        ResponseCookie cleanRefreshCookie = jwtService.getCleanRefreshTokenCookie();
+        
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, cleanCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, cleanRefreshCookie.toString())
+                .build();
     }
 }

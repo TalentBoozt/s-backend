@@ -25,6 +25,10 @@ public class TenantContext {
     
     @Getter
     @Setter
+    private String workspaceId;
+    
+    @Getter
+    @Setter
     private String databaseName;
     
     @Getter
@@ -56,6 +60,7 @@ public class TenantContext {
         this.tenantId = null;
         this.organizationId = null;
         this.userId = null;
+        this.workspaceId = null;
         this.databaseName = null;
         this.resolved = false;
     }

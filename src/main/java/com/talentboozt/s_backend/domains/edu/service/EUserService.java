@@ -58,11 +58,11 @@ public class EUserService {
         roles.add(ERoles.LEARNER);
 
         if ("INSTRUCTOR".equals(request.getRole())) {
-            roles.add(ERoles.INSTRUCTOR);
+            roles.add(ERoles.ENTERPRISE_INSTRUCTOR);
         } else if ("CREATOR".equals(request.getRole())) {
-            roles.add(ERoles.CREATOR);
+            roles.add(ERoles.SELLER_FREE);
         } else if ("ADMIN".equals(request.getRole())) {
-            roles.add(ERoles.ADMIN);
+            roles.add(ERoles.ENTERPRISE_ADMIN);
         }
 
         String verificationToken = UUID.randomUUID().toString();
@@ -158,10 +158,12 @@ public class EUserService {
     }
 
     private AuthResponse buildAuthResponse(EUser user) {
+        com.talentboozt.s_backend.domains.edu.model.ESubscriptions sub = subscriptionService.getUserSubscription(user.getId());
         return AuthResponse.builder()
                 .accessToken(jwtService.generateToken(user))
                 .refreshToken(jwtService.generateRefreshToken(user))
                 .user(user)
+                .currentPlan(sub != null ? sub.getPlan() : com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.FREE)
                 .build();
     }
 

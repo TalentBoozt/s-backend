@@ -10,6 +10,7 @@ import com.talentboozt.s_backend.domains.edu.model.EWorkspaces;
 import com.talentboozt.s_backend.domains.edu.service.EduLearningPathService;
 import com.talentboozt.s_backend.domains.edu.service.EduWorkspaceMemberService;
 import com.talentboozt.s_backend.domains.edu.service.EduWorkspaceService;
+import com.talentboozt.s_backend.domains.edu.service.EduWorkspaceGuardService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,13 +24,16 @@ public class EduWorkspaceController {
     private final EduWorkspaceService workspaceService;
     private final EduWorkspaceMemberService memberService;
     private final EduLearningPathService pathService;
+    private final EduWorkspaceGuardService guardService;
 
     public EduWorkspaceController(EduWorkspaceService workspaceService,
                                   EduWorkspaceMemberService memberService,
-                                  EduLearningPathService pathService) {
+                                  EduLearningPathService pathService,
+                                  EduWorkspaceGuardService guardService) {
         this.workspaceService = workspaceService;
         this.memberService = memberService;
         this.pathService = pathService;
+        this.guardService = guardService;
     }
 
     // Workspaces 
@@ -44,7 +48,9 @@ public class EduWorkspaceController {
 
     @GetMapping("/{workspaceId}")
     @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR') or hasAuthority('ADMIN')")
-    public ResponseEntity<EWorkspaces> getWorkspace(@PathVariable String workspaceId) {
+    public ResponseEntity<EWorkspaces> getWorkspace(@PathVariable String workspaceId,
+                                                    @RequestParam String userId) {
+        guardService.enforceMembership(workspaceId, userId);
         return ResponseEntity.ok(workspaceService.getWorkspaceById(workspaceId));
     }
 
@@ -78,7 +84,9 @@ public class EduWorkspaceController {
 
     @GetMapping("/{workspaceId}/members")
     @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('ADMIN')")
-    public ResponseEntity<List<WorkspaceMemberDTO>> getMembers(@PathVariable String workspaceId) {
+    public ResponseEntity<List<WorkspaceMemberDTO>> getMembers(@PathVariable String workspaceId,
+                                                               @RequestParam String userId) {
+        guardService.enforceMembership(workspaceId, userId);
         return ResponseEntity.ok(memberService.getMembers(workspaceId));
     }
 
@@ -104,7 +112,9 @@ public class EduWorkspaceController {
 
     @GetMapping("/{workspaceId}/paths")
     @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR') or hasAuthority('ADMIN')")
-    public ResponseEntity<List<ELearningPaths>> getWorkspacePaths(@PathVariable String workspaceId) {
+    public ResponseEntity<List<ELearningPaths>> getWorkspacePaths(@PathVariable String workspaceId,
+                                                                  @RequestParam String userId) {
+        guardService.enforceMembership(workspaceId, userId);
         return ResponseEntity.ok(pathService.getWorkspacePaths(workspaceId));
     }
 }

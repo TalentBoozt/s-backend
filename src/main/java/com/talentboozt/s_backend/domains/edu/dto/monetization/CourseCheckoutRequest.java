@@ -6,4 +6,5 @@ import lombok.Data;
 public class CourseCheckoutRequest {
     private String userId;
     private String courseId;
+    private String affiliateId;
 }
