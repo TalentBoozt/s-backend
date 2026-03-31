@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
+import jakarta.validation.Valid;
 import com.talentboozt.s_backend.domains.edu.dto.evaluation.QuizAttemptRequest;
 import com.talentboozt.s_backend.domains.edu.dto.evaluation.QuizRequest;
 import com.talentboozt.s_backend.domains.edu.model.EQuizAttempts;
@@ -24,8 +25,8 @@ public class EduQuizController {
     public ResponseEntity<EQuizzes> createQuiz(
             @PathVariable String courseId,
             @PathVariable String sectionId,
-            @RequestParam String creatorId,
-            @RequestBody QuizRequest request) {
+            String creatorId,
+            @Valid @RequestBody QuizRequest request) {
         return ResponseEntity.ok(quizService.createQuiz(courseId, sectionId, creatorId, request));
     }
 
@@ -41,7 +42,7 @@ public class EduQuizController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
-    public ResponseEntity<EQuizzes> updateQuiz(@PathVariable String id, @RequestBody QuizRequest request) {
+    public ResponseEntity<EQuizzes> updateQuiz(@PathVariable String id, @Valid @RequestBody QuizRequest request) {
         return ResponseEntity.ok(quizService.updateQuiz(id, request));
     }
 
@@ -56,8 +57,8 @@ public class EduQuizController {
     @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR')")
     public ResponseEntity<EQuizAttempts> submitAttempt(
             @PathVariable String quizId,
-            @RequestParam String userId,
-            @RequestBody QuizAttemptRequest request) {
+            String userId,
+            @Valid @RequestBody QuizAttemptRequest request) {
         return ResponseEntity.ok(quizService.submitQuizAttempt(quizId, userId, request));
     }
 
