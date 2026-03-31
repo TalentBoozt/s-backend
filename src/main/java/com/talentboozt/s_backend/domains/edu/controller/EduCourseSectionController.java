@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
+import jakarta.validation.Valid;
 import com.talentboozt.s_backend.domains.edu.dto.course.OrderUpdateRequest;
 import com.talentboozt.s_backend.domains.edu.dto.course.SectionRequest;
 import com.talentboozt.s_backend.domains.edu.model.ECourseSections;
@@ -24,8 +25,8 @@ public class EduCourseSectionController {
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<ECourseSections> createSection(
             @PathVariable String courseId, 
-            @RequestParam String creatorId,
-            @RequestBody SectionRequest request) {
+            String creatorId,
+            @Valid @RequestBody SectionRequest request) {
         return ResponseEntity.ok(sectionService.createSection(courseId, creatorId, request));
     }
 
@@ -38,7 +39,7 @@ public class EduCourseSectionController {
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<ECourseSections> updateSection(
             @PathVariable String sectionId, 
-            @RequestBody SectionRequest request) {
+            @Valid @RequestBody SectionRequest request) {
         return ResponseEntity.ok(sectionService.updateSection(sectionId, request));
     }
 
@@ -46,7 +47,7 @@ public class EduCourseSectionController {
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<Void> reorderSections(
             @PathVariable String courseId, 
-            @RequestBody OrderUpdateRequest request) {
+            @Valid @RequestBody OrderUpdateRequest request) {
         sectionService.reorderSections(courseId, request);
         return ResponseEntity.ok().build();
     }

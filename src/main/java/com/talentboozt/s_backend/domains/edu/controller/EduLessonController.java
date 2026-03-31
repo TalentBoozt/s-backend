@@ -26,7 +26,7 @@ public class EduLessonController {
     public ResponseEntity<ELessons> createLesson(
             @PathVariable String courseId,
             @PathVariable String sectionId,
-            @RequestParam String creatorId,
+            String creatorId,
             @Valid @RequestBody LessonRequest request) {
         return ResponseEntity.ok(lessonService.createLesson(courseId, sectionId, creatorId, request));
     }

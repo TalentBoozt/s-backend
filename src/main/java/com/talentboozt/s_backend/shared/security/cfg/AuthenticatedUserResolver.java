@@ -22,7 +22,11 @@ public class AuthenticatedUserResolver implements HandlerMethodArgumentResolver 
 
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
-        return parameter.hasParameterAnnotation(AuthenticatedUser.class);
+        // Support @AuthenticatedUser annotation OR standard userId/creatorId parameters
+        return parameter.hasParameterAnnotation(AuthenticatedUser.class) ||
+               (parameter.getParameterType().equals(String.class) && 
+                (parameter.getParameterName().equals("userId") || 
+                 parameter.getParameterName().equals("creatorId")));
     }
 
     @Override
