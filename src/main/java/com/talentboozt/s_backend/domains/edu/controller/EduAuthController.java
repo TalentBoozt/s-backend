@@ -92,10 +92,21 @@ public class EduAuthController {
     }
 
     @PostMapping("/refresh-token")
-    public ResponseEntity<AuthResponse> refreshToken(@Valid @RequestBody TokenRefreshRequest request) {
-        AuthResponse response = userService.refreshToken(request.getRefreshToken());
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody(required = false) TokenRefreshRequest body, jakarta.servlet.http.HttpServletRequest request) {
+        String token = (body != null) ? body.getRefreshToken() : null;
         
+        if (token == null && request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("edu_refresh_token".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        
+        AuthResponse response = userService.refreshToken(token);
         ResponseCookie cookie = jwtService.generateAccessTokenCookie(response.getUser());
+        
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(response);
