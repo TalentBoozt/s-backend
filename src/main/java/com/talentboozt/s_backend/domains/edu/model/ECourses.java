@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.annotation.Transient;
 
 import com.talentboozt.s_backend.domains.edu.enums.ECourseContentType;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseLevel;
@@ -106,6 +107,15 @@ public class ECourses {
 
     /** Set when moderation rejects a submission (shown to creator). */
     private String moderationRejectionReason;
+    
+    @Transient
+    private String trustDisclaimer;
+
+    @Transient
+    private String creatorTier;
+
+    @Transient
+    private String trustWarning;
     
     private Instant publishedAt;
     private String createdBy;

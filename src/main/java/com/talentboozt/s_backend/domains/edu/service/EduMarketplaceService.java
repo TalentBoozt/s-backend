@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
+import com.talentboozt.s_backend.domains.edu.enums.ECourseValidationStatus;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
 import org.springframework.stereotype.Service;
@@ -14,9 +15,11 @@ import java.util.stream.Collectors;
 public class EduMarketplaceService {
 
     private final ECoursesRepository courseRepository;
+    private final EduTrustScoreService trustScoreService;
 
-    public EduMarketplaceService(ECoursesRepository courseRepository) {
+    public EduMarketplaceService(ECoursesRepository courseRepository, EduTrustScoreService trustScoreService) {
         this.courseRepository = courseRepository;
+        this.trustScoreService = trustScoreService;
     }
 
     /** Legacy documents may have {@code published == true} with {@code status} unset. */
@@ -24,15 +27,39 @@ public class EduMarketplaceService {
         ECourseStatus st = c.getStatus();
         boolean approved = st == ECourseStatus.PUBLISHED
                 || (st == null && Boolean.TRUE.equals(c.getPublished()));
+        
+        boolean notRejected = c.getValidationStatus() != ECourseValidationStatus.AI_REJECTED;
+
         return Boolean.TRUE.equals(c.getPublished())
                 && !Boolean.TRUE.equals(c.getIsPrivate())
-                && approved;
+                && approved
+                && notRejected;
+    }
+
+    private ECourses enrichTrustData(ECourses c) {
+        if (c.getValidationStatus() == ECourseValidationStatus.VALIDATED) {
+            c.setTrustDisclaimer("Verified by Talnova Experts.");
+        } else if (c.getValidationStatus() == ECourseValidationStatus.AI_APPROVED) {
+            c.setTrustDisclaimer("AI Reviewed. This content has not been manually verified by Talnova.");
+        } else {
+            c.setTrustDisclaimer("Unverified user generated content.");
+        }
+
+        if (c.getCreatorId() != null) {
+            var trust = trustScoreService.getTrustScore(c.getCreatorId());
+            c.setCreatorTier(trust.getCurrentTier());
+            if ("BRONZE".equals(trust.getCurrentTier())) {
+                c.setTrustWarning("Marketplace Warning: This creator has a low trust score. Exercise caution.");
+            }
+        }
+        return c;
     }
 
     public List<ECourses> getFeaturedCourses() {
         return courseRepository.findAll().stream()
                 .filter(this::isPublicCatalogCourse)
                 .filter(c -> Boolean.TRUE.equals(c.getIsFeatured()))
+                .map(this::enrichTrustData)
                 .collect(Collectors.toList());
     }
 
@@ -52,6 +79,8 @@ public class EduMarketplaceService {
                     boolean matchesPriceMax = priceMax == null || p <= priceMax;
                     return matchesKeyword && matchesCategory && matchesLevel && matchesPriceMin && matchesPriceMax;
                 })
+                .sorted((c1, c2) -> Integer.compare(getValidationWeight(c2), getValidationWeight(c1))) // Descending
+                .map(this::enrichTrustData)
                 .collect(Collectors.toList());
 
         int start = (int) pageable.getOffset();
@@ -82,6 +111,13 @@ public class EduMarketplaceService {
         if (!isPublicCatalogCourse(course)) {
             throw new RuntimeException("Course is not available in the marketplace");
         }
-        return course;
+        return enrichTrustData(course);
+    }
+
+    private int getValidationWeight(ECourses c) {
+        if (c.getValidationStatus() == null) return 0;
+        if (c.getValidationStatus() == ECourseValidationStatus.VALIDATED) return 100;
+        if (c.getValidationStatus() == ECourseValidationStatus.AI_APPROVED) return 50;
+        return 0;
     }
 }

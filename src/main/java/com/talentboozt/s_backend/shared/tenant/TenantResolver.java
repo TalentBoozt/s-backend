@@ -16,6 +16,7 @@ public class TenantResolver {
     
     private static final String TENANT_HEADER = "X-Tenant-Id";
     private static final String ORGANIZATION_HEADER = "X-Organization-Id";
+    private static final String WORKSPACE_HEADER = "X-Workspace-Id";
     
     private final JwtService jwtService;
     
@@ -66,10 +67,13 @@ public class TenantResolver {
         if (tenantId == null) {
             tenantId = extractTenantFromSubdomain(request);
         }
+        // 4. Workspace isolation (EDU multi-tenancy)
+        String workspaceId = request.getHeader(WORKSPACE_HEADER);
+        context.setWorkspaceId(workspaceId);
         
         context.setTenantId(tenantId);
         context.setOrganizationId(organizationId);
-        context.setResolved(tenantId != null || organizationId != null);
+        context.setResolved(tenantId != null || organizationId != null || workspaceId != null);
         
         return context;
     }

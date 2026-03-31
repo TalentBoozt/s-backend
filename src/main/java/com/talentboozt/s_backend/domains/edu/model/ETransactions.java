@@ -40,6 +40,10 @@ public class ETransactions {
     private Double creatorEarning;
     
     @Indexed
+    private String affiliateId;
+    private Double affiliateEarning;
+    
+    @Indexed
     private EPaymentMethod paymentMethod;
     
     @Indexed

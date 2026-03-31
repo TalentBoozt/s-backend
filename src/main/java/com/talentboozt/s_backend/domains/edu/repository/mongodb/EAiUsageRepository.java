@@ -6,7 +6,10 @@ import org.springframework.stereotype.Repository;
 import com.talentboozt.s_backend.domains.edu.model.EAiUsage;
 import java.util.List;
 
+import java.time.Instant;
+
 @Repository
 public interface EAiUsageRepository extends MongoRepository<EAiUsage, String> {
     List<EAiUsage> findByUserId(String userId);
+    long countByUserIdAndCreatedAtGreaterThanEqual(String userId, Instant since);
 }

@@ -104,22 +104,17 @@ public class SecurityConfig {
                                         .maxAgeInSeconds(31536000)))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> {
-                    auth
-                            // Actuator
-                            .requestMatchers("/actuator/env").authenticated()
-                            .requestMatchers("/actuator/loggers").authenticated()
-                            .requestMatchers("/actuator/beans").authenticated()
-                            .requestMatchers("/actuator/configprops").authenticated()
-                            .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                            .requestMatchers(request -> {
-                                String requestUri = request.getRequestURI();
-                                return requestUri.startsWith("/actuator/")
-                                        && !requestUri.equals("/actuator/env");
-                            }).permitAll()
+                    // ── Actuator Security ──────────────────────────────────────
+                    String actuatorSensitive = configUtil.getProperty("SECURITY_ACTUATOR_SENSITIVE");
+                    if (actuatorSensitive != null && !actuatorSensitive.isEmpty()) {
+                        for (String endpoint : actuatorSensitive.split(",")) {
+                            auth.requestMatchers("/actuator/" + endpoint.trim()).authenticated();
+                        }
+                    }
+                    auth.requestMatchers("/actuator/health", "/actuator/info").permitAll();
 
-                            // Sensitive GETs must not be public (global GET permitAll below would otherwise
-                            // expose them)
-                            .requestMatchers(HttpMethod.GET, "/api/edu/admin/**").authenticated()
+                    // ── EDU Domain Security ────────────────────────────────────
+                    auth.requestMatchers(HttpMethod.GET, "/api/edu/admin/**").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/admin/**").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/edu/enrollments/**").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/edu/notifications/**").authenticated()
@@ -134,28 +129,20 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/api/edu/personalization/**").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/edu/workspaces/**").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/edu/subscriptions/**").authenticated()
-                            .requestMatchers(HttpMethod.GET, "/api/edu/trust/reports/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/trust/reports/**").authenticated();
 
-                            // ✅ Public read access for marketplace and catalog (everything else GET)
-                            .requestMatchers(HttpMethod.GET, "/**").permitAll()
+                    // ── Public Endpoints ────────────────────────────────────
+                    String publicPaths = configUtil.getProperty("SECURITY_PUBLIC_PATHS");
+                    if (publicPaths != null && !publicPaths.isEmpty()) {
+                        for (String path : publicPaths.split(",")) {
+                            auth.requestMatchers(path.trim()).permitAll();
+                        }
+                    }
+                    
+                    auth.requestMatchers(HttpMethod.GET, "/**").permitAll();
 
-                            // Public endpoints (any method)
-                            .requestMatchers(
-                                    "/stripe/**", "/public/**", "/sso/**", "/docs/**",
-                                    "/api/auth/**", "/oauth2/**", "/oauth/**",
-                                    "/sitemap.xml", "/api/event/**", "/api/monitoring/**",
-                                    "/api/security/**", "/api/v2/github/**", "/api/v2/facebook/**",
-                                    "/api/v2/linkedin/**", "/callback/google/**",
-                                    "/api/v2/ambassador/**", "/api/v2/courses/**",
-                                    "/api/v2/password-reset/**",
-                                    "/api/v2/payments/recorded/**", "/api/v2/news-latter/**",
-                                    "/api/v2/email/**", "/api/security/verify-captcha",
-                                    "/ws/**", "/api/v2/batch/**", "/api/v2/metrics/**",
-                                    "/api/v2/articles/**")
-                            .permitAll()
-
-                            // Write operations require authentication
-                            .requestMatchers(HttpMethod.POST, "/api/v2/posts/**").authenticated()
+                    // ── Legacy V2 Write Protection ──────────────────────────
+                    auth.requestMatchers(HttpMethod.POST, "/api/v2/posts/**").authenticated()
                             .requestMatchers(HttpMethod.PUT, "/api/v2/posts/**").authenticated()
                             .requestMatchers(HttpMethod.DELETE, "/api/v2/posts/**").authenticated()
                             .requestMatchers(HttpMethod.POST, "/api/v2/communities/**").authenticated()
@@ -171,33 +158,18 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.DELETE, "/api/v2/emp_**").authenticated()
                             .requestMatchers(HttpMethod.POST, "/api/v2/notifications/**").authenticated()
                             .requestMatchers(HttpMethod.PUT, "/api/v2/notifications/**").authenticated()
-
-                            // Reports
                             .requestMatchers(HttpMethod.POST, "/api/v2/reports").authenticated()
-                            .requestMatchers("/api/v2/reports/**").authenticated()
+                            .requestMatchers("/api/v2/reports/**").authenticated();
 
-                            // ── Resume Builder ──────────────────────────────────────
-                            // AI generation always requires authentication
-                            .requestMatchers(HttpMethod.POST, "/api/v2/resumes/ai/**").authenticated()
-                            // Write ops on resumes require authentication
-                            .requestMatchers(HttpMethod.POST, "/api/v2/resumes/**").authenticated()
-                            .requestMatchers(HttpMethod.PUT, "/api/v2/resumes/**").authenticated()
-                            .requestMatchers(HttpMethod.PATCH, "/api/v2/resumes/**").authenticated()
-                            .requestMatchers(HttpMethod.DELETE, "/api/v2/resumes/**").authenticated()
+                    // ── Auth-Required Modules ───────────────────────────────
+                    auth.requestMatchers("/api/v2/resumes/ai/**").authenticated()
+                            .requestMatchers("/api/v2/resumes/**").authenticated()
+                            .requestMatchers("/api/lifeplanner/users").permitAll()
+                            .requestMatchers("/api/lifeplanner/stripe/webhook").permitAll()
+                            .requestMatchers("/api/monetization/stripe/webhook").permitAll()
+                            .requestMatchers("/api/lifeplanner/**").authenticated();
 
-                            // ── Life Planner ──────────────────────────────────────
-                            // POST user creation is public (registration)
-                            .requestMatchers(HttpMethod.POST, "/api/lifeplanner/users").permitAll()
-                            // Stripe Webhook is public
-                            .requestMatchers(HttpMethod.POST, "/api/lifeplanner/stripe/webhook").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/api/monetization/stripe/webhook").permitAll()
-                            // All other write ops require authentication
-                            .requestMatchers(HttpMethod.POST, "/api/lifeplanner/**").authenticated()
-                            .requestMatchers(HttpMethod.PUT, "/api/lifeplanner/**").authenticated()
-                            .requestMatchers(HttpMethod.DELETE, "/api/lifeplanner/**").authenticated()
-
-                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
+                    auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                             .anyRequest().authenticated();
                 })
                 .csrf(AbstractHttpConfigurer::disable)
@@ -225,22 +197,27 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
-        configuration.setAllowedOriginPatterns(List.of(
-                configUtil.getProperty("ALLOWED_ORIGIN_1"),
-                configUtil.getProperty("ALLOWED_ORIGIN_2"),
-                configUtil.getProperty("ALLOWED_ORIGIN_3"),
-                configUtil.getProperty("ALLOWED_ORIGIN_4"),
-                configUtil.getProperty("ALLOWED_ORIGIN_5"),
-                configUtil.getProperty("ALLOWED_ORIGIN_6"),
-                configUtil.getProperty("ALLOWED_ORIGIN_7"),
-                configUtil.getProperty("ALLOWED_ORIGIN_8"),
-                configUtil.getProperty("ALLOWED_ORIGIN_9"),
-                configUtil.getProperty("ALLOWED_ORIGIN_10")));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*", "Upgrade", "Connection", "Sec-WebSocket-Key",
-                "Sec-WebSocket-Version", "Sec-WebSocket-Extensions", "Sec-WebSocket-Protocol"));
-        configuration.setExposedHeaders(
-                List.of("Stripe-Signature", "X-Demo-Mode", "X-Timezone-Mismatch", "Remaining-Credits", "x-user-id"));
+        
+        // Dynamic Origin Loading
+        String origins = configUtil.getProperty("ALLOWED_ORIGINS");
+        if (origins != null && !origins.isEmpty()) {
+            configuration.setAllowedOriginPatterns(List.of(origins.split(",")));
+        } else {
+            // Fallback for development if .env is missing
+            configuration.setAllowedOriginPatterns(List.of("http://localhost:4200", "http://localhost:3000"));
+        }
+
+        // Dynamic Methods Loading
+        String methods = configUtil.getProperty("ALLOWED_METHODS");
+        configuration.setAllowedMethods(methods != null ? List.of(methods.split(",")) : List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+
+        // Dynamic Headers Loading
+        String headers = configUtil.getProperty("ALLOWED_HEADERS");
+        configuration.setAllowedHeaders(headers != null ? List.of(headers.split(",")) : List.of("*"));
+
+        // Dynamic Exposed Headers
+        String exposedHeaders = configUtil.getProperty("EXPOSED_HEADERS");
+        configuration.setExposedHeaders(exposedHeaders != null ? List.of(exposedHeaders.split(",")) : List.of("X-XSRF-TOKEN", "x-user-id"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

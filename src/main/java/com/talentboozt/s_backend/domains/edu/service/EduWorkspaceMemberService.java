@@ -32,6 +32,16 @@ public class EduWorkspaceMemberService {
         EWorkspaces ws = workspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new RuntimeException("Workspace missing"));
 
+        // Enforce: only workspace owner or an admin member can add new members
+        if (!ws.getOwnerId().equals(inviterId)) {
+            boolean isAdmin = memberRepository.findByWorkspaceIdAndUserId(workspaceId, inviterId)
+                    .map(m -> m.getRole() == ERoles.ENTERPRISE_ADMIN || m.getRole() == ERoles.PLATFORM_ADMIN)
+                    .orElse(false);
+            if (!isAdmin) {
+                throw new RuntimeException("Only workspace owner or admin can add members.");
+            }
+        }
+
         if (ws.getTotalMembers() >= ws.getMaxMembers()) {
              throw new RuntimeException("Workspace member limit reached.");
         }
@@ -45,7 +55,7 @@ public class EduWorkspaceMemberService {
         EWorkspaceMembers member = EWorkspaceMembers.builder()
                 .workspaceId(workspaceId)
                 .userId(userId)
-                .role(role != null ? role : ERoles.LEARNER)
+                .role(role != null ? role : ERoles.ENTERPRISE_LEARNER)
                 .status("ACTIVE")
                 .invitedBy(inviterId)
                 .joinedAt(Instant.now())
@@ -79,19 +89,25 @@ public class EduWorkspaceMemberService {
         // Validation missing for MVP speed up mapping limits
         userIds.forEach(uid -> {
             try {
-                addMember(workspaceId, uid, ERoles.LEARNER, inviterId);
+                addMember(workspaceId, uid, ERoles.ENTERPRISE_LEARNER, inviterId);
             } catch(Exception ignored) { }
         });
     }
 
     public void removeMember(String workspaceId, String userId) {
+        // Cannot remove the workspace owner
+        EWorkspaces ws = workspaceRepository.findById(workspaceId).orElse(null);
+        if (ws != null && ws.getOwnerId().equals(userId)) {
+            throw new RuntimeException("Cannot remove workspace owner.");
+        }
+
         memberRepository.findByWorkspaceIdAndUserId(workspaceId, userId)
             .ifPresent(m -> {
                 memberRepository.delete(m);
-                EWorkspaces ws = workspaceRepository.findById(workspaceId).orElse(null);
-                if (ws != null) {
-                    ws.setTotalMembers(Math.max(0, ws.getTotalMembers() - 1));
-                    workspaceRepository.save(ws);
+                EWorkspaces wspace = workspaceRepository.findById(workspaceId).orElse(null);
+                if (wspace != null) {
+                    wspace.setTotalMembers(Math.max(0, wspace.getTotalMembers() - 1));
+                    workspaceRepository.save(wspace);
                 }
             });
     }

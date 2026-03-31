@@ -5,8 +5,10 @@ import org.springframework.stereotype.Repository;
 
 import com.talentboozt.s_backend.domains.edu.model.EPayouts;
 import java.util.List;
+import java.time.Instant;
 
 @Repository
 public interface EPayoutsRepository extends MongoRepository<EPayouts, String> {
     List<EPayouts> findByCreatorId(String creatorId);
+    long countByCreatorIdAndRequestedAtAfter(String creatorId, Instant date);
 }

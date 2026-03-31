@@ -15,20 +15,16 @@ public class CorsConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
+        String origins = configUtility.getProperty("ALLOWED_ORIGINS");
+        String methods = configUtility.getProperty("ALLOWED_METHODS");
+        String headers = configUtility.getProperty("ALLOWED_HEADERS");
+        String exposedHeaders = configUtility.getProperty("EXPOSED_HEADERS");
+
         registry.addMapping("/**")
-                .allowedOrigins(configUtility.getProperty("ALLOWED_ORIGIN_1"),
-                        configUtility.getProperty("ALLOWED_ORIGIN_2"),
-                        configUtility.getProperty("ALLOWED_ORIGIN_3"),
-                        configUtility.getProperty("ALLOWED_ORIGIN_4"),
-                        configUtility.getProperty("ALLOWED_ORIGIN_5"),
-                        configUtility.getProperty("ALLOWED_ORIGIN_6"),
-                        configUtility.getProperty("ALLOWED_ORIGIN_7"),
-                        configUtility.getProperty("ALLOWED_ORIGIN_8"),
-                        configUtility.getProperty("ALLOWED_ORIGIN_9"),
-                        configUtility.getProperty("ALLOWED_ORIGIN_10"))
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .exposedHeaders("Stripe-Signature", "X-Demo-Mode")
+                .allowedOrigins(origins != null ? origins.split(",") : new String[]{"*"})
+                .allowedMethods(methods != null ? methods.split(",") : new String[]{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"})
+                .allowedHeaders(headers != null ? headers.split(",") : new String[]{"*"})
+                .exposedHeaders(exposedHeaders != null ? exposedHeaders.split(",") : new String[]{"X-XSRF-TOKEN", "x-user-id"})
                 .allowCredentials(true);
     }
 }

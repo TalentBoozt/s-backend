@@ -29,7 +29,7 @@ public class EduWorkspaceService {
         settings.setAllowPublicRegistration(false);
         settings.setRequireAdminApproval(true);
         settings.setIsBrandingEnabled(false);
-        settings.setDefaultRole(ERoles.LEARNER.name());
+        settings.setDefaultRole(ERoles.ENTERPRISE_LEARNER.name());
 
         EWProfileDTO profile = new EWProfileDTO(); // Simple mapping since old DTO was broken previously
 
@@ -56,7 +56,7 @@ public class EduWorkspaceService {
         EWorkspaceMembers ownerMember = EWorkspaceMembers.builder()
                 .workspaceId(saved.getId())
                 .userId(ownerId)
-                .role(ERoles.ADMIN) // Highest Tier
+                .role(ERoles.ENTERPRISE_ADMIN) // Highest Tier
                 .status("ACTIVE")
                 .joinedAt(Instant.now())
                 .lastActiveAt(Instant.now())

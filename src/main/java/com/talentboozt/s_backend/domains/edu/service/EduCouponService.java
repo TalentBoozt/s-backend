@@ -1,5 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
+import com.talentboozt.s_backend.domains.edu.model.ECouponRedemption;
+import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECouponRedemptionRepository;
 import com.talentboozt.s_backend.domains.edu.model.ECoupons;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECouponsRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import java.util.Optional;
 public class EduCouponService {
 
     private final ECouponsRepository couponsRepository;
+    private final ECouponRedemptionRepository redemptionRepository;
 
     public ECoupons createCoupon(String creatorId, ECoupons request) {
         if (couponsRepository.findByCode(request.getCode()).isPresent()) {
@@ -70,12 +73,23 @@ public class EduCouponService {
         couponsRepository.deleteById(couponId);
     }
 
-    public Double validateCoupon(String code, String courseId, Double currentPrice) {
+    public Double validateCoupon(String code, String courseId, String userId, Double currentPrice) {
         Optional<ECoupons> opt = couponsRepository.findByCode(code);
         if (opt.isEmpty()) {
             throw new RuntimeException("Coupon not found.");
         }
         ECoupons coupon = opt.get();
+
+        if (userId != null && userId.equals(coupon.getCreatorId())) {
+            throw new RuntimeException("Creators cannot use their own coupons.");
+        }
+
+        if (userId != null) {
+            long usageCount = redemptionRepository.countByUserIdAndCouponId(userId, coupon.getId());
+            if (usageCount > 0) {
+                throw new RuntimeException("You have already redeemed this coupon. Limits apply.");
+            }
+        }
 
         if (!Boolean.TRUE.equals(coupon.getIsActive())) {
             throw new RuntimeException("Coupon is not active.");
@@ -105,10 +119,21 @@ public class EduCouponService {
         return 0.0;
     }
 
-    public void redeemCoupon(String code) {
+    public void redeemCoupon(String code, String userId, String transactionId) {
         couponsRepository.findByCode(code).ifPresent(coupon -> {
             coupon.setCurrentRedemptions((coupon.getCurrentRedemptions() == null ? 0 : coupon.getCurrentRedemptions()) + 1);
             couponsRepository.save(coupon);
+            
+            // Record usage exactly to stop multi-redemption bypass
+            if (userId != null) {
+                ECouponRedemption redemption = ECouponRedemption.builder()
+                        .userId(userId)
+                        .couponId(coupon.getId())
+                        .transactionId(transactionId)
+                        .redeemedAt(Instant.now())
+                        .build();
+                redemptionRepository.save(redemption);
+            }
         });
     }
 }
