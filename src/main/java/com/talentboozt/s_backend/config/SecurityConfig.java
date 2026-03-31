@@ -139,6 +139,7 @@ public class SecurityConfig {
                         }
                     }
                     
+                    auth.requestMatchers("/api/edu/auth/**", "/api/edu/courses/public/**").permitAll();
                     auth.requestMatchers(HttpMethod.GET, "/**").permitAll();
 
                     // ── Legacy V2 Write Protection ──────────────────────────
@@ -173,6 +174,16 @@ public class SecurityConfig {
                             .anyRequest().authenticated();
                 })
                 .csrf(AbstractHttpConfigurer::disable)
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            if (request.getRequestURI().startsWith("/api/")) {
+                                response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                                response.setContentType("application/json");
+                                response.getWriter().write("{\"error\": \"Unauthorized - Session may have expired. Please login again.\"}");
+                            } else {
+                                response.sendRedirect(configUtil.getProperty("FAILURE_REDIRECT"));
+                            }
+                        }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .formLogin(form -> form
