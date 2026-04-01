@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.dto.course.CourseRequest;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
+import com.talentboozt.s_backend.domains.edu.enums.ECourseValidationStatus;
 import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
@@ -116,8 +117,9 @@ public class EduCourseService {
      */
     public ECourses publishCourse(String id) {
         ECourses course = getCourseById(id);
-        course.setStatus(ECourseStatus.PENDING_REVIEW);
-        course.setPublished(false);
+        course.setStatus(ECourseStatus.PUBLISHED);
+        course.setPublished(true);
+        course.setPublishedAt(Instant.now());
         course.setModerationRejectionReason(null);
         course.setUpdatedAt(Instant.now());
         return courseRepository.save(course);
@@ -129,12 +131,14 @@ public class EduCourseService {
 
     public ECourses approveCourseForMarketplace(String courseId) {
         ECourses course = getCourseById(courseId);
-        if (course.getStatus() != ECourseStatus.PENDING_REVIEW) {
-            throw new RuntimeException("Course is not awaiting moderation");
+        if (course.getValidationStatus() != ECourseValidationStatus.MANUAL_PENDING) {
+            throw new RuntimeException("Course is not awaiting manual validation");
         }
         course.setStatus(ECourseStatus.PUBLISHED);
         course.setPublished(true);
         course.setPublishedAt(Instant.now());
+        course.setTalnovaVerified(true);
+        course.setValidationStatus(ECourseValidationStatus.VALIDATED);
         course.setModerationRejectionReason(null);
         course.setUpdatedAt(Instant.now());
         return courseRepository.save(course);
