@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.dto.course.LessonRequest;
 import com.talentboozt.s_backend.domains.edu.dto.course.OrderUpdateRequest;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ECourseSections;
 import com.talentboozt.s_backend.domains.edu.model.ELessons;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository;
@@ -28,7 +29,7 @@ public class EduLessonService {
     @Transactional
     public ELessons createLesson(String courseId, String sectionId, String creatorId, LessonRequest request) {
         ECourseSections section = sectionRepository.findById(sectionId)
-                .orElseThrow(() -> new RuntimeException("Section not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Section not found with id: " + sectionId));
 
         ELessons lesson = ELessons.builder()
                 .courseId(courseId)
@@ -59,13 +60,11 @@ public class EduLessonService {
     }
 
     public ELessons getLessonById(String id) {
-        return lessonRepository.findById(id).orElseThrow(() -> new RuntimeException("Lesson not found"));
+        return lessonRepository.findById(id).orElseThrow(() -> new EduResourceNotFoundException("Lesson not found with id: " + id));
     }
 
     public List<ELessons> getLessonsBySectionId(String sectionId) {
-        return lessonRepository.findAll().stream()
-                .filter(l -> sectionId.equals(l.getSectionId()))
-                .toList(); // Replace with query method
+        return lessonRepository.findBySectionId(sectionId);
     }
 
     public ELessons updateLesson(String id, LessonRequest request) {
@@ -94,7 +93,7 @@ public class EduLessonService {
     @Transactional
     public void reorderLessons(String sectionId, OrderUpdateRequest request) {
         ECourseSections section = sectionRepository.findById(sectionId)
-                .orElseThrow(() -> new RuntimeException("Section not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Section not found with id: " + sectionId));
 
         section.setLessons(request.getOrderedIds().toArray(new String[0]));
         sectionRepository.save(section);

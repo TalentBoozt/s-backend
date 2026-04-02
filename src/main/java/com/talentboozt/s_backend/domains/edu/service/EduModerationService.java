@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.dto.moderation.ReportRequest;
 import com.talentboozt.s_backend.domains.edu.enums.EReportStatus;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.EReports;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EReportsRepository;
@@ -42,7 +43,7 @@ public class EduModerationService {
 
     public EReports resolveReport(String reportId, String adminId, EReportStatus status, String notes) {
         EReports report = reportsRepository.findById(reportId)
-                .orElseThrow(() -> new RuntimeException("Report not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Report not found with id: " + reportId));
 
         report.setStatus(status);
         report.setResolutionNotes(notes);

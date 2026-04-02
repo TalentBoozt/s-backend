@@ -1,6 +1,10 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.enums.ERoles;
+import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduLimitExceededException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.EWorkspaceMembers;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EWorkspaceMembersRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EWorkspacesRepository;
@@ -30,7 +34,7 @@ public class EduWorkspaceMemberService {
 
     public WorkspaceMemberDTO addMember(String workspaceId, String userId, ERoles role, String inviterId) {
         EWorkspaces ws = workspaceRepository.findById(workspaceId)
-                .orElseThrow(() -> new RuntimeException("Workspace missing"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Workspace missing with id: " + workspaceId));
 
         // Enforce: only workspace owner or an admin member can add new members
         if (!ws.getOwnerId().equals(inviterId)) {
@@ -38,18 +42,18 @@ public class EduWorkspaceMemberService {
                     .map(m -> m.getRole() == ERoles.ENTERPRISE_ADMIN || m.getRole() == ERoles.PLATFORM_ADMIN)
                     .orElse(false);
             if (!isAdmin) {
-                throw new RuntimeException("Only workspace owner or admin can add members.");
+                throw new EduAccessDeniedException("Only workspace owner or admin can add members.");
             }
         }
 
         if (ws.getTotalMembers() >= ws.getMaxMembers()) {
-             throw new RuntimeException("Workspace member limit reached.");
+             throw new EduLimitExceededException("Workspace member limit reached. Max allowed: " + ws.getMaxMembers());
         }
 
         // Prevent duplicates
         boolean exists = memberRepository.findByWorkspaceIdAndUserId(workspaceId, userId).isPresent();
         if (exists) {
-            throw new RuntimeException("User is already in this workspace");
+            throw new EduBadRequestException("User " + userId + " is already in this workspace");
         }
 
         EWorkspaceMembers member = EWorkspaceMembers.builder()
@@ -98,7 +102,7 @@ public class EduWorkspaceMemberService {
         // Cannot remove the workspace owner
         EWorkspaces ws = workspaceRepository.findById(workspaceId).orElse(null);
         if (ws != null && ws.getOwnerId().equals(userId)) {
-            throw new RuntimeException("Cannot remove workspace owner.");
+            throw new EduBadRequestException("Cannot remove workspace owner.");
         }
 
         memberRepository.findByWorkspaceIdAndUserId(workspaceId, userId)

@@ -5,6 +5,9 @@ import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
 import com.talentboozt.s_backend.domains.edu.enums.EPaymentMethod;
 import com.talentboozt.s_backend.domains.edu.enums.EPaymentStatus;
+import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ETransactions;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
@@ -62,22 +65,22 @@ public class EduCoursePurchaseService {
      */
     public Map<String, String> createCourseCheckoutSession(String userId, String courseId, String affiliateId) throws StripeException {
         ECourses course = coursesRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Course not found"));
         
         fraudDetectionService.validateBulkPurchases(userId, Map.of(course.getCreatorId(), 1L));
         
         if (!Boolean.TRUE.equals(course.getPublished())) {
-            throw new RuntimeException("Course is not available for purchase");
+            throw new EduBadRequestException("Course is not available for purchase");
         }
         if (Boolean.TRUE.equals(course.getIsPrivate())) {
-            throw new RuntimeException("This course is not sold on the marketplace");
+            throw new EduBadRequestException("This course is not sold on the marketplace");
         }
         double price = course.getPrice() != null ? course.getPrice() : 0.0;
         if (price <= 0) {
-            throw new RuntimeException("This course is free — enroll without payment.");
+            throw new EduBadRequestException("This course is free — enroll without payment.");
         }
         if (userId.equals(course.getCreatorId())) {
-            throw new RuntimeException("You cannot buy your own course");
+            throw new EduBadRequestException("You cannot buy your own course");
         }
 
         String currency = (course.getCurrency() != null ? course.getCurrency() : "USD").toLowerCase();
@@ -138,7 +141,7 @@ public class EduCoursePurchaseService {
             throws StripeException {
         List<ECourses> courses = (List<ECourses>) coursesRepository.findAllById(courseIds);
         if (courses.isEmpty()) {
-            throw new RuntimeException("No valid courses found for checkout");
+            throw new EduBadRequestException("No valid courses found for checkout");
         }
 
         Map<String, Long> sellerCounts = courses.stream()
@@ -155,7 +158,7 @@ public class EduCoursePurchaseService {
 
         for (ECourses course : courses) {
             if (userId.equals(course.getCreatorId())) {
-                throw new RuntimeException("You cannot buy your own course: " + course.getTitle());
+                throw new EduBadRequestException("You cannot buy your own course: " + course.getTitle());
             }
             double price = course.getPrice() != null ? course.getPrice() : 0.0;
             if (price <= 0)
@@ -234,7 +237,7 @@ public class EduCoursePurchaseService {
                 return;
 
             ETransactions tx = transactionsRepository.findByStripeCheckoutSessionId(sessionId)
-                    .orElseThrow(() -> new RuntimeException("Purchase record not found for session"));
+                    .orElseThrow(() -> new EduResourceNotFoundException("Purchase record not found for session"));
 
             if (tx.getPaymentStatus() != EPaymentStatus.SUCCESS) {
                 tx.setPaymentStatus(EPaymentStatus.SUCCESS);
@@ -328,21 +331,21 @@ public class EduCoursePurchaseService {
         Session session = Session.retrieve(sessionId);
         Map<String, String> meta = session.getMetadata();
         if (meta == null) {
-            throw new RuntimeException("Invalid checkout session");
+            throw new EduBadRequestException("Invalid checkout session");
         }
         String type = meta.get("type");
         if (!CHECKOUT_METADATA_TYPE.equals(type) && !"MULTI_COURSE_PURCHASE".equals(type)) {
-            throw new RuntimeException("Invalid checkout session type");
+            throw new EduBadRequestException("Invalid checkout session type");
         }
         if (!expectedUserId.equals(meta.get("userId"))) {
-            throw new RuntimeException("Session does not belong to this user");
+            throw new EduAccessDeniedException("Session does not belong to this user");
         }
 
         finalizePaidCourseIfReady(sessionId);
 
         // Verify if finalizing worked (Stripe status must be paid)
         if (!"paid".equalsIgnoreCase(session.getPaymentStatus())) {
-            throw new RuntimeException(
+            throw new EduBadRequestException(
                     "Payment is not complete yet. If you were charged, wait a few seconds and retry.");
         }
 

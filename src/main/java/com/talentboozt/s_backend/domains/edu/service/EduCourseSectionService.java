@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.dto.course.OrderUpdateRequest;
 import com.talentboozt.s_backend.domains.edu.dto.course.SectionRequest;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ECourseSections;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository;
@@ -28,7 +29,7 @@ public class EduCourseSectionService {
     @Transactional
     public ECourseSections createSection(String courseId, String creatorId, SectionRequest request) {
         ECourses course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + courseId));
 
         ECourseSections section = ECourseSections.builder()
                 .courseId(courseId)
@@ -54,7 +55,7 @@ public class EduCourseSectionService {
 
     public ECourseSections getSectionById(String sectionId) {
         return sectionRepository.findById(sectionId)
-                .orElseThrow(() -> new RuntimeException("Section not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Section not found with id: " + sectionId));
     }
 
     public List<ECourseSections> getSectionsByCourseId(String courseId) {
@@ -76,7 +77,7 @@ public class EduCourseSectionService {
     @Transactional
     public void reorderSections(String courseId, OrderUpdateRequest request) {
         ECourses course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + courseId));
 
         course.setSections(request.getOrderedIds().toArray(new String[0]));
         courseRepository.save(course);

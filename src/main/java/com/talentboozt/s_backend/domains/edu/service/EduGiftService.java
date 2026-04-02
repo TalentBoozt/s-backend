@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.dto.thirdparty.GiftRequest;
 import com.talentboozt.s_backend.domains.edu.enums.EGiftStatus;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.EGifts;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EGiftsRepository;
 import org.springframework.stereotype.Service;
@@ -44,10 +46,10 @@ public class EduGiftService {
 
     public EGifts redeemGift(String userId, String redeemCode) {
         EGifts gift = giftsRepository.findByRedeemCode(redeemCode)
-                .orElseThrow(() -> new RuntimeException("Invalid Gift Code"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Invalid Gift Code: " + redeemCode));
 
         if (gift.getStatus() != EGiftStatus.PENDING || Instant.now().isAfter(gift.getExpiresAt())) {
-            throw new RuntimeException("Gift Code is expired or already redeemed");
+            throw new EduBadRequestException("Gift Code is expired or already redeemed");
         }
 
         // Technically force enroll User ID into Course bypassing pay walls directly via

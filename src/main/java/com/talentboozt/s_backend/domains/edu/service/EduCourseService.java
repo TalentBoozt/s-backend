@@ -3,6 +3,8 @@ package com.talentboozt.s_backend.domains.edu.service;
 import com.talentboozt.s_backend.domains.edu.dto.course.CourseRequest;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseValidationStatus;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
@@ -74,7 +76,7 @@ public class EduCourseService {
 
     public ECourses getCourseById(String id) {
         ECourses course = courseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + id));
         populateTrustData(course);
         return course;
     }
@@ -132,7 +134,7 @@ public class EduCourseService {
     public ECourses approveCourseForMarketplace(String courseId) {
         ECourses course = getCourseById(courseId);
         if (course.getValidationStatus() != ECourseValidationStatus.MANUAL_PENDING) {
-            throw new RuntimeException("Course is not awaiting manual validation");
+            throw new EduBadRequestException("Course is not awaiting manual validation");
         }
         course.setStatus(ECourseStatus.PUBLISHED);
         course.setPublished(true);
@@ -147,7 +149,7 @@ public class EduCourseService {
     public ECourses rejectCourseReview(String courseId, String reason) {
         ECourses course = getCourseById(courseId);
         if (course.getStatus() != ECourseStatus.PENDING_REVIEW) {
-            throw new RuntimeException("Course is not awaiting moderation");
+            throw new EduBadRequestException("Course is not awaiting moderation");
         }
         course.setStatus(ECourseStatus.DRAFT);
         course.setPublished(false);

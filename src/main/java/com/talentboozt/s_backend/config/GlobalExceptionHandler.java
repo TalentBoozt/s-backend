@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.config;
 
 import com.talentboozt.s_backend.domains.common.dto.ApiErrorResponse;
 import com.talentboozt.s_backend.domains.plat_courses.cfg.CouponValidationException;
+import com.talentboozt.s_backend.domains.edu.exception.EduBaseException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import org.slf4j.Logger;
@@ -203,6 +204,22 @@ public class GlobalExceptionHandler {
                 HttpStatus.TOO_MANY_REQUESTS.value(),
                 "RATE_LIMIT_EXCEEDED");
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+    }
+
+    @ExceptionHandler(EduBaseException.class)
+    public ResponseEntity<ApiErrorResponse> handleEduBaseException(EduBaseException ex) {
+        // Log at WARN or DEBUG instead of ERROR for planned domain errors
+        if (ex.getStatus().is4xxClientError()) {
+            logger.warn("EDU domain client error: {} - {} - {}", ex.getStatus(), ex.getErrorCode(), ex.getMessage());
+        } else {
+            logger.error("EDU domain server error: {} - {} - {}", ex.getStatus(), ex.getErrorCode(), ex.getMessage());
+        }
+
+        ApiErrorResponse error = new ApiErrorResponse(
+                ex.getMessage(),
+                ex.getStatus().value(),
+                ex.getErrorCode());
+        return ResponseEntity.status(ex.getStatus()).body(error);
     }
 
     @ExceptionHandler(Exception.class)

@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseValidationStatus;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
 import org.springframework.stereotype.Service;
@@ -106,10 +108,10 @@ public class EduMarketplaceService {
 
     public ECourses getCourseDetails(String courseId) {
         ECourses course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + courseId));
 
         if (!isPublicCatalogCourse(course)) {
-            throw new RuntimeException("Course is not available in the marketplace");
+            throw new EduBadRequestException("Course is not available in the marketplace");
         }
         return enrichTrustData(course);
     }

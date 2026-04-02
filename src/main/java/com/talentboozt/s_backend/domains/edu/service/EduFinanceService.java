@@ -10,6 +10,8 @@ import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECreatorFinanceS
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EPayoutsRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ETransactionsRepository;
 import com.talentboozt.s_backend.domains.edu.enums.EHoldingStatus;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.EHoldingLedger;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EHoldingLedgerRepository;
 import org.springframework.stereotype.Service;
@@ -89,22 +91,22 @@ public class EduFinanceService {
         RevenueSummaryDTO summary = getRevenueSummary(creatorId);
 
         if (request.getAmount() < 25) {
-            throw new RuntimeException("Minimum payout is $25");
+            throw new EduBadRequestException("Minimum payout is $25");
         }
 
         ECreatorFinanceSettings settings = getFinanceSettings(creatorId);
         if (!"VERIFIED".equals(settings.getProfileVerificationStatus()) || 
             !"VERIFIED".equals(settings.getTaxVerificationStatus())) {
-            throw new RuntimeException("Payouts disabled: Identity or tax features are unverified.");
+            throw new EduBadRequestException("Payouts disabled: Identity or tax features are unverified.");
         }
 
         Instant weekAgo = Instant.now().minus(7, ChronoUnit.DAYS);
         if (payoutsRepository.countByCreatorIdAndRequestedAtAfter(creatorId, weekAgo) >= 2) {
-            throw new RuntimeException("Maximum 2 payout requests allowed per week.");
+            throw new EduBadRequestException("Maximum 2 payout requests allowed per week.");
         }
 
         if (request.getAmount() > summary.getAvailableBalance()) {
-            throw new RuntimeException("Insufficient cleared balance for this payout request. Some funds may still be pending clearance (14-day period).");
+            throw new EduBadRequestException("Insufficient cleared balance for this payout request. Some funds may still be pending clearance (14-day period).");
         }
 
         EPayouts payout = EPayouts.builder()
@@ -147,10 +149,10 @@ public class EduFinanceService {
     // Admin Operation - Security Step
     public EPayouts approvePayout(String adminId, String payoutId) {
         EPayouts payout = payoutsRepository.findById(payoutId)
-                .orElseThrow(() -> new RuntimeException("Payout request not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Payout request not found with id: " + payoutId));
         
         if (payout.getStatus() != EPayoutStatus.REQUESTED) {
-            throw new RuntimeException("Payout must be in REQUESTED state to approve");
+            throw new EduBadRequestException("Payout must be in REQUESTED state to approve");
         }
         
         payout.setStatus(EPayoutStatus.PROCESSING);
@@ -160,7 +162,7 @@ public class EduFinanceService {
     // Admin Operation
     public EPayouts updatePayoutStatus(String payoutId, EPayoutStatus status) {
         EPayouts payout = payoutsRepository.findById(payoutId)
-                .orElseThrow(() -> new RuntimeException("Payout request not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Payout request not found with id: " + payoutId));
         
         EPayoutStatus oldStatus = payout.getStatus();
         payout.setStatus(status);

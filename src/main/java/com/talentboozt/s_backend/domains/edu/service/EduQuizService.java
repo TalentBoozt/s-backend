@@ -8,8 +8,8 @@ import com.talentboozt.s_backend.domains.edu.model.EQuizAttempts;
 import com.talentboozt.s_backend.domains.edu.model.EQuizzes;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EQuizAttemptsRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EQuizzesRepository;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -53,12 +53,12 @@ public class EduQuizService {
     }
 
     public EQuizzes getQuiz(String id) {
-        return quizzesRepository.findById(id).orElseThrow(() -> new RuntimeException("Quiz not found"));
+        return quizzesRepository.findById(id).orElseThrow(() -> new EduResourceNotFoundException("Quiz not found with id: " + id));
     }
 
     public EQuizzes getQuizByLessonId(String lessonId) {
         return quizzesRepository.findByLessonId(lessonId)
-                .orElseThrow(() -> new RuntimeException("Quiz for lesson not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Quiz for lesson " + lessonId + " not found"));
     }
 
     public EQuizzes updateQuiz(String id, QuizRequest request) {

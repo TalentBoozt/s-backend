@@ -141,13 +141,21 @@ public class EduAnalyticsDataService {
         int currentStreak = enrolls.stream().mapToInt(e -> e.getCurrentStreak() != null ? e.getCurrentStreak() : 0)
                 .max().orElse(0);
 
+        double completionRate = totalCourses > 0 ? (double) completedCourses / totalCourses : 0.0;
+        int nextMilestoneProgress = (int) Math.round(completionRate * 100);
+        String level = totalCourses >= 5 ? "Pro-Node" : 
+                       totalCourses >= 1 ? "Core-Node" : "Spec-Alpha";
+
         return LearnerAnalyticsDTO.builder()
                 .learnerId(learnerId)
                 .totalCoursesEnrolled(totalCourses)
                 .completedCourses(completedCourses)
                 .currentStreak(currentStreak)
                 .longestStreak(highestStreak)
-                .totalCertificates(completedCourses) // Maps natively assuming certification triggers properly
+                .totalCertificates(completedCourses)
+                .minutesToday(0) // Placeholder until we have daily activity tracking
+                .nextMilestoneProgress(nextMilestoneProgress)
+                .learnerLevel(level)
                 .build();
     }
 }

@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
+import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EWorkspaceMembersRepository;
 import com.talentboozt.s_backend.shared.tenant.TenantContext;
 import org.springframework.stereotype.Service;
@@ -24,7 +25,7 @@ public class EduWorkspaceGuardService {
 
         boolean isMember = memberRepository.findByWorkspaceIdAndUserId(workspaceId, userId).isPresent();
         if (!isMember) {
-            throw new RuntimeException("Access denied: You are not a member of this workspace.");
+            throw new EduAccessDeniedException("Access denied: You are not a member of this workspace.");
         }
     }
 
@@ -52,7 +53,7 @@ public class EduWorkspaceGuardService {
         if (resourceWorkspaceId != null && !resourceWorkspaceId.isEmpty() 
             && !"default".equals(resourceWorkspaceId)
             && !ctx.getWorkspaceId().equals(resourceWorkspaceId)) {
-            throw new RuntimeException("Access denied: Resource belongs to a different workspace.");
+            throw new EduAccessDeniedException("Access denied: Resource belongs to a different workspace.");
         }
     }
 }

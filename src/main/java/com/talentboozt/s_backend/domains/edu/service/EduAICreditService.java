@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.edu.service;
 import com.talentboozt.s_backend.domains.edu.enums.EAIUsageType;
 import com.talentboozt.s_backend.domains.edu.model.EAiCredits;
 import com.talentboozt.s_backend.domains.edu.model.EAiUsage;
+import com.talentboozt.s_backend.domains.edu.exception.EduLimitExceededException;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EAiCreditsRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EAiUsageRepository;
 import com.talentboozt.s_backend.domains.edu.enums.ECreditLedgerActionType;
@@ -58,13 +59,13 @@ public class EduAICreditService {
         // Enforce daily rate limits (max 100 per 24h)
         Instant last24h = Instant.now().minus(24, ChronoUnit.HOURS);
         if (usageRepository.countByUserIdAndCreatedAtGreaterThanEqual(userId, last24h) >= 100) {
-            throw new RuntimeException("Daily AI usage limit reached (100 actions). Please try again later.");
+            throw new EduLimitExceededException("Daily AI usage limit reached (100 actions). Please try again later.");
         }
 
         // Enforce hourly rate limits (max 20 per 1h)
         Instant last1h = Instant.now().minus(1, ChronoUnit.HOURS);
         if (usageRepository.countByUserIdAndCreatedAtGreaterThanEqual(userId, last1h) >= 20) {
-            throw new RuntimeException("Hourly AI usage limit reached (20 actions). Please try again later.");
+            throw new EduLimitExceededException("Hourly AI usage limit reached (20 actions). Please try again later.");
         }
 
         Query query = new Query();
@@ -80,7 +81,7 @@ public class EduAICreditService {
         EAiCredits updatedCredits = mongoTemplate.findAndModify(query, update, options, EAiCredits.class);
 
         if (updatedCredits == null) {
-            throw new RuntimeException("Insufficient AI Credits. Please upgrade plan or buy Token packs.");
+            throw new EduLimitExceededException("Insufficient AI Credits. Please upgrade plan or buy Token packs.");
         }
 
         // Ledger Entry

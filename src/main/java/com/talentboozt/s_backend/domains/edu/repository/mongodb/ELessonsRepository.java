@@ -10,4 +10,5 @@ import com.talentboozt.s_backend.domains.edu.model.ELessons;
 @Repository
 public interface ELessonsRepository extends MongoRepository<ELessons, String> {
     List<ELessons> findByCourseId(String courseId);
+    List<ELessons> findBySectionId(String sectionId);
 }

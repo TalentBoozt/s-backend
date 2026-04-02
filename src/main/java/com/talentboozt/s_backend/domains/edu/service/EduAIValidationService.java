@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.talentboozt.s_backend.domains.edu.enums.EAIUsageType;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseValidationStatus;
 import com.talentboozt.s_backend.domains.edu.enums.ENotificationType;
+import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduLimitExceededException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ECourseSections;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.model.ELessons;
@@ -54,24 +58,24 @@ public class EduAIValidationService {
 
     public void submitCourseForValidation(String userId, String courseId) {
         ECourses course = coursesRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Course not found"));
 
         if (!course.getCreatorId().equals(userId)) {
-            throw new RuntimeException("Unauthorized");
+            throw new EduAccessDeniedException("Unauthorized");
         }
 
         List<ECourseSections> sections = sectionsRepository.findByCourseId(courseId);
         List<ELessons> lessons = lessonsRepository.findByCourseId(courseId);
 
         if (sections.size() < 3) {
-            throw new RuntimeException("Course must have at least 3 sections before AI validation.");
+            throw new EduBadRequestException("Course must have at least 3 sections before AI validation.");
         }
         if (lessons.size() < 5) {
-            throw new RuntimeException("Course must have at least 5 lessons before AI validation.");
+            throw new EduBadRequestException("Course must have at least 5 lessons before AI validation.");
         }
 
         if (creditService.getUserCredits(userId).getBalance() < 50) {
-            throw new RuntimeException("Insufficient AI Credits. Validation requires 50 credits.");
+            throw new EduLimitExceededException("Insufficient AI Credits. Validation requires 50 credits.");
         }
 
         EValidationReports lastValidation = getValidationStatus(courseId);
@@ -97,7 +101,7 @@ public class EduAIValidationService {
             }
             
             if (!hasUpdates) {
-                throw new RuntimeException("Validation gaming detected: No content changes were made since your last validation. Please update your content before requesting another review.");
+                throw new EduBadRequestException("Validation gaming detected: No content changes were made since your last validation. Please update your content before requesting another review.");
             }
         }
 
