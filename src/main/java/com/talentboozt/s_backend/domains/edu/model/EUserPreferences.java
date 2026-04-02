@@ -29,6 +29,7 @@ public class EUserPreferences {
     private Integer dailyLearningGoalMinutes; // E.g. 30, 60
     private Boolean isNotificationsEnabled;
     private String preferredDifficulty; // BEGINNER, INTERMEDIATE, ADVANCED
+    private String careerGoal; // SWITCH, PROMOTION, etc
     
     private Instant createdAt;
     private Instant updatedAt;
