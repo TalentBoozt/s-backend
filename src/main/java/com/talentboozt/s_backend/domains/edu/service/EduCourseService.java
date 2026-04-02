@@ -45,18 +45,29 @@ public class EduCourseService {
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .shortDescription(request.getShortDescription())
+                .thumbnail(request.getThumbnail())
+                .previewVideoUrl(request.getPreviewVideoUrl())
                 .type(request.getType())
                 .contentType(request.getContentType())
-                .language(request.getLanguage())
+                .language(request.getLanguage() != null ? request.getLanguage() : "en")
                 .level(request.getLevel())
+                .tags(request.getTags() != null ? request.getTags() : new String[0])
                 .categories(request.getCategories())
-                .subCategories(request.getSubCategories())
-                .price(request.getPrice())
+                .subCategories(request.getSubCategories() != null ? request.getSubCategories() : new String[0])
+                .keywords(request.getKeywords() != null ? request.getKeywords() : new String[0])
+                .skills(request.getSkills() != null ? request.getSkills() : new String[0])
+                .prerequisites(request.getPrerequisites() != null ? request.getPrerequisites() : new String[0])
+                .outcomes(request.getOutcomes() != null ? request.getOutcomes() : new String[0])
+                .price(request.getPrice() != null ? request.getPrice() : 0.0)
+                .compareAtPrice(request.getCompareAtPrice())
                 .currency(request.getCurrency() != null ? request.getCurrency() : "USD")
                 .isPrivate(request.getIsPrivate() != null ? request.getIsPrivate() : false)
                 .status(ECourseStatus.DRAFT)
                 .published(false)
                 .totalEnrollments(0)
+                .totalReviews(0)
+                .totalHours(0)
+                .totalLessons(0)
                 .rating(0.0)
                 .sections(new String[0])
                 .createdAt(Instant.now())
@@ -99,13 +110,21 @@ public class EduCourseService {
         course.setTitle(request.getTitle());
         course.setDescription(request.getDescription());
         course.setShortDescription(request.getShortDescription());
+        course.setThumbnail(request.getThumbnail());
+        course.setPreviewVideoUrl(request.getPreviewVideoUrl());
         course.setType(request.getType());
         course.setContentType(request.getContentType());
         course.setLanguage(request.getLanguage());
         course.setLevel(request.getLevel());
+        course.setTags(request.getTags());
         course.setCategories(request.getCategories());
         course.setSubCategories(request.getSubCategories());
+        course.setKeywords(request.getKeywords());
+        course.setSkills(request.getSkills());
+        course.setPrerequisites(request.getPrerequisites());
+        course.setOutcomes(request.getOutcomes());
         course.setPrice(request.getPrice());
+        course.setCompareAtPrice(request.getCompareAtPrice());
         if (request.getCurrency() != null)
             course.setCurrency(request.getCurrency());
         if (request.getIsPrivate() != null)
