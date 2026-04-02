@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -69,6 +71,7 @@ public class EduCourseService {
                 .totalHours(0)
                 .totalLessons(0)
                 .rating(0.0)
+                .slug(generateSlug(request.getTitle()))
                 .sections(new String[0])
                 .createdAt(Instant.now())
                 .build();
@@ -107,7 +110,12 @@ public class EduCourseService {
 
     public ECourses updateCourse(String id, CourseRequest request) {
         ECourses course = getCourseById(id);
-        course.setTitle(request.getTitle());
+        if (request.getTitle() != null && !request.getTitle().equals(course.getTitle())) {
+            course.setTitle(request.getTitle());
+            course.setSlug(generateSlug(request.getTitle()));
+        } else if (course.getSlug() == null || course.getSlug().isEmpty()) {
+            course.setSlug(generateSlug(course.getTitle()));
+        }
         course.setDescription(request.getDescription());
         course.setShortDescription(request.getShortDescription());
         course.setThumbnail(request.getThumbnail());
@@ -205,5 +213,20 @@ public class EduCourseService {
                 course.setTrustWarning("Marketplace Warning: This creator has a low trust score. Exercise caution.");
             }
         }
+    }
+
+    private String generateSlug(String title) {
+        if (title == null || title.isEmpty()) {
+            return "course-" + UUID.randomUUID().toString().substring(0, 8);
+        }
+        String normalized = title.toLowerCase(Locale.ROOT);
+        String slug = Pattern.compile("[^a-z0-9]").matcher(normalized).replaceAll("-");
+        slug = Pattern.compile("-+").matcher(slug).replaceAll("-");
+        // Remove trailing hyphens
+        if (slug.endsWith("-")) {
+            slug = slug.substring(0, slug.length() - 1);
+        }
+        // Ensure uniqueness (simple append, ideally check in DB if needed but short UUID is safer)
+        return slug + "-" + UUID.randomUUID().toString().substring(0, 8);
     }
 }

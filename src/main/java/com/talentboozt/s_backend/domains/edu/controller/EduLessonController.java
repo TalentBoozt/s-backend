@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser;
 import java.util.List;
 
 @RestController
@@ -26,7 +27,7 @@ public class EduLessonController {
     public ResponseEntity<ELessons> createLesson(
             @PathVariable String courseId,
             @PathVariable String sectionId,
-            String creatorId,
+            @AuthenticatedUser String creatorId,
             @Valid @RequestBody LessonRequest request) {
         return ResponseEntity.ok(lessonService.createLesson(courseId, sectionId, creatorId, request));
     }
@@ -44,6 +45,8 @@ public class EduLessonController {
     @PutMapping("/{lessonId}")
     @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
     public ResponseEntity<ELessons> updateLesson(
+            @PathVariable String courseId,
+            @PathVariable String sectionId,
             @PathVariable String lessonId, 
             @Valid @RequestBody LessonRequest request) {
         return ResponseEntity.ok(lessonService.updateLesson(lessonId, request));
