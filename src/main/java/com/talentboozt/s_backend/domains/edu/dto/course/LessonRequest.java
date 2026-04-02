@@ -14,4 +14,6 @@ public class LessonRequest {
     private Integer duration;
     private Boolean isFreePreview;
     private Integer order;
+    private String videoThumbnail;
+    private String[] attachments;
 }

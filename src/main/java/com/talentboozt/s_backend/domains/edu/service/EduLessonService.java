@@ -43,6 +43,8 @@ public class EduLessonService {
                 .duration(request.getDuration() != null ? request.getDuration() : 0)
                 .isFreePreview(request.getIsFreePreview() != null ? request.getIsFreePreview() : false)
                 .order(request.getOrder() != null ? request.getOrder() : getNextOrder(sectionId))
+                .videoThumbnail(request.getVideoThumbnail())
+                .attachments(request.getAttachments())
                 .isPublished(true)
                 .createdBy(creatorId)
                 .createdAt(Instant.now())
@@ -85,6 +87,10 @@ public class EduLessonService {
             lesson.setDuration(request.getDuration());
         if (request.getIsFreePreview() != null)
             lesson.setIsFreePreview(request.getIsFreePreview());
+        if (request.getVideoThumbnail() != null)
+            lesson.setVideoThumbnail(request.getVideoThumbnail());
+        if (request.getAttachments() != null)
+            lesson.setAttachments(request.getAttachments());
         lesson.setUpdatedAt(Instant.now());
 
         return lessonRepository.save(lesson);

@@ -33,6 +33,7 @@ public class EduPersonalizationService {
         pref.setDailyLearningGoalMinutes(update.getDailyLearningGoalMinutes());
         pref.setIsNotificationsEnabled(update.getIsNotificationsEnabled());
         pref.setPreferredDifficulty(update.getPreferredDifficulty());
+        pref.setCareerGoal(update.getCareerGoal());
         pref.setUpdatedAt(Instant.now());
         
         return preferencesRepository.save(pref);
