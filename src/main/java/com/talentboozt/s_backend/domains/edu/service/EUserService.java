@@ -4,6 +4,8 @@ import com.talentboozt.s_backend.domains.edu.dto.auth.LoginRequest;
 import com.talentboozt.s_backend.domains.edu.dto.auth.RegisterRequest;
 import com.talentboozt.s_backend.domains.edu.dto.auth.AuthResponse;
 import com.talentboozt.s_backend.domains.edu.enums.ERoles;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduInvalidCredentialsException;
 import com.talentboozt.s_backend.domains.edu.model.EProfiles;
 import com.talentboozt.s_backend.domains.edu.model.EUser;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository;
@@ -56,7 +58,7 @@ public class EUserService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already in use");
+            throw new EduBadRequestException("Email already in use");
         }
 
         Set<ERoles> roles = new HashSet<>();
@@ -121,10 +123,10 @@ public class EUserService {
 
     public AuthResponse login(LoginRequest request) {
         EUser user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new EduInvalidCredentialsException("Invalid credentials"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new EduInvalidCredentialsException("Invalid credentials");
         }
 
         user.setLastLoginAt(Instant.now());
@@ -135,7 +137,7 @@ public class EUserService {
 
     public void verifyEmail(String token) {
         EUser user = userRepository.findByEmailVerificationToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid verification token"));
+                .orElseThrow(() -> new EduBadRequestException("Invalid verification token"));
         
         user.setIsEmailVerified(true);
         user.setEmailVerificationToken(null);
@@ -157,10 +159,10 @@ public class EUserService {
 
     public void resetPassword(String token, String newPassword) {
         EUser user = userRepository.findByPasswordResetToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid reset token"));
+                .orElseThrow(() -> new EduBadRequestException("Invalid reset token"));
         
         if (user.getPasswordResetExpiry().isBefore(Instant.now())) {
-            throw new RuntimeException("Reset token expired");
+            throw new EduBadRequestException("Reset token expired");
         }
 
         user.setPasswordHash(passwordEncoder.encode(newPassword));

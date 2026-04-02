@@ -1,5 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ECertificates;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
@@ -34,17 +36,17 @@ public class EduCertificateService {
 
         public ECertificates generateCertificate(String enrollmentId) {
                 EEnrollments enrollment = enrollmentsRepository.findById(enrollmentId)
-                                .orElseThrow(() -> new RuntimeException("Enrollment not found"));
+                                .orElseThrow(() -> new EduResourceNotFoundException("Enrollment not found with id: " + enrollmentId));
 
                 if (!Boolean.TRUE.equals(enrollment.getCompleted())) {
-                        throw new RuntimeException("Cannot issue certificate: Course not completed");
+                        throw new EduBadRequestException("Cannot issue certificate: Course not completed");
                 }
 
                 ECourses course = coursesRepository.findById(enrollment.getCourseId())
-                                .orElseThrow(() -> new RuntimeException("Course not found"));
+                                .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + enrollment.getCourseId()));
 
                 EUser user = userRepository.findById(enrollment.getUserId())
-                                .orElseThrow(() -> new RuntimeException("User not found"));
+                                .orElseThrow(() -> new EduResourceNotFoundException("User not found with id: " + enrollment.getUserId()));
 
                 // Check if already generated
                 boolean alreadyExists = certificatesRepository.findByUserId(user.getId()).stream()
@@ -77,7 +79,7 @@ public class EduCertificateService {
 
         public ECertificates verifyCertificate(String certificateId) {
                 return certificatesRepository.findByCertificateId(certificateId)
-                                .orElseThrow(() -> new RuntimeException("Invalid Certificate ID"));
+                                .orElseThrow(() -> new EduResourceNotFoundException("Invalid Certificate ID: " + certificateId));
         }
 
         public List<ECertificates> getUserCertificates(String userId) {

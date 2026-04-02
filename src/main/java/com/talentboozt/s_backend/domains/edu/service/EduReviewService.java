@@ -1,6 +1,9 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.dto.engagement.ReviewRequest;
+import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.model.EReviews;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
@@ -32,7 +35,7 @@ public class EduReviewService {
                 .anyMatch(e -> userId.equals(e.getUserId()) && courseId.equals(e.getCourseId()));
 
         if (!isEnrolled) {
-            throw new RuntimeException("Must be enrolled in the course to leave a review.");
+            throw new EduAccessDeniedException("Must be enrolled in the course to leave a review.");
         }
 
         // Ensure user hasn't already reviewed
@@ -40,11 +43,11 @@ public class EduReviewService {
                 .anyMatch(r -> userId.equals(r.getUserId()));
 
         if (alreadyReviewed) {
-            throw new RuntimeException("You have already reviewed this course.");
+            throw new EduBadRequestException("You have already reviewed this course.");
         }
 
         if (request.getRating() < 1.0 || request.getRating() > 5.0) {
-            throw new RuntimeException("Rating must be between 1.0 and 5.0.");
+            throw new EduBadRequestException("Rating must be between 1.0 and 5.0.");
         }
 
         EReviews review = EReviews.builder()
@@ -68,11 +71,11 @@ public class EduReviewService {
 
     public EReviews updateReview(String reviewId, ReviewRequest request) {
         EReviews review = reviewsRepository.findById(reviewId)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Review not found with id: " + reviewId));
 
         if (request.getRating() != null) {
             if (request.getRating() < 1.0 || request.getRating() > 5.0) {
-                throw new RuntimeException("Rating must be between 1.0 and 5.0.");
+                throw new EduBadRequestException("Rating must be between 1.0 and 5.0.");
             }
             review.setRating(request.getRating());
         }
@@ -97,7 +100,7 @@ public class EduReviewService {
 
     public EReviews incrementHelpful(String reviewId) {
         EReviews review = reviewsRepository.findById(reviewId)
-                .orElseThrow(() -> new RuntimeException("Review not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Review not found with id: " + reviewId));
         int votes = review.getHelpfulVotes() != null ? review.getHelpfulVotes() : 0;
         review.setHelpfulVotes(votes + 1);
         review.setUpdatedAt(Instant.now());

@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.edu.service;
 import com.talentboozt.s_backend.domains.edu.enums.ENotificationType;
 import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EEnrollmentsRepository;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -26,7 +27,7 @@ public class EduProgressService {
         return enrollmentsRepository.findAll().stream()
                 .filter(e -> userId.equals(e.getUserId()) && courseId.equals(e.getCourseId()))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Enrollment not found for resume state"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Enrollment not found for user: " + userId + " and course: " + courseId));
     }
 
     // Can be called periodically or manually when user signs in

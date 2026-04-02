@@ -1,5 +1,9 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
+import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduLimitExceededException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ECouponRedemption;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECouponRedemptionRepository;
 import com.talentboozt.s_backend.domains.edu.model.ECoupons;
@@ -21,7 +25,7 @@ public class EduCouponService {
 
     public ECoupons createCoupon(String creatorId, ECoupons request) {
         if (couponsRepository.findByCode(request.getCode()).isPresent()) {
-            throw new IllegalArgumentException("Coupon code already exists.");
+            throw new EduBadRequestException("Coupon code already exists.");
         }
         request.setCreatorId(creatorId);
         request.setCreatedAt(Instant.now());
@@ -40,16 +44,16 @@ public class EduCouponService {
 
     public ECoupons updateCoupon(String couponId, String creatorId, ECoupons request) {
         ECoupons existing = couponsRepository.findById(couponId)
-                .orElseThrow(() -> new RuntimeException("Coupon not found."));
+                .orElseThrow(() -> new EduResourceNotFoundException("Coupon not found with id: " + couponId));
 
         if (!existing.getCreatorId().equals(creatorId)) {
-            throw new RuntimeException("Not authorized to edit this coupon.");
+            throw new EduAccessDeniedException("Not authorized to edit this coupon.");
         }
 
         // Allow updating code, but must be unique if changed.
         if (request.getCode() != null && !request.getCode().equals(existing.getCode())) {
             if (couponsRepository.findByCode(request.getCode()).isPresent()) {
-                throw new IllegalArgumentException("Coupon code already exists.");
+                throw new EduBadRequestException("Coupon code already exists.");
             }
             existing.setCode(request.getCode());
         }
@@ -66,9 +70,9 @@ public class EduCouponService {
 
     public void deleteCoupon(String couponId, String creatorId) {
         ECoupons existing = couponsRepository.findById(couponId)
-                .orElseThrow(() -> new RuntimeException("Coupon not found."));
+                .orElseThrow(() -> new EduResourceNotFoundException("Coupon not found with id: " + couponId));
         if (!existing.getCreatorId().equals(creatorId)) {
-            throw new RuntimeException("Not authorized to delete this coupon.");
+            throw new EduAccessDeniedException("Not authorized to delete this coupon.");
         }
         couponsRepository.deleteById(couponId);
     }
@@ -76,37 +80,37 @@ public class EduCouponService {
     public Double validateCoupon(String code, String courseId, String userId, Double currentPrice) {
         Optional<ECoupons> opt = couponsRepository.findByCode(code);
         if (opt.isEmpty()) {
-            throw new RuntimeException("Coupon not found.");
+            throw new EduResourceNotFoundException("Coupon not found with code: " + code);
         }
         ECoupons coupon = opt.get();
 
         if (userId != null && userId.equals(coupon.getCreatorId())) {
-            throw new RuntimeException("Creators cannot use their own coupons.");
+            throw new EduBadRequestException("Creators cannot use their own coupons.");
         }
 
         if (userId != null) {
             long usageCount = redemptionRepository.countByUserIdAndCouponId(userId, coupon.getId());
             if (usageCount > 0) {
-                throw new RuntimeException("You have already redeemed this coupon. Limits apply.");
+                throw new EduBadRequestException("You have already redeemed this coupon. Limits apply.");
             }
         }
 
         if (!Boolean.TRUE.equals(coupon.getIsActive())) {
-            throw new RuntimeException("Coupon is not active.");
+            throw new EduBadRequestException("Coupon is not active.");
         }
 
         if (coupon.getExpiresAt() != null && coupon.getExpiresAt().isBefore(Instant.now())) {
-            throw new RuntimeException("Coupon has expired.");
+            throw new EduBadRequestException("Coupon has expired.");
         }
 
         if (coupon.getMaxRedemptions() != null && coupon.getCurrentRedemptions() >= coupon.getMaxRedemptions()) {
-            throw new RuntimeException("Coupon limit reached.");
+            throw new EduLimitExceededException("Coupon limit reached.");
         }
 
         if (coupon.getApplicableCourseIds() != null && coupon.getApplicableCourseIds().length > 0) {
             boolean validForCourse = Arrays.asList(coupon.getApplicableCourseIds()).contains(courseId);
             if (!validForCourse) {
-                throw new RuntimeException("Coupon is not applicable for this course.");
+                throw new EduBadRequestException("Coupon is not applicable for this course.");
             }
         }
 

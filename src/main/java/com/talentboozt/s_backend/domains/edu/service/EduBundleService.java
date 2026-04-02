@@ -1,5 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
+import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.EBundles;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EBundlesRepository;
@@ -37,10 +39,10 @@ public class EduBundleService {
 
     public EBundles updateBundle(String bundleId, String creatorId, EBundles request) {
         EBundles existing = bundlesRepository.findById(bundleId)
-                .orElseThrow(() -> new RuntimeException("Bundle not found."));
+                .orElseThrow(() -> new EduResourceNotFoundException("Bundle not found with id: " + bundleId));
 
         if (!existing.getCreatorId().equals(creatorId)) {
-            throw new RuntimeException("Not authorized to edit this bundle.");
+            throw new EduAccessDeniedException("Not authorized to edit this bundle.");
         }
 
         if (request.getName() != null) existing.setName(request.getName());
@@ -56,9 +58,9 @@ public class EduBundleService {
 
     public void deleteBundle(String bundleId, String creatorId) {
         EBundles existing = bundlesRepository.findById(bundleId)
-                .orElseThrow(() -> new RuntimeException("Bundle not found."));
+                .orElseThrow(() -> new EduResourceNotFoundException("Bundle not found with id: " + bundleId));
         if (!existing.getCreatorId().equals(creatorId)) {
-            throw new RuntimeException("Not authorized to delete this bundle.");
+            throw new EduAccessDeniedException("Not authorized to delete this bundle.");
         }
         bundlesRepository.deleteById(bundleId);
     }

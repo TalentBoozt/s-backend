@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.enums.EAffiliateStatus;
 import com.talentboozt.s_backend.domains.edu.model.EAffiliates;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EAffiliatesRepository;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +20,7 @@ public class EduAffiliateService {
 
     public EAffiliates registerAffiliate(String userId) {
         if (affiliatesRepository.findByUserId(userId).isPresent()) {
-            throw new RuntimeException("Affiliate account already exists");
+            throw new EduBadRequestException("Affiliate account already exists");
         }
 
         String refCode = "REF-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();

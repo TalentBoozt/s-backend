@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.enums.EReportStatus;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.EUser;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.*;
 import org.springframework.data.domain.Page;
@@ -9,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,7 +68,7 @@ public class EduAdminService {
 
     public void updateUserStatus(String userId, Boolean banned, Boolean active, String reason) {
         EUser user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("User not found with id: " + userId));
         
         if (banned != null) {
             user.setIsBanned(banned);

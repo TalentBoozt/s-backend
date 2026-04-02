@@ -12,4 +12,7 @@ public class LearnerAnalyticsDTO {
     private Integer currentStreak;
     private Integer longestStreak;
     private Integer totalCertificates;
+    private Integer minutesToday;
+    private Integer nextMilestoneProgress;
+    private String learnerLevel;
 }

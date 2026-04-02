@@ -4,6 +4,7 @@ import com.talentboozt.s_backend.domains.edu.dto.evaluation.AssignmentRequest;
 import com.talentboozt.s_backend.domains.edu.dto.evaluation.GradeRequest;
 import com.talentboozt.s_backend.domains.edu.dto.evaluation.SubmissionRequest;
 import com.talentboozt.s_backend.domains.edu.enums.EGradingStatus;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.EAssignmentSubmissions;
 import com.talentboozt.s_backend.domains.edu.model.EAssignments;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EAssignmentSubmissionsRepository;
@@ -47,7 +48,7 @@ public class EduAssignmentService {
     }
 
     public EAssignments getAssignment(String id) {
-        return assignmentsRepository.findById(id).orElseThrow(() -> new RuntimeException("Assignment not found"));
+        return assignmentsRepository.findById(id).orElseThrow(() -> new EduResourceNotFoundException("Assignment not found with id: " + id));
     }
 
     public EAssignments updateAssignment(String id, AssignmentRequest request) {
@@ -94,7 +95,7 @@ public class EduAssignmentService {
 
     public EAssignmentSubmissions gradeSubmission(String submissionId, String graderId, GradeRequest request) {
         EAssignmentSubmissions submission = submissionsRepository.findById(submissionId)
-                .orElseThrow(() -> new RuntimeException("Submission not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Submission not found with id: " + submissionId));
 
         submission.setScore(request.getScore());
         submission.setStatus(request.getStatus() != null ? request.getStatus() : EGradingStatus.GRADED);
@@ -106,7 +107,7 @@ public class EduAssignmentService {
     }
 
     public EAssignments getAssignmentByLesson(String lessonId) {
-        return assignmentsRepository.findByLessonId(lessonId).orElseThrow(() -> new RuntimeException("Assignment for lesson not found"));
+        return assignmentsRepository.findByLessonId(lessonId).orElseThrow(() -> new EduResourceNotFoundException("Assignment not found for lesson: " + lessonId));
     }
 
     public EAssignmentSubmissions getSubmissionStatus(String assignmentId, String userId) {

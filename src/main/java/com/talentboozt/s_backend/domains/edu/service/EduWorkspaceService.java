@@ -9,6 +9,7 @@ import com.talentboozt.s_backend.domains.edu.repository.mongodb.EWorkspaceMember
 import org.springframework.stereotype.Service;
 import com.talentboozt.s_backend.domains.edu.dto.EWSettingsDTO;
 import com.talentboozt.s_backend.domains.edu.dto.EWProfileDTO;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 
 import java.time.Instant;
 import java.util.List;
@@ -69,7 +70,7 @@ public class EduWorkspaceService {
 
     public EWorkspaces getWorkspaceById(String workspaceId) {
         return workspaceRepository.findById(workspaceId)
-                .orElseThrow(() -> new RuntimeException("Workspace not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Workspace not found with id: " + workspaceId));
     }
 
     public List<EWorkspaces> getWorkspacesByOwner(String ownerId) {

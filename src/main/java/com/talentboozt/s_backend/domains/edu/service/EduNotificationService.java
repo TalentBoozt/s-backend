@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.enums.ENotificationType;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ENotifications;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ENotificationsRepository;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,7 @@ public class EduNotificationService {
 
     public ENotifications markAsRead(String notificationId) {
         ENotifications notification = notificationsRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Notification not found with id: " + notificationId));
         
         notification.setIsRead(true);
         return notificationsRepository.save(notification);

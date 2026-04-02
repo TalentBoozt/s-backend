@@ -3,6 +3,8 @@ package com.talentboozt.s_backend.domains.edu.service;
 import com.talentboozt.s_backend.domains.edu.model.EProfiles;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,7 +32,7 @@ public class EduProfileService {
 
     public EProfiles getProfileByUserId(String userId) {
         return profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Profile not found for userId: " + userId));
+                .orElseThrow(() -> new EduResourceNotFoundException("Profile not found for userId: " + userId));
     }
 
     public EProfiles updateProfile(String userId, EProfiles updatedProfile) {
@@ -64,14 +66,14 @@ public class EduProfileService {
      */
     public Map<String, String> uploadAvatar(String userId, MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("File is required");
+            throw new EduBadRequestException("File is required");
         }
         if (file.getSize() > MAX_AVATAR_BYTES) {
-            throw new IllegalArgumentException("Avatar must be at most 5MB");
+            throw new EduBadRequestException("Avatar must be at most 5MB");
         }
         String ct = file.getContentType();
         if (ct == null || !ct.startsWith("image/")) {
-            throw new IllegalArgumentException("Only image uploads are allowed");
+            throw new EduBadRequestException("Only image uploads are allowed");
         }
         String ext = extensionForContentType(ct);
         Path base = Paths.get("uploads", "edu", "profiles", userId);
@@ -103,7 +105,7 @@ public class EduProfileService {
             case "image/png" -> ".png";
             case "image/webp" -> ".webp";
             case "image/gif" -> ".gif";
-            default -> throw new IllegalArgumentException("Unsupported image type: " + contentType);
+            default -> throw new EduBadRequestException("Unsupported image type: " + contentType);
         };
     }
 }

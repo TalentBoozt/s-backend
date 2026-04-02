@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.dto.enrollment.EnrollmentRequest;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
+import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
@@ -25,24 +27,23 @@ public class EduEnrollmentService {
     }
 
     /**
-     * Free courses only. Paid courses must use Stripe checkout +
-     * {@link #ensureEnrollmentAfterSuccessfulPurchase}.
+     * Free courses only. Paid courses must use Stripe checkout + {@link #ensureEnrollmentAfterSuccessfulPurchase}.
      */
     @Transactional
     public EEnrollments enrollInCourse(String userId, EnrollmentRequest request) {
         ECourses course = coursesRepository.findById(request.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + request.getCourseId()));
 
         if (!Boolean.TRUE.equals(course.getPublished())) {
-            throw new RuntimeException("Course is not available for enrollment");
+            throw new EduBadRequestException("Course is not available for enrollment");
         }
         if (!isApprovedForLearners(course)) {
-            throw new RuntimeException("Course is not available for enrollment");
+            throw new EduBadRequestException("Course is not available for enrollment");
         }
 
         double price = course.getPrice() != null ? course.getPrice() : 0.0;
         if (price > 0) {
-            throw new RuntimeException(
+            throw new EduBadRequestException(
                     "This course requires payment. Complete checkout with Stripe — direct enrollment is not allowed for paid courses.");
         }
 
@@ -51,15 +52,14 @@ public class EduEnrollmentService {
     }
 
     /**
-     * Called after Stripe reports payment succeeded (webhook or confirm endpoint).
-     * Idempotent.
+     * Called after Stripe reports payment succeeded (webhook or confirm endpoint). Idempotent.
      */
     @Transactional
     public EEnrollments ensureEnrollmentAfterSuccessfulPurchase(String userId, String courseId) {
         ECourses course = coursesRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + courseId));
         if (!Boolean.TRUE.equals(course.getPublished()) || !isApprovedForLearners(course)) {
-            throw new RuntimeException("Course is not available for enrollment");
+            throw new EduBadRequestException("Course is not available for enrollment");
         }
         return createEnrollmentIfAbsent(userId, course, "MARKETPLACE");
     }
@@ -72,15 +72,14 @@ public class EduEnrollmentService {
     }
 
     /**
-     * Gift / redemption path: enroll without payment when the course is publicly
-     * available.
+     * Gift / redemption path: enroll without payment when the course is publicly available.
      */
     @Transactional
     public EEnrollments enrollFromGift(String userId, String courseId) {
         ECourses course = coursesRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + courseId));
         if (!Boolean.TRUE.equals(course.getPublished()) || !isApprovedForLearners(course)) {
-            throw new RuntimeException("Course is not available for enrollment");
+            throw new EduBadRequestException("Course is not available for enrollment");
         }
         return createEnrollmentIfAbsent(userId, course, "GIFT");
     }
@@ -102,8 +101,7 @@ public class EduEnrollmentService {
                             .build();
                     EEnrollments saved = enrollmentsRepository.save(enrollment);
 
-                    course.setTotalEnrollments(
-                            (course.getTotalEnrollments() != null ? course.getTotalEnrollments() : 0) + 1);
+                    course.setTotalEnrollments((course.getTotalEnrollments() != null ? course.getTotalEnrollments() : 0) + 1);
                     coursesRepository.save(course);
                     return saved;
                 });
@@ -115,34 +113,45 @@ public class EduEnrollmentService {
 
     public EEnrollments getEnrollmentDetails(String enrollmentId) {
         return enrollmentsRepository.findById(enrollmentId)
-                .orElseThrow(() -> new RuntimeException("Enrollment not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Enrollment not found with id: " + enrollmentId));
     }
 
     public EEnrollments getEnrollmentByCourseAndUser(String courseId, String userId) {
         return enrollmentsRepository.findByUserIdAndCourseId(userId, courseId)
-                .orElseThrow(() -> new RuntimeException("Enrollment for course/user not found"));
+                .orElseThrow(() -> new EduResourceNotFoundException("Enrollment for course " + courseId + " and user " + userId + " not found"));
     }
 
     public EEnrollments recordProgress(String enrollmentId, String lessonId, Long watchTime) {
         EEnrollments enrollment = getEnrollmentDetails(enrollmentId);
 
-        if (watchTime != null) {
+        if (watchTime != null && watchTime > 0) {
             long current = enrollment.getTotalWatchTime() != null ? enrollment.getTotalWatchTime() : 0L;
             enrollment.setTotalWatchTime(current + watchTime);
         }
 
-        enrollment.setCompletedLessons(enrollment.getCompletedLessons() + 1);
-        enrollment.setLastAccessedLessonId(lessonId);
-        enrollment.setLastAccessedAt(Instant.now());
+        // Handle unique lesson completion
+        java.util.Set<String> completedSet = enrollment.getCompletedLessonIds() != null ? 
+            new java.util.HashSet<>(java.util.Arrays.asList(enrollment.getCompletedLessonIds())) : 
+            new java.util.HashSet<>();
 
-        if (enrollment.getTotalLessons() > 0) {
-            int progress = (int) Math.round((enrollment.getCompletedLessons() * 100.0) / enrollment.getTotalLessons());
-            enrollment.setProgress(Math.min(progress, 100));
-            if (enrollment.getProgress() >= 100) {
-                enrollment.setCompleted(true);
-                enrollment.setCompletedAt(Instant.now());
+        if (lessonId != null && !completedSet.contains(lessonId)) {
+            completedSet.add(lessonId);
+            enrollment.setCompletedLessonIds(completedSet.toArray(new String[0]));
+            int count = completedSet.size();
+            enrollment.setCompletedLessons(count);
+
+            if (enrollment.getTotalLessons() > 0) {
+                int progress = (int) Math.round((count * 100.0) / enrollment.getTotalLessons());
+                enrollment.setProgress(Math.min(progress, 100));
+                if (enrollment.getProgress() >= 100 && !Boolean.TRUE.equals(enrollment.getCompleted())) {
+                    enrollment.setCompleted(true);
+                    enrollment.setCompletedAt(Instant.now());
+                }
             }
         }
+
+        enrollment.setLastAccessedLessonId(lessonId);
+        enrollment.setLastAccessedAt(Instant.now());
 
         return enrollmentsRepository.save(enrollment);
     }
