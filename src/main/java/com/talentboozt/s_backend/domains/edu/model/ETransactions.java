@@ -4,6 +4,7 @@ import java.time.Instant;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -37,6 +38,8 @@ public class ETransactions {
     private Double amount;
     private String currency; // "USD"
     private Double platformFee;
+    private Double commissionRate;
+    private String creatorPlanAtPurchase;
     private Double creatorEarning;
     
     @Indexed
@@ -58,6 +61,10 @@ public class ETransactions {
     
     private String paymentGateway;
     private String paymentGatewayResponse;
+    
+    @Version
+    private Long version;
+    
     private String createdBy;
     private String updatedBy;
     

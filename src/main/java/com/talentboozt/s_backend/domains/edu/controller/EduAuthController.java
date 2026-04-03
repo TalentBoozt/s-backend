@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser;
 import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
@@ -121,5 +122,10 @@ public class EduAuthController {
                 .header(HttpHeaders.SET_COOKIE, cleanCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, cleanRefreshCookie.toString())
                 .build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<AuthResponse> getMe(@AuthenticatedUser String userId) {
+        return ResponseEntity.ok(userService.getMe(userId));
     }
 }

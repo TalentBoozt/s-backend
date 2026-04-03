@@ -21,7 +21,7 @@ public class EduQuizController {
     }
 
     @PostMapping("/course/{courseId}/section/{sectionId}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EQuizzes> createQuiz(
             @PathVariable String courseId,
             @PathVariable String sectionId,
@@ -41,20 +41,20 @@ public class EduQuizController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EQuizzes> updateQuiz(@PathVariable String id, @Valid @RequestBody QuizRequest request) {
         return ResponseEntity.ok(quizService.updateQuiz(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Void> deleteQuiz(@PathVariable String id) {
         quizService.deleteQuiz(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{quizId}/attempt")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<EQuizAttempts> submitAttempt(
             @PathVariable String quizId,
             String userId,
@@ -63,7 +63,7 @@ public class EduQuizController {
     }
 
     @GetMapping("/{quizId}/attempts/user/{userId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<java.util.List<EQuizAttempts>> getAttempts(
             @PathVariable String quizId,
             @PathVariable String userId) {

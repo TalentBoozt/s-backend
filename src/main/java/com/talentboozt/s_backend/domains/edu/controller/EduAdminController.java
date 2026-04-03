@@ -20,13 +20,13 @@ public class EduAdminController {
     }
 
     @GetMapping("/stats")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<Map<String, Object>> getStats() {
         return ResponseEntity.ok(adminService.getGlobalStats());
     }
 
     @GetMapping("/users")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<Page<EUser>> getUsers(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
@@ -35,7 +35,7 @@ public class EduAdminController {
     }
 
     @PutMapping("/users/{userId}/status")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<Void> updateUserStatus(
             @PathVariable String userId,
             @RequestBody Map<String, Object> body) {

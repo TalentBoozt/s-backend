@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.edu.model;
 import java.time.Instant;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -42,6 +43,9 @@ public class EHoldingLedger {
     
     @Indexed
     private Instant clearanceDate;
+
+    @Version
+    private Long version;
     
     @CreatedDate
     private Instant createdAt;

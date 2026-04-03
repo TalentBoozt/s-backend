@@ -20,19 +20,19 @@ public class EduCourseModerationController {
     }
 
     @GetMapping("/courses/pending")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<List<ECourses>> listPendingCourses() {
         return ResponseEntity.ok(courseService.listCoursesPendingModeration());
     }
 
     @PutMapping("/courses/{courseId}/approve")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<ECourses> approveCourse(@PathVariable String courseId) {
         return ResponseEntity.ok(courseService.approveCourseForMarketplace(courseId));
     }
 
     @PutMapping("/courses/{courseId}/reject")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<ECourses> rejectCourse(
             @PathVariable String courseId,
             @RequestBody(required = false) CourseRejectRequest body) {

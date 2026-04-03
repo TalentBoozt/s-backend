@@ -20,7 +20,7 @@ public class EduEnrollmentController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EEnrollments> enrollInCourse(
             @RequestParam String userId,
             @RequestBody EnrollmentRequest request) {
@@ -28,7 +28,7 @@ public class EduEnrollmentController {
     }
 
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<List<EEnrollments>> getUserEnrollments(@PathVariable String userId) {
         return ResponseEntity.ok(enrollmentService.getUserEnrollments(userId));
     }
@@ -49,7 +49,7 @@ public class EduEnrollmentController {
     }
 
     @GetMapping("/course/{courseId}/user/{userId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EEnrollments> getCourseProgress(
             @PathVariable String courseId,
             @PathVariable String userId) {

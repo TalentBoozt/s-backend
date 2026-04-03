@@ -17,7 +17,7 @@ public class EduProgressController {
     }
 
     @GetMapping("/resume/user/{userId}/course/{courseId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<EEnrollments> resumeLearning(
             @PathVariable String userId,
             @PathVariable String courseId) {

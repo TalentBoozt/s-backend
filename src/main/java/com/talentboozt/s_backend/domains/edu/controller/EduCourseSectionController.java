@@ -22,7 +22,7 @@ public class EduCourseSectionController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<ECourseSections> createSection(
             @PathVariable String courseId, 
             String creatorId,
@@ -36,7 +36,7 @@ public class EduCourseSectionController {
     }
 
     @PutMapping("/{sectionId}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<ECourseSections> updateSection(
             @PathVariable String sectionId, 
             @Valid @RequestBody SectionRequest request) {
@@ -44,7 +44,7 @@ public class EduCourseSectionController {
     }
 
     @PutMapping("/reorder")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Void> reorderSections(
             @PathVariable String courseId, 
             @Valid @RequestBody OrderUpdateRequest request) {
@@ -53,7 +53,7 @@ public class EduCourseSectionController {
     }
 
     @DeleteMapping("/{sectionId}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Void> deleteSection(@PathVariable String sectionId) {
         sectionService.deleteSection(sectionId);
         return ResponseEntity.noContent().build();

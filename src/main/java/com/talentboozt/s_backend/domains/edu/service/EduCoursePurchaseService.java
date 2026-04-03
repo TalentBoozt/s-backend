@@ -13,6 +13,7 @@ import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ETransactionsRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -109,7 +110,8 @@ public class EduCoursePurchaseService {
 
         Session session = Session.create(params);
 
-        double rate = commissionCalculator.calculateCommissionRate(course.getCreatorId());
+        EduCommissionCalculator.CommissionResult commData = commissionCalculator.calculateCommissionRate(course.getCreatorId());
+        double rate = commData.rate;
         double fee = round2(price * rate);
         double creatorShare = round2(price - fee);
 
@@ -120,6 +122,8 @@ public class EduCoursePurchaseService {
                 .amount(price)
                 .currency(course.getCurrency() != null ? course.getCurrency() : "USD")
                 .platformFee(fee)
+                .commissionRate(rate)
+                .creatorPlanAtPurchase(commData.plan)
                 .creatorEarning(creatorShare)
                 .paymentMethod(EPaymentMethod.STRIPE)
                 .paymentStatus(EPaymentStatus.PENDING)
@@ -183,7 +187,8 @@ public class EduCoursePurchaseService {
         // Track individual transactions for each course in the checkout session
         for (ECourses course : courses) {
             double price = course.getPrice() != null ? course.getPrice() : 0.0;
-            double rate = commissionCalculator.calculateCommissionRate(course.getCreatorId());
+            EduCommissionCalculator.CommissionResult commData = commissionCalculator.calculateCommissionRate(course.getCreatorId());
+            double rate = commData.rate;
             double fee = round2(price * rate);
             double creatorShare = round2(price - fee);
 
@@ -194,6 +199,8 @@ public class EduCoursePurchaseService {
                     .amount(price)
                     .currency(course.getCurrency() != null ? course.getCurrency() : "USD")
                     .platformFee(fee)
+                    .commissionRate(rate)
+                    .creatorPlanAtPurchase(commData.plan)
                     .creatorEarning(creatorShare)
                     .paymentMethod(EPaymentMethod.STRIPE)
                     .paymentStatus(EPaymentStatus.PENDING)
@@ -322,6 +329,20 @@ public class EduCoursePurchaseService {
             for (String cid : courseIdsStr.split(",")) {
                 enrollmentService.ensureEnrollmentAfterSuccessfulPurchase(userId, cid);
             }
+        }
+    }
+
+    /**
+     * Webhook/Success entry point with concurrency protection.
+     */
+    @Transactional
+    public void secureFinalizePaidCourse(String sessionId) {
+        try {
+            finalizePaidCourseIfReady(sessionId);
+        } catch (OptimisticLockingFailureException e) {
+            // Concurrent process already handled this - safe to ignore
+        } catch (Exception e) {
+            throw new RuntimeException("Finalization failed", e);
         }
     }
 

@@ -23,14 +23,14 @@ public class EduSubscriptionController {
     }
 
     @PutMapping("/{userId}/upgrade")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<ESubscriptions> upgradePlan(@PathVariable String userId,
             @RequestParam ESubscriptionPlan plan) {
         return ResponseEntity.ok(subscriptionService.upgradePlan(userId, plan));
     }
 
     @PutMapping("/{userId}/cancel")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<ESubscriptions> cancelSubscription(@PathVariable String userId) {
         return ResponseEntity.ok(subscriptionService.cancelSubscription(userId));
     }

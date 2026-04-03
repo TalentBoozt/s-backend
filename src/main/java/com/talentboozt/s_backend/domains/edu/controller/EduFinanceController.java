@@ -27,19 +27,19 @@ public class EduFinanceController {
     }
 
     @GetMapping("/ledger")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<List<EHoldingLedger>> getFinanceLedger(@AuthenticatedUser String creatorId) {
         return ResponseEntity.ok(financeService.getFinanceLedger(creatorId));
     }
 
     @GetMapping("/revenue")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<RevenueSummaryDTO> getRevenueSummary(@AuthenticatedUser String creatorId) {
         return ResponseEntity.ok(financeService.getRevenueSummary(creatorId));
     }
 
     @PostMapping("/payout/request")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EPayouts> requestPayout(
             @AuthenticatedUser String creatorId,
             @Valid @RequestBody PayoutRequest request) {
@@ -47,32 +47,32 @@ public class EduFinanceController {
     }
 
     @GetMapping("/payout/history")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<List<EPayouts>> getPayoutHistory(@AuthenticatedUser String creatorId) {
         return ResponseEntity.ok(financeService.getPayoutHistory(creatorId));
     }
 
     @GetMapping("/transactions")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<List<ETransactions>> getCreatorTransactions(@AuthenticatedUser String creatorId) {
         return ResponseEntity.ok(financeService.getCreatorTransactions(creatorId));
     }
 
     @GetMapping("/settings")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<ECreatorFinanceSettings> getFinanceSettings(@AuthenticatedUser String userId) {
         return ResponseEntity.ok(financeService.getFinanceSettings(userId));
     }
 
     @PutMapping("/settings")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<ECreatorFinanceSettings> updateFinanceSettings(@AuthenticatedUser String userId, @RequestBody ECreatorFinanceSettings settings) {
         return ResponseEntity.ok(financeService.updateFinanceSettings(userId, settings));
     }
 
     // Only internal admins should be capable of marking payouts completed
     @PutMapping("/payout/{payoutId}/status")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<EPayouts> updatePayoutStatus(
             @PathVariable String payoutId,
             @RequestParam EPayoutStatus status) {

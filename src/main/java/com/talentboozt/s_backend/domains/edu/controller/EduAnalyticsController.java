@@ -18,19 +18,19 @@ public class EduAnalyticsController {
     }
 
     @GetMapping("/creator/{creatorId}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<CreatorAnalyticsDTO> getCreatorAnalytics(@PathVariable String creatorId) {
         return ResponseEntity.ok(analyticsDataService.getCreatorAnalytics(creatorId));
     }
 
     @GetMapping("/learner/{learnerId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<LearnerAnalyticsDTO> getLearnerAnalytics(@PathVariable String learnerId) {
         return ResponseEntity.ok(analyticsDataService.getLearnerAnalytics(learnerId));
     }
 
     @GetMapping("/creator/{creatorId}/revenue-timeline")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<java.util.Map<String, Double>> getRevenueTimeline(@PathVariable String creatorId) {
         return ResponseEntity.ok(analyticsDataService.getRevenueTimeline(creatorId));
     }

@@ -17,7 +17,7 @@ public class EduBundleController {
     private final EduBundleService bundleService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<EBundles> createBundle(
             @RequestParam String creatorId,
             @RequestBody EBundles request) {
@@ -25,13 +25,13 @@ public class EduBundleController {
     }
 
     @GetMapping("/creator/{creatorId}")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<List<EBundles>> getBundlesByCreator(@PathVariable String creatorId) {
         return ResponseEntity.ok(bundleService.getBundlesByCreator(creatorId));
     }
 
     @PutMapping("/{bundleId}")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<EBundles> updateBundle(
             @PathVariable String bundleId,
             @RequestParam String creatorId,
@@ -40,7 +40,7 @@ public class EduBundleController {
     }
 
     @DeleteMapping("/{bundleId}")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<Void> deleteBundle(
             @PathVariable String bundleId,
             @RequestParam String creatorId) {

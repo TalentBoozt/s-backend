@@ -28,16 +28,20 @@ public class EduCourseService {
     private final EWorkspacesRepository workspaceRepository;
     private final EduWorkspaceGuardService guardService;
     private final EduTrustScoreService trustScoreService;
+    private final EduAccessGuardService accessGuard;
 
-    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository, EWorkspacesRepository workspaceRepository, EduWorkspaceGuardService guardService, EduTrustScoreService trustScoreService) {
+    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository, EWorkspacesRepository workspaceRepository, EduWorkspaceGuardService guardService, EduTrustScoreService trustScoreService, EduAccessGuardService accessGuard) {
         this.courseRepository = courseRepository;
         this.enrollmentsRepository = enrollmentsRepository;
         this.workspaceRepository = workspaceRepository;
         this.guardService = guardService;
         this.trustScoreService = trustScoreService;
+        this.accessGuard = accessGuard;
     }
 
     public ECourses createCourse(String creatorId, String workspaceId, CourseRequest request) {
+        accessGuard.enforceCourseCreationLimit(creatorId);
+        
         if (workspaceId != null && !workspaceId.isEmpty() && !"default".equals(workspaceId)) {
             guardService.enforceMembership(workspaceId, creatorId);
         }
@@ -91,12 +95,21 @@ public class EduCourseService {
     public ECourses getCourseById(String id) {
         ECourses course = courseRepository.findById(id)
                 .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + id));
+        guardService.enforceResourceIsolation(course.getWorkspaceId());
         populateTrustData(course);
         return course;
     }
 
     public List<ECourses> getCoursesByCreator(String creatorId) {
         List<ECourses> courses = courseRepository.findByCreatorId(creatorId);
+        
+        com.talentboozt.s_backend.shared.tenant.TenantContext ctx = com.talentboozt.s_backend.shared.tenant.TenantContext.getCurrent();
+        if (ctx != null && ctx.getWorkspaceId() != null && !ctx.getWorkspaceId().isEmpty() && !"default".equals(ctx.getWorkspaceId())) {
+            courses = courses.stream()
+                .filter(c -> ctx.getWorkspaceId().equals(c.getWorkspaceId()))
+                .collect(Collectors.toList());
+        }
+
         courses.forEach(this::populateTrustData);
         return courses;
     }
@@ -108,7 +121,8 @@ public class EduCourseService {
         return courses;
     }
 
-    public ECourses updateCourse(String id, CourseRequest request) {
+    public ECourses updateCourse(String creatorId, String id, CourseRequest request) {
+        accessGuard.enforceCourseOwnership(creatorId, id);
         ECourses course = getCourseById(id);
         if (request.getTitle() != null && !request.getTitle().equals(course.getTitle())) {
             course.setTitle(request.getTitle());
@@ -144,7 +158,8 @@ public class EduCourseService {
     /**
      * Creator submits course for platform moderation. Not visible in marketplace until approved.
      */
-    public ECourses publishCourse(String id) {
+    public ECourses publishCourse(String creatorId, String id) {
+        accessGuard.enforceCourseOwnership(creatorId, id);
         ECourses course = getCourseById(id);
         course.setStatus(ECourseStatus.PUBLISHED);
         course.setPublished(true);
@@ -185,7 +200,8 @@ public class EduCourseService {
         return courseRepository.save(course);
     }
 
-    public void deleteCourse(String id) {
+    public void deleteCourse(String creatorId, String id) {
+        accessGuard.enforceCourseOwnership(creatorId, id);
         courseRepository.deleteById(id);
     }
 
@@ -193,9 +209,17 @@ public class EduCourseService {
      * All enrollments for courses owned by a creator (optional filter by course and user id text).
      */
     public List<EEnrollments> getCreatorStudentEnrollments(String creatorId, String courseId, String search) {
+        com.talentboozt.s_backend.shared.tenant.TenantContext ctx = com.talentboozt.s_backend.shared.tenant.TenantContext.getCurrent();
+        
         List<ECourses> owned = courseRepository.findAll().stream()
                 .filter(c -> creatorId.equals(c.getCreatorId()))
                 .filter(c -> courseId == null || courseId.isEmpty() || c.getId().equals(courseId))
+                .filter(c -> {
+                    if (ctx == null || ctx.getWorkspaceId() == null || ctx.getWorkspaceId().isEmpty() || "default".equals(ctx.getWorkspaceId())) {
+                        return true;
+                    }
+                    return ctx.getWorkspaceId().equals(c.getWorkspaceId());
+                })
                 .toList();
         String needle = search != null ? search.trim().toLowerCase(Locale.ROOT) : "";
         Stream<EEnrollments> stream = owned.stream()
