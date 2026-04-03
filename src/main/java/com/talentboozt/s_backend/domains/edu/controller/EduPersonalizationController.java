@@ -20,13 +20,13 @@ public class EduPersonalizationController {
     }
 
     @GetMapping("/preferences/{userId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EUserPreferences> getPreferences(@PathVariable String userId) {
         return ResponseEntity.ok(personalizationService.getPreferences(userId));
     }
 
     @PutMapping("/preferences/{userId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EUserPreferences> updatePreferences(
             @PathVariable String userId,
             @RequestBody EUserPreferences update) {
@@ -34,7 +34,7 @@ public class EduPersonalizationController {
     }
 
     @GetMapping("/recommendations/{userId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<List<ECourses>> getRecommendations(@PathVariable String userId) {
         return ResponseEntity.ok(personalizationService.getRecommendations(userId));
     }

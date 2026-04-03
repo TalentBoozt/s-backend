@@ -24,7 +24,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/edu/admin/reviews")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('ADMIN')")
+@PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
 public class EduAdminReviewController {
 
     private final ECoursesRepository coursesRepository;

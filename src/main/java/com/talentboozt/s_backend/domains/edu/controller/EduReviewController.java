@@ -20,7 +20,7 @@ public class EduReviewController {
     }
 
     @PostMapping("/course/{courseId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<EReviews> addReview(
             @PathVariable String courseId,
             @RequestParam String userId,
@@ -34,7 +34,7 @@ public class EduReviewController {
     }
 
     @PutMapping("/{reviewId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<EReviews> updateReview(
             @PathVariable String reviewId,
             @RequestBody ReviewRequest request) {
@@ -42,7 +42,7 @@ public class EduReviewController {
     }
 
     @DeleteMapping("/{reviewId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<Void> deleteReview(@PathVariable String reviewId) {
         reviewService.deleteReview(reviewId);
         return ResponseEntity.noContent().build();

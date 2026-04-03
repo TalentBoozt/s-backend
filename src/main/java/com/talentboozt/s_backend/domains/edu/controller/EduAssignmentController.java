@@ -21,7 +21,7 @@ public class EduAssignmentController {
     }
 
     @PostMapping("/course/{courseId}/lesson/{lessonId}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EAssignments> createAssignment(
             @PathVariable String courseId,
             @PathVariable String lessonId,
@@ -41,20 +41,20 @@ public class EduAssignmentController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EAssignments> updateAssignment(@PathVariable String id, @RequestBody AssignmentRequest request) {
         return ResponseEntity.ok(assignmentService.updateAssignment(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Void> deleteAssignment(@PathVariable String id) {
         assignmentService.deleteAssignment(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{assignmentId}/submit")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EAssignmentSubmissions> submitAssignment(
             @PathVariable String assignmentId,
             @RequestParam String userId,
@@ -77,7 +77,7 @@ public class EduAssignmentController {
     }
 
     @PutMapping("/submissions/{submissionId}/grade")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EAssignmentSubmissions> gradeSubmission(
             @PathVariable String submissionId,
             @RequestParam String graderId,

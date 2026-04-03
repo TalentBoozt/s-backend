@@ -23,7 +23,7 @@ public class EduCourseController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<ECourses> createCourse(
             @AuthenticatedUser String creatorId, 
             @RequestParam String workspaceId, 
@@ -37,7 +37,7 @@ public class EduCourseController {
     }
 
     @GetMapping("/creator")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<List<ECourses>> getCreatorCourses(@AuthenticatedUser String creatorId) {
         return ResponseEntity.ok(courseService.getCoursesByCreator(creatorId));
     }
@@ -48,7 +48,7 @@ public class EduCourseController {
     }
 
     @GetMapping("/creator/students")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<List<EEnrollments>> getCreatorStudents(
             @AuthenticatedUser String creatorId,
             @RequestParam(required = false) String courseId,
@@ -57,23 +57,28 @@ public class EduCourseController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<ECourses> updateCourse(
+            @AuthenticatedUser String creatorId,
             @PathVariable String id, 
             @Valid @RequestBody CourseRequest request) {
-        return ResponseEntity.ok(courseService.updateCourse(id, request));
+        return ResponseEntity.ok(courseService.updateCourse(creatorId, id, request));
     }
 
     @PutMapping("/{id}/publish")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
-    public ResponseEntity<ECourses> publishCourse(@PathVariable String id) {
-        return ResponseEntity.ok(courseService.publishCourse(id));
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    public ResponseEntity<ECourses> publishCourse(
+            @AuthenticatedUser String creatorId,
+            @PathVariable String id) {
+        return ResponseEntity.ok(courseService.publishCourse(creatorId, id));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
-    public ResponseEntity<Void> deleteCourse(@PathVariable String id) {
-        courseService.deleteCourse(id);
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    public ResponseEntity<Void> deleteCourse(
+            @AuthenticatedUser String creatorId,
+            @PathVariable String id) {
+        courseService.deleteCourse(creatorId, id);
         return ResponseEntity.noContent().build();
     }
 }

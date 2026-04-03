@@ -23,7 +23,7 @@ public class EduLessonController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<ELessons> createLesson(
             @PathVariable String courseId,
             @PathVariable String sectionId,
@@ -43,7 +43,7 @@ public class EduLessonController {
     }
 
     @PutMapping("/{lessonId}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<ELessons> updateLesson(
             @PathVariable String courseId,
             @PathVariable String sectionId,
@@ -53,7 +53,7 @@ public class EduLessonController {
     }
 
     @PutMapping("/reorder")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Void> reorderLessons(
             @PathVariable String sectionId, 
             @Valid @RequestBody OrderUpdateRequest request) {
@@ -62,7 +62,7 @@ public class EduLessonController {
     }
 
     @DeleteMapping("/{lessonId}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Void> deleteLesson(@PathVariable String lessonId) {
         lessonService.deleteLesson(lessonId);
         return ResponseEntity.noContent().build();

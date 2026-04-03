@@ -1,34 +1,38 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
-import com.talentboozt.s_backend.domains.edu.model.ESubscriptions;
+import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
+import com.talentboozt.s_backend.domains.edu.model.EUser;
+import com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EduCommissionCalculator {
 
-    private final EduSubscriptionService subscriptionService;
+    private final EUserRepository userRepository;
+    private final PlanConfigService planConfigService;
 
-    public EduCommissionCalculator(EduSubscriptionService subscriptionService) {
-        this.subscriptionService = subscriptionService;
+    public EduCommissionCalculator(EUserRepository userRepository, PlanConfigService planConfigService) {
+        this.userRepository = userRepository;
+        this.planConfigService = planConfigService;
     }
 
-    public double calculateCommissionRate(String sellerId) {
-        ESubscriptions sub = subscriptionService.getUserSubscription(sellerId);
-        if (sub == null || sub.getPlan() == null) {
-            return 0.07; // Default Free
+    public static class CommissionResult {
+        public final double rate;
+        public final String plan;
+        public CommissionResult(double rate, String plan) {
+            this.rate = rate;
+            this.plan = plan;
         }
-        
-        switch (sub.getPlan()) {
-            case FREE:
-                return 0.07;
-            case PRO:
-                return 0.05;
-            case PREMIUM:
-                return 0.03;
-            case ENTERPRISE:
-                return 0.01;
-            default:
-                return 0.07;
+    }
+
+    public CommissionResult calculateCommissionRate(String sellerId) {
+        ESubscriptionPlan plan = ESubscriptionPlan.FREE;
+        if (sellerId != null) {
+            EUser user = userRepository.findById(sellerId).orElse(null);
+            if (user != null && user.getPlan() != null) {
+                plan = user.getPlan();
+            }
         }
+        return new CommissionResult(planConfigService.getPlanLimits(plan).getCommissionRate(), plan.name());
     }
 }

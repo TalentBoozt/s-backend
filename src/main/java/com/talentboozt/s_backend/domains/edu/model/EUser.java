@@ -9,6 +9,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.talentboozt.s_backend.domains.edu.enums.ERoles;
+import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
+import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionStatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -48,6 +50,12 @@ public class EUser {
     private String banReason;
     private Instant lastLoginAt;
     private ERoles[] roles;
+
+    @Builder.Default
+    private ESubscriptionPlan plan = ESubscriptionPlan.FREE;
+
+    @Builder.Default
+    private ESubscriptionStatus subscriptionStatus = ESubscriptionStatus.ACTIVE;
     private String emailVerificationToken;
     private String passwordResetToken;
     private Instant passwordResetExpiry;

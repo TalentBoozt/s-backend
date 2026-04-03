@@ -27,7 +27,7 @@ public class EduDataSeederController {
     }
 
     @PostMapping("/run")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<String> seedDemoData() {
         if (coursesRepository.count() == 0) {
             ECourses demoCourse = ECourses.builder()

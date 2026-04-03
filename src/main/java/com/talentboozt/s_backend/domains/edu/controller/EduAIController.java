@@ -14,6 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import com.talentboozt.s_backend.domains.edu.model.ECreditLedger;
+import com.talentboozt.s_backend.domains.edu.service.EduAccessGuardService;
 import java.util.List;
 
 import java.util.Map;
@@ -26,28 +27,30 @@ public class EduAIController {
     private final EduAICreditService creditService;
     private final EduAIValidationService validationService;
     private final RateLimiterService rateLimiterService;
+    private final EduAccessGuardService accessGuard;
 
-    public EduAIController(EduAIEngineService engineService, EduAICreditService creditService, EduAIValidationService validationService, RateLimiterService rateLimiterService) {
+    public EduAIController(EduAIEngineService engineService, EduAICreditService creditService, EduAIValidationService validationService, RateLimiterService rateLimiterService, EduAccessGuardService accessGuard) {
         this.engineService = engineService;
         this.creditService = creditService;
         this.validationService = validationService;
         this.rateLimiterService = rateLimiterService;
+        this.accessGuard = accessGuard;
     }
 
     @GetMapping("/credits")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EAiCredits> getAICredits(@AuthenticatedUser String userId) {
         return ResponseEntity.ok(creditService.getUserCredits(userId));
     }
 
     @GetMapping("/credits/ledger")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<List<ECreditLedger>> getCreditLedger(@AuthenticatedUser String userId) {
         return ResponseEntity.ok(creditService.getCreditLedger(userId));
     }
 
     @PostMapping("/generate-outline/{courseId}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Map<String, String>> generateOutline(
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
@@ -55,12 +58,16 @@ public class EduAIController {
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
+        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceAIGenerationLimits(userId, request.getTopic());
+        accessGuard.enforceCourseOwnership(userId, courseId);
+        
         String response = engineService.generateCourseOutline(userId, courseId, request);
         return ResponseEntity.ok(Map.of("data", response));
     }
 
     @PostMapping("/generate-lesson/{courseId}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Map<String, String>> generateLesson(
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
@@ -68,12 +75,16 @@ public class EduAIController {
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
+        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceAIGenerationLimits(userId, lessonObjective);
+        accessGuard.enforceCourseOwnership(userId, courseId);
+        
         String response = engineService.generateLessonContent(userId, courseId, lessonObjective);
         return ResponseEntity.ok(Map.of("data", response));
     }
 
     @PostMapping("/generate-quiz/{courseId}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Map<String, String>> generateQuiz(
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
@@ -81,23 +92,34 @@ public class EduAIController {
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
+        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceAIGenerationLimits(userId, topic);
+        accessGuard.enforceCourseOwnership(userId, courseId);
+        
         String response = engineService.generateSystemQuiz(userId, courseId, topic);
         return ResponseEntity.ok(Map.of("data", response));
     }
 
     @PostMapping("/validate/{courseId}")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
     public ResponseEntity<?> validateCourse(
             @PathVariable String courseId,
             @AuthenticatedUser String userId) {
+        accessGuard.enforceFeatureAccess(userId, "COURSE_VALIDATION");
+        accessGuard.enforceCourseOwnership(userId, courseId);
+        
         validationService.submitCourseForValidation(userId, courseId);
         return ResponseEntity.accepted().body(Map.of("message", "Course validation started successfully", "status", "AI_PENDING"));
     }
 
     @GetMapping("/validate/{courseId}/status")
-    @PreAuthorize("hasAuthority('INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
     public ResponseEntity<?> getValidationStatus(
-            @PathVariable String courseId) {
+            @PathVariable String courseId,
+            @AuthenticatedUser String userId) {
+        accessGuard.enforceFeatureAccess(userId, "COURSE_VALIDATION");
+        accessGuard.enforceCourseOwnership(userId, courseId);
+        
         return ResponseEntity.ok(validationService.getValidationStatus(courseId));
     }
 }

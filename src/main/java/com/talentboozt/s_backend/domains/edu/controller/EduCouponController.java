@@ -19,7 +19,7 @@ public class EduCouponController {
     private final EduCouponService couponService;
 
     @PostMapping
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<ECoupons> createCoupon(
             @RequestParam String creatorId,
             @Valid @RequestBody ECoupons request) {
@@ -27,13 +27,13 @@ public class EduCouponController {
     }
 
     @GetMapping("/creator/{creatorId}")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<List<ECoupons>> getCouponsByCreator(@PathVariable String creatorId) {
         return ResponseEntity.ok(couponService.getCouponsByCreator(creatorId));
     }
 
     @PutMapping("/{couponId}")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<ECoupons> updateCoupon(
             @PathVariable String couponId,
             @RequestParam String creatorId,
@@ -42,7 +42,7 @@ public class EduCouponController {
     }
 
     @DeleteMapping("/{couponId}")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<Void> deleteCoupon(
             @PathVariable String couponId,
             @RequestParam String creatorId) {

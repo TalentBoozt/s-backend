@@ -33,19 +33,19 @@ public class EduModerationThirdPartyController {
 
     // MODERATION
     @PostMapping("/reports")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<EReports> submitReport(@RequestBody ReportRequest request) {
         return ResponseEntity.ok(moderationService.submitReport(request));
     }
 
     @GetMapping("/reports/pending")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<List<EReports>> getPendingReports() {
         return ResponseEntity.ok(moderationService.getPendingReports());
     }
 
     @PutMapping("/reports/{reportId}/resolve")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<EReports> resolveReport(
             @PathVariable String reportId,
             @RequestParam String adminId,
@@ -56,13 +56,13 @@ public class EduModerationThirdPartyController {
 
     // GIFTS
     @PostMapping("/gifts/send")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<EGifts> sendGift(@RequestBody GiftRequest request) {
         return ResponseEntity.ok(giftService.sendGift(request));
     }
 
     @PostMapping("/gifts/redeem")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<EGifts> redeemGift(
             @RequestParam String userId,
             @RequestParam String redeemCode) {
@@ -71,7 +71,7 @@ public class EduModerationThirdPartyController {
 
     // AFFILIATES
     @PostMapping("/affiliates/register/{userId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('CREATOR') or hasAuthority('INSTRUCTOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<EAffiliates> registerAffiliate(@PathVariable String userId) {
         return ResponseEntity.ok(affiliateService.registerAffiliate(userId));
     }

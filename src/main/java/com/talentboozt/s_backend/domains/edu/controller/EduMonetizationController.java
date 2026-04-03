@@ -30,26 +30,26 @@ public class EduMonetizationController {
     }
 
     @PostMapping("/stripe/checkout")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Map<String, String>> createCheckoutSession(@Valid @RequestBody CheckoutRequest request) throws Exception {
         return ResponseEntity.ok(monetizationService.createCheckoutSession(request));
     }
 
     @PostMapping("/stripe/portal")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Map<String, String>> createPortalSession(@Valid @RequestBody PortalRequest request) throws Exception {
         return ResponseEntity.ok(monetizationService.createPortalSession(request.getUserId()));
     }
 
     @GetMapping("/subscriptions/user/{userId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<ESubscriptions> getSubscriptionStatus(@PathVariable String userId) {
         return ResponseEntity.ok(monetizationService.getSubscriptionStatus(userId));
     }
 
     /** One-time Stripe Checkout for a marketplace course (payment mode). */
     @PostMapping("/course-checkout")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Map<String, String>> createCourseCheckout(@Valid @RequestBody CourseCheckoutRequest request)
             throws StripeException {
         return ResponseEntity.ok(coursePurchaseService.createCourseCheckoutSession(
@@ -57,7 +57,7 @@ public class EduMonetizationController {
     }
 
     @PostMapping("/multi-course-checkout")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Map<String, String>> createMultiCourseCheckout(@Valid @RequestBody MultiCourseCheckoutRequest request)
             throws StripeException {
         return ResponseEntity.ok(coursePurchaseService.createMultiCourseCheckoutSession(
@@ -66,7 +66,7 @@ public class EduMonetizationController {
 
     /** Browser return: confirms session belongs to user and completes enrollment if webhook was delayed. */
     @PostMapping("/course-purchase/confirm")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Map<String, Object>> confirmCoursePurchase(@Valid @RequestBody CoursePurchaseConfirmRequest request)
             throws StripeException {
         return ResponseEntity.ok(coursePurchaseService.confirmForUser(

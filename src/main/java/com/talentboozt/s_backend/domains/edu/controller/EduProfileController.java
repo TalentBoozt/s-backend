@@ -29,7 +29,7 @@ public class EduProfileController {
     }
 
     @PutMapping("/{userId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EProfiles> updateProfile(
             @PathVariable String userId,
             @AuthenticationPrincipal CustomUserDetails principal,
@@ -41,7 +41,7 @@ public class EduProfileController {
     }
 
     @PostMapping(value = "/{userId}/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Map<String, String>> uploadAvatar(
             @PathVariable String userId,
             @AuthenticationPrincipal CustomUserDetails principal,
@@ -53,7 +53,7 @@ public class EduProfileController {
     }
 
     @DeleteMapping("/{userId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Void> deleteAccount(
             @PathVariable String userId,
             @AuthenticationPrincipal CustomUserDetails principal) {

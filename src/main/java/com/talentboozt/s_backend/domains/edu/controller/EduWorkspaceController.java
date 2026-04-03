@@ -39,7 +39,7 @@ public class EduWorkspaceController {
     // Workspaces 
 
     @PostMapping("/owner/{ownerId}")
-    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('CREATOR')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_ADMIN') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<EWorkspaces> createWorkspace(
             @PathVariable String ownerId,
             @Valid @RequestBody WorkspaceRequest request) {
@@ -47,7 +47,7 @@ public class EduWorkspaceController {
     }
 
     @GetMapping("/{workspaceId}")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<EWorkspaces> getWorkspace(@PathVariable String workspaceId,
                                                     @RequestParam String userId) {
         guardService.enforceMembership(workspaceId, userId);
@@ -55,7 +55,7 @@ public class EduWorkspaceController {
     }
 
     @GetMapping("/owner/{ownerId}")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<List<EWorkspaces>> getWorkspacesByOwner(@PathVariable String ownerId) {
         return ResponseEntity.ok(workspaceService.getWorkspacesByOwner(ownerId));
     }
@@ -63,7 +63,7 @@ public class EduWorkspaceController {
     // Members
 
     @PostMapping("/{workspaceId}/members/{userId}")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<WorkspaceMemberDTO> addMember(
             @PathVariable String workspaceId,
             @PathVariable String userId,
@@ -73,7 +73,7 @@ public class EduWorkspaceController {
     }
 
     @PostMapping("/{workspaceId}/members/bulk")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<Void> bulkImportMembers(
             @PathVariable String workspaceId,
             @Valid @RequestBody List<String> userIds,
@@ -83,7 +83,7 @@ public class EduWorkspaceController {
     }
 
     @GetMapping("/{workspaceId}/members")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<List<WorkspaceMemberDTO>> getMembers(@PathVariable String workspaceId,
                                                                @RequestParam String userId) {
         guardService.enforceMembership(workspaceId, userId);
@@ -91,7 +91,7 @@ public class EduWorkspaceController {
     }
 
     @DeleteMapping("/{workspaceId}/members/{userId}")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<Void> removeMember(
             @PathVariable String workspaceId,
             @PathVariable String userId) {
@@ -102,7 +102,7 @@ public class EduWorkspaceController {
     // Learning Paths
 
     @PostMapping("/{workspaceId}/paths")
-    @PreAuthorize("hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<ELearningPaths> createPath(
             @PathVariable String workspaceId,
             @RequestParam String creatorId,
@@ -111,7 +111,7 @@ public class EduWorkspaceController {
     }
 
     @GetMapping("/{workspaceId}/paths")
-    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('INSTRUCTOR') or hasAuthority('CREATOR') or hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<List<ELearningPaths>> getWorkspacePaths(@PathVariable String workspaceId,
                                                                   @RequestParam String userId) {
         guardService.enforceMembership(workspaceId, userId);

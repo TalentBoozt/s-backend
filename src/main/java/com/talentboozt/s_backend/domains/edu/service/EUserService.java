@@ -190,6 +190,13 @@ public class EUserService {
         return buildAuthResponse(user);
     }
 
+    public AuthResponse getMe(String userId) {
+        EUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"));
+        return buildAuthResponse(user);
+    }
+
     private AuthResponse buildAuthResponse(EUser user) {
         com.talentboozt.s_backend.domains.edu.model.ESubscriptions sub = subscriptionService.getUserSubscription(user.getId());
         return AuthResponse.builder()
