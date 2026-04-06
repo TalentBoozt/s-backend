@@ -2,10 +2,12 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.stripe.model.Customer;
 import com.stripe.model.checkout.Session;
+import com.stripe.net.RequestOptions;
 import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 
 import com.talentboozt.s_backend.domains.edu.dto.monetization.CheckoutRequest;
+import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
 import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
 import com.talentboozt.s_backend.domains.edu.model.ESubscriptions;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ESubscriptionsRepository;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class EduMonetizationService {
@@ -58,6 +61,9 @@ public class EduMonetizationService {
         subscription.setStripePriceId(priceId);
         subscriptionsRepository.save(subscription);
 
+        // Generate idempotency key to prevent duplicate subscriptions on network retries
+        String idempotencyKey = UUID.randomUUID().toString();
+
         SessionCreateParams params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
                 .setMode(SessionCreateParams.Mode.SUBSCRIPTION)
@@ -70,7 +76,10 @@ public class EduMonetizationService {
                         .build())
                 .build();
 
-        Session session = Session.create(params);
+        RequestOptions requestOptions = RequestOptions.builder()
+                .setIdempotencyKey(idempotencyKey)
+                .build();
+        Session session = Session.create(params, requestOptions);
         return Map.of("url", session.getUrl());
     }
 
@@ -86,7 +95,10 @@ public class EduMonetizationService {
                 .setReturnUrl(frontendUrl + "/learner/profile")
                 .build();
 
-        com.stripe.model.billingportal.Session portalSession = com.stripe.model.billingportal.Session.create(params);
+        RequestOptions requestOptions = RequestOptions.builder()
+                .setIdempotencyKey(UUID.randomUUID().toString())
+                .build();
+        com.stripe.model.billingportal.Session portalSession = com.stripe.model.billingportal.Session.create(params, requestOptions);
         return Map.of("url", portalSession.getUrl());
     }
 

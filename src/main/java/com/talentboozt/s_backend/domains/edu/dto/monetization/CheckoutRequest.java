@@ -10,4 +10,6 @@ public class CheckoutRequest {
     private String userId;
     private String planName;
     private String billingCycle;
+    /** Optional: number of trial days before billing starts. */
+    private Integer trialDays;
 }

@@ -7,4 +7,6 @@ import java.util.List;
 public class MultiCourseCheckoutRequest {
     private String userId;
     private List<String> courseIds;
+    /** Optional coupon code to apply at checkout */
+    private String couponCode;
 }

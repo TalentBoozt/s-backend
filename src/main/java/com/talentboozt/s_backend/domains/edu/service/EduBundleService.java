@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
 import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.EBundles;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
@@ -75,6 +76,14 @@ public class EduBundleService {
                 }
             }
             bundle.setOriginalTotalPrice(originalTotal);
+
+            // Validate: bundle price cannot exceed total of individual prices
+            if (bundle.getBundlePrice() != null && originalTotal > 0
+                    && bundle.getBundlePrice() > originalTotal) {
+                throw new EduBadRequestException(
+                        String.format("Bundle price ($%.2f) cannot exceed the total of individual course prices ($%.2f).",
+                                bundle.getBundlePrice(), originalTotal));
+            }
 
             if (bundle.getBundlePrice() != null && originalTotal > 0) {
                 double diff = originalTotal - bundle.getBundlePrice();
