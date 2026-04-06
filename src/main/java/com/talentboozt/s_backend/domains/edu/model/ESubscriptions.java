@@ -56,6 +56,13 @@ public class ESubscriptions {
     private Instant trialEndDate;
     private Instant cancelledAt;
     private Instant lastPaymentAt;
+
+    /** Whether Stripe will cancel at end of current period (graceful cancel). */
+    @Builder.Default
+    private Boolean cancelAtPeriodEnd = false;
+
+    /** Tracks when credits were last reset to prevent duplicate grants on mid-cycle events. */
+    private Instant lastCreditResetAt;
     
     @CreatedDate
     private Instant createdAt;

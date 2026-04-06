@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.edu.controller;
 
 import jakarta.validation.Valid;
 import com.stripe.exception.StripeException;
+import com.talentboozt.s_backend.domains.edu.dto.monetization.BundleCheckoutRequest;
 import com.talentboozt.s_backend.domains.edu.dto.monetization.CheckoutRequest;
 import com.talentboozt.s_backend.domains.edu.dto.monetization.CourseCheckoutRequest;
 import com.talentboozt.s_backend.domains.edu.dto.monetization.CoursePurchaseConfirmRequest;
@@ -31,13 +32,15 @@ public class EduMonetizationController {
 
     @PostMapping("/stripe/checkout")
     @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
-    public ResponseEntity<Map<String, String>> createCheckoutSession(@Valid @RequestBody CheckoutRequest request) throws Exception {
+    public ResponseEntity<Map<String, String>> createCheckoutSession(@Valid @RequestBody CheckoutRequest request)
+            throws Exception {
         return ResponseEntity.ok(monetizationService.createCheckoutSession(request));
     }
 
     @PostMapping("/stripe/portal")
     @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
-    public ResponseEntity<Map<String, String>> createPortalSession(@Valid @RequestBody PortalRequest request) throws Exception {
+    public ResponseEntity<Map<String, String>> createPortalSession(@Valid @RequestBody PortalRequest request)
+            throws Exception {
         return ResponseEntity.ok(monetizationService.createPortalSession(request.getUserId()));
     }
 
@@ -53,21 +56,36 @@ public class EduMonetizationController {
     public ResponseEntity<Map<String, String>> createCourseCheckout(@Valid @RequestBody CourseCheckoutRequest request)
             throws StripeException {
         return ResponseEntity.ok(coursePurchaseService.createCourseCheckoutSession(
-                request.getUserId(), request.getCourseId(), request.getAffiliateId()));
+                request.getUserId(), request.getCourseId(), request.getAffiliateId(), request.getCouponCode()));
     }
 
     @PostMapping("/multi-course-checkout")
     @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
-    public ResponseEntity<Map<String, String>> createMultiCourseCheckout(@Valid @RequestBody MultiCourseCheckoutRequest request)
+    public ResponseEntity<Map<String, String>> createMultiCourseCheckout(
+            @Valid @RequestBody MultiCourseCheckoutRequest request)
             throws StripeException {
         return ResponseEntity.ok(coursePurchaseService.createMultiCourseCheckoutSession(
-                request.getUserId(), request.getCourseIds()));
+                request.getUserId(), request.getCourseIds(), request.getCouponCode()));
     }
 
-    /** Browser return: confirms session belongs to user and completes enrollment if webhook was delayed. */
+    /** Bundle checkout with ownership deduction and proportional pricing. */
+    @PostMapping("/bundle-checkout")
+    @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    public ResponseEntity<Map<String, String>> createBundleCheckout(
+            @Valid @RequestBody BundleCheckoutRequest request)
+            throws StripeException {
+        return ResponseEntity.ok(coursePurchaseService.createBundleCheckoutSession(
+                request.getUserId(), request.getBundleId(), request.getCouponCode()));
+    }
+
+    /**
+     * Browser return: confirms session belongs to user and completes enrollment if
+     * webhook was delayed.
+     */
     @PostMapping("/course-purchase/confirm")
     @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
-    public ResponseEntity<Map<String, Object>> confirmCoursePurchase(@Valid @RequestBody CoursePurchaseConfirmRequest request)
+    public ResponseEntity<Map<String, Object>> confirmCoursePurchase(
+            @Valid @RequestBody CoursePurchaseConfirmRequest request)
             throws StripeException {
         return ResponseEntity.ok(coursePurchaseService.confirmForUser(
                 request.getSessionId(), request.getUserId()));

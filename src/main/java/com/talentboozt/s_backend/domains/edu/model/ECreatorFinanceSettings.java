@@ -25,6 +25,8 @@ public class ECreatorFinanceSettings {
     @Indexed(unique = true)
     private String userId;
 
+    private String stripeAccountId;
+
     private List<PayoutMethod> payoutMethods;
     private String taxVerificationStatus; // VERIFIED, PENDING, UNVERIFIED
     private String profileVerificationStatus; // VERIFIED, PENDING, UNVERIFIED

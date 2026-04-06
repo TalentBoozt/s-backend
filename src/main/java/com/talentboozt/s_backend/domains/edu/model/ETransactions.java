@@ -61,6 +61,32 @@ public class ETransactions {
     
     private String paymentGateway;
     private String paymentGatewayResponse;
+
+    /** UUID idempotency key used when creating the Stripe checkout session. */
+    private String idempotencyKey;
+
+    /** When the Stripe checkout session expires (default: 24h after creation). */
+    @Indexed
+    private Instant expiresAt;
+
+    /** Coupon code applied to this transaction (null if none). */
+    private String appliedCouponCode;
+
+    /** Discount amount from coupon (subtracted from original price). */
+    private Double discountAmount;
+
+    /** Original price before coupon discount (amount = originalAmount - discountAmount). */
+    private Double originalAmount;
+
+    /** Bundle ID if this transaction is part of a bundle purchase. */
+    @Indexed
+    private String bundleId;
+
+    /** Estimated/Calculated Tax amount applied */
+    private Double taxAmount;
+
+    /** Applied tax rate (e.g. 0.15 for 15%) */
+    private Double taxRate;
     
     @Version
     private Long version;

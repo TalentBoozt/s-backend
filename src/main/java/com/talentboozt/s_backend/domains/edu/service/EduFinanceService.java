@@ -29,19 +29,25 @@ public class EduFinanceService {
     private final EHoldingLedgerRepository holdingLedgerRepository;
     private final EduCryptoService cryptoService;
     private final EduAuditService auditService;
+    private final EduLedgerService ledgerService;
+    private final StripeConnectService stripeConnectService;
 
     public EduFinanceService(ETransactionsRepository transactionsRepository, 
                              EPayoutsRepository payoutsRepository, 
                              ECreatorFinanceSettingsRepository financeSettingsRepository,
                              EHoldingLedgerRepository holdingLedgerRepository,
                              EduCryptoService cryptoService,
-                             EduAuditService auditService) {
+                             EduAuditService auditService,
+                             EduLedgerService ledgerService,
+                             StripeConnectService stripeConnectService) {
         this.transactionsRepository = transactionsRepository;
         this.payoutsRepository = payoutsRepository;
         this.financeSettingsRepository = financeSettingsRepository;
         this.holdingLedgerRepository = holdingLedgerRepository;
         this.cryptoService = cryptoService;
         this.auditService = auditService;
+        this.ledgerService = ledgerService;
+        this.stripeConnectService = stripeConnectService;
     }
 
     public RevenueSummaryDTO getRevenueSummary(String creatorId) {
@@ -160,7 +166,7 @@ public class EduFinanceService {
     }
 
     // Admin Operation
-    public EPayouts updatePayoutStatus(String payoutId, EPayoutStatus status) {
+    public EPayouts updatePayoutStatus(String payoutId, EPayoutStatus status) throws Exception {
         EPayouts payout = payoutsRepository.findById(payoutId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Payout request not found with id: " + payoutId));
         
@@ -168,6 +174,17 @@ public class EduFinanceService {
         payout.setStatus(status);
         if (status == EPayoutStatus.COMPLETED) {
             payout.setPaidAt(Instant.now());
+            ledgerService.recordPayout(payout.getId(), payout.getCreatorId(), payout.getAmount(), payout.getCurrency());
+            
+            // Execute real Stripe transfer if the method is STRIPE
+            if (payout.getMethod() == com.talentboozt.s_backend.domains.edu.enums.EPayoutMethod.STRIPE) {
+                ECreatorFinanceSettings settings = getFinanceSettings(payout.getCreatorId());
+                if (settings.getStripeAccountId() != null) {
+                    stripeConnectService.transferFunds(settings.getStripeAccountId(), payout.getAmount(), payout.getCurrency(), payout.getId());
+                } else {
+                    throw new EduBadRequestException("Creator does not have a Stripe Connect account configured.");
+                }
+            }
         }
         
         EPayouts saved = payoutsRepository.save(payout);

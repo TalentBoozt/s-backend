@@ -1,13 +1,11 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
+import jakarta.validation.Valid;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.model.Event;
-import com.stripe.model.Invoice;
-import com.stripe.model.Subscription;
-import com.stripe.model.checkout.Session;
 import com.stripe.net.Webhook;
-import com.talentboozt.s_backend.domains.edu.service.EduCoursePurchaseService;
-import com.talentboozt.s_backend.domains.edu.service.EduSubscriptionService;
+import com.talentboozt.s_backend.domains.edu.service.WebhookEventProcessor;
+import com.talentboozt.s_backend.domains.edu.service.WebhookEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,22 +13,36 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Stripe webhook endpoint for the Edu payment system.
+ *
+ * Architecture:
+ * 1. Signature verification (Stripe security)
+ * 2. Idempotency check (WebhookEventService.tryAcquire)
+ * 3. Event processing (WebhookEventProcessor — shared with retry service)
+ * 4. DLQ on failure (WebhookEventService.markFailed → exponential backoff retry)
+ *
+ * Always returns 200 to Stripe to prevent infinite retries.
+ * Failed events are retried internally via WebhookRetryService.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/api/monetization/stripe")
 @RequiredArgsConstructor
 public class EduStripeWebhookController {
 
-    private final EduCoursePurchaseService coursePurchaseService;
-    private final EduSubscriptionService subscriptionService;
+    private final WebhookEventProcessor eventProcessor;
+    private final WebhookEventService webhookEventService;
 
     @Value("${stripe.webhook.secret}")
     private String webhookSecret;
 
     @PostMapping("/webhook")
     public ResponseEntity<String> handleWebhook(
-            @RequestBody String payload,
+            @Valid @RequestBody String payload,
             @RequestHeader("Stripe-Signature") String sigHeader) {
+
+        // Step 1: Verify Stripe signature
         Event event;
         try {
             event = Webhook.constructEvent(payload, sigHeader, webhookSecret);
@@ -42,58 +54,27 @@ public class EduStripeWebhookController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("webhook error");
         }
 
-        try {
-            switch (event.getType()) {
-                case "checkout.session.completed":
-                    Session session = (Session) event.getDataObjectDeserializer().getObject().orElse(null);
-                    if (session != null && session.getMetadata() != null
-                            && EduCoursePurchaseService.CHECKOUT_METADATA_TYPE.equals(session.getMetadata().get("type"))) {
-                        coursePurchaseService.finalizePaidCourseIfReady(session.getId());
-                        log.info("Finalized edu course purchase for session {}", session.getId());
-                    }
-                    break;
-                case "customer.subscription.created":
-                case "customer.subscription.updated":
-                case "customer.subscription.deleted":
-                    Subscription subscription = (Subscription) event.getDataObjectDeserializer().getObject().orElse(null);
-                    if (subscription != null) {
-                        String priceId = null;
-                        if (subscription.getItems() != null && !subscription.getItems().getData().isEmpty()) {
-                            priceId = subscription.getItems().getData().get(0).getPrice().getId();
-                        }
-                        subscriptionService.updateFromStripeEvent(
-                                subscription.getCustomer(),
-                                subscription.getId(),
-                                subscription.getStatus(),
-                                priceId
-                        );
-                        log.info("Handled {} for subscription {}", event.getType(), subscription.getId());
-                    }
-                    break;
-                case "invoice.payment_succeeded":
-                    Invoice succeededInvoice = (Invoice) event.getDataObjectDeserializer().getObject().orElse(null);
-                    if (succeededInvoice != null && succeededInvoice.getSubscription() != null) {
-                        subscriptionService.updatePaymentSucceeded(succeededInvoice.getCustomer());
-                        log.info("Handled invoice.payment_succeeded for customer {}", succeededInvoice.getCustomer());
-                    }
-                    break;
-                case "invoice.payment_failed":
-                    Invoice failedInvoice = (Invoice) event.getDataObjectDeserializer().getObject().orElse(null);
-                    if (failedInvoice != null && failedInvoice.getSubscription() != null) {
-                        subscriptionService.updatePaymentFailed(failedInvoice.getCustomer());
-                        log.info("Handled invoice.payment_failed for customer {}", failedInvoice.getCustomer());
-                    }
-                    break;
-                default:
-                    // Ignored event type
-                    break;
-            }
-        } catch (Exception ex) {
-            log.error("Failed to process Stripe webhook event {}: {}", event.getType(), ex.getMessage(), ex);
-            // We still return 200 OK so Stripe doesn't endlessly retry if it's a code issue on our end
-            // but we've logged it
+        // Step 2: Idempotency check — skip if already processed
+        if (!webhookEventService.tryAcquire(event.getId(), event.getType(), payload, sigHeader)) {
+            log.debug("Skipping duplicate webhook event: {}", event.getId());
+            return ResponseEntity.ok("duplicate");
         }
 
+        // Step 3: Process the event
+        try {
+            eventProcessor.processEvent(event);
+
+            // Step 4a: Mark as successfully processed
+            webhookEventService.markSuccess(event.getId());
+
+        } catch (Exception ex) {
+            // Step 4b: Mark as failed — DLQ with exponential backoff
+            log.error("Failed to process Stripe webhook event {} (type={}): {}",
+                    event.getId(), event.getType(), ex.getMessage(), ex);
+            webhookEventService.markFailed(event.getId(), ex);
+        }
+
+        // Always return 200 — we handle retries internally
         return ResponseEntity.ok("ok");
     }
 }

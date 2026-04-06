@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
+import com.talentboozt.s_backend.domains.edu.dto.coupon.CouponValidationResult;
 import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
 import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
 import com.talentboozt.s_backend.domains.edu.exception.EduLimitExceededException;
@@ -77,7 +78,23 @@ public class EduCouponService {
         couponsRepository.deleteById(couponId);
     }
 
+    /**
+     * Legacy method — returns discount amount only.
+     * @deprecated Use {@link #validateAndCalculate} for structured results.
+     */
     public Double validateCoupon(String code, String courseId, String userId, Double currentPrice) {
+        CouponValidationResult result = validateAndCalculate(code, courseId, userId, currentPrice);
+        return result.getDiscountAmount();
+    }
+
+    /**
+     * Validates a coupon and returns a structured result with all calculation details.
+     * Used by EduCoursePurchaseService to apply discounts during checkout.
+     *
+     * @return CouponValidationResult with originalPrice, discountAmount, finalPrice
+     * @throws EduBadRequestException if coupon is invalid, expired, or not applicable
+     */
+    public CouponValidationResult validateAndCalculate(String code, String courseId, String userId, Double currentPrice) {
         Optional<ECoupons> opt = couponsRepository.findByCode(code);
         if (opt.isEmpty()) {
             throw new EduResourceNotFoundException("Coupon not found with code: " + code);
@@ -114,13 +131,26 @@ public class EduCouponService {
             }
         }
 
+        double discountAmount;
         if ("PERCENTAGE".equalsIgnoreCase(coupon.getDiscountType())) {
-            return currentPrice * (coupon.getDiscountValue() / 100.0);
+            discountAmount = currentPrice * (coupon.getDiscountValue() / 100.0);
         } else if ("FLAT".equalsIgnoreCase(coupon.getDiscountType())) {
-            return Math.min(coupon.getDiscountValue(), currentPrice);
+            discountAmount = Math.min(coupon.getDiscountValue(), currentPrice);
+        } else {
+            discountAmount = 0.0;
         }
 
-        return 0.0;
+        double finalPrice = Math.max(0.0, currentPrice - discountAmount);
+
+        return CouponValidationResult.builder()
+                .couponId(coupon.getId())
+                .code(coupon.getCode())
+                .originalPrice(currentPrice)
+                .discountAmount(Math.round(discountAmount * 100.0) / 100.0)
+                .finalPrice(Math.round(finalPrice * 100.0) / 100.0)
+                .discountType(coupon.getDiscountType())
+                .discountValue(coupon.getDiscountValue())
+                .build();
     }
 
     public void redeemCoupon(String code, String userId, String transactionId) {
