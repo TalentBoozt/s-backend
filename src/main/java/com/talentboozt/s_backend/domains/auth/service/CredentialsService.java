@@ -272,6 +272,21 @@ public class CredentialsService {
         return credentialsRepository.countByUserLevel(userLevel);
     }
 
+    public void setActiveWorkspaceId(String employeeId, String workspaceId) {
+        Optional<CredentialsModel> optionalCredentials = credentialsRepository.findByEmployeeId(employeeId);
+        if (optionalCredentials.isPresent()) {
+            CredentialsModel credentials = optionalCredentials.get();
+            credentials.setActiveWorkspaceId(workspaceId);
+            credentialsRepository.save(credentials);
+            if (employeeId != null) {
+                Cache userCredentialsCache = cacheManager.getCache("userCredentials");
+                if (userCredentialsCache != null) {
+                    userCredentialsCache.evict(employeeId);
+                }
+            }
+        }
+    }
+
     private boolean isSystemOwner(String companyId) {
         if (companyId == null)
             return false;

@@ -30,20 +30,21 @@ public class LIntentClassifier {
     }
 
     private static final String SYSTEM_PROMPT = 
-        "You are a Lead Scoring AI for a platform called LeadOS. " +
-        "You analyze raw content from forums (like Reddit) and determine its lead quality.\n" +
-        "Classify the intent into one of these EXACT strings: [LEARNING, BUYING, PROBLEM_SOLVING, NOISE].\n" +
-        "Also, provide an intentWeight (0-100 indicating how strong the intent is), " +
-        "an engagementWeight (0-100 indicating how engaging the content is), " +
-        "and a recencyWeight (0-100, if applicable). " +
-        "Finally, pick out keywords/entities as tags.\n\n" +
-        "You must respond ONLY with a raw JSON object matching this schema exactly, and nothing else:\n" +
+        "You are a Lead Scoring AI for LeadOS. Analyze forum/social content for lead potential.\n" +
+        "1. Classify intent: [LEARNING, BUYING, PROBLEM_SOLVING, NOISE].\n" +
+        "2. Weights (0-100): intentWeight, engagementWeight, recencyWeight.\n" +
+        "3. Sentiment: Number between -1.0 (pain/frustration) and 1.0 (positive/interest).\n" +
+        "4. Urgency (0-100): How immediate is the need?\n" +
+        "5. Tags: Extract 3-5 relevant keywords.\n\n" +
+        "Respond ONLY with raw JSON:\n" +
         "{\n" +
-        "  \"intent\": \"LEARNING\",\n" +
-        "  \"intentWeight\": 80,\n" +
-        "  \"engagementWeight\": 50,\n" +
+        "  \"intent\": \"BUYING\",\n" +
+        "  \"intentWeight\": 90,\n" +
+        "  \"engagementWeight\": 60,\n" +
         "  \"recencyWeight\": 100,\n" +
-        "  \"tags\": [\"keyword1\", \"keyword2\"]\n" +
+        "  \"sentiment\": 0.2,\n" +
+        "  \"urgency\": 85,\n" +
+        "  \"tags\": [\"crm\", \"automation\"]\n" +
         "}";
 
     public LAIAnalysisResult analyzeContent(String content) {
@@ -90,7 +91,9 @@ public class LIntentClassifier {
         stub.setIntentWeight(85);
         stub.setEngagementWeight(70);
         stub.setRecencyWeight(90);
-        stub.setTags(List.of("help_needed", "stub_tag"));
+        stub.setSentiment(-0.4);
+        stub.setUrgency(75);
+        stub.setTags(List.of("help_needed", "integration"));
         return stub;
     }
 }

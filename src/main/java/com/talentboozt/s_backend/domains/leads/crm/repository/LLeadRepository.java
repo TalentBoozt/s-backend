@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LLeadRepository extends MongoRepository<LLead, String> {
@@ -19,4 +20,6 @@ public interface LLeadRepository extends MongoRepository<LLead, String> {
     List<LLead> findByFilters(String workspaceId, String status, Double minScore);
 
     List<LLead> findByWorkspaceId(String workspaceId);
+
+    Optional<LLead> findBySourceSignalId(String sourceSignalId);
 }

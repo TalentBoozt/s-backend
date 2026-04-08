@@ -112,4 +112,17 @@ public class LLeadService {
 
         return leadRepository.save(lead);
     }
+
+    public void deleteLead(String id, String workspaceId) {
+        LLead lead = getLeadById(id, workspaceId);
+        leadRepository.delete(lead);
+    }
+
+    public LLead createLead(LLead lead, String workspaceId) {
+        lead.setWorkspaceId(workspaceId);
+        lead.setCreatedAt(Instant.now());
+        lead.setUpdatedAt(Instant.now());
+        lead.addTimelineEvent("Lead Created", "Manually created lead");
+        return leadRepository.save(lead);
+    }
 }

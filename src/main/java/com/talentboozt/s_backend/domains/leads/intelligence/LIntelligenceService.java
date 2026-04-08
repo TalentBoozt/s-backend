@@ -36,9 +36,26 @@ public class LIntelligenceService {
         try {
             LAIAnalysisResult analysis = intentClassifier.analyzeContent(signal.getContent());
 
-            double score = (analysis.getIntentWeight() * 0.5)
-                    + (analysis.getEngagementWeight() * 0.3)
-                    + (analysis.getRecencyWeight() * 0.2);
+            double baseScore = (analysis.getIntentWeight() * 0.4)
+                    + (analysis.getUrgency() * 0.3)
+                    + (analysis.getEngagementWeight() * 0.2)
+                    + (analysis.getRecencyWeight() * 0.1);
+
+            // Apply Multipliers
+            double score = baseScore;
+            if ("BUYING".equalsIgnoreCase(analysis.getIntent())) {
+                score *= 1.25; // 25% boost for explicit buying intent
+            } else if ("NOISE".equalsIgnoreCase(analysis.getIntent())) {
+                score *= 0.2; // 80% reduction for noise
+            }
+
+            // Sentiment adjustment: High pain/frustration (-0.5 or lower) often indicates higher qualifying potential
+            if (analysis.getSentiment() <= -0.5) {
+                score *= 1.15;
+            }
+
+            // Cap at 100
+            score = Math.min(100.0, score);
 
             // Update Signal
             signal.setIntent(analysis.getIntent());

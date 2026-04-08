@@ -36,18 +36,21 @@ public class AuthController {
     private final KeyService keyService;
     private final JwtUtil jwtUtil;
     private final UserPermissionsService userPermissionsService;
+    private final com.talentboozt.s_backend.shared.security.utils.SecurityUtils securityUtils;
 
     private final int COOKIE_EXPIRATION = 60 * 60 * 24 * 7;
 
     public AuthController(CredentialsService credentialsService, EmployeeService employeeService, JwtService jwtService,
             KeyService keyService,
-            JwtUtil jwtUtil, UserPermissionsService userPermissionsService) {
+            JwtUtil jwtUtil, UserPermissionsService userPermissionsService,
+            com.talentboozt.s_backend.shared.security.utils.SecurityUtils securityUtils) {
         this.credentialsService = credentialsService;
         this.employeeService = employeeService;
         this.jwtService = jwtService;
         this.keyService = keyService;
         this.jwtUtil = jwtUtil;
         this.userPermissionsService = userPermissionsService;
+        this.securityUtils = securityUtils;
     }
 
     @PostMapping({ "/login", "/login/{platform}", "/register", "/register/{platform}" })
@@ -280,6 +283,27 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
         return ResponseEntity.ok(Map.of("message", "Password reset successfully."));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser() {
+        String userId = securityUtils.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Not authenticated"));
+        }
+        return credentialsService.getCredentials(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/workspace/{workspaceId}/select")
+    public ResponseEntity<?> selectWorkspace(@PathVariable String workspaceId) {
+        String userId = securityUtils.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Not authenticated"));
+        }
+        credentialsService.setActiveWorkspaceId(userId, workspaceId);
+        return ResponseEntity.ok(Map.of("message", "Workspace selected successfully", "workspaceId", workspaceId));
     }
 }
 

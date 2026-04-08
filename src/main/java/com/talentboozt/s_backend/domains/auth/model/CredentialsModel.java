@@ -37,4 +37,5 @@ public class CredentialsModel {
     private boolean disabled; // Flag to indicate if the user is disabled(banned)
     private boolean ambassador;
     private String ambassadorId;
+    private String activeWorkspaceId;
 }
