@@ -13,20 +13,23 @@ import java.util.List;
 public class LAutomationController {
 
     private final LLeadAutomationRepository automationRepository;
+    private final com.talentboozt.s_backend.shared.security.utils.SecurityUtils securityUtils;
 
-    public LAutomationController(LLeadAutomationRepository automationRepository) {
+    public LAutomationController(LLeadAutomationRepository automationRepository, com.talentboozt.s_backend.shared.security.utils.SecurityUtils securityUtils) {
         this.automationRepository = automationRepository;
+        this.securityUtils = securityUtils;
     }
 
     @GetMapping
-    public ResponseEntity<List<LLeadAutomation>> getAutomations(@RequestHeader("X-Workspace-Id") String workspaceId) {
+    public ResponseEntity<List<LLeadAutomation>> getAutomations() {
+        String workspaceId = securityUtils.getCurrentWorkspaceId();
         return ResponseEntity.ok(automationRepository.findByWorkspaceId(workspaceId));
     }
 
     @PostMapping
     public ResponseEntity<LLeadAutomation> createAutomation(
-            @RequestHeader("X-Workspace-Id") String workspaceId,
             @RequestBody LLeadAutomation automation) {
+        String workspaceId = securityUtils.getCurrentWorkspaceId();
         automation.setWorkspaceId(workspaceId);
         automation.setCreatedAt(Instant.now());
         automation.setUpdatedAt(Instant.now());
@@ -36,9 +39,9 @@ public class LAutomationController {
     @PutMapping("/{id}")
     public ResponseEntity<LLeadAutomation> updateAutomation(
             @PathVariable String id,
-            @RequestHeader("X-Workspace-Id") String workspaceId,
             @RequestBody LLeadAutomation update) {
         
+        String workspaceId = securityUtils.getCurrentWorkspaceId();
         return automationRepository.findById(id)
                 .map(existing -> {
                     if (!existing.getWorkspaceId().equals(workspaceId)) {
@@ -60,9 +63,9 @@ public class LAutomationController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAutomation(
-            @PathVariable String id,
-            @RequestHeader("X-Workspace-Id") String workspaceId) {
+            @PathVariable String id) {
         
+        String workspaceId = securityUtils.getCurrentWorkspaceId();
         automationRepository.findById(id).ifPresent(automation -> {
             if (automation.getWorkspaceId().equals(workspaceId)) {
                 automationRepository.delete(automation);

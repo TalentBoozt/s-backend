@@ -28,6 +28,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 credentials.getEmployeeId(),
                 credentials.getEmail(),
                 password,
-                Collections.emptyList());
+                Collections.emptyList(),
+                credentials.getActiveWorkspaceId());
     }
 }

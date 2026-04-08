@@ -10,17 +10,23 @@ public class CustomUserDetails implements UserDetails {
     private final String username;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
+    private final String activeWorkspaceId;
 
     public CustomUserDetails(String userId, String username, String password,
-            Collection<? extends GrantedAuthority> authorities) {
+            Collection<? extends GrantedAuthority> authorities, String activeWorkspaceId) {
         this.userId = userId;
         this.username = username;
         this.password = password;
         this.authorities = authorities;
+        this.activeWorkspaceId = activeWorkspaceId;
     }
 
     public String getUserId() {
         return userId;
+    }
+
+    public String getActiveWorkspaceId() {
+        return activeWorkspaceId;
     }
 
     @Override

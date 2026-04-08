@@ -139,7 +139,7 @@ public class SecurityConfig {
                         }
                     }
                     
-                    auth.requestMatchers("/api/edu/auth/**", "/api/edu/courses/public/**").permitAll();
+                    auth.requestMatchers("/api/auth/**", "/api/edu/auth/**", "/api/edu/courses/public/**").permitAll();
                     auth.requestMatchers(HttpMethod.GET, "/**").permitAll();
 
                     // ── Legacy V2 Write Protection ──────────────────────────

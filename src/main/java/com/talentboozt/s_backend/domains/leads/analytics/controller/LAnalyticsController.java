@@ -20,19 +20,23 @@ public class LAnalyticsController {
 
     private final LAnalyticsService analyticsService;
     private final LLeadService leadService;
+    private final com.talentboozt.s_backend.shared.security.utils.SecurityUtils securityUtils;
 
-    public LAnalyticsController(LAnalyticsService analyticsService, LLeadService leadService) {
+    public LAnalyticsController(LAnalyticsService analyticsService, LLeadService leadService, com.talentboozt.s_backend.shared.security.utils.SecurityUtils securityUtils) {
         this.analyticsService = analyticsService;
         this.leadService = leadService;
+        this.securityUtils = securityUtils;
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, Object>> getAnalytics(@RequestHeader("X-Workspace-Id") String workspaceId) {
+    public ResponseEntity<Map<String, Object>> getAnalytics() {
+        String workspaceId = securityUtils.getCurrentWorkspaceId();
         return ResponseEntity.ok(analyticsService.getWorkspaceAnalytics(workspaceId));
     }
 
     @GetMapping("/export")
-    public ResponseEntity<byte[]> exportLeadsCsv(@RequestHeader("X-Workspace-Id") String workspaceId) {
+    public ResponseEntity<byte[]> exportLeadsCsv() {
+        String workspaceId = securityUtils.getCurrentWorkspaceId();
         List<LLead> leads = leadService.getLeads(workspaceId, null, null);
         
         StringBuilder csvBuilder = new StringBuilder();
