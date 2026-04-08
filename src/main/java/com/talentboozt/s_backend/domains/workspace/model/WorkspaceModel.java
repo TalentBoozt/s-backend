@@ -17,6 +17,7 @@ public class WorkspaceModel {
     @Id
     private String id;
     private String name;
+    private String slug;
     private String ownerId;
     private List<String> memberIds;
     private LocalDateTime createdAt;

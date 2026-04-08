@@ -21,6 +21,7 @@ public class WorkspaceService {
     public WorkspaceModel createWorkspace(String name, String ownerId) {
         WorkspaceModel workspace = new WorkspaceModel();
         workspace.setName(name);
+        workspace.setSlug(name.toLowerCase().trim().replaceAll("[^a-z0-9]+", "-"));
         workspace.setOwnerId(ownerId);
         workspace.setMemberIds(new ArrayList<>(List.of(ownerId)));
         workspace.setCreatedAt(LocalDateTime.now());
