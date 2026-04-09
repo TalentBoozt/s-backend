@@ -31,7 +31,8 @@ public class LIntelligenceService {
     @EventListener
     public void handleNewSignalEvent(LNewSignalEvent event) {
         LRawSignal signal = event.getRawSignal();
-        // log.info("Processing new signal for AI Intelligence (ID: {})", signal.getId());
+        log.debug("Processing new signal for AI Intelligence (ID: {})", signal.getId());
+
 
         try {
             LAIAnalysisResult analysis = intentClassifier.analyzeContent(signal.getContent());
@@ -64,12 +65,14 @@ public class LIntelligenceService {
             signal.setStatus("PROCESSED");
             rawSignalRepository.save(signal);
 
-            log.info("Signal {} classified and scored: {} | Intent: {}", signal.getId(), score, analysis.getIntent());
+            log.debug("Signal {} classified and scored: {} | Intent: {}", signal.getId(), score, analysis.getIntent());
+
 
             // Create CRM Lead if meets threshold and intent is not NOISE
             if (!"NOISE".equalsIgnoreCase(analysis.getIntent()) && score >= SCORE_THRESHOLD) {
                 com.talentboozt.s_backend.domains.leads.crm.model.LLead lead = leadService.autoConvert(signal);
-                log.info("CRM Lead created automatically from Signal ({})", signal.getId());
+                log.debug("CRM Lead created automatically from Signal ({})", signal.getId());
+
             }
 
         } catch (Exception e) {
