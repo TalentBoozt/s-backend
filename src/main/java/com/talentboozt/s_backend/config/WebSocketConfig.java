@@ -145,7 +145,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setHttpMessageCacheSize(1000)
                 .setDisconnectDelay(30 * 1000);
 
-        registry.addEndpoint("/ws-leados")
+        registry.addEndpoint("/api/ws-leados")
+
                 .setAllowedOriginPatterns("*")
                 .addInterceptors(handshakeInterceptor)
                 .withSockJS();

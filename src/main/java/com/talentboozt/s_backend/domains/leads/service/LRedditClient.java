@@ -26,8 +26,11 @@ public class LRedditClient {
                     subreddit, keyword, limit);
             
             HttpHeaders headers = new HttpHeaders();
-            headers.set("User-Agent", "LeadOS-CollectorService/1.0");
+            headers.set("User-Agent", "spring:leados.collector:v1.1 (by /u/talnova_bot)");
+            headers.set("Accept", "application/json, text/plain, */*");
+            headers.set("Accept-Language", "en-US,en;q=0.9");
             HttpEntity<String> entity = new HttpEntity<>(headers);
+
 
             ResponseEntity<LRedditResponseDTO> response = restTemplate.exchange(
                     url,

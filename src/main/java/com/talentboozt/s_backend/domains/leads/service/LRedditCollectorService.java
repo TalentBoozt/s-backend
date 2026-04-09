@@ -79,8 +79,9 @@ public class LRedditCollectorService {
                                 }
                             }
                         }
-                        // Sleep slightly to avoid strict rate limiting
-                        Thread.sleep(1000);
+                        // Sleep to avoid strict rate limiting
+                        Thread.sleep(3000);
+
                     } catch (Exception e) {
                         log.error("Error processing subreddit {} with keyword {}", subreddit, keyword, e);
                     }
@@ -88,8 +89,9 @@ public class LRedditCollectorService {
             }
         }
 
-        log.info("Completed Reddit collector cycle. Total fetched: {}, New signals saved: {}", totalFetched,
-                newSignals);
+        // log.info("Completed Reddit collector cycle. Total fetched: {}, New signals
+        // saved: {}", totalFetched,
+        // newSignals);
 
     }
 
