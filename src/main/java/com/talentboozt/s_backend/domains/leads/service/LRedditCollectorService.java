@@ -41,7 +41,8 @@ public class LRedditCollectorService {
     // Run every 10 minutes
     @Scheduled(fixedDelay = 600000)
     public void fetchRedditLeads() {
-        log.info("Starting Reddit collector cycle...");
+        log.debug("Starting Reddit collector cycle...");
+
         List<LLeadSource> activeRedditSources = leadSourceRepository.findByPlatformAndActive("REDDIT", true);
 
         int totalFetched = 0;
@@ -63,7 +64,8 @@ public class LRedditCollectorService {
                 for (String keyword : keywords) {
                     try {
                         LRedditResponseDTO response = redditClient.searchSubreddit(subreddit, keyword, 25);
-                        if (response != null && response.getData() != null && response.getData().getChildren() != null) {
+                        if (response != null && response.getData() != null
+                                && response.getData().getChildren() != null) {
                             for (LRedditResponseDTO.RedditChild child : response.getData().getChildren()) {
                                 LRedditResponseDTO.RedditPost post = child.getData();
                                 totalFetched++;
@@ -86,7 +88,9 @@ public class LRedditCollectorService {
             }
         }
 
-        log.info("Completed Reddit collector cycle. Total fetched: {}, New signals saved: {}", totalFetched, newSignals);
+        log.info("Completed Reddit collector cycle. Total fetched: {}, New signals saved: {}", totalFetched,
+                newSignals);
+
     }
 
     private LRawSignal createSignal(LLeadSource source, LRedditResponseDTO.RedditPost post) {
@@ -94,7 +98,7 @@ public class LRedditCollectorService {
         signal.setSourceId(source.getId());
         signal.setWorkspaceId(source.getWorkspaceId());
         signal.setPlatformId(post.getName());
-        
+
         // Combine title and selftext
         String content = post.getTitle() + "\n\n" + (post.getSelftext() != null ? post.getSelftext() : "");
         signal.setContent(content);

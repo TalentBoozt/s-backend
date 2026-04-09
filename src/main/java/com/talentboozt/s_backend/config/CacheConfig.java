@@ -106,6 +106,14 @@ public class CacheConfig {
                                         .recordStats()
                                         .build())),
 
+                new CaffeineCache("leadAnalytics",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(10, TimeUnit.MINUTES)
+                                        .maximumSize(1_000)
+                                        .recordStats()
+                                        .build())),
+
                 new CaffeineCache("posts",
                         Objects.requireNonNull(
                                 Caffeine.newBuilder()
@@ -113,6 +121,7 @@ public class CacheConfig {
                                         .maximumSize(10_000)
                                         .recordStats()
                                         .build())));
+
 
         cacheManager.setCaches(caches);
         return cacheManager;
