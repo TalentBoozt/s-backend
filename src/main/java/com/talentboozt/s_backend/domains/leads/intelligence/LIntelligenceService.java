@@ -31,7 +31,7 @@ public class LIntelligenceService {
     @EventListener
     public void handleNewSignalEvent(LNewSignalEvent event) {
         LRawSignal signal = event.getRawSignal();
-        log.info("Processing new signal for AI Intelligence (ID: {})", signal.getId());
+        // log.info("Processing new signal for AI Intelligence (ID: {})", signal.getId());
 
         try {
             LAIAnalysisResult analysis = intentClassifier.analyzeContent(signal.getContent());
