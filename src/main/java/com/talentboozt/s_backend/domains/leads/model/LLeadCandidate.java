@@ -16,6 +16,7 @@ import java.util.List;
 public class LLeadCandidate {
     @Id
     private String id;
+    private String name;
     private String workspaceId;
     private String sourceId;
     private String rawSignalId;
