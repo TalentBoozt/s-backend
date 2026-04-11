@@ -15,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -22,6 +23,24 @@ public class LLMClient {
 
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
+
+    // Models that do NOT support the system_instruction field (Gemini 1.0 line)
+    private static final Set<String> GEMINI_NO_SYSTEM_INSTRUCTION = Set.of(
+            "gemini-1.0-pro",
+            "gemini-1.0-pro-001",
+            "gemini-1.0-pro-latest"
+    );
+
+    // Models that use the stable /v1/ endpoint instead of /v1beta/
+    private static final Set<String> GEMINI_V1_MODELS = Set.of(
+            "gemini-1.0-pro",
+            "gemini-1.0-pro-001",
+            "gemini-1.0-pro-latest",
+            "gemini-1.5-pro",
+            "gemini-1.5-pro-latest",
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-latest"
+    );
 
     @Value("${edu.ai.provider:OPENAI}")
     private String provider;
@@ -113,23 +132,43 @@ public class LLMClient {
     }
 
     private String callGemini(String effectiveModel, String systemPrompt, String userPrompt, boolean isJsonResponse) {
-        Map<String, Object> config = new HashMap<>();
+        // FIX 1: Use camelCase "generationConfig" (snake_case is not accepted by the REST API)
+        Map<String, Object> generationConfig = new HashMap<>();
+        generationConfig.put("temperature", temperature);
         if (isJsonResponse) {
-            config.put("response_mime_type", "application/json");
+            generationConfig.put("responseMimeType", "application/json");
         }
-        config.put("temperature", temperature);
 
-        Map<String, Object> requestBody = Map.of(
-                "system_instruction", Map.of("parts", List.of(Map.of("text", systemPrompt))),
-                "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userPrompt)))),
-                "generation_config", config);
+        // FIX 2: Some older Gemini models (1.0 line) don't support system_instruction —
+        // fold the system prompt into the first user turn instead.
+        Map<String, Object> requestBody = new HashMap<>();
+        boolean supportsSystemInstruction = !GEMINI_NO_SYSTEM_INSTRUCTION.contains(effectiveModel);
+
+        if (supportsSystemInstruction && systemPrompt != null && !systemPrompt.isBlank()) {
+            requestBody.put("system_instruction",
+                    Map.of("parts", List.of(Map.of("text", systemPrompt))));
+            requestBody.put("contents",
+                    List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userPrompt)))));
+        } else {
+            // Merge system prompt into the user message for models that don't support it
+            String mergedPrompt = (systemPrompt != null && !systemPrompt.isBlank())
+                    ? systemPrompt + "\n\n" + userPrompt
+                    : userPrompt;
+            requestBody.put("contents",
+                    List.of(Map.of("role", "user", "parts", List.of(Map.of("text", mergedPrompt)))));
+        }
+
+        requestBody.put("generationConfig", generationConfig);
+
+        // FIX 3: Route to /v1/ for stable models, /v1beta/ for preview/experimental ones
+        String apiVersion = GEMINI_V1_MODELS.contains(effectiveModel) ? "v1" : "v1beta";
 
         try {
             JsonNode response = webClient.post()
                     .uri(uriBuilder -> uriBuilder
                             .scheme("https")
                             .host("generativelanguage.googleapis.com")
-                            .path("/v1beta/models/" + effectiveModel + ":generateContent")
+                            .path("/" + apiVersion + "/models/" + effectiveModel + ":generateContent")
                             .queryParam("key", geminiKey)
                             .build())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -138,17 +177,36 @@ public class LLMClient {
                     .bodyToMono(JsonNode.class)
                     .block();
 
-            if (response != null && response.has("candidates") && response.get("candidates").isArray()
-                    && !response.get("candidates").isEmpty()) {
-                JsonNode parts = response.get("candidates").get(0).path("content").path("parts");
-                if (parts.isArray() && !parts.isEmpty()) {
-                    String content = parts.get(0).path("text").asText();
-                    return cleanResponse(content, isJsonResponse);
-                }
+            if (response == null) {
+                throw new RuntimeException("Null response from Gemini");
             }
-            throw new RuntimeException("Empty response from Gemini");
+
+            // FIX 4: Guard against SAFETY-blocked candidates that have no "parts"
+            JsonNode candidates = response.path("candidates");
+            if (!candidates.isArray() || candidates.isEmpty()) {
+                // Surface the promptFeedback block when candidates are absent entirely
+                String feedback = response.path("promptFeedback").path("blockReason").asText("UNKNOWN");
+                throw new RuntimeException("Gemini returned no candidates. Block reason: " + feedback);
+            }
+
+            JsonNode firstCandidate = candidates.get(0);
+            String finishReason = firstCandidate.path("finishReason").asText("");
+
+            JsonNode parts = firstCandidate.path("content").path("parts");
+            if (!parts.isArray() || parts.isEmpty()) {
+                // Candidate exists but was blocked mid-generation (e.g. SAFETY, RECITATION)
+                throw new RuntimeException("Gemini candidate has no content parts. finishReason: " + finishReason);
+            }
+
+            String content = parts.get(0).path("text").asText();
+            if (content.isBlank()) {
+                throw new RuntimeException("Gemini returned blank content. finishReason: " + finishReason);
+            }
+
+            return cleanResponse(content, isJsonResponse);
+
         } catch (Exception e) {
-            log.error("Gemini call failed: {}", e.getMessage());
+            log.error("Gemini call failed (model={}, apiVersion={}): {}", effectiveModel, apiVersion, e.getMessage());
             throw e;
         }
     }
