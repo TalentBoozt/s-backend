@@ -40,19 +40,19 @@ public class EduAIController {
     }
 
     @GetMapping("/credits")
-    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
     public ResponseEntity<EAiCredits> getAICredits(@AuthenticatedUser String userId) {
         return ResponseEntity.ok(creditService.getUserCredits(userId));
     }
 
     @GetMapping("/credits/ledger")
-    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
     public ResponseEntity<List<ECreditLedger>> getCreditLedger(@AuthenticatedUser String userId) {
         return ResponseEntity.ok(creditService.getCreditLedger(userId));
     }
 
     @PostMapping("/generate-outline/{courseId}")
-    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
     public ResponseEntity<Map<String, String>> generateOutline(
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
@@ -69,7 +69,7 @@ public class EduAIController {
     }
 
     @PostMapping("/generate-lesson/{courseId}")
-    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
     public ResponseEntity<Map<String, String>> generateLesson(
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
@@ -86,7 +86,7 @@ public class EduAIController {
     }
 
     @PostMapping("/generate-quiz/{courseId}")
-    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
     public ResponseEntity<Map<String, String>> generateQuiz(
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
@@ -103,7 +103,7 @@ public class EduAIController {
     }
 
     @PostMapping("/generate-summary/{courseId}")
-    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
     public ResponseEntity<Map<String, String>> generateSummary(
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
@@ -113,6 +113,7 @@ public class EduAIController {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
         accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceAIGenerationLimits(userId, courseContext);
         accessGuard.enforceCourseOwnership(userId, courseId);
 
         String response = engineService.generateCourseSummary(userId, courseId, courseContext);
@@ -120,7 +121,7 @@ public class EduAIController {
     }
 
     @PostMapping("/translate/{courseId}")
-    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
     public ResponseEntity<Map<String, String>> translateContent(
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
@@ -131,6 +132,7 @@ public class EduAIController {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
         accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceAIGenerationLimits(userId, content);
         accessGuard.enforceCourseOwnership(userId, courseId);
 
         String response = engineService.translateCourseContent(userId, courseId, content, language);
@@ -138,7 +140,7 @@ public class EduAIController {
     }
 
     @PostMapping("/rewrite/{courseId}")
-    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
     public ResponseEntity<Map<String, String>> rewriteContent(
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
@@ -149,6 +151,7 @@ public class EduAIController {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
         accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceAIGenerationLimits(userId, content);
         accessGuard.enforceCourseOwnership(userId, courseId);
 
         String response = engineService.rewriteContent(userId, courseId, content, style);
@@ -156,7 +159,7 @@ public class EduAIController {
     }
 
     @PostMapping("/revise/{courseId}")
-    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
     public ResponseEntity<Map<String, String>> reviseContent(
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
@@ -166,6 +169,7 @@ public class EduAIController {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
         accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceAIGenerationLimits(userId, content);
         accessGuard.enforceCourseOwnership(userId, courseId);
 
         String response = engineService.reviseContent(userId, courseId, content);
