@@ -20,6 +20,9 @@ public class OpenSourceLLMClient {
     }
 
     public String generate(String systemPrompt, String userPrompt, boolean isJson) {
+        if (apiKey == null || apiKey.trim().isEmpty() || apiKey.equalsIgnoreCase("APIKEY") || apiKey.contains("${")) {
+            throw new RuntimeException("OpenSource AI provider key is not configured. Falling back to premium.");
+        }
 
         Map<String, Object> body = Map.of(
             "model", "mistralai/Mistral-7B-Instruct-v0.1",
