@@ -132,25 +132,24 @@ public class LLMClient {
     }
 
     private String callGemini(String effectiveModel, String systemPrompt, String userPrompt, boolean isJsonResponse) {
-        // Reverting to snake_case based on diagnostic feedback from 400 error
+        // UNIFIED FIX: Use camelCase for the REST API (v1/v1beta). 
+        // Diagnostic logs confirmed snake_case is rejected for these fields.
         Map<String, Object> generationConfig = new HashMap<>();
         generationConfig.put("temperature", temperature);
         if (isJsonResponse) {
-            generationConfig.put("response_mime_type", "application/json");
+            generationConfig.put("responseMimeType", "application/json");
         }
 
-        // FIX 2: Some older Gemini models (1.0 line) don't support system_instruction —
-        // fold the system prompt into the first user turn instead.
         Map<String, Object> requestBody = new HashMap<>();
         boolean supportsSystemInstruction = !GEMINI_NO_SYSTEM_INSTRUCTION.contains(effectiveModel);
 
         if (supportsSystemInstruction && systemPrompt != null && !systemPrompt.isBlank()) {
-            requestBody.put("system_instruction",
+            requestBody.put("systemInstruction",
                     Map.of("parts", List.of(Map.of("text", systemPrompt))));
             requestBody.put("contents",
                     List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userPrompt)))));
         } else {
-            // Merge system prompt into the user message for models that don't support it
+            // Merge system prompt into the user message
             String mergedPrompt = (systemPrompt != null && !systemPrompt.isBlank())
                     ? systemPrompt + "\n\n" + userPrompt
                     : userPrompt;
@@ -158,7 +157,7 @@ public class LLMClient {
                     List.of(Map.of("role", "user", "parts", List.of(Map.of("text", mergedPrompt)))));
         }
 
-        requestBody.put("generation_config", generationConfig);
+        requestBody.put("generationConfig", generationConfig);
 
         // FIX 3: Route to /v1/ for stable models, /v1beta/ for preview/experimental
         // ones
