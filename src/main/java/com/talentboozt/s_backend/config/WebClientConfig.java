@@ -30,13 +30,14 @@ public class WebClientConfig {
                 .build();
 
         HttpClient httpClient = HttpClient.create(provider)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
-                .responseTimeout(Duration.ofSeconds(60))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000)
+                .responseTimeout(Duration.ofSeconds(300))
                 .doOnConnected(conn -> conn
-                        .addHandlerLast(new ReadTimeoutHandler(60, TimeUnit.SECONDS))
-                        .addHandlerLast(new WriteTimeoutHandler(60, TimeUnit.SECONDS)));
+                        .addHandlerLast(new ReadTimeoutHandler(300, TimeUnit.SECONDS))
+                        .addHandlerLast(new WriteTimeoutHandler(300, TimeUnit.SECONDS)));
 
         return WebClient.builder()
+                .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(10 * 1024 * 1024))
                 .clientConnector(new ReactorClientHttpConnector(httpClient));
     }
 }
