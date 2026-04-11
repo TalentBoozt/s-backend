@@ -6,6 +6,8 @@ import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
 
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -28,8 +30,7 @@ public class LLMClient {
     private static final Set<String> GEMINI_NO_SYSTEM_INSTRUCTION = Set.of(
             "gemini-1.0-pro",
             "gemini-1.0-pro-001",
-            "gemini-1.0-pro-latest"
-    );
+            "gemini-1.0-pro-latest");
 
     // Models that use the stable /v1/ endpoint instead of /v1beta/
     private static final Set<String> GEMINI_V1_MODELS = Set.of(
@@ -39,8 +40,7 @@ public class LLMClient {
             "gemini-1.5-pro",
             "gemini-1.5-pro-latest",
             "gemini-1.5-flash",
-            "gemini-1.5-flash-latest"
-    );
+            "gemini-1.5-flash-latest");
 
     @Value("${edu.ai.provider:OPENAI}")
     private String provider;
@@ -132,7 +132,8 @@ public class LLMClient {
     }
 
     private String callGemini(String effectiveModel, String systemPrompt, String userPrompt, boolean isJsonResponse) {
-        // FIX 1: Use camelCase "generationConfig" (snake_case is not accepted by the REST API)
+        // FIX 1: Use camelCase "generationConfig" (snake_case is not accepted by the
+        // REST API)
         Map<String, Object> generationConfig = new HashMap<>();
         generationConfig.put("temperature", temperature);
         if (isJsonResponse) {
@@ -145,7 +146,7 @@ public class LLMClient {
         boolean supportsSystemInstruction = !GEMINI_NO_SYSTEM_INSTRUCTION.contains(effectiveModel);
 
         if (supportsSystemInstruction && systemPrompt != null && !systemPrompt.isBlank()) {
-            requestBody.put("system_instruction",
+            requestBody.put("systemInstruction",
                     Map.of("parts", List.of(Map.of("text", systemPrompt))));
             requestBody.put("contents",
                     List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userPrompt)))));
@@ -160,7 +161,8 @@ public class LLMClient {
 
         requestBody.put("generationConfig", generationConfig);
 
-        // FIX 3: Route to /v1/ for stable models, /v1beta/ for preview/experimental ones
+        // FIX 3: Route to /v1/ for stable models, /v1beta/ for preview/experimental
+        // ones
         String apiVersion = GEMINI_V1_MODELS.contains(effectiveModel) ? "v1" : "v1beta";
 
         try {
@@ -174,6 +176,9 @@ public class LLMClient {
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
+                    .onStatus(status -> status.isError(), clientResponse -> clientResponse.bodyToMono(String.class)
+                            .map(errorBody -> new RuntimeException("Gemini API Error: " + errorBody))
+                            .flatMap(Mono::error))
                     .bodyToMono(JsonNode.class)
                     .block();
 
