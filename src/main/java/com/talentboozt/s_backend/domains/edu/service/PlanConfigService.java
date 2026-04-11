@@ -17,9 +17,9 @@ public class PlanConfigService {
         switch (plan) {
             case PRO:
                 return LimitConfig.builder()
-                        .maxCourses(Integer.MAX_VALUE)
-                        .aiCreditsPerMonth(1000)
-                        .maxAiGenerationsPerMonth(10)
+                        .maxCourses(30)
+                        .aiCreditsPerMonth(5000)
+                        .maxAiGenerationsPerMonth(1500)
                         .validationCreditsPerMonth(0)
                         .commissionRate(0.05)
                         .features(List.of("BASIC_ANALYTICS", "AI_TOOLS", "COURSE_VALIDATION"))
@@ -27,8 +27,8 @@ public class PlanConfigService {
             case PREMIUM:
                 return LimitConfig.builder()
                         .maxCourses(Integer.MAX_VALUE)
-                        .aiCreditsPerMonth(2000)
-                        .maxAiGenerationsPerMonth(10)
+                        .aiCreditsPerMonth(25000)
+                        .maxAiGenerationsPerMonth(5000)
                         .validationCreditsPerMonth(10)
                         .commissionRate(0.03)
                         .features(List.of("ADVANCED_ANALYTICS", "AI_TOOLS", "COURSE_VALIDATION", "PRIORITY_SUPPORT",
@@ -37,8 +37,8 @@ public class PlanConfigService {
             case ENTERPRISE:
                 return LimitConfig.builder()
                         .maxCourses(Integer.MAX_VALUE)
-                        .aiCreditsPerMonth(10000)
-                        .maxAiGenerationsPerMonth(500)
+                        .aiCreditsPerMonth(150000)
+                        .maxAiGenerationsPerMonth(25000)
                         .validationCreditsPerMonth(500)
                         .commissionRate(0.0) // Custom agreements
                         .features(List.of("ADVANCED_ANALYTICS", "AI_TOOLS", "COURSE_VALIDATION", "PRIORITY_SUPPORT",
@@ -47,7 +47,7 @@ public class PlanConfigService {
             case FREE:
             default:
                 return LimitConfig.builder()
-                        .maxCourses(1)
+                        .maxCourses(3)
                         .aiCreditsPerMonth(0)
                         .maxAiGenerationsPerMonth(0)
                         .validationCreditsPerMonth(0)
