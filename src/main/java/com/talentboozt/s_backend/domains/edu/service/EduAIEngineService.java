@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.edu.service;
 import com.talentboozt.s_backend.domains.edu.dto.ai.AIGenerationRequest;
 import com.talentboozt.s_backend.domains.edu.enums.EAIUsageType;
 import com.talentboozt.s_backend.domains.edu.enums.LLMTaskType;
+import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
 
 import org.springframework.stereotype.Service;
 
@@ -11,10 +12,12 @@ public class EduAIEngineService {
 
     private final EduAICreditService creditService;
     private final LLMRouter llmRouter;
+    private final EduAccessGuardService accessGuard;
 
-    public EduAIEngineService(EduAICreditService creditService, LLMRouter llmRouter) {
+    public EduAIEngineService(EduAICreditService creditService, LLMRouter llmRouter, EduAccessGuardService accessGuard) {
         this.creditService = creditService;
         this.llmRouter = llmRouter;
+        this.accessGuard = accessGuard;
     }
 
     public String generateCourseOutline(String userId, String courseId, AIGenerationRequest request) {
@@ -37,7 +40,8 @@ public class EduAIEngineService {
                 "Generate a comprehensive course outline for the topic: '%s'. Target audience: %s.",
                 request.getTopic(), request.getAudienceLevel());
 
-        String aiResponse = llmRouter.generate(LLMTaskType.OUTLINE, systemPrompt, userPrompt, true);
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+        String aiResponse = llmRouter.generate(plan, LLMTaskType.OUTLINE, systemPrompt, userPrompt, true);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_OUTLINE_GENERATION,
                 "Generate " + request.getAudienceLevel() + " outline about " + request.getTopic(), aiResponse);
@@ -52,7 +56,8 @@ public class EduAIEngineService {
         String userPrompt = String.format(
                 "Write a detailed lesson teaching: '%s'. Include core concepts and best practices.", lessonObjective);
 
-        String aiResponse = llmRouter.generate(LLMTaskType.LESSON, systemPrompt, userPrompt, false);
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+        String aiResponse = llmRouter.generate(plan, LLMTaskType.LESSON, systemPrompt, userPrompt, false);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_CONTENT_GENERATION,
                 "Write a dynamic long-form article teaching: " + lessonObjective, aiResponse);
@@ -73,7 +78,8 @@ public class EduAIEngineService {
 
         String userPrompt = String.format("Create a 5-question multiple choice quiz on the topic: '%s'.", topic);
 
-        String aiResponse = llmRouter.generate(LLMTaskType.QUIZ, systemPrompt, userPrompt, true);
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+        String aiResponse = llmRouter.generate(plan, LLMTaskType.QUIZ, systemPrompt, userPrompt, true);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_QUIZ_GENERATION,
                 "Create quiz on: " + topic, aiResponse);
@@ -85,7 +91,8 @@ public class EduAIEngineService {
         String systemPrompt = "You are a professional educational copywriter. Write a compelling, concise course summary and marketing description based on the provided course modules and syllabus.";
         String userPrompt = "Course syllabus context:\n" + courseContext;
 
-        String aiResponse = llmRouter.generate(LLMTaskType.SUMMARY, systemPrompt, userPrompt, false);
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+        String aiResponse = llmRouter.generate(plan, LLMTaskType.SUMMARY, systemPrompt, userPrompt, false);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_SUMMARY_GENERATION,
                 "Generate course summary description", aiResponse);
@@ -98,7 +105,8 @@ public class EduAIEngineService {
         String systemPrompt = "You are an expert technical translator. Translate the given lesson content exactly into " + language + ", maintaining markdown formatting, technical accuracy, and tone. Do NOT add any extra conversational text.";
         String userPrompt = "Translate this content:\n" + content;
 
-        String aiResponse = llmRouter.generate(LLMTaskType.TRANSLATION, systemPrompt, userPrompt, false);
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+        String aiResponse = llmRouter.generate(plan, LLMTaskType.TRANSLATION, systemPrompt, userPrompt, false);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_TRANSLATION,
                 "Translate lesson to " + language, aiResponse);
@@ -111,7 +119,8 @@ public class EduAIEngineService {
         String systemPrompt = "You are an expert editor. Rewrite the following lesson content to make it " + style + ". Maintain the core learning objectives, markdown formatting, and technical accuracy.";
         String userPrompt = "Rewrite this content:\n" + content;
 
-        String aiResponse = llmRouter.generate(LLMTaskType.REWRITE, systemPrompt, userPrompt, false);
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+        String aiResponse = llmRouter.generate(plan, LLMTaskType.REWRITE, systemPrompt, userPrompt, false);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_REWRITE,
                 "Rewrite lesson content to " + style, aiResponse);
@@ -124,7 +133,8 @@ public class EduAIEngineService {
         String systemPrompt = "You are an expert technical editor. Proofread and revise the following lesson content. Fix any grammatical errors, improve clarity and flow, and maintain markdown formatting. Return the polished content directly.";
         String userPrompt = "Revise this content:\n" + content;
 
-        String aiResponse = llmRouter.generate(LLMTaskType.REVISION, systemPrompt, userPrompt, false);
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+        String aiResponse = llmRouter.generate(plan, LLMTaskType.REVISION, systemPrompt, userPrompt, false);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_REVISION,
                 "Revise and proofread lesson content", aiResponse);

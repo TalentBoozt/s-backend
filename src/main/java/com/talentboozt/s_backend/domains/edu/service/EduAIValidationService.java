@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.talentboozt.s_backend.domains.edu.enums.EAIUsageType;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseValidationStatus;
 import com.talentboozt.s_backend.domains.edu.enums.ENotificationType;
+import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
 import com.talentboozt.s_backend.domains.edu.enums.LLMTaskType;
 import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
 import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
@@ -37,16 +38,18 @@ public class EduAIValidationService {
     private final ELessonsRepository lessonsRepository;
     private final EduNotificationService notificationService;
     private final LLMRouter llmRouter;
+    private final EduAccessGuardService accessGuard;
     private final ObjectMapper objectMapper;
 
     public EduAIValidationService(EduAICreditService creditService,
-                                  EValidationReportsRepository validationRepository,
-                                  ECoursesRepository coursesRepository,
-                                  ECourseSectionsRepository sectionsRepository,
-                                  ELessonsRepository lessonsRepository,
-                                  EduNotificationService notificationService,
-                                  LLMRouter llmRouter,
-                                  ObjectMapper objectMapper) {
+            EValidationReportsRepository validationRepository,
+            ECoursesRepository coursesRepository,
+            ECourseSectionsRepository sectionsRepository,
+            ELessonsRepository lessonsRepository,
+            EduNotificationService notificationService,
+            LLMRouter llmRouter,
+            EduAccessGuardService accessGuard,
+            ObjectMapper objectMapper) {
         this.creditService = creditService;
         this.validationRepository = validationRepository;
         this.coursesRepository = coursesRepository;
@@ -54,6 +57,7 @@ public class EduAIValidationService {
         this.lessonsRepository = lessonsRepository;
         this.notificationService = notificationService;
         this.llmRouter = llmRouter;
+        this.accessGuard = accessGuard;
         this.objectMapper = objectMapper;
     }
 
@@ -83,7 +87,7 @@ public class EduAIValidationService {
         if (lastValidation != null) {
             Instant lastValidationTime = lastValidation.getCreatedAt();
             boolean hasUpdates = (course.getUpdatedAt() != null && course.getUpdatedAt().isAfter(lastValidationTime));
-            
+
             if (!hasUpdates) {
                 for (ECourseSections s : sections) {
                     if (s.getUpdatedAt() != null && s.getUpdatedAt().isAfter(lastValidationTime)) {
@@ -100,9 +104,10 @@ public class EduAIValidationService {
                     }
                 }
             }
-            
+
             if (!hasUpdates) {
-                throw new EduBadRequestException("Validation gaming detected: No content changes were made since your last validation. Please update your content before requesting another review.");
+                throw new EduBadRequestException(
+                        "Validation gaming detected: No content changes were made since your last validation. Please update your content before requesting another review.");
             }
         }
 
@@ -114,27 +119,29 @@ public class EduAIValidationService {
     }
 
     @Async
-    public void runValidationAsync(String userId, String courseId, ECourses course, List<ECourseSections> sections, List<ELessons> lessons) {
+    public void runValidationAsync(String userId, String courseId, ECourses course, List<ECourseSections> sections,
+            List<ELessons> lessons) {
         try {
             String fullContent = buildCourseContext(course, sections, lessons);
 
             String systemPrompt = """
-                You are a professional educational quality auditor. Validate the course content based on structure, depth, and clarity.
-                Respond ONLY with a valid JSON object following this exact structure:
-                {
-                  "score": 78,
-                  "status": "NEEDS_IMPROVEMENT",
-                  "summary": "Full summary here",
-                  "issues": [
-                    { "severity": "HIGH", "area": "content_depth", "message": "Section 2 lacks practical examples" }
-                  ],
-                  "strengths": ["Well-structured outline", "Clear learning objectives"]
-                }
-                """;
+                    You are a professional educational quality auditor. Validate the course content based on structure, depth, and clarity.
+                    Respond ONLY with a valid JSON object following this exact structure:
+                    {
+                      "score": 78,
+                      "status": "NEEDS_IMPROVEMENT",
+                      "summary": "Full summary here",
+                      "issues": [
+                        { "severity": "HIGH", "area": "content_depth", "message": "Section 2 lacks practical examples" }
+                      ],
+                      "strengths": ["Well-structured outline", "Clear learning objectives"]
+                    }
+                    """;
 
             String userPrompt = "Course Data:\n" + fullContent;
 
-            String aiResponse = llmRouter.generate(LLMTaskType.VALIDATION, systemPrompt, userPrompt, true);
+            ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+            String aiResponse = llmRouter.generate(plan, LLMTaskType.VALIDATION, systemPrompt, userPrompt, true);
 
             double score = 0;
             try {
@@ -145,11 +152,14 @@ public class EduAIValidationService {
             }
 
             ECourseValidationStatus aiStatus;
-            if (score >= 85) aiStatus = ECourseValidationStatus.MANUAL_PENDING;
-            else if (score >= 60) aiStatus = ECourseValidationStatus.NEEDS_IMPROVEMENT;
-            else aiStatus = ECourseValidationStatus.AI_REJECTED;
+            if (score >= 85)
+                aiStatus = ECourseValidationStatus.MANUAL_PENDING;
+            else if (score >= 60)
+                aiStatus = ECourseValidationStatus.NEEDS_IMPROVEMENT;
+            else
+                aiStatus = ECourseValidationStatus.AI_REJECTED;
 
-            int tokenCost = 50; 
+            int tokenCost = 50;
             creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_VALIDATION,
                     "Full professional course validation ruleset scan...", aiResponse);
 
@@ -173,12 +183,11 @@ public class EduAIValidationService {
             validationRepository.save(report);
 
             notificationService.triggerNotification(
-                latestCourse.getCreatorId(), 
-                "AI Validation Complete", 
-                "Your course validation is finished. Result: " + aiStatus.name(), 
-                ENotificationType.COURSE_UPDATE, 
-                courseId
-            );
+                    latestCourse.getCreatorId(),
+                    "AI Validation Complete",
+                    "Your course validation is finished. Result: " + aiStatus.name(),
+                    ENotificationType.COURSE_UPDATE,
+                    courseId);
 
         } catch (Exception e) {
             log.error("Validation failed for course {}: {}", courseId, e.getMessage());
@@ -187,12 +196,11 @@ public class EduAIValidationService {
             coursesRepository.save(failedCourse);
 
             notificationService.triggerNotification(
-                userId, 
-                "AI Validation Failed", 
-                "There was an error parsing the course validation. Please try again or contact support.", 
-                ENotificationType.SYSTEM_ALERT, 
-                courseId
-            );
+                    userId,
+                    "AI Validation Failed",
+                    "There was an error parsing the course validation. Please try again or contact support.",
+                    ENotificationType.SYSTEM_ALERT,
+                    courseId);
         }
     }
 
@@ -210,7 +218,7 @@ public class EduAIValidationService {
             List<ELessons> sectionLessons = lessons.stream()
                     .filter(l -> section.getId().equals(l.getSectionId()))
                     .collect(Collectors.toList());
-            
+
             for (ELessons lesson : sectionLessons) {
                 builder.append("### LESSON: ").append(lesson.getTitle()).append("\n");
                 builder.append("CONTENT: ").append(lesson.getTextContent()).append("\n");

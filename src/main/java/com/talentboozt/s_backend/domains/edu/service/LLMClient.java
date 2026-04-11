@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
+
 import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,13 +23,13 @@ public class LLMClient {
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
-    @Value("${edu.ai.provider:OPENAI}") // OPENAI or GEMINI
+    @Value("${edu.ai.provider:OPENAI}")
     private String provider;
 
-    @Value("${edu.ai.model:gpt-4o-mini}") // gpt-4o-mini or gemini-2.5-flash
+    @Value("${edu.ai.model:gpt-4o-mini}")
     private String model;
 
-    @Value("${edu.ai.temperature:0.7}") // 0.0 to 1.0
+    @Value("${edu.ai.temperature:0.7}")
     private double temperature;
 
     @Value("${edu.ai.openai.api-key:}")
@@ -36,29 +38,53 @@ public class LLMClient {
     @Value("${edu.ai.gemini.api-key:}")
     private String geminiKey;
 
+    @Value("${edu.ai.pro.model:gemini-1.5-flash}")
+    private String proModel;
+
+    @Value("${edu.ai.premium.model:gpt-4o}")
+    private String premiumModel;
+
+    @Value("${edu.ai.enterprise.model:gpt-4o}")
+    private String enterpriseModel;
+
     public LLMClient(WebClient.Builder webClientBuilder, ObjectMapper objectMapper) {
         this.webClient = webClientBuilder.build();
         this.objectMapper = objectMapper;
     }
 
     @Retry(name = "llmRetry", fallbackMethod = "llmFallback")
-    public String generate(String systemPrompt, String userPrompt, boolean isJsonResponse) {
-        log.info("Generating AI response using provider: {} and model: {}", provider, model);
-        if ("GEMINI".equalsIgnoreCase(provider)) {
-            return callGemini(systemPrompt, userPrompt, isJsonResponse);
+    public String generate(ESubscriptionPlan plan, String systemPrompt, String userPrompt, boolean isJsonResponse) {
+        String effectiveProvider = provider;
+        String effectiveModel = model;
+
+        if (plan == ESubscriptionPlan.PRO) {
+            effectiveProvider = "GEMINI";
+            effectiveModel = proModel;
+        } else if (plan == ESubscriptionPlan.PREMIUM) {
+            effectiveProvider = "OPENAI";
+            effectiveModel = premiumModel;
+        } else if (plan == ESubscriptionPlan.ENTERPRISE) {
+            effectiveProvider = "OPENAI";
+            effectiveModel = enterpriseModel;
+        }
+
+        log.info("Generating AI response for plan: {} using provider: {} and model: {}", plan, effectiveProvider,
+                effectiveModel);
+
+        if ("GEMINI".equalsIgnoreCase(effectiveProvider)) {
+            return callGemini(effectiveModel, systemPrompt, userPrompt, isJsonResponse);
         } else {
-            return callOpenAI(systemPrompt, userPrompt, isJsonResponse);
+            return callOpenAI(effectiveModel, systemPrompt, userPrompt, isJsonResponse);
         }
     }
 
-    private String callOpenAI(String systemPrompt, String userPrompt, boolean isJsonResponse) {
+    private String callOpenAI(String effectiveModel, String systemPrompt, String userPrompt, boolean isJsonResponse) {
         Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("model", model);
+        requestBody.put("model", effectiveModel);
         requestBody.put("temperature", temperature);
         requestBody.put("messages", List.of(
                 Map.of("role", "system", "content", systemPrompt),
-                Map.of("role", "user", "content", userPrompt)
-        ));
+                Map.of("role", "user", "content", userPrompt)));
 
         if (isJsonResponse) {
             requestBody.put("response_format", Map.of("type", "json_object"));
@@ -74,7 +100,8 @@ public class LLMClient {
                     .bodyToMono(JsonNode.class)
                     .block();
 
-            if (response != null && response.has("choices") && response.get("choices").isArray() && !response.get("choices").isEmpty()) {
+            if (response != null && response.has("choices") && response.get("choices").isArray()
+                    && !response.get("choices").isEmpty()) {
                 String content = response.get("choices").get(0).get("message").get("content").asText();
                 return cleanResponse(content, isJsonResponse);
             }
@@ -85,7 +112,7 @@ public class LLMClient {
         }
     }
 
-    private String callGemini(String systemPrompt, String userPrompt, boolean isJsonResponse) {
+    private String callGemini(String effectiveModel, String systemPrompt, String userPrompt, boolean isJsonResponse) {
         Map<String, Object> config = new HashMap<>();
         if (isJsonResponse) {
             config.put("response_mime_type", "application/json");
@@ -95,15 +122,14 @@ public class LLMClient {
         Map<String, Object> requestBody = Map.of(
                 "system_instruction", Map.of("parts", List.of(Map.of("text", systemPrompt))),
                 "contents", List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userPrompt)))),
-                "generation_config", config
-        );
+                "generation_config", config);
 
         try {
             JsonNode response = webClient.post()
                     .uri(uriBuilder -> uriBuilder
                             .scheme("https")
                             .host("generativelanguage.googleapis.com")
-                            .path("/v1beta/models/" + model + ":generateContent")
+                            .path("/v1beta/models/" + effectiveModel + ":generateContent")
                             .queryParam("key", geminiKey)
                             .build())
                     .contentType(MediaType.APPLICATION_JSON)
@@ -112,7 +138,8 @@ public class LLMClient {
                     .bodyToMono(JsonNode.class)
                     .block();
 
-            if (response != null && response.has("candidates") && response.get("candidates").isArray() && !response.get("candidates").isEmpty()) {
+            if (response != null && response.has("candidates") && response.get("candidates").isArray()
+                    && !response.get("candidates").isEmpty()) {
                 JsonNode parts = response.get("candidates").get(0).path("content").path("parts");
                 if (parts.isArray() && !parts.isEmpty()) {
                     String content = parts.get(0).path("text").asText();
@@ -142,8 +169,10 @@ public class LLMClient {
         return content.trim();
     }
 
-    public String llmFallback(String systemPrompt, String userPrompt, boolean isJsonResponse, Throwable t) {
-        log.error("LLM Call failed after retries. Provider: {}, Error: {}", provider, t.getMessage());
-        return isJsonResponse ? "{ \"error\": \"AI service temporarily unavailable\", \"fallback\": true }" : "Expert content is currently unavailable. Please try again later.";
+    public String llmFallback(ESubscriptionPlan plan, String systemPrompt, String userPrompt, boolean isJsonResponse,
+            Throwable t) {
+        log.error("LLM Call failed for plan {} after retries. Provider: {}, Error: {}", plan, provider, t.getMessage());
+        return isJsonResponse ? "{ \"error\": \"AI service temporarily unavailable\", \"fallback\": true }"
+                : "Expert content is currently unavailable. Please try again later.";
     }
 }
