@@ -76,7 +76,7 @@ public class LLMClient {
     @Value("${edu.ai.gemini.api-key:}")
     private String geminiKey;
 
-    @Value("${edu.ai.pro.model:gemini-1.5-flash}")
+    @Value("${edu.ai.pro.model:gemini-2.5-flash}")
     private String proModel;
 
     @Value("${edu.ai.premium.model:gpt-4o}")
