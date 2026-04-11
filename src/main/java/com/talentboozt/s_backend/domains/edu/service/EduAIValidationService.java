@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.talentboozt.s_backend.domains.edu.enums.EAIUsageType;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseValidationStatus;
 import com.talentboozt.s_backend.domains.edu.enums.ENotificationType;
+import com.talentboozt.s_backend.domains.edu.enums.LLMTaskType;
 import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
 import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
 import com.talentboozt.s_backend.domains.edu.exception.EduLimitExceededException;
@@ -35,7 +36,7 @@ public class EduAIValidationService {
     private final ECourseSectionsRepository sectionsRepository;
     private final ELessonsRepository lessonsRepository;
     private final EduNotificationService notificationService;
-    private final LLMClient llmClient;
+    private final LLMRouter llmRouter;
     private final ObjectMapper objectMapper;
 
     public EduAIValidationService(EduAICreditService creditService,
@@ -44,7 +45,7 @@ public class EduAIValidationService {
                                   ECourseSectionsRepository sectionsRepository,
                                   ELessonsRepository lessonsRepository,
                                   EduNotificationService notificationService,
-                                  LLMClient llmClient,
+                                  LLMRouter llmRouter,
                                   ObjectMapper objectMapper) {
         this.creditService = creditService;
         this.validationRepository = validationRepository;
@@ -52,7 +53,7 @@ public class EduAIValidationService {
         this.sectionsRepository = sectionsRepository;
         this.lessonsRepository = lessonsRepository;
         this.notificationService = notificationService;
-        this.llmClient = llmClient;
+        this.llmRouter = llmRouter;
         this.objectMapper = objectMapper;
     }
 
@@ -133,7 +134,7 @@ public class EduAIValidationService {
 
             String userPrompt = "Course Data:\n" + fullContent;
 
-            String aiResponse = llmClient.generate(systemPrompt, userPrompt, true);
+            String aiResponse = llmRouter.generate(LLMTaskType.VALIDATION, systemPrompt, userPrompt, true);
 
             double score = 0;
             try {

@@ -30,7 +30,7 @@ public class LAutomationService {
     @EventListener
     public void handleNewSignalEvent(LNewSignalEvent event) {
         LRawSignal signal = event.getRawSignal();
-        log.info("Automation Engine processing NewSignalEvent for Signal {}", signal.getId());
+        // log.info("Automation Engine processing NewSignalEvent for Signal {}", signal.getId());
 
         List<LLeadAutomation> automations = automationRepository.findByWorkspaceIdAndActiveTrue(signal.getWorkspaceId());
 
