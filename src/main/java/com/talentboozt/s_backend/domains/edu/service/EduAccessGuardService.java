@@ -72,7 +72,8 @@ public class EduAccessGuardService {
     public void enforceAIGenerationLimits(String userId, String promptHash) {
         if (promptHash != null) {
             String key = "edu:ai:lock:" + userId + ":" + promptHash.hashCode();
-            Boolean success = redisTemplate.opsForValue().setIfAbsent(key, "locked", Duration.ofSeconds(10));
+            // Lock for 5 minutes during heavy AI generations to prevent credit-wasting duplicate requests
+            Boolean success = redisTemplate.opsForValue().setIfAbsent(key, "locked", Duration.ofSeconds(300));
             if (Boolean.FALSE.equals(success)) {
                 throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Duplicate request detected. Please wait 10 seconds.");
             }
