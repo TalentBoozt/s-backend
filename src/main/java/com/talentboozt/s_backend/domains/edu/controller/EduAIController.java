@@ -29,7 +29,9 @@ public class EduAIController {
     private final RateLimiterService rateLimiterService;
     private final EduAccessGuardService accessGuard;
 
-    public EduAIController(EduAIEngineService engineService, EduAICreditService creditService, EduAIValidationService validationService, RateLimiterService rateLimiterService, EduAccessGuardService accessGuard) {
+    public EduAIController(EduAIEngineService engineService, EduAICreditService creditService,
+            EduAIValidationService validationService, RateLimiterService rateLimiterService,
+            EduAccessGuardService accessGuard) {
         this.engineService = engineService;
         this.creditService = creditService;
         this.validationService = validationService;
@@ -61,7 +63,7 @@ public class EduAIController {
         accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
         accessGuard.enforceAIGenerationLimits(userId, request.getTopic());
         accessGuard.enforceCourseOwnership(userId, courseId);
-        
+
         String response = engineService.generateCourseOutline(userId, courseId, request);
         return ResponseEntity.ok(Map.of("data", response));
     }
@@ -78,7 +80,7 @@ public class EduAIController {
         accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
         accessGuard.enforceAIGenerationLimits(userId, lessonObjective);
         accessGuard.enforceCourseOwnership(userId, courseId);
-        
+
         String response = engineService.generateLessonContent(userId, courseId, lessonObjective);
         return ResponseEntity.ok(Map.of("data", response));
     }
@@ -95,8 +97,78 @@ public class EduAIController {
         accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
         accessGuard.enforceAIGenerationLimits(userId, topic);
         accessGuard.enforceCourseOwnership(userId, courseId);
-        
+
         String response = engineService.generateSystemQuiz(userId, courseId, topic);
+        return ResponseEntity.ok(Map.of("data", response));
+    }
+
+    @PostMapping("/generate-summary/{courseId}")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    public ResponseEntity<Map<String, String>> generateSummary(
+            @PathVariable String courseId,
+            @AuthenticatedUser String userId,
+            @RequestBody Map<String, String> body) {
+        String courseContext = body.get("courseContext");
+        if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
+        }
+        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceCourseOwnership(userId, courseId);
+
+        String response = engineService.generateCourseSummary(userId, courseId, courseContext);
+        return ResponseEntity.ok(Map.of("data", response));
+    }
+
+    @PostMapping("/translate/{courseId}")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    public ResponseEntity<Map<String, String>> translateContent(
+            @PathVariable String courseId,
+            @AuthenticatedUser String userId,
+            @RequestBody Map<String, String> body) {
+        String content = body.get("content");
+        String language = body.get("language");
+        if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
+        }
+        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceCourseOwnership(userId, courseId);
+
+        String response = engineService.translateCourseContent(userId, courseId, content, language);
+        return ResponseEntity.ok(Map.of("data", response));
+    }
+
+    @PostMapping("/rewrite/{courseId}")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    public ResponseEntity<Map<String, String>> rewriteContent(
+            @PathVariable String courseId,
+            @AuthenticatedUser String userId,
+            @RequestBody Map<String, String> body) {
+        String content = body.get("content");
+        String style = body.get("style");
+        if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
+        }
+        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceCourseOwnership(userId, courseId);
+
+        String response = engineService.rewriteContent(userId, courseId, content, style);
+        return ResponseEntity.ok(Map.of("data", response));
+    }
+
+    @PostMapping("/revise/{courseId}")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
+    public ResponseEntity<Map<String, String>> reviseContent(
+            @PathVariable String courseId,
+            @AuthenticatedUser String userId,
+            @RequestBody Map<String, String> body) {
+        String content = body.get("content");
+        if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
+        }
+        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceCourseOwnership(userId, courseId);
+
+        String response = engineService.reviseContent(userId, courseId, content);
         return ResponseEntity.ok(Map.of("data", response));
     }
 
@@ -107,9 +179,10 @@ public class EduAIController {
             @AuthenticatedUser String userId) {
         accessGuard.enforceFeatureAccess(userId, "COURSE_VALIDATION");
         accessGuard.enforceCourseOwnership(userId, courseId);
-        
+
         validationService.submitCourseForValidation(userId, courseId);
-        return ResponseEntity.accepted().body(Map.of("message", "Course validation started successfully", "status", "AI_PENDING"));
+        return ResponseEntity.accepted()
+                .body(Map.of("message", "Course validation started successfully", "status", "AI_PENDING"));
     }
 
     @GetMapping("/validate/{courseId}/status")
@@ -119,7 +192,7 @@ public class EduAIController {
             @AuthenticatedUser String userId) {
         accessGuard.enforceFeatureAccess(userId, "COURSE_VALIDATION");
         accessGuard.enforceCourseOwnership(userId, courseId);
-        
+
         return ResponseEntity.ok(validationService.getValidationStatus(courseId));
     }
 }
