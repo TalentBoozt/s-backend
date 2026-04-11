@@ -22,38 +22,41 @@ public class LLMRouter {
     }
 
     public String generate(ESubscriptionPlan plan, LLMTaskType taskType, String system, String user, boolean isJson) {
-        log.info("LLM Routing → Plan: {}, Task: {}, Provider Heuristic: {}", plan, taskType,
-                taskType == LLMTaskType.VALIDATION ? "PREMIUM" : "OPEN_SOURCE");
-        try {
-            switch (taskType) {
+        // log.info("LLM Routing → Plan: {}, Task: {}, Provider Heuristic: {}", plan,
+        // taskType,
+        // taskType == LLMTaskType.VALIDATION ? "PREMIUM" : "OPEN_SOURCE");
+        // try {
+        // switch (taskType) {
 
-                case QUIZ:
-                case OUTLINE:
-                    return attemptOpenSourceWithJsonRetry(plan, system, user, isJson);
+        // case QUIZ:
+        // case OUTLINE:
+        // return attemptOpenSourceWithJsonRetry(plan, system, user, isJson);
 
-                case LESSON:
-                case SUMMARY:
-                case TRANSLATION:
-                case REWRITE:
-                case REVISION:
-                    String result = openSourceClient.generate(system, user, isJson);
-                    if (isLowQuality(result)) {
-                        log.warn("Fallback triggered for plan {} → switching to premium model for task {}", plan, taskType);
-                        return premiumClient.generate(plan, system, user, isJson);
-                    }
-                    return result;
+        // case LESSON:
+        // case SUMMARY:
+        // case TRANSLATION:
+        // case REWRITE:
+        // case REVISION:
+        // String result = openSourceClient.generate(system, user, isJson);
+        // if (isLowQuality(result)) {
+        // log.warn("Fallback triggered for plan {} → switching to premium model for
+        // task {}", plan, taskType);
+        // return premiumClient.generate(plan, system, user, isJson);
+        // }
+        // return result;
 
-                case VALIDATION:
-                    return premiumClient.generate(plan, system, user, true);
+        // case VALIDATION:
+        // return premiumClient.generate(plan, system, user, true);
 
-                default:
-                    return premiumClient.generate(plan, system, user, isJson);
-            }
+        // default:
+        return premiumClient.generate(plan, system, user, isJson);
+        // }
 
-        } catch (Exception e) {
-            log.warn("Fallback triggered for plan {} → switching to premium model. Error: {}", plan, e.getMessage());
-            return premiumClient.generate(plan, system, user, isJson);
-        }
+        // } catch (Exception e) {
+        // log.warn("Fallback triggered for plan {} → switching to premium model. Error:
+        // {}", plan, e.getMessage());
+        // return premiumClient.generate(plan, system, user, isJson);
+        // }
     }
 
     private String attemptOpenSourceWithJsonRetry(ESubscriptionPlan plan, String system, String user, boolean isJson) {

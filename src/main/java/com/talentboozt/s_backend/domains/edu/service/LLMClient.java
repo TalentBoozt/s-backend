@@ -132,12 +132,11 @@ public class LLMClient {
     }
 
     private String callGemini(String effectiveModel, String systemPrompt, String userPrompt, boolean isJsonResponse) {
-        // FIX 1: Use camelCase "generationConfig" (snake_case is not accepted by the
-        // REST API)
+        // Reverting to snake_case based on diagnostic feedback from 400 error
         Map<String, Object> generationConfig = new HashMap<>();
         generationConfig.put("temperature", temperature);
         if (isJsonResponse) {
-            generationConfig.put("responseMimeType", "application/json");
+            generationConfig.put("response_mime_type", "application/json");
         }
 
         // FIX 2: Some older Gemini models (1.0 line) don't support system_instruction —
@@ -146,7 +145,7 @@ public class LLMClient {
         boolean supportsSystemInstruction = !GEMINI_NO_SYSTEM_INSTRUCTION.contains(effectiveModel);
 
         if (supportsSystemInstruction && systemPrompt != null && !systemPrompt.isBlank()) {
-            requestBody.put("systemInstruction",
+            requestBody.put("system_instruction",
                     Map.of("parts", List.of(Map.of("text", systemPrompt))));
             requestBody.put("contents",
                     List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userPrompt)))));
@@ -159,7 +158,7 @@ public class LLMClient {
                     List.of(Map.of("role", "user", "parts", List.of(Map.of("text", mergedPrompt)))));
         }
 
-        requestBody.put("generationConfig", generationConfig);
+        requestBody.put("generation_config", generationConfig);
 
         // FIX 3: Route to /v1/ for stable models, /v1beta/ for preview/experimental
         // ones
