@@ -314,10 +314,13 @@ public class EduSubscriptionService {
                 roles.add(ERoles.SELLER_PRO);
             } else if (newPlan == ESubscriptionPlan.PREMIUM) {
                 roles.add(ERoles.SELLER_PREMIUM);
+            } else if (newPlan == ESubscriptionPlan.ENTERPRISE) {
+                roles.add(ERoles.ENTERPRISE_INSTRUCTOR);
             } else if (newPlan == ESubscriptionPlan.FREE && isSeller) {
                 roles.add(ERoles.SELLER_FREE);
             }
 
+            user.setPlan(newPlan);
             user.setRoles(roles.toArray(new ERoles[0]));
             userRepository.save(user);
         });
