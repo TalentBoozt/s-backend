@@ -17,7 +17,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -26,21 +25,41 @@ public class LLMClient {
     private final WebClient webClient;
     private final ObjectMapper objectMapper;
 
-    // Models that do NOT support the system_instruction field (Gemini 1.0 line)
-    private static final Set<String> GEMINI_NO_SYSTEM_INSTRUCTION = Set.of(
-            "gemini-1.0-pro",
-            "gemini-1.0-pro-001",
-            "gemini-1.0-pro-latest");
+    // THE ROOT CAUSE OF ALL PREVIOUS ERRORS:
+    //
+    // Google's Gemini REST API has two endpoint families with DIFFERENT field support:
+    //
+    //   /v1/      → gemini-1.0-pro ONLY. This is the stripped-down stable surface.
+    //               Does NOT support: system_instruction, response_mime_type,
+    //               or most generationConfig fields. Using these fields returns 400.
+    //
+    //   /v1beta/  → ALL other models (gemini-1.5-*, gemini-2.0-*, etc.)
+    //               DOES support: system_instruction, response_mime_type,
+    //               generationConfig, and all modern features.
+    //
+    // Previous attempts routed gemini-1.5-flash to /v1/ which rejected system_instruction
+    // and response_mime_type with 400 INVALID_ARGUMENT. The fix is to invert the logic:
+    // ONLY gemini-1.0-* goes to /v1/, everything else uses /v1beta/.
+    //
+    // Field naming: the /v1beta/ REST API uses snake_case throughout.
+    // "generationConfig" (camelCase) and "responseMimeType" are SDK/gRPC conventions
+    // and are NOT accepted by the REST endpoint — use "generation_config" and
+    // "response_mime_type" instead.
 
-    // Models that use the stable /v1/ endpoint instead of /v1beta/
-    private static final Set<String> GEMINI_V1_MODELS = Set.of(
-            "gemini-1.0-pro",
-            "gemini-1.0-pro-001",
-            "gemini-1.0-pro-latest",
-            "gemini-1.5-pro",
-            "gemini-1.5-pro-latest",
-            "gemini-1.5-flash",
-            "gemini-1.5-flash-latest");
+    private static String resolveGeminiApiVersion(String model) {
+        // Only the legacy gemini-1.0-pro line uses /v1/
+        // Every other model (1.5-flash, 1.5-pro, 2.0-flash, exp models, etc.) uses /v1beta/
+        if (model != null && model.startsWith("gemini-1.0-")) {
+            return "v1";
+        }
+        return "v1beta";
+    }
+
+    private static boolean supportsSystemInstruction(String model) {
+        // gemini-1.0-* models do not support system_instruction (field not in /v1/ schema)
+        // All other models support it via /v1beta/
+        return model == null || !model.startsWith("gemini-1.0-");
+    }
 
     @Value("${edu.ai.provider:OPENAI}")
     private String provider;
@@ -132,38 +151,38 @@ public class LLMClient {
     }
 
     private String callGemini(String effectiveModel, String systemPrompt, String userPrompt, boolean isJsonResponse) {
-        // CANONICAL FIX: Google AI Studio REST API (generativelanguage.googleapis.com)
-        // requires strictly snake_case for all fields. 
+        String apiVersion = resolveGeminiApiVersion(effectiveModel);
+        boolean useSystemInstruction = supportsSystemInstruction(effectiveModel);
+
+        // REST API uses snake_case throughout — "generation_config" and "response_mime_type"
+        // camelCase variants (generationConfig, responseMimeType) are SDK/gRPC only and
+        // are silently rejected or cause 400 on the REST endpoint.
         Map<String, Object> generationConfig = new HashMap<>();
         generationConfig.put("temperature", temperature);
-        if (isJsonResponse) {
+        if (isJsonResponse && useSystemInstruction) {
+            // response_mime_type only supported in /v1beta/ (gemini-1.5+ models)
             generationConfig.put("response_mime_type", "application/json");
         }
 
         Map<String, Object> requestBody = new HashMap<>();
-        boolean supportsSystemInstruction = !GEMINI_NO_SYSTEM_INSTRUCTION.contains(effectiveModel);
 
-        if (supportsSystemInstruction && systemPrompt != null && !systemPrompt.isBlank()) {
+        if (useSystemInstruction && systemPrompt != null && !systemPrompt.isBlank()) {
             requestBody.put("system_instruction",
                     Map.of("parts", List.of(Map.of("text", systemPrompt))));
-        }
-
-        // Contents is always a list of objects with parts
-        requestBody.put("contents",
-                List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userPrompt)))));
-
-        // Merge system prompt into user message if model is too old for system_instruction
-        if (!supportsSystemInstruction && systemPrompt != null && !systemPrompt.isBlank()) {
-            String mergedPrompt = systemPrompt + "\n\n" + userPrompt;
-            ((List<Map<String, Object>>) requestBody.get("contents")).get(0)
-                .put("parts", List.of(Map.of("text", mergedPrompt)));
+            requestBody.put("contents",
+                    List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userPrompt)))));
+        } else {
+            // Fold system prompt into user turn for gemini-1.0-* which lacks system_instruction
+            String mergedPrompt = (systemPrompt != null && !systemPrompt.isBlank())
+                    ? systemPrompt + "\n\n" + userPrompt
+                    : userPrompt;
+            requestBody.put("contents",
+                    List.of(Map.of("role", "user", "parts", List.of(Map.of("text", mergedPrompt)))));
         }
 
         requestBody.put("generation_config", generationConfig);
 
-        // FIX 3: Route to /v1/ for stable models, /v1beta/ for preview/experimental
-        // ones
-        String apiVersion = GEMINI_V1_MODELS.contains(effectiveModel) ? "v1" : "v1beta";
+        log.debug("Gemini request: model={}, apiVersion=/{}/", effectiveModel, apiVersion);
 
         try {
             JsonNode response = webClient.post()
@@ -176,8 +195,9 @@ public class LLMClient {
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
-                    .onStatus(status -> status.isError(), clientResponse -> clientResponse.bodyToMono(String.class)
-                            .map(errorBody -> new RuntimeException("Gemini API Error: " + errorBody))
+                    .onStatus(status -> status.isError(), clientResponse -> clientResponse
+                            .bodyToMono(String.class)
+                            .map(body -> new RuntimeException("Gemini API Error: " + body))
                             .flatMap(Mono::error))
                     .bodyToMono(JsonNode.class)
                     .block();
@@ -186,10 +206,8 @@ public class LLMClient {
                 throw new RuntimeException("Null response from Gemini");
             }
 
-            // FIX 4: Guard against SAFETY-blocked candidates that have no "parts"
             JsonNode candidates = response.path("candidates");
             if (!candidates.isArray() || candidates.isEmpty()) {
-                // Surface the promptFeedback block when candidates are absent entirely
                 String feedback = response.path("promptFeedback").path("blockReason").asText("UNKNOWN");
                 throw new RuntimeException("Gemini returned no candidates. Block reason: " + feedback);
             }
@@ -199,7 +217,6 @@ public class LLMClient {
 
             JsonNode parts = firstCandidate.path("content").path("parts");
             if (!parts.isArray() || parts.isEmpty()) {
-                // Candidate exists but was blocked mid-generation (e.g. SAFETY, RECITATION)
                 throw new RuntimeException("Gemini candidate has no content parts. finishReason: " + finishReason);
             }
 
@@ -218,10 +235,8 @@ public class LLMClient {
 
     private String cleanResponse(String content, boolean isJsonResponse) {
         if (isJsonResponse) {
-            // Remove markdown code blocks if present
             String cleaned = content.replaceAll("(?s)^\\s*```(?:json)?\\s*(.*?)\\s*```\\s*$", "$1").trim();
             try {
-                // Validate JSON structure
                 objectMapper.readTree(cleaned);
                 return cleaned;
             } catch (Exception e) {
