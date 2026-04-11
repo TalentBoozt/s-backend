@@ -132,32 +132,34 @@ public class LLMClient {
     }
 
     private String callGemini(String effectiveModel, String systemPrompt, String userPrompt, boolean isJsonResponse) {
-        // UNIFIED FIX: Use camelCase for the REST API (v1/v1beta). 
-        // Diagnostic logs confirmed snake_case is rejected for these fields.
+        // CANONICAL FIX: Google AI Studio REST API (generativelanguage.googleapis.com)
+        // requires strictly snake_case for all fields. 
         Map<String, Object> generationConfig = new HashMap<>();
         generationConfig.put("temperature", temperature);
         if (isJsonResponse) {
-            generationConfig.put("responseMimeType", "application/json");
+            generationConfig.put("response_mime_type", "application/json");
         }
 
         Map<String, Object> requestBody = new HashMap<>();
         boolean supportsSystemInstruction = !GEMINI_NO_SYSTEM_INSTRUCTION.contains(effectiveModel);
 
         if (supportsSystemInstruction && systemPrompt != null && !systemPrompt.isBlank()) {
-            requestBody.put("systemInstruction",
+            requestBody.put("system_instruction",
                     Map.of("parts", List.of(Map.of("text", systemPrompt))));
-            requestBody.put("contents",
-                    List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userPrompt)))));
-        } else {
-            // Merge system prompt into the user message
-            String mergedPrompt = (systemPrompt != null && !systemPrompt.isBlank())
-                    ? systemPrompt + "\n\n" + userPrompt
-                    : userPrompt;
-            requestBody.put("contents",
-                    List.of(Map.of("role", "user", "parts", List.of(Map.of("text", mergedPrompt)))));
         }
 
-        requestBody.put("generationConfig", generationConfig);
+        // Contents is always a list of objects with parts
+        requestBody.put("contents",
+                List.of(Map.of("role", "user", "parts", List.of(Map.of("text", userPrompt)))));
+
+        // Merge system prompt into user message if model is too old for system_instruction
+        if (!supportsSystemInstruction && systemPrompt != null && !systemPrompt.isBlank()) {
+            String mergedPrompt = systemPrompt + "\n\n" + userPrompt;
+            ((List<Map<String, Object>>) requestBody.get("contents")).get(0)
+                .put("parts", List.of(Map.of("text", mergedPrompt)));
+        }
+
+        requestBody.put("generation_config", generationConfig);
 
         // FIX 3: Route to /v1/ for stable models, /v1beta/ for preview/experimental
         // ones
