@@ -15,6 +15,8 @@ public class LimitConfig {
     private int aiCreditsPerMonth;
     private int maxAiGenerationsPerMonth;
     private int validationCreditsPerMonth;
+    private int hourlyAiLimit;
+    private int dailyAiLimit;
     private double commissionRate;
     private List<String> features;
 }

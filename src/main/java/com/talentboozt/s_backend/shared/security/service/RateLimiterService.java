@@ -27,7 +27,7 @@ public class RateLimiterService {
             case "edu-register" -> 5;
             case "edu-login" -> 10;
             case "edu-forgot-password" -> 3;
-            case "edu-ai-generate" -> 20;
+            case "edu-ai-generate" -> 60; // DoS shield only; real limits are plan-aware in EduAICreditService
             default -> 300;
         };
 

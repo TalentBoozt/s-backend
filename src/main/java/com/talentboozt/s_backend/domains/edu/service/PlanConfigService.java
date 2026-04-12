@@ -21,6 +21,8 @@ public class PlanConfigService {
                         .aiCreditsPerMonth(5000)
                         .maxAiGenerationsPerMonth(1500)
                         .validationCreditsPerMonth(0)
+                        .hourlyAiLimit(30)
+                        .dailyAiLimit(200)
                         .commissionRate(0.05)
                         .features(List.of("BASIC_ANALYTICS", "AI_TOOLS", "COURSE_VALIDATION"))
                         .build();
@@ -30,6 +32,8 @@ public class PlanConfigService {
                         .aiCreditsPerMonth(25000)
                         .maxAiGenerationsPerMonth(5000)
                         .validationCreditsPerMonth(10)
+                        .hourlyAiLimit(80)
+                        .dailyAiLimit(500)
                         .commissionRate(0.03)
                         .features(List.of("ADVANCED_ANALYTICS", "AI_TOOLS", "COURSE_VALIDATION", "PRIORITY_SUPPORT",
                                 "MARKETING_TOOLS"))
@@ -40,6 +44,8 @@ public class PlanConfigService {
                         .aiCreditsPerMonth(150000)
                         .maxAiGenerationsPerMonth(25000)
                         .validationCreditsPerMonth(500)
+                        .hourlyAiLimit(200)
+                        .dailyAiLimit(2000)
                         .commissionRate(0.0) // Custom agreements
                         .features(List.of("ADVANCED_ANALYTICS", "AI_TOOLS", "COURSE_VALIDATION", "PRIORITY_SUPPORT",
                                 "MARKETING_TOOLS", "WHITE_LABEL", "CUSTOM_DOMAIN", "API_ACCESS"))
@@ -51,6 +57,8 @@ public class PlanConfigService {
                         .aiCreditsPerMonth(0)
                         .maxAiGenerationsPerMonth(0)
                         .validationCreditsPerMonth(0)
+                        .hourlyAiLimit(0)
+                        .dailyAiLimit(0)
                         .commissionRate(0.07)
                         .features(List.of("BASIC_ANALYTICS"))
                         .build();
