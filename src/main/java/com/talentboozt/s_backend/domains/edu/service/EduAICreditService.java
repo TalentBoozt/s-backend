@@ -1,6 +1,8 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
+import com.talentboozt.s_backend.domains.edu.dto.plan.LimitConfig;
 import com.talentboozt.s_backend.domains.edu.enums.EAIUsageType;
+import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
 import com.talentboozt.s_backend.domains.edu.model.EAiCredits;
 import com.talentboozt.s_backend.domains.edu.model.EAiUsage;
 import com.talentboozt.s_backend.domains.edu.exception.EduLimitExceededException;
@@ -27,12 +29,16 @@ public class EduAICreditService {
     private final EAiUsageRepository usageRepository;
     private final ECreditLedgerRepository ledgerRepository;
     private final MongoTemplate mongoTemplate;
+    private final PlanConfigService planConfigService;
 
-    public EduAICreditService(EAiCreditsRepository creditsRepository, EAiUsageRepository usageRepository, ECreditLedgerRepository ledgerRepository, MongoTemplate mongoTemplate) {
+    public EduAICreditService(EAiCreditsRepository creditsRepository, EAiUsageRepository usageRepository,
+            ECreditLedgerRepository ledgerRepository, MongoTemplate mongoTemplate,
+            PlanConfigService planConfigService) {
         this.creditsRepository = creditsRepository;
         this.usageRepository = usageRepository;
         this.ledgerRepository = ledgerRepository;
         this.mongoTemplate = mongoTemplate;
+        this.planConfigService = planConfigService;
     }
 
     public EAiCredits getUserCredits(String userId) {
@@ -50,24 +56,56 @@ public class EduAICreditService {
         });
     }
 
+    /**
+     * PRE-FLIGHT CHECK: Call this BEFORE making the expensive LLM call.
+     * Validates rate limits (plan-aware) and sufficient credit balance
+     * without deducting anything yet.
+     */
+    public void preValidate(String userId, int requiredCredits, ESubscriptionPlan plan) {
+        LimitConfig limits = planConfigService.getPlanLimits(plan);
+
+        // Enforce hourly rate limits (plan-aware)
+        int hourlyLimit = limits.getHourlyAiLimit();
+        if (hourlyLimit > 0) {
+            Instant last1h = Instant.now().minus(1, ChronoUnit.HOURS);
+            long hourlyUsage = usageRepository.countByUserIdAndCreatedAtGreaterThanEqual(userId, last1h);
+            if (hourlyUsage >= hourlyLimit) {
+                throw new EduLimitExceededException(
+                        "Hourly AI usage limit reached (" + hourlyLimit + " actions). Please try again later.");
+            }
+        }
+
+        // Enforce daily rate limits (plan-aware)
+        int dailyLimit = limits.getDailyAiLimit();
+        if (dailyLimit > 0) {
+            Instant last24h = Instant.now().minus(24, ChronoUnit.HOURS);
+            long dailyUsage = usageRepository.countByUserIdAndCreatedAtGreaterThanEqual(userId, last24h);
+            if (dailyUsage >= dailyLimit) {
+                throw new EduLimitExceededException(
+                        "Daily AI usage limit reached (" + dailyLimit + " actions). Please try again later.");
+            }
+        }
+
+        // Pre-check balance (non-atomic, just a guard before expensive LLM call)
+        EAiCredits credits = getUserCredits(userId);
+        if (credits.getBalance() < requiredCredits) {
+            throw new EduLimitExceededException(
+                    "Insufficient AI Credits (" + credits.getBalance() + " available, " + requiredCredits
+                            + " required). Please upgrade plan or buy Token packs.");
+        }
+    }
+
+    /**
+     * POST-GENERATION: Atomically deduct credits and record usage AFTER
+     * a successful LLM call. Rate-limit checks are already done in preValidate().
+     */
     public boolean deductCredits(String userId, String courseId, int amount, EAIUsageType type, String prompt,
             String response) {
-        
+
         // Ensure credits document exists via get-or-create pattern first.
         getUserCredits(userId);
 
-        // Enforce daily rate limits (max 100 per 24h)
-        Instant last24h = Instant.now().minus(24, ChronoUnit.HOURS);
-        if (usageRepository.countByUserIdAndCreatedAtGreaterThanEqual(userId, last24h) >= 100) {
-            throw new EduLimitExceededException("Daily AI usage limit reached (100 actions). Please try again later.");
-        }
-
-        // Enforce hourly rate limits (max 20 per 1h)
-        Instant last1h = Instant.now().minus(1, ChronoUnit.HOURS);
-        if (usageRepository.countByUserIdAndCreatedAtGreaterThanEqual(userId, last1h) >= 20) {
-            throw new EduLimitExceededException("Hourly AI usage limit reached (20 actions). Please try again later.");
-        }
-
+        // Atomic balance deduction via findAndModify
         Query query = new Query();
         query.addCriteria(Criteria.where("userId").is(userId));
         query.addCriteria(Criteria.where("balance").gte(amount));
@@ -146,7 +184,7 @@ public class EduAICreditService {
         credits.setLifetimePurchased(credits.getLifetimePurchased() + tokens);
         credits.setExpiresAt(Instant.now().plus(validityDays, ChronoUnit.DAYS));
         credits.setUpdatedAt(Instant.now());
-        
+
         EAiCredits saved = creditsRepository.save(credits);
 
         ECreditLedger ledger = ECreditLedger.builder()

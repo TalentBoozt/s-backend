@@ -22,6 +22,10 @@ public class EduAIEngineService {
 
     public String generateCourseOutline(String userId, String courseId, AIGenerationRequest request) {
         int tokenCost = 15;
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
+        creditService.preValidate(userId, tokenCost, plan);
 
         String systemPrompt = """
                 You are an expert curriculum designer.
@@ -40,9 +44,9 @@ public class EduAIEngineService {
                 "Generate a comprehensive course outline for the topic: '%s'. Target audience: %s.",
                 request.getTopic(), request.getAudienceLevel());
 
-        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
         String aiResponse = llmRouter.generate(plan, LLMTaskType.OUTLINE, systemPrompt, userPrompt, true);
 
+        // POST-GENERATION: deduct credits only after successful LLM call
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_OUTLINE_GENERATION,
                 "Generate " + request.getAudienceLevel() + " outline about " + request.getTopic(), aiResponse);
 
@@ -51,12 +55,15 @@ public class EduAIEngineService {
 
     public String generateLessonContent(String userId, String courseId, String lessonObjective) {
         int tokenCost = 30;
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
+        creditService.preValidate(userId, tokenCost, plan);
 
         String systemPrompt = "You are a world-class educator. Write detailed, engaging, and professional lesson content in Markdown format.";
         String userPrompt = String.format(
                 "Write a detailed lesson teaching: '%s'. Include core concepts and best practices.", lessonObjective);
 
-        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
         String aiResponse = llmRouter.generate(plan, LLMTaskType.LESSON, systemPrompt, userPrompt, false);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_CONTENT_GENERATION,
@@ -67,6 +74,10 @@ public class EduAIEngineService {
 
     public String generateSystemQuiz(String userId, String courseId, String topic) {
         int tokenCost = 10;
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
+        creditService.preValidate(userId, tokenCost, plan);
 
         String systemPrompt = """
                 You are an educational quiz generator.
@@ -78,7 +89,6 @@ public class EduAIEngineService {
 
         String userPrompt = String.format("Create a 5-question multiple choice quiz on the topic: '%s'.", topic);
 
-        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
         String aiResponse = llmRouter.generate(plan, LLMTaskType.QUIZ, systemPrompt, userPrompt, true);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_QUIZ_GENERATION,
@@ -86,12 +96,17 @@ public class EduAIEngineService {
 
         return aiResponse;
     }
+
     public String generateCourseSummary(String userId, String courseId, String courseContext) {
         int tokenCost = 10;
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
+        creditService.preValidate(userId, tokenCost, plan);
+
         String systemPrompt = "You are a professional educational copywriter. Write a compelling, concise course summary and marketing description based on the provided course modules and syllabus.";
         String userPrompt = "Course syllabus context:\n" + courseContext;
 
-        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
         String aiResponse = llmRouter.generate(plan, LLMTaskType.SUMMARY, systemPrompt, userPrompt, false);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_SUMMARY_GENERATION,
@@ -102,10 +117,14 @@ public class EduAIEngineService {
 
     public String translateCourseContent(String userId, String courseId, String content, String language) {
         int tokenCost = 15;
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
+        creditService.preValidate(userId, tokenCost, plan);
+
         String systemPrompt = "You are an expert technical translator. Translate the given lesson content exactly into " + language + ", maintaining markdown formatting, technical accuracy, and tone. Do NOT add any extra conversational text.";
         String userPrompt = "Translate this content:\n" + content;
 
-        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
         String aiResponse = llmRouter.generate(plan, LLMTaskType.TRANSLATION, systemPrompt, userPrompt, false);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_TRANSLATION,
@@ -116,10 +135,14 @@ public class EduAIEngineService {
 
     public String rewriteContent(String userId, String courseId, String content, String style) {
         int tokenCost = 15;
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
+        creditService.preValidate(userId, tokenCost, plan);
+
         String systemPrompt = "You are an expert editor. Rewrite the following lesson content to make it " + style + ". Maintain the core learning objectives, markdown formatting, and technical accuracy.";
         String userPrompt = "Rewrite this content:\n" + content;
 
-        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
         String aiResponse = llmRouter.generate(plan, LLMTaskType.REWRITE, systemPrompt, userPrompt, false);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_REWRITE,
@@ -130,10 +153,14 @@ public class EduAIEngineService {
 
     public String reviseContent(String userId, String courseId, String content) {
         int tokenCost = 10;
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
+        creditService.preValidate(userId, tokenCost, plan);
+
         String systemPrompt = "You are an expert technical editor. Proofread and revise the following lesson content. Fix any grammatical errors, improve clarity and flow, and maintain markdown formatting. Return the polished content directly.";
         String userPrompt = "Revise this content:\n" + content;
 
-        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
         String aiResponse = llmRouter.generate(plan, LLMTaskType.REVISION, systemPrompt, userPrompt, false);
 
         creditService.deductCredits(userId, courseId, tokenCost, EAIUsageType.COURSE_REVISION,

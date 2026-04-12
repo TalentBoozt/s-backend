@@ -9,7 +9,6 @@ import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
 import com.talentboozt.s_backend.domains.edu.enums.LLMTaskType;
 import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
 import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
-import com.talentboozt.s_backend.domains.edu.exception.EduLimitExceededException;
 import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ECourseSections;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
@@ -79,9 +78,8 @@ public class EduAIValidationService {
             throw new EduBadRequestException("Course must have at least 5 lessons before AI validation.");
         }
 
-        if (creditService.getUserCredits(userId).getBalance() < 50) {
-            throw new EduLimitExceededException("Insufficient AI Credits. Validation requires 50 credits.");
-        }
+        ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+        creditService.preValidate(userId, 50, plan);
 
         EValidationReports lastValidation = getValidationStatus(courseId);
         if (lastValidation != null) {

@@ -25,7 +25,9 @@ public class EduAccessGuardService {
     private final EAiUsageRepository aiUsageRepository;
     private final StringRedisTemplate redisTemplate;
 
-    public EduAccessGuardService(PlanConfigService planConfigService, EUserRepository userRepository, ECoursesRepository courseRepository, EAiUsageRepository aiUsageRepository, StringRedisTemplate redisTemplate) {
+    public EduAccessGuardService(PlanConfigService planConfigService, EUserRepository userRepository,
+            ECoursesRepository courseRepository, EAiUsageRepository aiUsageRepository,
+            StringRedisTemplate redisTemplate) {
         this.planConfigService = planConfigService;
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
@@ -45,7 +47,8 @@ public class EduAccessGuardService {
         long currentCount = courseRepository.findByCreatorId(userId).size();
 
         if (currentCount >= maxCourses) {
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Course creation limit reached for your plan. Please upgrade.");
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Course creation limit reached for your plan. Please upgrade.");
         }
     }
 
@@ -55,7 +58,8 @@ public class EduAccessGuardService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found"));
 
         if (!userId.equals(course.getCreatorId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You do not have permission to modify this course.");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "You do not have permission to modify this course.");
         }
     }
 
@@ -72,21 +76,23 @@ public class EduAccessGuardService {
     public void enforceAIGenerationLimits(String userId, String promptHash) {
         if (promptHash != null) {
             String key = "edu:ai:lock:" + userId + ":" + promptHash.hashCode();
-            // Lock for 5 minutes during heavy AI generations to prevent credit-wasting duplicate requests
-            Boolean success = redisTemplate.opsForValue().setIfAbsent(key, "locked", Duration.ofSeconds(300));
+            // Lock for 30 seconds to prevent credit-wasting duplicate requests
+            Boolean success = redisTemplate.opsForValue().setIfAbsent(key, "locked", Duration.ofSeconds(30));
             if (Boolean.FALSE.equals(success)) {
-                throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Duplicate request detected. Please wait 10 seconds.");
+                throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                        "Duplicate request detected. Please wait 30 seconds before retrying the same prompt.");
             }
         }
 
         EUser user = getUser(userId);
         int maxGenerations = planConfigService.getPlanLimits(user.getPlan()).getMaxAiGenerationsPerMonth();
-        
+
         Instant startOfMonth = ZonedDateTime.now(ZoneId.of("UTC")).withDayOfMonth(1).withHour(0).toInstant();
         long monthlyUsageCount = aiUsageRepository.countByUserIdAndCreatedAtGreaterThanEqual(userId, startOfMonth);
-        
+
         if (monthlyUsageCount >= maxGenerations) {
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Monthly AI generation limit (" + maxGenerations + ") reached. Please upgrade your plan.");
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "Monthly AI generation limit (" + maxGenerations + ") reached. Please upgrade your plan.");
         }
     }
 }
