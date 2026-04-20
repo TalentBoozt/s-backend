@@ -14,5 +14,6 @@ public class LearnerAnalyticsDTO {
     private Integer totalCertificates;
     private Integer minutesToday;
     private Integer nextMilestoneProgress;
+    private Double avgCompletion;
     private String learnerLevel;
 }

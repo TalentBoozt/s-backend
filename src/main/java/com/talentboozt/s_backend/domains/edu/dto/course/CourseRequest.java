@@ -32,4 +32,7 @@ public class CourseRequest {
     private Double compareAtPrice;
     private String currency;
     private Boolean isPrivate;
+    private Boolean isFeatured;
+    private Boolean isTrending;
+    private Integer searchRank;
 }

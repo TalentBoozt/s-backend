@@ -30,8 +30,10 @@ public class EduCourseService {
     private final EduTrustScoreService trustScoreService;
     private final EduAccessGuardService accessGuard;
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository sectionRepository;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonRepository;
 
-    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository, EWorkspacesRepository workspaceRepository, EduWorkspaceGuardService guardService, EduTrustScoreService trustScoreService, EduAccessGuardService accessGuard, com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository) {
+    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository, EWorkspacesRepository workspaceRepository, EduWorkspaceGuardService guardService, EduTrustScoreService trustScoreService, EduAccessGuardService accessGuard, com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository, com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository sectionRepository, com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonRepository) {
         this.courseRepository = courseRepository;
         this.enrollmentsRepository = enrollmentsRepository;
         this.workspaceRepository = workspaceRepository;
@@ -39,6 +41,8 @@ public class EduCourseService {
         this.trustScoreService = trustScoreService;
         this.accessGuard = accessGuard;
         this.profilesRepository = profilesRepository;
+        this.sectionRepository = sectionRepository;
+        this.lessonRepository = lessonRepository;
     }
 
     public ECourses createCourse(String creatorId, String workspaceId, CourseRequest request) {
@@ -153,6 +157,12 @@ public class EduCourseService {
             course.setCurrency(request.getCurrency());
         if (request.getIsPrivate() != null)
             course.setIsPrivate(request.getIsPrivate());
+        if (request.getIsFeatured() != null)
+            course.setIsFeatured(request.getIsFeatured());
+        if (request.getIsTrending() != null)
+            course.setIsTrending(request.getIsTrending());
+        if (request.getSearchRank() != null)
+            course.setSearchRank(request.getSearchRank());
         course.setUpdatedAt(Instant.now());
         return courseRepository.save(course);
     }
@@ -250,6 +260,26 @@ public class EduCourseService {
         }
         return results;
     }
+    public List<com.talentboozt.s_backend.domains.edu.model.ECourseSections> getFullCurriculum(String courseId) {
+        List<com.talentboozt.s_backend.domains.edu.model.ECourseSections> sections = sectionRepository.findByCourseId(courseId);
+        List<com.talentboozt.s_backend.domains.edu.model.ELessons> lessons = lessonRepository.findByCourseId(courseId);
+
+        // Group lessons by sectionId for efficient population
+        java.util.Map<String, List<com.talentboozt.s_backend.domains.edu.model.ELessons>> lessonMap = lessons.stream()
+                .collect(Collectors.groupingBy(com.talentboozt.s_backend.domains.edu.model.ELessons::getSectionId));
+
+        for (com.talentboozt.s_backend.domains.edu.model.ECourseSections section : sections) {
+            section.setLessonDetails(lessonMap.getOrDefault(section.getId(), java.util.Collections.emptyList())
+                    .stream()
+                    .sorted(java.util.Comparator.comparingInt(com.talentboozt.s_backend.domains.edu.model.ELessons::getOrder))
+                    .collect(Collectors.toList()));
+        }
+
+        return sections.stream()
+                .sorted(java.util.Comparator.comparingInt(com.talentboozt.s_backend.domains.edu.model.ECourseSections::getOrder))
+                .collect(Collectors.toList());
+    }
+
     private void populateTrustData(ECourses course) {
         if (course.getCreatorId() != null) {
             var trust = trustScoreService.getTrustScore(course.getCreatorId());

@@ -1,10 +1,12 @@
 package com.talentboozt.s_backend.domains.edu.model;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -29,6 +31,10 @@ public class ECourseSections {
     private String title;
     private String description;
     private String[] lessons; // ids
+
+    @Transient
+    private List<ELessons> lessonDetails;
+
     private String createdBy;
     private String updatedBy;
     
