@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
 import jakarta.validation.Valid;
+import com.talentboozt.s_backend.domains.edu.model.ECourseSections;
 import com.talentboozt.s_backend.domains.edu.dto.course.CourseRequest;
 import com.talentboozt.s_backend.domains.edu.model.EEnrollments;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
@@ -34,6 +35,11 @@ public class EduCourseController {
     @GetMapping("/{id}")
     public ResponseEntity<ECourses> getCourse(@PathVariable String id) {
         return ResponseEntity.ok(courseService.getCourseById(id));
+    }
+
+    @GetMapping("/{id}/curriculum")
+    public ResponseEntity<List<ECourseSections>> getCourseCurriculum(@PathVariable String id) {
+        return ResponseEntity.ok(courseService.getFullCurriculum(id));
     }
 
     @GetMapping("/creator")

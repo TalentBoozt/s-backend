@@ -146,6 +146,9 @@ public class EduAnalyticsDataService {
         String level = totalCourses >= 5 ? "Pro-Node" : 
                        totalCourses >= 1 ? "Core-Node" : "Spec-Alpha";
 
+        double avgProgressAcrossAll = totalCourses > 0 ? 
+                                     enrolls.stream().mapToDouble(e -> e.getProgress() != null ? e.getProgress() : 0.0).average().orElse(0.0) : 0.0;
+
         return LearnerAnalyticsDTO.builder()
                 .learnerId(learnerId)
                 .totalCoursesEnrolled(totalCourses)
@@ -155,6 +158,7 @@ public class EduAnalyticsDataService {
                 .totalCertificates(completedCourses)
                 .minutesToday(0) // Placeholder until we have daily activity tracking
                 .nextMilestoneProgress(nextMilestoneProgress)
+                .avgCompletion(Math.round(avgProgressAcrossAll * 10.0) / 10.0)
                 .learnerLevel(level)
                 .build();
     }
