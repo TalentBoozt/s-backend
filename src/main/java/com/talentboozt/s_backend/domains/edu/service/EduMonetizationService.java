@@ -7,7 +7,6 @@ import com.stripe.param.CustomerCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 
 import com.talentboozt.s_backend.domains.edu.dto.monetization.CheckoutRequest;
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
 import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
 import com.talentboozt.s_backend.domains.edu.model.ESubscriptions;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ESubscriptionsRepository;
@@ -23,7 +22,7 @@ public class EduMonetizationService {
     private final ESubscriptionsRepository subscriptionsRepository;
     private final EduSubscriptionService subscriptionService;
 
-    @Value("${app.frontend.url:http://localhost:5173}")
+    @Value("${app.frontend.url:https://edu.talnova.io}")
     private String frontendUrl;
 
     @Value("${stripe.edu.price.pro.monthly:}")
@@ -37,15 +36,15 @@ public class EduMonetizationService {
     @Value("${stripe.edu.price.free:}")
     private String stripePriceFree;
 
-    public EduMonetizationService(ESubscriptionsRepository subscriptionsRepository, 
-                                  EduSubscriptionService subscriptionService) {
+    public EduMonetizationService(ESubscriptionsRepository subscriptionsRepository,
+            EduSubscriptionService subscriptionService) {
         this.subscriptionsRepository = subscriptionsRepository;
         this.subscriptionService = subscriptionService;
     }
 
     public Map<String, String> createCheckoutSession(CheckoutRequest request) throws Exception {
         ESubscriptions subscription = subscriptionService.getUserSubscription(request.getUserId());
-        
+
         // Ensure Stripe Customer ID exists
         if (subscription.getStripeCustomerId() == null) {
             CustomerCreateParams params = CustomerCreateParams.builder()
@@ -61,7 +60,8 @@ public class EduMonetizationService {
         subscription.setStripePriceId(priceId);
         subscriptionsRepository.save(subscription);
 
-        // Generate idempotency key to prevent duplicate subscriptions on network retries
+        // Generate idempotency key to prevent duplicate subscriptions on network
+        // retries
         String idempotencyKey = UUID.randomUUID().toString();
 
         SessionCreateParams params = SessionCreateParams.builder()
@@ -89,8 +89,8 @@ public class EduMonetizationService {
             throw new EduBadRequestException("No Stripe customer found for user to manage billing portal.");
         }
 
-        com.stripe.param.billingportal.SessionCreateParams params = 
-            com.stripe.param.billingportal.SessionCreateParams.builder()
+        com.stripe.param.billingportal.SessionCreateParams params = com.stripe.param.billingportal.SessionCreateParams
+                .builder()
                 .setCustomer(subscription.getStripeCustomerId())
                 .setReturnUrl(frontendUrl + "/learner/profile")
                 .build();
@@ -98,7 +98,8 @@ public class EduMonetizationService {
         RequestOptions requestOptions = RequestOptions.builder()
                 .setIdempotencyKey(UUID.randomUUID().toString())
                 .build();
-        com.stripe.model.billingportal.Session portalSession = com.stripe.model.billingportal.Session.create(params, requestOptions);
+        com.stripe.model.billingportal.Session portalSession = com.stripe.model.billingportal.Session.create(params,
+                requestOptions);
         return Map.of("url", portalSession.getUrl());
     }
 

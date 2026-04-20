@@ -248,7 +248,7 @@ public class EduRefundService {
      * If funds are already CLEARED → create a negative "clawback" entry
      */
     private void reverseHoldingLedger(ETransactions tx, double refundAmount, RefundType type) {
-        holdingLedgerRepository.findByTransactionId(tx.getTransactionId()).ifPresent(ledger -> {
+        holdingLedgerRepository.findByTransactionId(tx.getId()).ifPresent(ledger -> {
             if (ledger.getStatus() == EHoldingStatus.HELD) {
                 // Funds still in holding — simple reversal
                 if (type == RefundType.FULL) {

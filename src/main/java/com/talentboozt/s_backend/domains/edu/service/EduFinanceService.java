@@ -60,10 +60,17 @@ public class EduFinanceService {
 
         List<EHoldingLedger> clearedRecords = holdingLedgerRepository.findByBeneficiaryIdAndStatus(creatorId, EHoldingStatus.CLEARED);
         List<EHoldingLedger> heldRecords = holdingLedgerRepository.findByBeneficiaryIdAndStatus(creatorId, EHoldingStatus.HELD);
+        List<EHoldingLedger> clawbackRecords = holdingLedgerRepository.findByBeneficiaryIdAndStatus(creatorId, EHoldingStatus.CLAWBACK);
         
         double availableEarnings = clearedRecords.stream()
                 .mapToDouble(h -> h.getAmount() != null ? h.getAmount() : 0.0)
                 .sum();
+
+        double clawbackAmount = clawbackRecords.stream()
+                .mapToDouble(h -> h.getAmount() != null ? h.getAmount() : 0.0)
+                .sum();
+
+        availableEarnings += clawbackAmount; // clawback amount is negative so addition reduces balance
 
         double pendingClearance = heldRecords.stream()
                 .mapToDouble(h -> h.getAmount() != null ? h.getAmount() : 0.0)
