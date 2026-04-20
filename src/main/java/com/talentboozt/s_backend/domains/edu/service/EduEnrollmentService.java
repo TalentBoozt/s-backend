@@ -105,17 +105,28 @@ public class EduEnrollmentService {
     }
 
     public List<EEnrollments> getUserEnrollments(String userId) {
-        return enrollmentsRepository.findByUserId(userId);
+        return enrollmentsRepository.findByUserId(userId).stream()
+                .map(this::populateCourse)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     public EEnrollments getEnrollmentDetails(String enrollmentId) {
-        return enrollmentsRepository.findById(enrollmentId)
+        EEnrollments enrollment = enrollmentsRepository.findById(enrollmentId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Enrollment not found with id: " + enrollmentId));
+        return populateCourse(enrollment);
     }
 
     public EEnrollments getEnrollmentByCourseAndUser(String courseId, String userId) {
-        return enrollmentsRepository.findByUserIdAndCourseId(userId, courseId)
+        EEnrollments enrollment = enrollmentsRepository.findByUserIdAndCourseId(userId, courseId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Enrollment for course " + courseId + " and user " + userId + " not found"));
+        return populateCourse(enrollment);
+    }
+    
+    private EEnrollments populateCourse(EEnrollments enrollment) {
+        if (enrollment != null && enrollment.getCourseId() != null) {
+            coursesRepository.findById(enrollment.getCourseId()).ifPresent(enrollment::setCourse);
+        }
+        return enrollment;
     }
 
     public EEnrollments recordProgress(String enrollmentId, String lessonId, Long watchTime) {
