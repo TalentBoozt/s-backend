@@ -58,9 +58,6 @@ public class EduEnrollmentService {
     public EEnrollments ensureEnrollmentAfterSuccessfulPurchase(String userId, String courseId) {
         ECourses course = coursesRepository.findById(courseId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + courseId));
-        if (!Boolean.TRUE.equals(course.getPublished()) || !isApprovedForLearners(course)) {
-            throw new EduBadRequestException("Course is not available for enrollment");
-        }
         return createEnrollmentIfAbsent(userId, course, "MARKETPLACE");
     }
 

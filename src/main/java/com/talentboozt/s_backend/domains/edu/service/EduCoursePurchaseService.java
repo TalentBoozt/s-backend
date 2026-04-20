@@ -55,7 +55,7 @@ public class EduCoursePurchaseService {
     private final EEnrollmentsRepository enrollmentsRepository;
     private final EduLedgerService ledgerService;
 
-    @Value("${app.frontend.url:http://localhost:5173}")
+    @Value("${app.frontend.url:https://edu.talnova.io}")
     private String frontendUrl;
 
     public EduCoursePurchaseService(ECoursesRepository coursesRepository,
@@ -86,12 +86,13 @@ public class EduCoursePurchaseService {
      * Starts Stripe Checkout for a paid marketplace course; persists a PENDING
      * transaction row.
      */
-    public Map<String, String> createCourseCheckoutSession(String userId, String courseId, String affiliateId, String couponCode) throws StripeException {
+    public Map<String, String> createCourseCheckoutSession(String userId, String courseId, String affiliateId,
+            String couponCode) throws StripeException {
         ECourses course = coursesRepository.findById(courseId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Course not found"));
-        
+
         fraudDetectionService.validateBulkPurchases(userId, Map.of(course.getCreatorId(), 1L));
-        
+
         if (!Boolean.TRUE.equals(course.getPublished())) {
             throw new EduBadRequestException("Course is not available for purchase");
         }
@@ -110,10 +111,12 @@ public class EduCoursePurchaseService {
         double discountAmount = 0.0;
         double finalPrice = originalPrice;
         if (couponCode != null && !couponCode.isBlank()) {
-            CouponValidationResult couponResult = couponService.validateAndCalculate(couponCode, courseId, userId, originalPrice);
+            CouponValidationResult couponResult = couponService.validateAndCalculate(couponCode, courseId, userId,
+                    originalPrice);
             discountAmount = couponResult.getDiscountAmount();
             finalPrice = couponResult.getFinalPrice();
-            log.info("Coupon {} applied: original={}, discount={}, final={}", couponCode, originalPrice, discountAmount, finalPrice);
+            log.info("Coupon {} applied: original={}, discount={}, final={}", couponCode, originalPrice, discountAmount,
+                    finalPrice);
         }
 
         if (finalPrice <= 0) {
@@ -156,7 +159,8 @@ public class EduCoursePurchaseService {
                 .build();
         Session session = Session.create(paramsBuilder.build(), requestOptions);
 
-        EduCommissionCalculator.CommissionResult commData = commissionCalculator.calculateCommissionRate(course.getCreatorId());
+        EduCommissionCalculator.CommissionResult commData = commissionCalculator
+                .calculateCommissionRate(course.getCreatorId());
         double rate = commData.rate;
         double fee = round2(finalPrice * rate);
         double creatorShare = round2(finalPrice - fee);
@@ -192,7 +196,8 @@ public class EduCoursePurchaseService {
      * Starts Stripe Checkout for multiple courses (cart checkout); persists
      * individual PENDING transaction rows.
      */
-    public Map<String, String> createMultiCourseCheckoutSession(String userId, List<String> courseIds, String couponCode)
+    public Map<String, String> createMultiCourseCheckoutSession(String userId, List<String> courseIds,
+            String couponCode)
             throws StripeException {
         List<ECourses> courses = (List<ECourses>) coursesRepository.findAllById(courseIds);
         if (courses.isEmpty()) {
@@ -200,7 +205,8 @@ public class EduCoursePurchaseService {
         }
 
         Map<String, Long> sellerCounts = courses.stream()
-            .collect(java.util.stream.Collectors.groupingBy(ECourses::getCreatorId, java.util.stream.Collectors.counting()));
+                .collect(java.util.stream.Collectors.groupingBy(ECourses::getCreatorId,
+                        java.util.stream.Collectors.counting()));
         fraudDetectionService.validateBulkPurchases(userId, sellerCounts);
 
         // Generate idempotency key for multi-course checkout
@@ -231,7 +237,8 @@ public class EduCoursePurchaseService {
             double finalPrice = originalPrice;
             if (couponCode != null && !couponCode.isBlank()) {
                 try {
-                    CouponValidationResult couponResult = couponService.validateAndCalculate(couponCode, course.getId(), userId, originalPrice);
+                    CouponValidationResult couponResult = couponService.validateAndCalculate(couponCode, course.getId(),
+                            userId, originalPrice);
                     finalPrice = couponResult.getFinalPrice();
                 } catch (Exception e) {
                     // Coupon not valid for this specific course — use original price
@@ -239,7 +246,8 @@ public class EduCoursePurchaseService {
                 }
             }
 
-            if (finalPrice <= 0) continue; // Skip if coupon makes the course free
+            if (finalPrice <= 0)
+                continue; // Skip if coupon makes the course free
 
             long amountCents = Math.round(finalPrice * 100);
             paramsBuilder.addLineItem(SessionCreateParams.LineItem.builder()
@@ -268,7 +276,8 @@ public class EduCoursePurchaseService {
 
             if (couponCode != null && !couponCode.isBlank()) {
                 try {
-                    CouponValidationResult couponResult = couponService.validateAndCalculate(couponCode, course.getId(), userId, originalPrice);
+                    CouponValidationResult couponResult = couponService.validateAndCalculate(couponCode, course.getId(),
+                            userId, originalPrice);
                     discountAmount = couponResult.getDiscountAmount();
                     finalPrice = couponResult.getFinalPrice();
                 } catch (Exception ignored) {
@@ -276,7 +285,8 @@ public class EduCoursePurchaseService {
                 }
             }
 
-            EduCommissionCalculator.CommissionResult commData = commissionCalculator.calculateCommissionRate(course.getCreatorId());
+            EduCommissionCalculator.CommissionResult commData = commissionCalculator
+                    .calculateCommissionRate(course.getCreatorId());
             double rate = commData.rate;
             double fee = round2(finalPrice * rate);
             double creatorShare = round2(finalPrice - fee);
@@ -341,9 +351,22 @@ public class EduCoursePurchaseService {
                     .orElseThrow(() -> new EduResourceNotFoundException("Purchase record not found for session"));
 
             if (tx.getPaymentStatus() != EPaymentStatus.SUCCESS) {
+                enrollmentService.ensureEnrollmentAfterSuccessfulPurchase(userId, courseId);
+
+                // Redeem coupon on successful payment
+                String singleCoupon = meta.get("couponCode");
+                if (singleCoupon != null && !singleCoupon.isBlank()) {
+                    try {
+                        couponService.redeemCoupon(singleCoupon, userId, tx.getId());
+                        log.info("Redeemed coupon {} for single-course purchase tx={}", singleCoupon, tx.getId());
+                    } catch (Exception e) {
+                        log.warn("Coupon redemption failed for {} (may be idempotent): {}", singleCoupon, e.getMessage());
+                    }
+                }
+
                 tx.setPaymentStatus(EPaymentStatus.SUCCESS);
                 tx.setPaymentGatewayResponse("stripe_session:" + session.getId());
-                
+
                 String affiliateId = meta.get("affiliateId");
                 if (affiliateId != null && !affiliateId.isEmpty()) {
                     EAffiliates affiliate = affiliatesRepository.findById(affiliateId).orElse(null);
@@ -351,14 +374,14 @@ public class EduCoursePurchaseService {
                         double price = tx.getAmount();
                         double affRate = affiliate.getCommissionRate() != null ? affiliate.getCommissionRate() : 0.20;
                         double affEarning = round2(price * affRate);
-                        
+
                         tx.setAffiliateId(affiliateId);
                         tx.setAffiliateEarning(affEarning);
-                        
+
                         // Recalculate Creator share
                         double newCreatorEarning = round2(tx.getCreatorEarning() - affEarning);
                         tx.setCreatorEarning(newCreatorEarning);
-                        
+
                         // Affiliate Ledger
                         holdingLedgerRepository.save(EHoldingLedger.builder()
                                 .beneficiaryId(affiliate.getUserId())
@@ -373,10 +396,10 @@ public class EduCoursePurchaseService {
                                 .build());
                     }
                 }
-                
+
                 tx.setUpdatedAt(Instant.now());
                 transactionsRepository.save(tx);
-                
+
                 // Creator Ledger
                 holdingLedgerRepository.save(EHoldingLedger.builder()
                         .beneficiaryId(tx.getSellerId())
@@ -402,14 +425,6 @@ public class EduCoursePurchaseService {
                     }
                 }
             }
-            enrollmentService.ensureEnrollmentAfterSuccessfulPurchase(userId, courseId);
-
-            // Redeem coupon on successful payment
-            String singleCoupon = meta.get("couponCode");
-            if (singleCoupon != null && !singleCoupon.isBlank()) {
-                couponService.redeemCoupon(singleCoupon, userId, tx.getId());
-                log.info("Redeemed coupon {} for single-course purchase tx={}", singleCoupon, tx.getId());
-            }
 
         } else if ("MULTI_COURSE_PURCHASE".equals(type)) {
             String courseIdsStr = meta.get("courseIds");
@@ -417,6 +432,25 @@ public class EduCoursePurchaseService {
                 return;
 
             List<ETransactions> txs = transactionsRepository.findAllByStripeCheckoutSessionId(sessionId);
+            
+            boolean needsProcessing = txs.stream().anyMatch(tx -> tx.getPaymentStatus() != EPaymentStatus.SUCCESS);
+            if (needsProcessing) {
+                for (String cid : courseIdsStr.split(",")) {
+                    enrollmentService.ensureEnrollmentAfterSuccessfulPurchase(userId, cid.trim());
+                }
+
+                // Redeem coupon once for the entire cart session
+                String multiCoupon = meta.get("couponCode");
+                if (multiCoupon != null && !multiCoupon.isBlank() && !txs.isEmpty()) {
+                    try {
+                        couponService.redeemCoupon(multiCoupon, userId, txs.get(0).getId());
+                        log.info("Redeemed coupon {} for multi-course purchase session={}", multiCoupon, sessionId);
+                    } catch (Exception e) {
+                        log.warn("Coupon redemption failed for {} (may be idempotent): {}", multiCoupon, e.getMessage());
+                    }
+                }
+            }
+
             for (ETransactions tx : txs) {
                 if (tx.getPaymentStatus() != EPaymentStatus.SUCCESS) {
                     tx.setPaymentStatus(EPaymentStatus.SUCCESS);
@@ -436,12 +470,13 @@ public class EduCoursePurchaseService {
                             .createdAt(Instant.now())
                             .build();
                     holdingLedgerRepository.save(hold);
-                    
+
                     // Double-entry ledger
                     ledgerService.recordPurchase(tx);
-                    
+
                     // Affiliate ledger entry (if applicable in future)
-                    if (tx.getAffiliateId() != null && tx.getAffiliateEarning() != null && tx.getAffiliateEarning() > 0) {
+                    if (tx.getAffiliateId() != null && tx.getAffiliateEarning() != null
+                            && tx.getAffiliateEarning() > 0) {
                         EAffiliates aff = affiliatesRepository.findById(tx.getAffiliateId()).orElse(null);
                         if (aff != null) {
                             ledgerService.recordAffiliateCommission(tx.getId(), aff.getUserId(),
@@ -451,17 +486,6 @@ public class EduCoursePurchaseService {
                 }
             }
 
-            for (String cid : courseIdsStr.split(",")) {
-                enrollmentService.ensureEnrollmentAfterSuccessfulPurchase(userId, cid);
-            }
-
-            // Redeem coupon once for the entire cart session
-            String multiCoupon = meta.get("couponCode");
-            if (multiCoupon != null && !multiCoupon.isBlank() && !txs.isEmpty()) {
-                couponService.redeemCoupon(multiCoupon, userId, txs.get(0).getId());
-                log.info("Redeemed coupon {} for multi-course purchase session={}", multiCoupon, sessionId);
-            }
-
         } else if ("BUNDLE_PURCHASE".equals(type)) {
             String bundleId = meta.get("bundleId");
             String courseIdsStr = meta.get("courseIds");
@@ -469,6 +493,32 @@ public class EduCoursePurchaseService {
                 return;
 
             List<ETransactions> txs = transactionsRepository.findAllByStripeCheckoutSessionId(sessionId);
+            
+            boolean needsProcessing = txs.stream().anyMatch(tx -> tx.getPaymentStatus() != EPaymentStatus.SUCCESS);
+            if (needsProcessing) {
+                // Enroll in all bundle courses (including already-owned — idempotent)
+                for (String cid : courseIdsStr.split(",")) {
+                    enrollmentService.ensureEnrollmentAfterSuccessfulPurchase(userId, cid.trim());
+                }
+
+                // Increment bundle sales counter
+                bundlesRepository.findById(bundleId).ifPresent(bundle -> {
+                    bundle.setTotalSales((bundle.getTotalSales() != null ? bundle.getTotalSales() : 0) + 1);
+                    bundlesRepository.save(bundle);
+                });
+
+                // Redeem coupon once for bundle session
+                String bundleCoupon = meta.get("couponCode");
+                if (bundleCoupon != null && !bundleCoupon.isBlank() && !txs.isEmpty()) {
+                    try {
+                        couponService.redeemCoupon(bundleCoupon, userId, txs.get(0).getId());
+                        log.info("Redeemed coupon {} for bundle purchase session={}", bundleCoupon, sessionId);
+                    } catch (Exception e) {
+                        log.warn("Coupon redemption failed for {} (may be idempotent): {}", bundleCoupon, e.getMessage());
+                    }
+                }
+            }
+
             for (ETransactions tx : txs) {
                 if (tx.getPaymentStatus() != EPaymentStatus.SUCCESS) {
                     tx.setPaymentStatus(EPaymentStatus.SUCCESS);
@@ -488,12 +538,13 @@ public class EduCoursePurchaseService {
                             .clearanceDate(Instant.now().plus(14, ChronoUnit.DAYS))
                             .createdAt(Instant.now())
                             .build());
-                    
+
                     // Double-entry ledger
                     ledgerService.recordPurchase(tx);
-                    
+
                     // Affiliate ledger entry (if applicable in future)
-                    if (tx.getAffiliateId() != null && tx.getAffiliateEarning() != null && tx.getAffiliateEarning() > 0) {
+                    if (tx.getAffiliateId() != null && tx.getAffiliateEarning() != null
+                            && tx.getAffiliateEarning() > 0) {
                         EAffiliates aff = affiliatesRepository.findById(tx.getAffiliateId()).orElse(null);
                         if (aff != null) {
                             ledgerService.recordAffiliateCommission(tx.getId(), aff.getUserId(),
@@ -501,24 +552,6 @@ public class EduCoursePurchaseService {
                         }
                     }
                 }
-            }
-
-            // Enroll in all bundle courses (including already-owned — idempotent)
-            for (String cid : courseIdsStr.split(",")) {
-                enrollmentService.ensureEnrollmentAfterSuccessfulPurchase(userId, cid.trim());
-            }
-
-            // Increment bundle sales counter
-            bundlesRepository.findById(bundleId).ifPresent(bundle -> {
-                bundle.setTotalSales((bundle.getTotalSales() != null ? bundle.getTotalSales() : 0) + 1);
-                bundlesRepository.save(bundle);
-            });
-
-            // Redeem coupon once for bundle session
-            String bundleCoupon = meta.get("couponCode");
-            if (bundleCoupon != null && !bundleCoupon.isBlank() && !txs.isEmpty()) {
-                couponService.redeemCoupon(bundleCoupon, userId, txs.get(0).getId());
-                log.info("Redeemed coupon {} for bundle purchase session={}", bundleCoupon, sessionId);
             }
 
             log.info("Finalized bundle purchase: bundleId={}, user={}, courses={}, txCount={}",
@@ -609,12 +642,13 @@ public class EduCoursePurchaseService {
      *
      * Key behaviors:
      * - Deducts already-owned courses (user only pays for unenrolled courses)
-     * - Charges proportional bundle price (bundle discount distributed across courses)
+     * - Charges proportional bundle price (bundle discount distributed across
+     * courses)
      * - Creates per-course PENDING transactions with bundleId
      * - Stores all metadata for webhook finalization
      *
-     * @param userId    buyer
-     * @param bundleId  the bundle being purchased
+     * @param userId     buyer
+     * @param bundleId   the bundle being purchased
      * @param couponCode optional coupon
      * @return Map with "url" (Stripe Checkout URL) and "sessionId"
      */
@@ -640,7 +674,8 @@ public class EduCoursePurchaseService {
         // Self-purchase check
         for (ECourses course : allCourses) {
             if (userId.equals(course.getCreatorId())) {
-                throw new EduBadRequestException("You cannot buy a bundle containing your own course: " + course.getTitle());
+                throw new EduBadRequestException(
+                        "You cannot buy a bundle containing your own course: " + course.getTitle());
             }
         }
 
@@ -695,7 +730,8 @@ public class EduCoursePurchaseService {
         }
 
         String idempotencyKey = UUID.randomUUID().toString();
-        String courseIdsJoined = unenrolledCourses.stream().map(ECourses::getId).reduce((a, b) -> a + "," + b).orElse("");
+        String courseIdsJoined = unenrolledCourses.stream().map(ECourses::getId).reduce((a, b) -> a + "," + b)
+                .orElse("");
 
         SessionCreateParams.Builder paramsBuilder = SessionCreateParams.builder()
                 .setMode(SessionCreateParams.Mode.PAYMENT)
@@ -713,7 +749,8 @@ public class EduCoursePurchaseService {
         // Add each unenrolled course as a line item with proportional pricing
         for (ECourses course : unenrolledCourses) {
             double courseOriginalPrice = course.getPrice() != null ? course.getPrice() : 0.0;
-            if (courseOriginalPrice <= 0) continue;
+            if (courseOriginalPrice <= 0)
+                continue;
 
             // Proportional share: (coursePrice / unenrolledTotal) * finalTotalPrice
             double proportionalPrice = unenrolledOriginalTotal > 0
@@ -744,16 +781,20 @@ public class EduCoursePurchaseService {
         // Create per-course PENDING transactions
         for (ECourses course : unenrolledCourses) {
             double courseOriginalPrice = course.getPrice() != null ? course.getPrice() : 0.0;
-            if (courseOriginalPrice <= 0) continue;
+            if (courseOriginalPrice <= 0)
+                continue;
 
             double proportionalPrice = unenrolledOriginalTotal > 0
                     ? round2((courseOriginalPrice / unenrolledOriginalTotal) * finalTotalPrice)
                     : 0.0;
             double courseDiscount = unenrolledOriginalTotal > 0
-                    ? round2((courseOriginalPrice / unenrolledOriginalTotal) * (effectiveBundlePrice - finalTotalPrice + (courseOriginalPrice - (courseOriginalPrice / unenrolledOriginalTotal) * effectiveBundlePrice)))
+                    ? round2((courseOriginalPrice / unenrolledOriginalTotal) * (effectiveBundlePrice - finalTotalPrice
+                            + (courseOriginalPrice
+                                    - (courseOriginalPrice / unenrolledOriginalTotal) * effectiveBundlePrice)))
                     : 0.0;
 
-            EduCommissionCalculator.CommissionResult commData = commissionCalculator.calculateCommissionRate(course.getCreatorId());
+            EduCommissionCalculator.CommissionResult commData = commissionCalculator
+                    .calculateCommissionRate(course.getCreatorId());
             double rate = commData.rate;
             double fee = round2(proportionalPrice * rate);
             double creatorShare = round2(proportionalPrice - fee);

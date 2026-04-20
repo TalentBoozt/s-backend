@@ -38,7 +38,7 @@ public class EUserService {
     private final EduSubscriptionService subscriptionService;
     private final JavaMailSender mailSender;
 
-    @Value("${app.frontend-url:http://localhost:5173}")
+    @Value("${app.frontend-url:https://edu.talnova.io}")
     private String frontendUrl;
 
     public EUserService(EUserRepository userRepository, EProfilesRepository profileRepository,
@@ -138,7 +138,7 @@ public class EUserService {
     public void verifyEmail(String token) {
         EUser user = userRepository.findByEmailVerificationToken(token)
                 .orElseThrow(() -> new EduBadRequestException("Invalid verification token"));
-        
+
         user.setIsEmailVerified(true);
         user.setEmailVerificationToken(null);
         userRepository.save(user);
@@ -160,7 +160,7 @@ public class EUserService {
     public void resetPassword(String token, String newPassword) {
         EUser user = userRepository.findByPasswordResetToken(token)
                 .orElseThrow(() -> new EduBadRequestException("Invalid reset token"));
-        
+
         if (user.getPasswordResetExpiry().isBefore(Instant.now())) {
             throw new EduBadRequestException("Reset token expired");
         }
@@ -173,19 +173,19 @@ public class EUserService {
 
     public AuthResponse refreshToken(String refreshToken) {
         if (refreshToken == null || refreshToken.isEmpty()) {
-             throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.UNAUTHORIZED, "No refresh token provided");
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "No refresh token provided");
         }
 
         if (!jwtService.validateToken(refreshToken)) {
             throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.UNAUTHORIZED, "Invalid or expired refresh token");
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Invalid or expired refresh token");
         }
 
         String userId = jwtService.extractUserId(refreshToken);
         EUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED, "User identity lost. Please login again."));
+                        org.springframework.http.HttpStatus.UNAUTHORIZED, "User identity lost. Please login again."));
 
         return buildAuthResponse(user);
     }
@@ -193,17 +193,19 @@ public class EUserService {
     public AuthResponse getMe(String userId) {
         EUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"));
+                        org.springframework.http.HttpStatus.UNAUTHORIZED, "User not found"));
         return buildAuthResponse(user);
     }
 
     private AuthResponse buildAuthResponse(EUser user) {
-        com.talentboozt.s_backend.domains.edu.model.ESubscriptions sub = subscriptionService.getUserSubscription(user.getId());
+        com.talentboozt.s_backend.domains.edu.model.ESubscriptions sub = subscriptionService
+                .getUserSubscription(user.getId());
         return AuthResponse.builder()
                 .accessToken(jwtService.generateToken(user))
                 .refreshToken(jwtService.generateRefreshToken(user))
                 .user(user)
-                .currentPlan(sub != null ? sub.getPlan() : com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.FREE)
+                .currentPlan(sub != null ? sub.getPlan()
+                        : com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.FREE)
                 .build();
     }
 
