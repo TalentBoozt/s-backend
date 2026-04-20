@@ -242,6 +242,9 @@ public class EduCourseService {
         
         List<EEnrollments> results = stream.collect(Collectors.toList());
         for (EEnrollments e : results) {
+            // Default fallbacks
+            e.setName("Learner");
+            
             if (e.getCourseId() != null) {
                 courseRepository.findById(e.getCourseId()).ifPresent(e::setCourse);
             }
@@ -250,7 +253,7 @@ public class EduCourseService {
                     String name = "";
                     if (p.getFirstName() != null) name += p.getFirstName();
                     if (p.getLastName() != null) name += (name.isEmpty() ? "" : " ") + p.getLastName();
-                    e.setName(name.isEmpty() ? "Learner" : name);
+                    if (!name.isEmpty()) e.setName(name);
                     e.setEmail(p.getPublicEmail());
                     e.setAvatar(p.getAvatarUrl());
                 });
@@ -258,6 +261,16 @@ public class EduCourseService {
                 e.setCoursesCount(count);
             }
         }
+
+        // Apply search filter on populated data if needed
+        if (!needle.isEmpty()) {
+            results = results.stream()
+                .filter(e -> (e.getName() != null && e.getName().toLowerCase(Locale.ROOT).contains(needle)) ||
+                             (e.getEmail() != null && e.getEmail().toLowerCase(Locale.ROOT).contains(needle)) ||
+                             (e.getUserId() != null && e.getUserId().toLowerCase(Locale.ROOT).contains(needle)))
+                .collect(Collectors.toList());
+        }
+
         return results;
     }
     public List<com.talentboozt.s_backend.domains.edu.model.ECourseSections> getFullCurriculum(String courseId) {
