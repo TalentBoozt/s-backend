@@ -96,4 +96,19 @@ public class EEnrollments {
     
     @LastModifiedDate
     private Instant updatedAt;
+    
+    @org.springframework.data.annotation.Transient
+    private ECourses course;
+    
+    @org.springframework.data.annotation.Transient
+    private String name;
+    
+    @org.springframework.data.annotation.Transient
+    private String email;
+    
+    @org.springframework.data.annotation.Transient
+    private String avatar;
+    
+    @org.springframework.data.annotation.Transient
+    private Integer coursesCount;
 }

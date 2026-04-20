@@ -29,14 +29,16 @@ public class EduCourseService {
     private final EduWorkspaceGuardService guardService;
     private final EduTrustScoreService trustScoreService;
     private final EduAccessGuardService accessGuard;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository;
 
-    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository, EWorkspacesRepository workspaceRepository, EduWorkspaceGuardService guardService, EduTrustScoreService trustScoreService, EduAccessGuardService accessGuard) {
+    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository, EWorkspacesRepository workspaceRepository, EduWorkspaceGuardService guardService, EduTrustScoreService trustScoreService, EduAccessGuardService accessGuard, com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository) {
         this.courseRepository = courseRepository;
         this.enrollmentsRepository = enrollmentsRepository;
         this.workspaceRepository = workspaceRepository;
         this.guardService = guardService;
         this.trustScoreService = trustScoreService;
         this.accessGuard = accessGuard;
+        this.profilesRepository = profilesRepository;
     }
 
     public ECourses createCourse(String creatorId, String workspaceId, CourseRequest request) {
@@ -227,7 +229,26 @@ public class EduCourseService {
         if (!needle.isEmpty()) {
             stream = stream.filter(e -> e.getUserId() != null && e.getUserId().toLowerCase(Locale.ROOT).contains(needle));
         }
-        return stream.collect(Collectors.toList());
+        
+        List<EEnrollments> results = stream.collect(Collectors.toList());
+        for (EEnrollments e : results) {
+            if (e.getCourseId() != null) {
+                courseRepository.findById(e.getCourseId()).ifPresent(e::setCourse);
+            }
+            if (e.getUserId() != null) {
+                profilesRepository.findByUserId(e.getUserId()).ifPresent(p -> {
+                    String name = "";
+                    if (p.getFirstName() != null) name += p.getFirstName();
+                    if (p.getLastName() != null) name += (name.isEmpty() ? "" : " ") + p.getLastName();
+                    e.setName(name.isEmpty() ? "Learner" : name);
+                    e.setEmail(p.getPublicEmail());
+                    e.setAvatar(p.getAvatarUrl());
+                });
+                int count = enrollmentsRepository.findByUserId(e.getUserId()).size();
+                e.setCoursesCount(count);
+            }
+        }
+        return results;
     }
     private void populateTrustData(ECourses course) {
         if (course.getCreatorId() != null) {
