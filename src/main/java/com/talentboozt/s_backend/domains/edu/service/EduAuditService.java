@@ -18,9 +18,9 @@ public class EduAuditService {
     private final ObjectMapper objectMapper;
 
     /**
-     * Logs a critical action with state snapshotting.
+     * Logs a critical action with state snapshotting and request metadata.
      */
-    public void logAction(String actorId, String action, String targetId, String targetType, Object previousState, Object newState) {
+    public void logAction(String actorId, String action, String targetId, String targetType, Object previousState, Object newState, jakarta.servlet.http.HttpServletRequest request) {
         try {
             EAuditLog entry = EAuditLog.builder()
                     .actorId(actorId)
@@ -29,14 +29,23 @@ public class EduAuditService {
                     .targetType(targetType)
                     .previousState(previousState != null ? objectMapper.writeValueAsString(previousState) : null)
                     .newState(newState != null ? objectMapper.writeValueAsString(newState) : null)
+                    .ipAddress(request != null ? request.getRemoteAddr() : "INTERNAL")
+                    .userAgent(request != null ? request.getHeader("User-Agent") : "SYSTEM")
                     .createdAt(Instant.now())
                     .build();
             
             auditLogRepository.save(entry);
         } catch (Exception e) {
             log.error("Failed to persist audit log entry: {}", e.getMessage());
-            // We don't throw an exception here to avoid breaking the calling business logic
-            // but in a high-security environment, we might want to enforce auditing.
         }
+    }
+
+    public org.springframework.data.domain.Page<EAuditLog> getAuditLogs(String search, int page, int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
+        if (search == null || search.trim().isEmpty()) {
+            return auditLogRepository.findAll(pageable);
+        }
+        // Custom search logic can be added here if needed, otherwise return all
+        return auditLogRepository.findAll(pageable);
     }
 }

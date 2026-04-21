@@ -11,6 +11,8 @@ import com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsReposito
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EValidationReportsRepository;
 import com.talentboozt.s_backend.domains.edu.service.EduAuditService;
 import com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser;
+
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,18 +38,18 @@ public class EduAdminReviewController {
     @GetMapping("/pending")
     public ResponseEntity<List<ECourses>> getPendingReviews() {
         return ResponseEntity.ok(coursesRepository.findByValidationStatusIn(
-            List.of(ECourseValidationStatus.MANUAL_PENDING, ECourseValidationStatus.AI_APPROVED)
-        ));
+                List.of(ECourseValidationStatus.MANUAL_PENDING, ECourseValidationStatus.AI_APPROVED)));
     }
 
     @GetMapping("/{courseId}/details")
     public ResponseEntity<Map<String, Object>> getReviewDetails(@PathVariable String courseId) {
         ECourses course = coursesRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
-        
+
         List<ECourseSections> sections = sectionsRepository.findByCourseId(courseId);
         List<ELessons> lessons = lessonsRepository.findByCourseId(courseId);
-        EValidationReports lastValidation = validationRepository.findFirstByCourseIdOrderByCreatedAtDesc(courseId).orElse(null);
+        EValidationReports lastValidation = validationRepository.findFirstByCourseIdOrderByCreatedAtDesc(courseId)
+                .orElse(null);
 
         Map<String, Object> details = new HashMap<>();
         details.put("course", course);
@@ -59,39 +61,43 @@ public class EduAdminReviewController {
     }
 
     @PostMapping("/{courseId}/approve")
-    public ResponseEntity<ECourses> approveCourse(@PathVariable String courseId, @AuthenticatedUser String adminId) {
+    public ResponseEntity<ECourses> approveCourse(@PathVariable String courseId, @AuthenticatedUser String adminId,
+            HttpServletRequest request) {
         ECourses course = coursesRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
-        
+
         ECourseValidationStatus oldStatus = course.getValidationStatus();
         course.setValidationStatus(ECourseValidationStatus.VALIDATED);
         course.setTalnovaVerified(true);
         course.setUpdatedAt(Instant.now());
-        
+
         ECourses saved = coursesRepository.save(course);
-        
-        auditService.logAction(adminId, "APPROVE_COURSE", courseId, "COURSE", oldStatus, ECourseValidationStatus.VALIDATED);
-        
+
+        auditService.logAction(adminId, "APPROVE_COURSE", courseId, "COURSE", oldStatus,
+                ECourseValidationStatus.VALIDATED, request);
+
         return ResponseEntity.ok(saved);
     }
 
     @PostMapping("/{courseId}/reject")
     public ResponseEntity<ECourses> rejectCourse(
-            @PathVariable String courseId, 
+            @PathVariable String courseId,
             @AuthenticatedUser String adminId,
-            @RequestParam String reason) {
+            @RequestParam String reason,
+            HttpServletRequest request) {
         ECourses course = coursesRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found"));
-        
+
         ECourseValidationStatus oldStatus = course.getValidationStatus();
         course.setValidationStatus(ECourseValidationStatus.REJECTED);
         course.setModerationRejectionReason(reason);
         course.setUpdatedAt(Instant.now());
-        
+
         ECourses saved = coursesRepository.save(course);
-        
-        auditService.logAction(adminId, "REJECT_COURSE", courseId, "COURSE", oldStatus, ECourseValidationStatus.REJECTED);
-        
+
+        auditService.logAction(adminId, "REJECT_COURSE", courseId, "COURSE", oldStatus,
+                ECourseValidationStatus.REJECTED, request);
+
         return ResponseEntity.ok(saved);
     }
 }

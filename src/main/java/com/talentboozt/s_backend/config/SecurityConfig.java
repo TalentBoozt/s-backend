@@ -4,6 +4,7 @@ import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
 import com.talentboozt.s_backend.domains.auth.service.CustomUserDetailsService;
 import com.talentboozt.s_backend.shared.security.cfg.JwtAuthenticationFilter;
+import com.talentboozt.s_backend.shared.security.cfg.ApiKeyAuthenticationFilter;
 import com.talentboozt.s_backend.shared.utils.ConfigUtility;
 import com.talentboozt.s_backend.shared.utils.EncryptionUtility;
 import org.springframework.context.annotation.Bean;
@@ -43,21 +44,30 @@ public class SecurityConfig {
     private final CredentialsService credentialsService;
     private final ConfigUtility configUtil;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ApiKeyAuthenticationFilter apiKeyAuthenticationFilter;
     private final CustomUserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, CustomUserDetailsService userDetailsService,
-            ConfigUtility configUtil, CredentialsService credentialsService) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthenticationFilter, 
+            ApiKeyAuthenticationFilter apiKeyAuthenticationFilter, 
+            CustomUserDetailsService userDetailsService,
+            ConfigUtility configUtil, 
+            CredentialsService credentialsService,
+            PasswordEncoder passwordEncoder) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.apiKeyAuthenticationFilter = apiKeyAuthenticationFilter;
         this.userDetailsService = userDetailsService;
         this.configUtil = configUtil;
         this.credentialsService = credentialsService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Bean
     public AuthenticationManager authenticationManager() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setPasswordEncoder(passwordEncoder);
 
         return new ProviderManager(authProvider);
     }
@@ -186,6 +196,7 @@ public class SecurityConfig {
                         }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(apiKeyAuthenticationFilter, JwtAuthenticationFilter.class)
                 .formLogin(form -> form
                         .loginPage(configUtil.getProperty("FAILURE_REDIRECT"))
                         .defaultSuccessUrl(configUtil.getProperty("SUCCESS_REDIRECT"), true)
@@ -235,29 +246,6 @@ public class SecurityConfig {
         return source;
     }
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new PasswordEncoder() {
-            @Override
-            public String encode(CharSequence rawPassword) {
-                try {
-                    return EncryptionUtility.encrypt(rawPassword.toString()); // Encrypt password before storing
-                } catch (Exception e) {
-                    throw new RuntimeException("Password encryption failed", e);
-                }
-            }
-
-            @Override
-            public boolean matches(CharSequence rawPassword, String encodedPassword) {
-                try {
-                    String decryptedPassword = EncryptionUtility.decrypt(encodedPassword);
-                    return decryptedPassword.equals(rawPassword.toString()); // Compare decrypted password
-                } catch (Exception e) {
-                    return false;
-                }
-            }
-        };
-    }
 
     private OidcUserService oidcUserService() {
         OidcUserService delegate = new OidcUserService();

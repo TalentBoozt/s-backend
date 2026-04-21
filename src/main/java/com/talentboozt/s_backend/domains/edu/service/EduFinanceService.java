@@ -9,6 +9,9 @@ import com.talentboozt.s_backend.domains.edu.model.ETransactions;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECreatorFinanceSettingsRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EPayoutsRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ETransactionsRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import com.talentboozt.s_backend.domains.edu.enums.EHoldingStatus;
 import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
 import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
@@ -32,14 +35,14 @@ public class EduFinanceService {
     private final EduLedgerService ledgerService;
     private final StripeConnectService stripeConnectService;
 
-    public EduFinanceService(ETransactionsRepository transactionsRepository, 
-                             EPayoutsRepository payoutsRepository, 
-                             ECreatorFinanceSettingsRepository financeSettingsRepository,
-                             EHoldingLedgerRepository holdingLedgerRepository,
-                             EduCryptoService cryptoService,
-                             EduAuditService auditService,
-                             EduLedgerService ledgerService,
-                             StripeConnectService stripeConnectService) {
+    public EduFinanceService(ETransactionsRepository transactionsRepository,
+            EPayoutsRepository payoutsRepository,
+            ECreatorFinanceSettingsRepository financeSettingsRepository,
+            EHoldingLedgerRepository holdingLedgerRepository,
+            EduCryptoService cryptoService,
+            EduAuditService auditService,
+            EduLedgerService ledgerService,
+            StripeConnectService stripeConnectService) {
         this.transactionsRepository = transactionsRepository;
         this.payoutsRepository = payoutsRepository;
         this.financeSettingsRepository = financeSettingsRepository;
@@ -58,10 +61,13 @@ public class EduFinanceService {
                 .mapToDouble(t -> t.getCreatorEarning() != null ? t.getCreatorEarning() : 0.0)
                 .sum();
 
-        List<EHoldingLedger> clearedRecords = holdingLedgerRepository.findByBeneficiaryIdAndStatus(creatorId, EHoldingStatus.CLEARED);
-        List<EHoldingLedger> heldRecords = holdingLedgerRepository.findByBeneficiaryIdAndStatus(creatorId, EHoldingStatus.HELD);
-        List<EHoldingLedger> clawbackRecords = holdingLedgerRepository.findByBeneficiaryIdAndStatus(creatorId, EHoldingStatus.CLAWBACK);
-        
+        List<EHoldingLedger> clearedRecords = holdingLedgerRepository.findByBeneficiaryIdAndStatus(creatorId,
+                EHoldingStatus.CLEARED);
+        List<EHoldingLedger> heldRecords = holdingLedgerRepository.findByBeneficiaryIdAndStatus(creatorId,
+                EHoldingStatus.HELD);
+        List<EHoldingLedger> clawbackRecords = holdingLedgerRepository.findByBeneficiaryIdAndStatus(creatorId,
+                EHoldingStatus.CLAWBACK);
+
         double availableEarnings = clearedRecords.stream()
                 .mapToDouble(h -> h.getAmount() != null ? h.getAmount() : 0.0)
                 .sum();
@@ -80,7 +86,7 @@ public class EduFinanceService {
                 .filter(p -> p.getStatus() == EPayoutStatus.COMPLETED)
                 .mapToDouble(p -> p.getAmount() != null ? p.getAmount() : 0.0)
                 .sum();
-                
+
         double requestedAmount = payouts.stream()
                 .filter(p -> p.getStatus() == EPayoutStatus.REQUESTED || p.getStatus() == EPayoutStatus.PROCESSING)
                 .mapToDouble(p -> p.getAmount() != null ? p.getAmount() : 0.0)
@@ -98,7 +104,7 @@ public class EduFinanceService {
                 .pendingClearance(pendingClearance)
                 .totalTransactions(transactions.size())
                 .build();
-}
+    }
 
     public EPayouts requestPayout(String creatorId, PayoutRequest request) {
         RevenueSummaryDTO summary = getRevenueSummary(creatorId);
@@ -108,8 +114,8 @@ public class EduFinanceService {
         }
 
         ECreatorFinanceSettings settings = getFinanceSettings(creatorId);
-        if (!"VERIFIED".equals(settings.getProfileVerificationStatus()) || 
-            !"VERIFIED".equals(settings.getTaxVerificationStatus())) {
+        if (!"VERIFIED".equals(settings.getProfileVerificationStatus()) ||
+                !"VERIFIED".equals(settings.getTaxVerificationStatus())) {
             throw new EduBadRequestException("Payouts disabled: Identity or tax features are unverified.");
         }
 
@@ -119,7 +125,8 @@ public class EduFinanceService {
         }
 
         if (request.getAmount() > summary.getAvailableBalance()) {
-            throw new EduBadRequestException("Insufficient cleared balance for this payout request. Some funds may still be pending clearance (14-day period).");
+            throw new EduBadRequestException(
+                    "Insufficient cleared balance for this payout request. Some funds may still be pending clearance (14-day period).");
         }
 
         EPayouts payout = EPayouts.builder()
@@ -136,14 +143,14 @@ public class EduFinanceService {
 
         return payoutsRepository.save(payout);
     }
-    
+
     public List<EPayouts> getPayoutHistory(String creatorId) {
         List<EPayouts> history = payoutsRepository.findByCreatorId(creatorId);
         history.forEach(p -> {
             if (p.getBankDetails() != null) {
                 try {
                     p.setBankDetails(cryptoService.decrypt(p.getBankDetails()));
-                } catch(Exception e) {
+                } catch (Exception e) {
                     p.setBankDetails("[ENCRYPTED DATA ERROR]");
                 }
             }
@@ -163,51 +170,54 @@ public class EduFinanceService {
     public EPayouts approvePayout(String adminId, String payoutId) {
         EPayouts payout = payoutsRepository.findById(payoutId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Payout request not found with id: " + payoutId));
-        
+
         if (payout.getStatus() != EPayoutStatus.REQUESTED) {
             throw new EduBadRequestException("Payout must be in REQUESTED state to approve");
         }
-        
+
         payout.setStatus(EPayoutStatus.PROCESSING);
         return payoutsRepository.save(payout);
     }
 
     // Admin Operation
-    public EPayouts updatePayoutStatus(String payoutId, EPayoutStatus status) throws Exception {
+    public EPayouts updatePayoutStatus(String payoutId, EPayoutStatus status, HttpServletRequest request)
+            throws Exception {
         EPayouts payout = payoutsRepository.findById(payoutId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Payout request not found with id: " + payoutId));
-        
+
         EPayoutStatus oldStatus = payout.getStatus();
         payout.setStatus(status);
         if (status == EPayoutStatus.COMPLETED) {
             payout.setPaidAt(Instant.now());
             ledgerService.recordPayout(payout.getId(), payout.getCreatorId(), payout.getAmount(), payout.getCurrency());
-            
+
             // Execute real Stripe transfer if the method is STRIPE
             if (payout.getMethod() == com.talentboozt.s_backend.domains.edu.enums.EPayoutMethod.STRIPE) {
                 ECreatorFinanceSettings settings = getFinanceSettings(payout.getCreatorId());
                 if (settings.getStripeAccountId() != null) {
-                    stripeConnectService.transferFunds(settings.getStripeAccountId(), payout.getAmount(), payout.getCurrency(), payout.getId());
+                    stripeConnectService.transferFunds(settings.getStripeAccountId(), payout.getAmount(),
+                            payout.getCurrency(), payout.getId());
                 } else {
                     throw new EduBadRequestException("Creator does not have a Stripe Connect account configured.");
                 }
             }
         }
-        
+
         EPayouts saved = payoutsRepository.save(payout);
-        
+
         // Audit Log
         auditService.logAction(
-            "SYSTEM_ADMIN", // Ideally passed from controller
-            "UPDATE_PAYOUT_STATUS",
-            payoutId,
-            "PAYOUT",
-            oldStatus,
-            status
-        );
-        
+                "SYSTEM_ADMIN", // Ideally passed from controller
+                "UPDATE_PAYOUT_STATUS",
+                payoutId,
+                "PAYOUT",
+                oldStatus,
+                status,
+                request);
+
         return saved;
     }
+
     public ECreatorFinanceSettings getFinanceSettings(String userId) {
         return financeSettingsRepository.findByUserId(userId)
                 .orElseGet(() -> {

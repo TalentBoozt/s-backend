@@ -82,4 +82,28 @@ public class EduAdminService {
         
         userRepository.save(user);
     }
+
+    public void updateUserRoles(String userId, com.talentboozt.s_backend.domains.edu.enums.ERoles[] roles) {
+        EUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new EduResourceNotFoundException("User not found with id: " + userId));
+        user.setRoles(roles);
+        userRepository.save(user);
+    }
+
+    public EUser inviteUser(String email, String firstName, String lastName, com.talentboozt.s_backend.domains.edu.enums.ERoles[] roles) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new IllegalArgumentException("User with email " + email + " already exists");
+        }
+        
+        EUser newUser = EUser.builder()
+            .email(email)
+            .displayName(firstName + " " + lastName)
+            .roles(roles != null ? roles : new com.talentboozt.s_backend.domains.edu.enums.ERoles[]{com.talentboozt.s_backend.domains.edu.enums.ERoles.LEARNER})
+            .passwordHash("INVITED_NO_PASS")
+            .isEmailVerified(false)
+            .isActive(true)
+            .build();
+            
+        return userRepository.save(newUser);
+    }
 }
