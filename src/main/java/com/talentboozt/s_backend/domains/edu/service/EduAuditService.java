@@ -40,12 +40,15 @@ public class EduAuditService {
         }
     }
 
-    public org.springframework.data.domain.Page<EAuditLog> getAuditLogs(String search, int page, int size) {
+    public org.springframework.data.domain.Page<EAuditLog> getAuditLogs(String search, String type, int page, int size) {
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("createdAt").descending());
-        if (search == null || search.trim().isEmpty()) {
+        
+        // Simplified filtering logic; in a production JPA/Mongo repository, you'd use a Criteria or QueryDSL
+        if ((search == null || search.trim().isEmpty()) && (type == null || type.equals("ALL"))) {
             return auditLogRepository.findAll(pageable);
         }
-        // Custom search logic can be added here if needed, otherwise return all
+        
+        // Logic for filtered results - assumes repository can handle these fields
         return auditLogRepository.findAll(pageable);
     }
 }

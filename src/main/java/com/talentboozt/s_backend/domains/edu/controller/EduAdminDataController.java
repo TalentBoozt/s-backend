@@ -2,6 +2,10 @@ package com.talentboozt.s_backend.domains.edu.controller;
 
 import com.talentboozt.s_backend.domains.edu.service.EduDataService;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +19,18 @@ public class EduAdminDataController {
 
     private final EduDataService dataService;
 
+    @GetMapping("/collections")
+    @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
+    public ResponseEntity<List<Map<String, Object>>> getCollections() {
+        return ResponseEntity.ok(dataService.listAvailableCollections());
+    }
+
     @GetMapping("/export/{collection}")
     @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<byte[]> exportCollection(
             @PathVariable String collection,
             @RequestParam(defaultValue = "json") String format) {
-        
+
         String content;
         String filename = "export_" + collection + "_" + System.currentTimeMillis();
         MediaType mediaType;

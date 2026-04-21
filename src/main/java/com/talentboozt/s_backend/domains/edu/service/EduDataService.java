@@ -21,6 +21,24 @@ public class EduDataService {
     private final MongoTemplate mongoTemplate;
     private final ObjectMapper objectMapper;
 
+    public List<Map<String, Object>> listAvailableCollections() {
+        return mongoTemplate.getCollectionNames().stream()
+                .filter(name -> name.startsWith("edu_"))
+                .map(name -> {
+                    Map<String, Object> info = new java.util.HashMap<>();
+                    info.put("id", name);
+                    info.put("label", formatLabel(name));
+                    info.put("count", mongoTemplate.count(new Query(), name));
+                    return info;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private String formatLabel(String name) {
+        String clean = name.replace("edu_", "").replace("_", " ");
+        return clean.substring(0, 1).toUpperCase() + clean.substring(1);
+    }
+
     public String exportCollectionToJson(String collectionName) {
         try {
             List<Map> data = mongoTemplate.find(new Query(), Map.class, collectionName);

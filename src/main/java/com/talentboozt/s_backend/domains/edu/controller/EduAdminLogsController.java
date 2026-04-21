@@ -31,9 +31,9 @@ public class EduAdminLogsController {
         List<String> logEntries = new ArrayList<>();
         try {
             // Check common log locations
-            Path logPath = Paths.get("logs/spring.log");
+            Path logPath = Paths.get("logs/log.txt");
             if (!Files.exists(logPath)) {
-                logPath = Paths.get("spring.log");
+                logPath = Paths.get("log.txt");
             }
 
             if (Files.exists(logPath)) {
