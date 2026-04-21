@@ -32,8 +32,18 @@ public class EduCourseService {
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository;
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository sectionRepository;
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonRepository;
+    private final com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService;
 
-    public EduCourseService(ECoursesRepository courseRepository, EEnrollmentsRepository enrollmentsRepository, EWorkspacesRepository workspaceRepository, EduWorkspaceGuardService guardService, EduTrustScoreService trustScoreService, EduAccessGuardService accessGuard, com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository, com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository sectionRepository, com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonRepository) {
+    public EduCourseService(ECoursesRepository courseRepository, 
+            EEnrollmentsRepository enrollmentsRepository, 
+            EWorkspacesRepository workspaceRepository, 
+            EduWorkspaceGuardService guardService, 
+            EduTrustScoreService trustScoreService, 
+            EduAccessGuardService accessGuard, 
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository, 
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository sectionRepository, 
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonRepository,
+            com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService) {
         this.courseRepository = courseRepository;
         this.enrollmentsRepository = enrollmentsRepository;
         this.workspaceRepository = workspaceRepository;
@@ -43,6 +53,7 @@ public class EduCourseService {
         this.profilesRepository = profilesRepository;
         this.sectionRepository = sectionRepository;
         this.lessonRepository = lessonRepository;
+        this.credentialsService = credentialsService;
     }
 
     public ECourses createCourse(String creatorId, String workspaceId, CourseRequest request) {
@@ -223,8 +234,7 @@ public class EduCourseService {
     public List<EEnrollments> getCreatorStudentEnrollments(String creatorId, String courseId, String search) {
         com.talentboozt.s_backend.shared.tenant.TenantContext ctx = com.talentboozt.s_backend.shared.tenant.TenantContext.getCurrent();
         
-        List<ECourses> owned = courseRepository.findAll().stream()
-                .filter(c -> creatorId.equals(c.getCreatorId()))
+        List<ECourses> owned = courseRepository.findByCreatorId(creatorId).stream()
                 .filter(c -> courseId == null || courseId.isEmpty() || c.getId().equals(courseId))
                 .filter(c -> {
                     if (ctx == null || ctx.getWorkspaceId() == null || ctx.getWorkspaceId().isEmpty() || "default".equals(ctx.getWorkspaceId())) {
@@ -257,6 +267,19 @@ public class EduCourseService {
                     e.setEmail(p.getPublicEmail());
                     e.setAvatar(p.getAvatarUrl());
                 });
+
+                // Fallback to global credentials if profile is missing/incomplete
+                if (e.getName() == null || "Learner".equals(e.getName()) || e.getEmail() == null) {
+                    credentialsService.findById(e.getUserId()).ifPresent(creds -> {
+                        if (e.getName() == null || "Learner".equals(e.getName())) {
+                            e.setName(creds.getFirstname() + " " + creds.getLastname());
+                        }
+                        if (e.getEmail() == null) {
+                            e.setEmail(creds.getEmail());
+                        }
+                    });
+                }
+
                 int count = enrollmentsRepository.findByUserId(e.getUserId()).size();
                 e.setCoursesCount(count);
             }

@@ -251,6 +251,10 @@ public class CredentialsService {
         return credentialsRepository.deleteByEmployeeId(employeeId);
     }
 
+    public Optional<CredentialsModel> findById(String id) {
+        return credentialsRepository.findById(id);
+    }
+
     public void findAndUpdateCompanyLevel(String companyId, String userLevel) {
         Optional<CredentialsModel> optionalCredentials = credentialsRepository.findByCompanyId(companyId);
         if (optionalCredentials.isPresent()) {

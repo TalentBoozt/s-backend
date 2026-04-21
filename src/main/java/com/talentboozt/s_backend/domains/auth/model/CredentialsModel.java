@@ -1,8 +1,6 @@
 package com.talentboozt.s_backend.domains.auth.model;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -12,6 +10,9 @@ import java.util.Map;
 @Getter
 @Setter
 @ToString
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 
 @Document(collection = "portal_credentials")
 public class CredentialsModel {

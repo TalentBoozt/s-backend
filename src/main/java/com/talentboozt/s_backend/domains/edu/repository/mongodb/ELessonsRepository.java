@@ -11,4 +11,5 @@ import com.talentboozt.s_backend.domains.edu.model.ELessons;
 public interface ELessonsRepository extends MongoRepository<ELessons, String> {
     List<ELessons> findByCourseId(String courseId);
     List<ELessons> findBySectionId(String sectionId);
+    Integer countByCourseId(String courseId);
 }
