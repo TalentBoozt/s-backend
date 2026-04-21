@@ -181,4 +181,21 @@ public class EduAdminService {
 
         return report;
     }
+
+    public String generateImpersonationToken(String adminId, String userId) {
+        EUser admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new EduResourceNotFoundException("Admin not found"));
+        EUser target = userRepository.findById(userId)
+                .orElseThrow(() -> new EduResourceNotFoundException("Target user not found"));
+
+        // In a real implementation, you would use a JwtProvider to sign a token with special claims
+        // such as "impersonator": adminId and "sub": userId.
+        // For now, we return a secure random string that the frontend uses to signal the proxy session.
+        String proxyToken = "staff_proxy_" + java.util.UUID.randomUUID().toString();
+        
+        // Log the security event
+        System.out.println("ALERT: Admin " + adminId + " is impersonating user " + userId);
+        
+        return proxyToken;
+    }
 }

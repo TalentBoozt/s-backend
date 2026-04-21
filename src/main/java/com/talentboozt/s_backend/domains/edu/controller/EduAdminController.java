@@ -169,8 +169,30 @@ public class EduAdminController {
     @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<Page<EAuditLog>> getAuditLogs(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String type,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(auditService.getAuditLogs(search, page, size));
+        return ResponseEntity.ok(auditService.getAuditLogs(search, type, page, size));
+    }
+
+    @PostMapping("/users/{userId}/impersonate")
+    @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
+    public ResponseEntity<Map<String, String>> impersonateUser(
+            @PathVariable String userId,
+            HttpServletRequest request) {
+        String adminId = SecurityContextHolder.getContext().getAuthentication().getName();
+        String token = adminService.generateImpersonationToken(adminId, userId);
+        
+        auditService.logAction(
+            adminId,
+            "STAFF_IMPERSONATE_INITIATED",
+            userId,
+            "USER",
+            null,
+            Map.of("proxy_target", userId),
+            request
+        );
+
+        return ResponseEntity.ok(Map.of("token", token));
     }
 }
