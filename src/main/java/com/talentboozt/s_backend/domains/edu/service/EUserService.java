@@ -2,7 +2,9 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.dto.auth.LoginRequest;
 import com.talentboozt.s_backend.domains.edu.dto.auth.RegisterRequest;
+import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
 import com.talentboozt.s_backend.domains.edu.dto.auth.AuthResponse;
+import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.edu.enums.ERoles;
 import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
 import com.talentboozt.s_backend.domains.edu.exception.EduInvalidCredentialsException;
@@ -36,6 +38,7 @@ public class EUserService {
     private final PasswordEncoder passwordEncoder;
     private final EduJwtService jwtService;
     private final EduSubscriptionService subscriptionService;
+    private final CredentialsService credentialsService;
     private final JavaMailSender mailSender;
 
     @Value("${app.frontend-url:https://edu.talnova.io}")
@@ -45,6 +48,7 @@ public class EUserService {
             EmployeeRepository employeeRepository,
             PasswordEncoder passwordEncoder, EduJwtService jwtService,
             EduSubscriptionService subscriptionService,
+            CredentialsService credentialsService,
             JavaMailSender mailSender) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
@@ -52,25 +56,22 @@ public class EUserService {
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.subscriptionService = subscriptionService;
+        this.credentialsService = credentialsService;
         this.mailSender = mailSender;
     }
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new EduBadRequestException("Email already in use");
-        }
-
         Set<ERoles> roles = new HashSet<>();
         roles.add(ERoles.LEARNER);
 
         String requestedRole = request.getRole() != null ? request.getRole().trim().toUpperCase() : "LEARNER";
-        System.out.println("[REGISTRATION] Mapping requested role: " + requestedRole);
-
         if (requestedRole.contains("INSTRUCTOR")) {
             roles.add(ERoles.ENTERPRISE_INSTRUCTOR);
         } else if (requestedRole.contains("CREATOR") || requestedRole.contains("SELLER")) {
             roles.add(ERoles.SELLER_FREE);
+        } else if (requestedRole.contains("PLATFORM_ADMIN")) {
+            roles.add(ERoles.PLATFORM_ADMIN);
         } else if (requestedRole.contains("ADMIN")) {
             roles.add(ERoles.ENTERPRISE_ADMIN);
         } else if (requestedRole.contains("ENTERPRISE_LEARNER")) {
@@ -79,21 +80,33 @@ public class EUserService {
             roles.add(ERoles.ENTERPRISE_MANAGER);
         } else if (requestedRole.contains("REVIEWER")) {
             roles.add(ERoles.REVIEWER);
-        } else if (requestedRole.contains("LEARNER")) {
-            // Already added as default
         }
 
-        // Link with SSO user if exists to avoid ID conflict
-        String userIdToUse = null;
-        Optional<EmployeeModel> portalEmp = employeeRepository.findByEmail(request.getEmail());
-        if (portalEmp.isPresent()) {
-            userIdToUse = portalEmp.get().getId();
+        // Core Ecosystem Orchestration: Ensuring a global SSO identity exists
+        com.talentboozt.s_backend.domains.auth.model.CredentialsModel globalCreds = com.talentboozt.s_backend.domains.auth.model.CredentialsModel
+                .builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .firstname(request.getFirstName())
+                .lastname(request.getLastName())
+                .roles(roles.stream().map(Enum::name).collect(java.util.stream.Collectors.toList()))
+                .platformRole("USER")
+                .registeredFrom("EDU_PLATFORM")
+                .build();
+
+        // This will find existing user or create a new one across all domains
+        globalCreds = credentialsService.addCredentials(globalCreds, "EDU_PLATFORM", null);
+        String userIdToUse = globalCreds.getEmployeeId();
+
+        // Check if EDU-specific profile already exists for this unique platform ID
+        if (userRepository.findById(userIdToUse).isPresent()) {
+            throw new EduBadRequestException("Profile already exists on this platform for this email. Please login.");
         }
 
         String verificationToken = UUID.randomUUID().toString();
 
         EUser newUser = EUser.builder()
-                .id(userIdToUse) // Set the ID if we found a portal user
+                .id(userIdToUse)
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .displayName(request.getFirstName() + " " + request.getLastName())
@@ -122,17 +135,54 @@ public class EUserService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        EUser user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new EduInvalidCredentialsException("Invalid credentials"));
+        Optional<EUser> userOpt = userRepository.findByEmail(request.getEmail());
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new EduInvalidCredentialsException("Invalid credentials");
+        if (userOpt.isPresent()) {
+            EUser user = userOpt.get();
+            if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+                throw new EduInvalidCredentialsException("Invalid credentials");
+            }
+            user.setLastLoginAt(Instant.now());
+            userRepository.save(user);
+            return buildAuthResponse(user);
         }
 
-        user.setLastLoginAt(Instant.now());
-        userRepository.save(user);
+        // Fallback: Check if user exists in the core ecosystem (SSO)
+        com.talentboozt.s_backend.domains.auth.model.CredentialsModel globalCreds = credentialsService
+                .getCredentialsByEmail(request.getEmail());
 
-        return buildAuthResponse(user);
+        if (globalCreds != null) {
+            // Verify global password (which is also encrypted with the same utility)
+            if (passwordEncoder.matches(request.getPassword(), globalCreds.getPassword())) {
+                // Auto-provision EDU profile linked to this global identity
+                EUser provisionedUser = EUser.builder()
+                        .id(globalCreds.getEmployeeId())
+                        .email(globalCreds.getEmail())
+                        .passwordHash(globalCreds.getPassword())
+                        .displayName(globalCreds.getFirstname() + " " + globalCreds.getLastname())
+                        .roles(new ERoles[] { ERoles.LEARNER }) // Default role
+                        .isActive(true)
+                        .isEmailVerified(true) // Already verified on platform
+                        .lastLoginAt(Instant.now())
+                        .build();
+
+                EUser saved = userRepository.save(provisionedUser);
+
+                // Also create basic profile
+                EProfiles newProfile = EProfiles.builder()
+                        .userId(saved.getId())
+                        .firstName(globalCreds.getFirstname())
+                        .lastName(globalCreds.getLastname())
+                        .publicEmail(globalCreds.getEmail())
+                        .build();
+                profileRepository.save(newProfile);
+                subscriptionService.assignDefaultFreePlan(saved.getId());
+
+                return buildAuthResponse(saved);
+            }
+        }
+
+        throw new EduInvalidCredentialsException("Invalid credentials");
     }
 
     public void verifyEmail(String token) {

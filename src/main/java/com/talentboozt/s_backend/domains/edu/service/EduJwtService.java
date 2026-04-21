@@ -21,11 +21,14 @@ public class EduJwtService {
     @Value("${jwt-token.secret:TalnovaEduSecretKeyThatIsVeryLongAndSecure12345!}")
     private String tokenSecret;
 
+    @Value("${jwt-cookie.type:Lax}")
+    private String cookieType;
+
     @Value("${jwt-cookie.secure:false}")
     private boolean isSecure;
 
-    @Value("${jwt-cookie.type:Lax}")
-    private String cookieType;
+    @Value("${jwt-cookie.domain:talnova.io}")
+    private String cookieDomain;
 
     private final long EXPIRE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     private final long REFRESH_EXPIRE_DURATION = 30L * 24 * 60 * 60 * 1000; // 30 days
@@ -36,6 +39,7 @@ public class EduJwtService {
                 .httpOnly(true)
                 .secure(isSecure)
                 .path("/")
+                .domain(cookieDomain)
                 .maxAge(EXPIRE_DURATION / 1000)
                 .sameSite(cookieType)
                 .build();
@@ -47,6 +51,7 @@ public class EduJwtService {
                 .httpOnly(true)
                 .secure(isSecure)
                 .path("/")
+                .domain(cookieDomain)
                 .maxAge(REFRESH_EXPIRE_DURATION / 1000)
                 .sameSite(cookieType)
                 .build();
@@ -55,6 +60,7 @@ public class EduJwtService {
     public ResponseCookie getCleanAccessTokenCookie() {
         return ResponseCookie.from("edu_access_token", null)
                 .path("/")
+                .domain(cookieDomain)
                 .maxAge(0)
                 .build();
     }
@@ -62,6 +68,7 @@ public class EduJwtService {
     public ResponseCookie getCleanRefreshTokenCookie() {
         return ResponseCookie.from("edu_refresh_token", null)
                 .path("/")
+                .domain(cookieDomain)
                 .maxAge(0)
                 .build();
     }

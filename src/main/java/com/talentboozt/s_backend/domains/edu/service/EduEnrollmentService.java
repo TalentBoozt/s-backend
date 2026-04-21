@@ -19,11 +19,17 @@ public class EduEnrollmentService {
 
     private final EEnrollmentsRepository enrollmentsRepository;
     private final ECoursesRepository coursesRepository;
+    private final EduCertificateService certificateService;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonsRepository;
 
     public EduEnrollmentService(EEnrollmentsRepository enrollmentsRepository,
-            ECoursesRepository coursesRepository) {
+            ECoursesRepository coursesRepository,
+            EduCertificateService certificateService,
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonsRepository) {
         this.enrollmentsRepository = enrollmentsRepository;
         this.coursesRepository = coursesRepository;
+        this.certificateService = certificateService;
+        this.lessonsRepository = lessonsRepository;
     }
 
     /**
@@ -155,10 +161,13 @@ public class EduEnrollmentService {
             enrollment.setCompletedLessons(count);
 
             int total = 0;
-            if (enrollment.getCourse() != null && enrollment.getCourse().getTotalLessons() != null) {
+            if (enrollment.getCourse() != null && enrollment.getCourse().getTotalLessons() != null && enrollment.getCourse().getTotalLessons() > 0) {
                 total = enrollment.getCourse().getTotalLessons();
-            } else {
+            } else if (enrollment.getTotalLessons() != null && enrollment.getTotalLessons() > 0) {
                 total = enrollment.getTotalLessons();
+            } else {
+                // Fallback: count lessons from DB
+                total = (int) lessonsRepository.countByCourseId(enrollment.getCourseId());
             }
 
             if (total > 0) {
@@ -167,6 +176,14 @@ public class EduEnrollmentService {
                 if (enrollment.getProgress() >= 100 && !Boolean.TRUE.equals(enrollment.getCompleted())) {
                     enrollment.setCompleted(true);
                     enrollment.setCompletedAt(Instant.now());
+                    
+                    // Auto-trigger certificate generation
+                    try {
+                        certificateService.generateCertificate(enrollmentId);
+                    } catch (Exception e) {
+                        // Log error but don't fail the progress recording
+                        System.err.println("Failed to auto-generate certificate for enrollment " + enrollmentId + ": " + e.getMessage());
+                    }
                 }
             }
             // Update enrollment's totalLessons too just to keep it somewhat in sync

@@ -62,8 +62,20 @@ public class AuthService {
         String def_role = Optional.ofNullable(registerRequest.getRole()).orElse("END_USER");
 
         // Check if user already exists
-        if (credentialsService.isExistsByEmail(registerRequest.getEmail())) {
-            return null;
+        CredentialsModel existingUser = credentialsService.getCredentialsByEmail(registerRequest.getEmail());
+        if (existingUser != null) {
+            // User exists in ecosystem, just ensure they have access to this new platform
+            CredentialsModel updatedUser = credentialsService.addCredentials(existingUser, platform, referrer);
+            
+            JwtUserPayload userPayload = new JwtUserPayload();
+            userPayload.setUserId(updatedUser.getEmployeeId());
+            userPayload.setEmail(updatedUser.getEmail());
+            userPayload.setUserLevel(updatedUser.getUserLevel());
+            userPayload.setRoles(updatedUser.getRoles());
+            userPayload.setPermissions(updatedUser.getPermissions());
+            userPayload.setOrganizations(updatedUser.getOrganizations());
+            
+            return new AuthResponse(userPayload, determineRedirectUri(updatedUser));
         }
 
         Set<String> userRoles = new HashSet<>();
