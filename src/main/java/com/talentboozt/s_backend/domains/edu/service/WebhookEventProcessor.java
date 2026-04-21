@@ -165,6 +165,6 @@ public class WebhookEventProcessor {
             return;
         }
 
-        refundService.processStripeRefund(chargeId, refundId, amountRefunded, amountTotal, sessionId);
+        refundService.processStripeRefund(chargeId, refundId, amountRefunded, amountTotal, sessionId, null);
     }
 }

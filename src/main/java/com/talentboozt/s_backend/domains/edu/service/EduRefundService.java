@@ -13,6 +13,9 @@ import com.talentboozt.s_backend.domains.edu.repository.mongodb.EEnrollmentsRepo
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EHoldingLedgerRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ERefundRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ETransactionsRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -47,11 +50,11 @@ public class EduRefundService {
     private final EduLedgerService ledgerService;
 
     public EduRefundService(ERefundRepository refundRepository,
-                            ETransactionsRepository transactionsRepository,
-                            EHoldingLedgerRepository holdingLedgerRepository,
-                            EEnrollmentsRepository enrollmentsRepository,
-                            EduAuditService auditService,
-                            EduLedgerService ledgerService) {
+            ETransactionsRepository transactionsRepository,
+            EHoldingLedgerRepository holdingLedgerRepository,
+            EEnrollmentsRepository enrollmentsRepository,
+            EduAuditService auditService,
+            EduLedgerService ledgerService) {
         this.refundRepository = refundRepository;
         this.transactionsRepository = transactionsRepository;
         this.holdingLedgerRepository = holdingLedgerRepository;
@@ -63,16 +66,18 @@ public class EduRefundService {
     /**
      * Processes a refund event from Stripe's charge.refunded webhook.
      *
-     * @param stripeChargeId Stripe charge ID (ch_xxx)
-     * @param stripeRefundId Stripe refund ID (re_xxx)
-     * @param amountRefunded Amount refunded in cents
-     * @param amountTotalCents Total charge amount in cents (for full/partial detection)
-     * @param sessionId Stripe checkout session ID (from charge metadata or payment intent)
+     * @param stripeChargeId   Stripe charge ID (ch_xxx)
+     * @param stripeRefundId   Stripe refund ID (re_xxx)
+     * @param amountRefunded   Amount refunded in cents
+     * @param amountTotalCents Total charge amount in cents (for full/partial
+     *                         detection)
+     * @param sessionId        Stripe checkout session ID (from charge metadata or
+     *                         payment intent)
      */
     @Transactional
     public void processStripeRefund(String stripeChargeId, String stripeRefundId,
-                                     long amountRefundedCents, long amountTotalCents,
-                                     String sessionId) {
+            long amountRefundedCents, long amountTotalCents,
+            String sessionId, HttpServletRequest request) {
         // Idempotency check — skip if this Stripe refund was already processed
         if (refundRepository.existsByStripeRefundId(stripeRefundId)) {
             log.info("Skipping duplicate Stripe refund: {}", stripeRefundId);
@@ -118,17 +123,18 @@ public class EduRefundService {
             // Full refund — process all transactions in the session
             for (ETransactions tx : transactions) {
                 processTransactionRefund(tx, tx.getAmount(), stripeChargeId,
-                        stripeRefundId, RefundType.FULL, "Stripe charge.refunded (full)");
+                        stripeRefundId, RefundType.FULL, "Stripe charge.refunded (full)", request);
             }
         } else {
             // Partial refund — proportionally distribute across transactions
             double remainingRefund = refundAmount;
             for (ETransactions tx : transactions) {
-                if (remainingRefund <= 0) break;
+                if (remainingRefund <= 0)
+                    break;
                 double txAmount = tx.getAmount() != null ? tx.getAmount() : 0.0;
                 double txRefund = Math.min(remainingRefund, txAmount);
                 processTransactionRefund(tx, txRefund, stripeChargeId,
-                        stripeRefundId, RefundType.PARTIAL, "Stripe charge.refunded (partial)");
+                        stripeRefundId, RefundType.PARTIAL, "Stripe charge.refunded (partial)", request);
                 remainingRefund -= txRefund;
             }
         }
@@ -143,12 +149,14 @@ public class EduRefundService {
      * via Stripe Dashboard or a future Stripe Refund API integration.
      */
     @Transactional
-    public ERefund initiateRefund(String transactionId, Double amount, String reason, String adminId) {
+    public ERefund initiateRefund(String transactionId, Double amount, String reason, String adminId,
+            HttpServletRequest request) {
         ETransactions tx = transactionsRepository.findById(transactionId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Transaction not found: " + transactionId));
 
         if (tx.getPaymentStatus() != EPaymentStatus.SUCCESS) {
-            throw new EduBadRequestException("Can only refund SUCCESS transactions. Current status: " + tx.getPaymentStatus());
+            throw new EduBadRequestException(
+                    "Can only refund SUCCESS transactions. Current status: " + tx.getPaymentStatus());
         }
 
         // Validate refund amount
@@ -167,15 +175,16 @@ public class EduRefundService {
         boolean isFullRefund = Math.abs(amount - maxRefundable) < 0.01;
         RefundType type = isFullRefund ? RefundType.FULL : RefundType.PARTIAL;
 
-        return processTransactionRefund(tx, amount, null, null, type, reason != null ? reason : "Admin refund");
+        return processTransactionRefund(tx, amount, null, null, type, reason != null ? reason : "Admin refund",
+                request);
     }
 
     /**
      * Core refund processing logic used by both webhook and admin flows.
      */
     private ERefund processTransactionRefund(ETransactions tx, double refundAmount,
-                                              String stripeChargeId, String stripeRefundId,
-                                              RefundType type, String reason) {
+            String stripeChargeId, String stripeRefundId,
+            RefundType type, String reason, HttpServletRequest request) {
         // 1. Create refund record
         ERefund refund = ERefund.builder()
                 .transactionId(tx.getId())
@@ -233,8 +242,8 @@ public class EduRefundService {
                 tx.getId(),
                 "TRANSACTION",
                 tx.getPaymentStatus(),
-                EPaymentStatus.REFUNDED
-        );
+                EPaymentStatus.REFUNDED,
+                request);
 
         log.info("Refund processed: tx={}, amount={}, type={}, course={}, buyer={}",
                 tx.getId(), refundAmount, type, tx.getCourseId(), tx.getBuyerId());
@@ -255,7 +264,8 @@ public class EduRefundService {
                     ledger.setStatus(EHoldingStatus.REFUNDED);
                 } else {
                     // Partial refund while funds still held — reduce amount
-                    double newAmount = Math.max(0, (ledger.getAmount() != null ? ledger.getAmount() : 0.0) - refundAmount);
+                    double newAmount = Math.max(0,
+                            (ledger.getAmount() != null ? ledger.getAmount() : 0.0) - refundAmount);
                     ledger.setAmount(newAmount);
                     if (newAmount <= 0) {
                         ledger.setStatus(EHoldingStatus.REFUNDED);
@@ -268,7 +278,7 @@ public class EduRefundService {
                 // Funds already cleared to creator — log clawback need
                 log.warn("CLAWBACK NEEDED: Transaction {} was already cleared. Refund amount={}, creator={}",
                         tx.getTransactionId(), refundAmount, tx.getSellerId());
-                
+
                 // Create clawback holding record to track post-clearance deficit
                 EHoldingLedger clawback = EHoldingLedger.builder()
                         .beneficiaryId(tx.getSellerId())

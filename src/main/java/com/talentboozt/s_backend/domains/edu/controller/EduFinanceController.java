@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import com.talentboozt.s_backend.domains.edu.dto.finance.PayoutRequest;
 import com.talentboozt.s_backend.domains.edu.dto.finance.RevenueSummaryDTO;
@@ -29,8 +30,8 @@ public class EduFinanceController {
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EPayoutScheduleRepository scheduleRepository;
 
     public EduFinanceController(EduFinanceService financeService, EduRefundService refundService,
-                                com.talentboozt.s_backend.domains.edu.service.StripeConnectService stripeConnectService,
-                                com.talentboozt.s_backend.domains.edu.repository.mongodb.EPayoutScheduleRepository scheduleRepository) {
+            com.talentboozt.s_backend.domains.edu.service.StripeConnectService stripeConnectService,
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.EPayoutScheduleRepository scheduleRepository) {
         this.financeService = financeService;
         this.refundService = refundService;
         this.stripeConnectService = stripeConnectService;
@@ -87,24 +88,26 @@ public class EduFinanceController {
     @PreAuthorize("hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<EPayouts> updatePayoutStatus(
             @PathVariable String payoutId,
-            @RequestParam EPayoutStatus status) throws Exception {
-        return ResponseEntity.ok(financeService.updatePayoutStatus(payoutId, status));
+            @RequestParam EPayoutStatus status, HttpServletRequest request) throws Exception {
+        return ResponseEntity.ok(financeService.updatePayoutStatus(payoutId, status, request));
     }
 
     @PostMapping("/stripe/onboard")
     @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
-    public ResponseEntity<Map<String, String>> stripeOnboard(@AuthenticatedUser String userId, @RequestBody Map<String, String> body) throws Exception {
+    public ResponseEntity<Map<String, String>> stripeOnboard(@AuthenticatedUser String userId,
+            @RequestBody Map<String, String> body) throws Exception {
         ECreatorFinanceSettings settings = financeService.getFinanceSettings(userId);
         String accountId = settings.getStripeAccountId();
         if (accountId == null) {
             String email = body.get("email");
-            if (email == null) email = "creator@example.com"; // Fallback if not provided
+            if (email == null)
+                email = "creator@example.com"; // Fallback if not provided
             accountId = stripeConnectService.createStripeAccount(userId, email);
         }
         String link = stripeConnectService.createOnboardingLink(accountId);
         return ResponseEntity.ok(Map.of("url", link));
     }
-    
+
     @PostMapping("/schedule")
     @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<com.talentboozt.s_backend.domains.edu.model.EPayoutSchedule> updateSchedule(
@@ -114,10 +117,11 @@ public class EduFinanceController {
         schedule.setNextScheduledAt(java.time.Instant.now().plus(1, java.time.temporal.ChronoUnit.DAYS)); // Default
         return ResponseEntity.ok(scheduleRepository.save(schedule));
     }
-    
+
     @GetMapping("/schedule")
     @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
-    public ResponseEntity<com.talentboozt.s_backend.domains.edu.model.EPayoutSchedule> getSchedule(@AuthenticatedUser String userId) {
+    public ResponseEntity<com.talentboozt.s_backend.domains.edu.model.EPayoutSchedule> getSchedule(
+            @AuthenticatedUser String userId) {
         return scheduleRepository.findByCreatorId(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -131,10 +135,11 @@ public class EduFinanceController {
     public ResponseEntity<ERefund> initiateRefund(
             @PathVariable String transactionId,
             @RequestBody Map<String, Object> body,
-            @AuthenticatedUser String adminId) {
+            @AuthenticatedUser String adminId,
+            HttpServletRequest request) {
         Double amount = body.get("amount") != null ? ((Number) body.get("amount")).doubleValue() : null;
         String reason = body.get("reason") != null ? body.get("reason").toString() : null;
-        return ResponseEntity.ok(refundService.initiateRefund(transactionId, amount, reason, adminId));
+        return ResponseEntity.ok(refundService.initiateRefund(transactionId, amount, reason, adminId, request));
     }
 
     /** Buyer: view their refund history */

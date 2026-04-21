@@ -65,4 +65,7 @@ public class EUser {
     
     @LastModifiedDate
     private Instant updatedAt;
+    
+    @Builder.Default
+    private Boolean isMfaEnabled = false;
 }
