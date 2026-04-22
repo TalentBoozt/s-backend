@@ -196,4 +196,38 @@ public class EduEnrollmentService {
 
         return enrollmentsRepository.save(enrollment);
     }
+
+    @Transactional
+    public EEnrollments completeEnrollment(String enrollmentId) {
+        EEnrollments enrollment = getEnrollmentDetails(enrollmentId);
+        
+        // Recalculate total lessons just in case
+        int total = 0;
+        if (enrollment.getCourse() != null && enrollment.getCourse().getTotalLessons() != null && enrollment.getCourse().getTotalLessons() > 0) {
+            total = enrollment.getCourse().getTotalLessons();
+        } else if (enrollment.getTotalLessons() != null && enrollment.getTotalLessons() > 0) {
+            total = enrollment.getTotalLessons();
+        } else {
+            total = (int) lessonsRepository.countByCourseId(enrollment.getCourseId());
+        }
+
+        if (total > 0) enrollment.setTotalLessons(total);
+        
+        enrollment.setCompletedLessons(total);
+        enrollment.setProgress(100);
+        enrollment.setCompleted(true);
+        enrollment.setCompletedAt(Instant.now());
+        enrollment.setLastAccessedAt(Instant.now());
+
+        EEnrollments saved = enrollmentsRepository.save(enrollment);
+
+        // Ensure certificate is generated
+        try {
+            certificateService.generateCertificate(enrollmentId);
+        } catch (Exception e) {
+            System.err.println("Manual completion: Failed to auto-generate certificate for enrollment " + enrollmentId + ": " + e.getMessage());
+        }
+
+        return saved;
+    }
 }
