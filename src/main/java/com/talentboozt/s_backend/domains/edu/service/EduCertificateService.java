@@ -23,15 +23,18 @@ public class EduCertificateService {
         private final EEnrollmentsRepository enrollmentsRepository;
         private final ECoursesRepository coursesRepository;
         private final EUserRepository userRepository;
+        private final R2StorageService storageService;
 
         public EduCertificateService(ECertificatesRepository certificatesRepository,
                         EEnrollmentsRepository enrollmentsRepository,
                         ECoursesRepository coursesRepository,
-                        EUserRepository userRepository) {
+                        EUserRepository userRepository,
+                        R2StorageService storageService) {
                 this.certificatesRepository = certificatesRepository;
                 this.enrollmentsRepository = enrollmentsRepository;
                 this.coursesRepository = coursesRepository;
                 this.userRepository = userRepository;
+                this.storageService = storageService;
         }
 
         public ECertificates generateCertificate(String enrollmentId) {
@@ -58,16 +61,24 @@ public class EduCertificateService {
                 }
 
                 String certificateId = "CERT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+                
+                // Real-world: Generate PDF here. Mock: Upload a small verification file
+                String mockContent = "Certificate ID: " + certificateId + "\nRecipient: " + user.getDisplayName() + "\nCourse: " + course.getTitle();
+                String certificateUrl;
+                try {
+                        certificateUrl = storageService.uploadFile(mockContent.getBytes(), certificateId + ".txt", "text/plain");
+                } catch (java.io.IOException e) {
+                        throw new RuntimeException("Cloud Storage Error: Failed to upload certificate", e);
+                }
 
                 ECertificates certificate = ECertificates.builder()
                                 .courseId(course.getId())
                                 .userId(user.getId())
                                 .creatorId(course.getCreatorId())
                                 .courseName(course.getTitle())
-                                .recipientName(user.getDisplayName())
+                                .recipientName(user.getDisplayName() != null ? user.getDisplayName() : "Learner")
                                 .certificateId(certificateId)
-                                // In a real app we'd map this to a PDF generator S3 Bucket URI link
-                                .url("https://talnova-certificates.s3.amazonaws.com/" + certificateId + ".pdf")
+                                .url(certificateUrl)
                                 .templateId("DEFAULT_TEMPLATE")
                                 .isVerified(true)
                                 .shareableLink("https://edu.talnova.com/verify/" + certificateId)

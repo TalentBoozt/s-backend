@@ -50,6 +50,11 @@ public class ELessons {
     private String videoThumbnail;
     private String[] attachments; // File URLs
     
+    private Double plagiarismScore;
+    private Double aiScore;
+    private Double qualityScore;
+    private String validationFindings;
+    
     private String createdBy;
     private String updatedBy;
     

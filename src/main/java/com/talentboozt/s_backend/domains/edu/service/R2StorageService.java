@@ -42,20 +42,23 @@ public class R2StorageService {
     }
 
     public String uploadFile(MultipartFile file) throws IOException {
-        String fileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
+        return uploadFile(file.getBytes(), file.getOriginalFilename(), file.getContentType());
+    }
+
+    public String uploadFile(byte[] content, String originalFilename, String contentType) throws IOException {
+        String fileName = UUID.randomUUID() + "-" + originalFilename;
         
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(fileName)
-                    .contentType(file.getContentType())
+                    .contentType(contentType)
                     .build();
 
-            s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            s3Client.putObject(putObjectRequest, RequestBody.fromBytes(content));
             
             log.info("Successfully uploaded file {} to R2", fileName);
             
-            // Handle trailing slash in publicUrl
             String baseUrl = publicUrl.endsWith("/") ? publicUrl.substring(0, publicUrl.length() - 1) : publicUrl;
             return baseUrl + "/" + fileName;
         } catch (Exception e) {

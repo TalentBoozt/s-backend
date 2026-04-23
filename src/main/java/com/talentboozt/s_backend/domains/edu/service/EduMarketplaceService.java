@@ -18,10 +18,14 @@ public class EduMarketplaceService {
 
     private final ECoursesRepository courseRepository;
     private final EduTrustScoreService trustScoreService;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository;
 
-    public EduMarketplaceService(ECoursesRepository courseRepository, EduTrustScoreService trustScoreService) {
+    public EduMarketplaceService(ECoursesRepository courseRepository, 
+            EduTrustScoreService trustScoreService,
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository) {
         this.courseRepository = courseRepository;
         this.trustScoreService = trustScoreService;
+        this.profilesRepository = profilesRepository;
     }
 
     /** Legacy documents may have {@code published == true} with {@code status} unset. */
@@ -53,6 +57,14 @@ public class EduMarketplaceService {
             if ("BRONZE".equals(trust.getCurrentTier())) {
                 c.setTrustWarning("Marketplace Warning: This creator has a low trust score. Exercise caution.");
             }
+
+            // Populate instructor name
+            profilesRepository.findByUserId(c.getCreatorId()).ifPresent(p -> {
+                String name = "";
+                if (p.getFirstName() != null) name += p.getFirstName();
+                if (p.getLastName() != null) name += (name.isEmpty() ? "" : " ") + p.getLastName();
+                c.setInstructorName(name.isEmpty() ? "Talnova Creator" : name);
+            });
         }
         return c;
     }
@@ -81,7 +93,7 @@ public class EduMarketplaceService {
                     boolean matchesPriceMax = priceMax == null || p <= priceMax;
                     return matchesKeyword && matchesCategory && matchesLevel && matchesPriceMin && matchesPriceMax;
                 })
-                .sorted((c1, c2) -> Integer.compare(getValidationWeight(c2), getValidationWeight(c1))) // Descending
+                .sorted((c1, c2) -> Double.compare(calculateMarketplaceScore(c2), calculateMarketplaceScore(c1))) // Descending
                 .map(this::enrichTrustData)
                 .collect(Collectors.toList());
 
@@ -114,6 +126,38 @@ public class EduMarketplaceService {
             throw new EduBadRequestException("Course is not available in the marketplace");
         }
         return enrichTrustData(course);
+    }
+
+    private double calculateMarketplaceScore(ECourses c) {
+        double score = 0.0;
+
+        // 1. Validation Bonus (Primary Weight)
+        if (c.getValidationStatus() == ECourseValidationStatus.VALIDATED) score += 1000;
+        else if (c.getValidationStatus() == ECourseValidationStatus.AI_APPROVED) score += 400;
+
+        // 2. Performance Factor (Rating * Enrollments Scale)
+        double rating = c.getRating() != null ? c.getRating() : 0.0;
+        int students = c.getTotalEnrollments() != null ? c.getTotalEnrollments() : 0;
+        score += (rating * 100); 
+        score += Math.min(500, students * 2); // Cap student count impact at 500 points
+
+        // 3. Featured Boost
+        if (Boolean.TRUE.equals(c.getIsFeatured())) score += 3000; // Strong manual boost
+
+        // 4. Integrity Factors (Negative weight for plagiarism)
+        double plagiarism = c.getPlagiarismScore() != null ? c.getPlagiarismScore() : 0.0;
+        double quality = c.getOverallQualityScore() != null ? c.getOverallQualityScore() : 70.0;
+        
+        score -= (plagiarism * 50); // Severe penalty for plagiarism
+        score += (quality * 5);    // Reward for high quality overall score
+
+        // 5. Recency (Recency boost for new nodes)
+        if (c.getCreatedAt() != null) {
+            long daysOld = java.time.Duration.between(c.getCreatedAt(), java.time.Instant.now()).toDays();
+            if (daysOld < 30) score += 200;
+        }
+
+        return score;
     }
 
     private int getValidationWeight(ECourses c) {

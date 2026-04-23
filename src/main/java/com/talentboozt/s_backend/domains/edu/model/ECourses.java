@@ -103,6 +103,9 @@ public class ECourses {
     private Boolean aiGenerated;
     private ECourseValidationStatus validationStatus;
     private Double aiScore;
+    private Double plagiarismScore;
+    private Double overallQualityScore;
+    private String validationFindings;
     private Boolean talnovaVerified;
 
     /** Set when moderation rejects a submission (shown to creator). */
@@ -117,6 +120,9 @@ public class ECourses {
     @Transient
     private String trustWarning;
     
+    @Transient
+    private String instructorName;
+
     private Instant publishedAt;
     private String createdBy;
     private String updatedBy;
