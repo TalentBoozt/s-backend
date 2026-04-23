@@ -33,6 +33,7 @@ public class EduCourseService {
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository sectionRepository;
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonRepository;
     private final com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService;
+    private final EduContentValidationService validationService;
 
     public EduCourseService(ECoursesRepository courseRepository, 
             EEnrollmentsRepository enrollmentsRepository, 
@@ -43,7 +44,8 @@ public class EduCourseService {
             com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository, 
             com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository sectionRepository, 
             com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonRepository,
-            com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService) {
+            com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService,
+            EduContentValidationService validationService) {
         this.courseRepository = courseRepository;
         this.enrollmentsRepository = enrollmentsRepository;
         this.workspaceRepository = workspaceRepository;
@@ -54,6 +56,7 @@ public class EduCourseService {
         this.sectionRepository = sectionRepository;
         this.lessonRepository = lessonRepository;
         this.credentialsService = credentialsService;
+        this.validationService = validationService;
     }
 
     public ECourses createCourse(String creatorId, String workspaceId, CourseRequest request) {
@@ -175,6 +178,11 @@ public class EduCourseService {
         if (request.getSearchRank() != null)
             course.setSearchRank(request.getSearchRank());
         course.setUpdatedAt(Instant.now());
+
+        // Quality Score update
+        var report = validationService.validateCourse(course);
+        course.setOverallQualityScore(report.getQualityScore());
+
         return courseRepository.save(course);
     }
 
@@ -189,6 +197,14 @@ public class EduCourseService {
         course.setPublishedAt(Instant.now());
         course.setModerationRejectionReason(null);
         course.setUpdatedAt(Instant.now());
+
+        // Integrity Guard on Publish
+        var report = validationService.validateCourse(course);
+        if (!"PASSED".equals(report.getStatus()) && !"WARNING".equals(report.getStatus())) {
+            throw new EduBadRequestException("Course cannot be published due to critical quality issues: " + String.join(", ", report.getFindings()));
+        }
+        course.setOverallQualityScore(report.getQualityScore());
+
         return courseRepository.save(course);
     }
 
@@ -323,6 +339,14 @@ public class EduCourseService {
             if ("BRONZE".equals(trust.getCurrentTier())) {
                 course.setTrustWarning("Marketplace Warning: This creator has a low trust score. Exercise caution.");
             }
+
+            // Populate instructor name
+            profilesRepository.findByUserId(course.getCreatorId()).ifPresent(p -> {
+                String name = "";
+                if (p.getFirstName() != null) name += p.getFirstName();
+                if (p.getLastName() != null) name += (name.isEmpty() ? "" : " ") + p.getLastName();
+                course.setInstructorName(name.isEmpty() ? "Talnova Creator" : name);
+            });
         }
     }
 

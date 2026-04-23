@@ -24,10 +24,12 @@ public class EduProfileService {
 
     private final EProfilesRepository profileRepository;
     private final EUserRepository userRepository;
+    private final R2StorageService storageService;
 
-    public EduProfileService(EProfilesRepository profileRepository, EUserRepository userRepository) {
+    public EduProfileService(EProfilesRepository profileRepository, EUserRepository userRepository, R2StorageService storageService) {
         this.profileRepository = profileRepository;
         this.userRepository = userRepository;
+        this.storageService = storageService;
     }
 
     public EProfiles getProfileByUserId(String userId) {
@@ -75,23 +77,16 @@ public class EduProfileService {
         if (ct == null || !ct.startsWith("image/")) {
             throw new EduBadRequestException("Only image uploads are allowed");
         }
-        String ext = extensionForContentType(ct);
-        Path base = Paths.get("uploads", "edu", "profiles", userId);
-        String filename = UUID.randomUUID() + ext;
-        String url = "/uploads/edu/profiles/" + userId + "/" + filename;
         try {
-            Files.createDirectories(base);
-            Path dest = base.resolve(filename);
-            Files.copy(file.getInputStream(), dest, StandardCopyOption.REPLACE_EXISTING);
+            String url = storageService.uploadFile(file);
+            EProfiles existing = getProfileByUserId(userId);
+            existing.setAvatarUrl(url);
+            existing.setUpdatedAt(Instant.now());
+            profileRepository.save(existing);
+            return Map.of("avatarUrl", url);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to save avatar", e);
+            throw new RuntimeException("Failed to upload avatar to R2", e);
         }
-
-        EProfiles existing = getProfileByUserId(userId);
-        existing.setAvatarUrl(url);
-        existing.setUpdatedAt(Instant.now());
-        profileRepository.save(existing);
-        return Map.of("avatarUrl", url);
     }
 
     public void deleteProfileAndUser(String userId) {

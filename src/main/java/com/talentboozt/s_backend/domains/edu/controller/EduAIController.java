@@ -1,7 +1,9 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
+import com.talentboozt.s_backend.domains.edu.service.*;
 import jakarta.validation.Valid;
 import com.talentboozt.s_backend.domains.edu.dto.ai.AIGenerationRequest;
+import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
 import com.talentboozt.s_backend.domains.edu.model.EAiCredits;
 import com.talentboozt.s_backend.domains.edu.service.EduAICreditService;
 import com.talentboozt.s_backend.domains.edu.service.EduAIEngineService;
@@ -26,15 +28,17 @@ public class EduAIController {
     private final EduAIEngineService engineService;
     private final EduAICreditService creditService;
     private final EduAIValidationService validationService;
+    private final EduContentValidationService contentValidationService;
     private final RateLimiterService rateLimiterService;
     private final EduAccessGuardService accessGuard;
 
     public EduAIController(EduAIEngineService engineService, EduAICreditService creditService,
-            EduAIValidationService validationService, RateLimiterService rateLimiterService,
-            EduAccessGuardService accessGuard) {
+            EduAIValidationService validationService, EduContentValidationService contentValidationService,
+            RateLimiterService rateLimiterService, EduAccessGuardService accessGuard) {
         this.engineService = engineService;
         this.creditService = creditService;
         this.validationService = validationService;
+        this.contentValidationService = contentValidationService;
         this.rateLimiterService = rateLimiterService;
         this.accessGuard = accessGuard;
     }
@@ -198,5 +202,19 @@ public class EduAIController {
         accessGuard.enforceCourseOwnership(userId, courseId);
 
         return ResponseEntity.ok(validationService.getValidationStatus(courseId));
+    }
+
+    @PostMapping("/check-content")
+    @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_PRO') or hasAuthority('SELLER_PREMIUM')")
+    public ResponseEntity<?> validateContent(
+            @AuthenticatedUser String userId,
+            @RequestBody Map<String, String> body) {
+        String content = body.get("content");
+        if (content == null) throw new EduBadRequestException("Content is required");
+        
+        // Deduction and access checks (reduced cost for single snippet check)
+        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        
+        return ResponseEntity.ok(contentValidationService.validateContent(content));
     }
 }
