@@ -58,4 +58,14 @@ public class EduMarketplaceController {
     public ResponseEntity<ECourses> getCourseDetails(@PathVariable String courseId) {
         return ResponseEntity.ok(marketplaceService.getCourseDetails(courseId));
     }
+
+    @GetMapping("/instructors")
+    public ResponseEntity<List<com.talentboozt.s_backend.domains.edu.model.EProfiles>> getTopInstructors() {
+        return ResponseEntity.ok(marketplaceService.getTopInstructors());
+    }
+
+    @GetMapping("/courses/creator/{creatorId}")
+    public ResponseEntity<List<ECourses>> getCoursesByCreator(@PathVariable String creatorId) {
+        return ResponseEntity.ok(marketplaceService.getCoursesByCreator(creatorId));
+    }
 }
