@@ -19,13 +19,16 @@ public class EduMarketplaceService {
     private final ECoursesRepository courseRepository;
     private final EduTrustScoreService trustScoreService;
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository userRepository;
 
     public EduMarketplaceService(ECoursesRepository courseRepository, 
             EduTrustScoreService trustScoreService,
-            com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository) {
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository,
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository userRepository) {
         this.courseRepository = courseRepository;
         this.trustScoreService = trustScoreService;
         this.profilesRepository = profilesRepository;
+        this.userRepository = userRepository;
     }
 
     /** Legacy documents may have {@code published == true} with {@code status} unset. */
@@ -158,6 +161,29 @@ public class EduMarketplaceService {
         }
 
         return score;
+    }
+
+    public List<ECourses> getCoursesByCreator(String creatorId) {
+        return courseRepository.findByCreatorId(creatorId).stream()
+                .filter(this::isPublicCatalogCourse)
+                .map(this::enrichTrustData)
+                .collect(Collectors.toList());
+    }
+
+    public List<com.talentboozt.s_backend.domains.edu.model.EProfiles> getTopInstructors() {
+        // Fetch all profiles and filter those who are instructors. 
+        // In a real app, you might want to join with EUser to check roles or have an isInstructor flag.
+        // For now, we'll fetch profiles that have courses published.
+        java.util.Set<String> creatorIds = courseRepository.findAll().stream()
+                .filter(this::isPublicCatalogCourse)
+                .map(ECourses::getCreatorId)
+                .filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        return profilesRepository.findAll().stream()
+                .filter(p -> creatorIds.contains(p.getUserId()))
+                .limit(20) // Limit to top 20 for marketplace
+                .collect(Collectors.toList());
     }
 
     private int getValidationWeight(ECourses c) {
