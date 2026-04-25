@@ -22,13 +22,31 @@ public class EduProfileService {
 
     private static final long MAX_AVATAR_BYTES = 5 * 1024 * 1024;
 
-    private final EProfilesRepository profileRepository;
-    private final EUserRepository userRepository;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profileRepository;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository userRepository;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository courseRepository;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EEnrollmentsRepository enrollmentRepository;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ECertificatesRepository certificateRepository;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EReviewsRepository reviewRepository;
+    private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EWorkspacesRepository workspaceRepository;
     private final R2StorageService storageService;
 
-    public EduProfileService(EProfilesRepository profileRepository, EUserRepository userRepository, R2StorageService storageService) {
+    public EduProfileService(
+            EProfilesRepository profileRepository, 
+            EUserRepository userRepository,
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository courseRepository,
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.EEnrollmentsRepository enrollmentRepository,
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.ECertificatesRepository certificateRepository,
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.EReviewsRepository reviewRepository,
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.EWorkspacesRepository workspaceRepository,
+            R2StorageService storageService) {
         this.profileRepository = profileRepository;
         this.userRepository = userRepository;
+        this.courseRepository = courseRepository;
+        this.enrollmentRepository = enrollmentRepository;
+        this.certificateRepository = certificateRepository;
+        this.reviewRepository = reviewRepository;
+        this.workspaceRepository = workspaceRepository;
         this.storageService = storageService;
     }
 
@@ -37,6 +55,7 @@ public class EduProfileService {
                 .orElseThrow(() -> new EduResourceNotFoundException("Profile not found for userId: " + userId));
     }
 
+    @org.springframework.cache.annotation.CacheEvict(cacheNames = "publicProfiles", key = "#userId")
     public EProfiles updateProfile(String userId, EProfiles updatedProfile) {
         EProfiles existing = getProfileByUserId(userId);
 
@@ -92,6 +111,99 @@ public class EduProfileService {
     public void deleteProfileAndUser(String userId) {
         profileRepository.deleteByUserId(userId);
         userRepository.deleteById(userId);
+    }
+
+    @org.springframework.cache.annotation.Cacheable(cacheNames = "publicProfiles", key = "#userId")
+    public com.talentboozt.s_backend.domains.edu.dto.profile.PublicProfileDTO getPublicProfile(String userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new EduResourceNotFoundException("User not found: " + userId));
+        var profile = profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new EduResourceNotFoundException("Profile not found: " + userId));
+
+        var dto = new com.talentboozt.s_backend.domains.edu.dto.profile.PublicProfileDTO();
+        dto.setId(userId);
+        dto.setName(profile.getFirstName() + " " + profile.getLastName());
+        dto.setTitle(profile.getJobTitle());
+        dto.setAvatar(profile.getAvatarUrl());
+        dto.setBio(profile.getBio());
+        dto.setSkills(profile.getSkills());
+        dto.setExperiences(java.util.Arrays.stream(profile.getExperience() != null ? profile.getExperience() : new com.talentboozt.s_backend.domains.edu.dto.EExperienceDTO[0])
+                .map(e -> e.getJobTitle() + " at " + e.getCompany())
+                .toArray(String[]::new));
+        
+        if (profile.getSocialLinks() != null) {
+            Map<String, String> links = new java.util.HashMap<>();
+            if (profile.getSocialLinks().getTwitter() != null) links.put("twitter", profile.getSocialLinks().getTwitter());
+            if (profile.getSocialLinks().getLinkedin() != null) links.put("linkedin", profile.getSocialLinks().getLinkedin());
+            if (profile.getSocialLinks().getGithub() != null) links.put("github", profile.getSocialLinks().getGithub());
+            if (profile.getSocialLinks().getYoutube() != null) links.put("youtube", profile.getSocialLinks().getYoutube());
+            dto.setSocialLinks(links);
+        }
+
+        // Roles
+        dto.setRoles(java.util.Arrays.stream(user.getRoles()).map(Enum::name).toArray(String[]::new));
+        dto.setPlanShortCode(user.getPlan().name());
+        dto.setProMember(user.getPlan() == com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.PRO || user.getPlan() == com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.PREMIUM);
+
+        // Stats & Content
+        Map<String, Object> stats = new java.util.HashMap<>();
+        
+        boolean isCreator = java.util.Arrays.stream(user.getRoles()).anyMatch(r -> r.name().startsWith("SELLER") || r == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_INSTRUCTOR);
+        if (isCreator) {
+            var courses = courseRepository.findByCreatorId(userId);
+            stats.put("coursesPublished", courses.size());
+            stats.put("totalEnrollments", courses.stream().mapToInt(c -> c.getTotalEnrollments() != null ? c.getTotalEnrollments() : 0).sum());
+            
+            dto.setHighlightedContent(courses.stream()
+                    .filter(c -> Boolean.TRUE.equals(c.getPublished()))
+                    .limit(4)
+                    .map(c -> com.talentboozt.s_backend.domains.edu.dto.profile.PortfolioCourseDTO.builder()
+                            .id(c.getId()).title(c.getTitle()).thumbnail(c.getThumbnail()).category(c.getCategories() != null && c.getCategories().length > 0 ? c.getCategories()[0] : "Education")
+                            .rating(c.getRating()).totalStudents(c.getTotalEnrollments()).price(c.getPrice()).build())
+                    .toList());
+        }
+
+        var certificates = certificateRepository.findByUserId(userId);
+        stats.put("certificatesEarned", certificates.size());
+        dto.setAchievements(certificates.stream()
+                .limit(6)
+                .map(c -> com.talentboozt.s_backend.domains.edu.dto.profile.PortfolioAchievementDTO.builder()
+                        .id(c.getId()).title(c.getCourseName()).type("CERTIFICATE").issuerName("Talnova Academy").issuedAt(c.getIssuedAt()).verificationUrl("/verify/" + c.getCertificateId())
+                        .build())
+                .toList());
+
+        dto.setStats(stats);
+        return dto;
+    }
+
+    @org.springframework.cache.annotation.Cacheable(cacheNames = "enterprisePortfolios", key = "#workspaceId")
+    public com.talentboozt.s_backend.domains.edu.dto.profile.EnterprisePortfolioDTO getEnterprisePortfolio(String workspaceId) {
+        var workspace = workspaceRepository.findById(workspaceId)
+                .orElseThrow(() -> new EduResourceNotFoundException("Workspace not found: " + workspaceId));
+        
+        var dto = new com.talentboozt.s_backend.domains.edu.dto.profile.EnterprisePortfolioDTO();
+        dto.setWorkspaceId(workspaceId);
+        dto.setName(workspace.getName());
+        dto.setDescription(workspace.getDescription());
+        dto.setLogoUrl(workspace.getLogoUrl());
+        dto.setType(workspace.getType());
+        
+        var courses = courseRepository.findByWorkspaceId(workspaceId);
+        dto.setOfferedPrograms(courses.stream()
+                .filter(c -> Boolean.TRUE.equals(c.getPublished()))
+                .limit(8)
+                .map(c -> com.talentboozt.s_backend.domains.edu.dto.profile.PortfolioCourseDTO.builder()
+                        .id(c.getId()).title(c.getTitle()).thumbnail(c.getThumbnail()).category(c.getCategories() != null && c.getCategories().length > 0 ? c.getCategories()[0] : "Enterprise")
+                        .rating(c.getRating()).totalStudents(c.getTotalEnrollments()).price(c.getPrice()).build())
+                .toList());
+        
+        dto.setMetrics(Map.of(
+            "totalMembers", workspace.getTotalMembers(),
+            "totalCourses", workspace.getTotalCourses(),
+            "totalLearningPaths", workspace.getTotalLearningPaths()
+        ));
+        
+        return dto;
     }
 
     private static String extensionForContentType(String contentType) {
