@@ -120,6 +120,22 @@ public class CacheConfig {
                                         .expireAfterWrite(10, TimeUnit.MINUTES)
                                         .maximumSize(10_000)
                                         .recordStats()
+                                        .build())),
+
+                new CaffeineCache("publicProfiles",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(15, TimeUnit.MINUTES)
+                                        .maximumSize(20_000)
+                                        .recordStats()
+                                        .build())),
+
+                new CaffeineCache("enterprisePortfolios",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(30, TimeUnit.MINUTES)
+                                        .maximumSize(5_000)
+                                        .recordStats()
                                         .build())));
 
 

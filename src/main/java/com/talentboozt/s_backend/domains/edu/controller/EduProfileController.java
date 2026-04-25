@@ -63,4 +63,14 @@ public class EduProfileController {
         profileService.deleteProfileAndUser(userId);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/public/{userId}")
+    public ResponseEntity<com.talentboozt.s_backend.domains.edu.dto.profile.PublicProfileDTO> getPublicProfile(@PathVariable String userId) {
+        return ResponseEntity.ok(profileService.getPublicProfile(userId));
+    }
+
+    @GetMapping("/public/org/{workspaceId}")
+    public ResponseEntity<com.talentboozt.s_backend.domains.edu.dto.profile.EnterprisePortfolioDTO> getEnterprisePortfolio(@PathVariable String workspaceId) {
+        return ResponseEntity.ok(profileService.getEnterprisePortfolio(workspaceId));
+    }
 }
