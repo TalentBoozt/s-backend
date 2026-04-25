@@ -61,4 +61,11 @@ public class EProfiles {
     
     @LastModifiedDate
     private Instant updatedAt;
+
+    @org.springframework.data.annotation.Transient
+    private Integer totalStudents;
+    @org.springframework.data.annotation.Transient
+    private Integer totalCourses;
+    @org.springframework.data.annotation.Transient
+    private Double rating;
 }
