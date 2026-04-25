@@ -10,4 +10,5 @@ import java.util.List;
 public interface EReviewsRepository extends MongoRepository<EReviews, String> {
     List<EReviews> findByCourseId(String courseId);
     List<EReviews> findByUserId(String userId);
+    List<EReviews> findByCourseIdIn(List<String> courseIds);
 }

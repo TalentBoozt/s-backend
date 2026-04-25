@@ -73,4 +73,9 @@ public class EduProfileController {
     public ResponseEntity<com.talentboozt.s_backend.domains.edu.dto.profile.EnterprisePortfolioDTO> getEnterprisePortfolio(@PathVariable String workspaceId) {
         return ResponseEntity.ok(profileService.getEnterprisePortfolio(workspaceId));
     }
+
+    @GetMapping("/discovery/{id}")
+    public ResponseEntity<com.talentboozt.s_backend.domains.edu.dto.profile.DiscoveryProfileDTO> discoverProfile(@PathVariable String id) {
+        return ResponseEntity.ok(profileService.discoverProfile(id));
+    }
 }

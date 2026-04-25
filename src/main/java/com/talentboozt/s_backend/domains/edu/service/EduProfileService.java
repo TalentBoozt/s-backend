@@ -161,6 +161,23 @@ public class EduProfileService {
                             .id(c.getId()).title(c.getTitle()).thumbnail(c.getThumbnail()).category(c.getCategories() != null && c.getCategories().length > 0 ? c.getCategories()[0] : "Education")
                             .rating(c.getRating()).totalStudents(c.getTotalEnrollments()).price(c.getPrice()).build())
                     .toList());
+
+            // Fetch Real Reviews
+            var courseIds = courses.stream().map(com.talentboozt.s_backend.domains.edu.model.ECourses::getId).toList();
+            var reviews = reviewRepository.findByCourseIdIn(courseIds);
+            dto.setTopReviews(reviews.stream()
+                    .limit(3)
+                    .map(r -> {
+                        String courseTitle = courseRepository.findById(r.getCourseId()).map(com.talentboozt.s_backend.domains.edu.model.ECourses::getTitle).orElse("Talnova Course");
+                        return com.talentboozt.s_backend.domains.edu.dto.profile.PortfolioReviewDTO.builder()
+                                .id(r.getId())
+                                .reviewerName("Verified Student")
+                                .content(r.getContent())
+                                .rating(r.getRating().intValue())
+                                .courseName(courseTitle)
+                                .build();
+                    })
+                    .toList());
         }
 
         var certificates = certificateRepository.findByUserId(userId);
@@ -204,6 +221,26 @@ public class EduProfileService {
         ));
         
         return dto;
+    }
+
+    public com.talentboozt.s_backend.domains.edu.dto.profile.DiscoveryProfileDTO discoverProfile(String id) {
+        try {
+            var personal = getPublicProfile(id);
+            return com.talentboozt.s_backend.domains.edu.dto.profile.DiscoveryProfileDTO.builder()
+                    .personalProfile(personal)
+                    .type("PERSONAL")
+                    .build();
+        } catch (EduResourceNotFoundException e) {
+            try {
+                var enterprise = getEnterprisePortfolio(id);
+                return com.talentboozt.s_backend.domains.edu.dto.profile.DiscoveryProfileDTO.builder()
+                        .enterpriseProfile(enterprise)
+                        .type("ENTERPRISE")
+                        .build();
+            } catch (EduResourceNotFoundException e2) {
+                throw new EduResourceNotFoundException("Portfolio not found for ID: " + id);
+            }
+        }
     }
 
     private static String extensionForContentType(String contentType) {

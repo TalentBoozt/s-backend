@@ -182,7 +182,14 @@ public class EduMarketplaceService {
 
         return profilesRepository.findAll().stream()
                 .filter(p -> creatorIds.contains(p.getUserId()))
-                .limit(20) // Limit to top 20 for marketplace
+                .map(p -> {
+                    var courses = courseRepository.findByCreatorId(p.getUserId());
+                    p.setTotalCourses(courses.size());
+                    p.setTotalStudents(courses.stream().mapToInt(c -> c.getTotalEnrollments() != null ? c.getTotalEnrollments() : 0).sum());
+                    p.setRating(courses.stream().mapToDouble(c -> c.getRating() != null ? c.getRating() : 0.0).average().orElse(0.0));
+                    return p;
+                })
+                .limit(20)
                 .collect(Collectors.toList());
     }
 
