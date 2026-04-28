@@ -24,15 +24,18 @@ public class EduAccessGuardService {
     private final ECoursesRepository courseRepository;
     private final EAiUsageRepository aiUsageRepository;
     private final StringRedisTemplate redisTemplate;
+    private final com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService;
 
     public EduAccessGuardService(PlanConfigService planConfigService, EUserRepository userRepository,
             ECoursesRepository courseRepository, EAiUsageRepository aiUsageRepository,
-            StringRedisTemplate redisTemplate) {
+            StringRedisTemplate redisTemplate,
+            com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService) {
         this.planConfigService = planConfigService;
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;
         this.aiUsageRepository = aiUsageRepository;
         this.redisTemplate = redisTemplate;
+        this.featureFlagService = featureFlagService;
     }
 
     public EUser getUser(String userId) {
@@ -65,9 +68,7 @@ public class EduAccessGuardService {
 
     // 3. Enforce Feature Access
     public void enforceFeatureAccess(String userId, String feature) {
-        EUser user = getUser(userId);
-        List<String> features = planConfigService.getPlanLimits(user.getPlan()).getFeatures();
-        if (!features.contains(feature)) {
+        if (!featureFlagService.isFeatureEnabled(userId, feature)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Feature requires plan upgrade: " + feature);
         }
     }

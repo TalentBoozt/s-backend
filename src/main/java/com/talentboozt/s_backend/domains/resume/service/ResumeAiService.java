@@ -2,8 +2,9 @@ package com.talentboozt.s_backend.domains.resume.service;
 
 import com.talentboozt.s_backend.domains.resume.dto.AiResumeRequest;
 import com.talentboozt.s_backend.domains.resume.dto.AiResumeResponse;
-import com.talentboozt.s_backend.domains.resume.dto.ResumeSummaryDto;
 import com.talentboozt.s_backend.domains.resume.model.ResumeModel;
+import com.talentboozt.s_backend.domains.ai_tool.enums.AIUsageType;
+import com.talentboozt.s_backend.domains.ai_tool.service.AIUsageService;
 import com.talentboozt.s_backend.shared.ai.GeminiClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class ResumeAiService {
 
     private final GeminiClient geminiClient;
     private final ResumeService resumeService;
+    private final AIUsageService aiUsageService;
 
     private static final String SYSTEM_PROMPT = "You are an expert resume writer and ATS optimization specialist. " +
             "Generate professional, concise content tailored for modern job applications. " +
@@ -46,12 +48,8 @@ public class ResumeAiService {
      * @return generated content + remaining usage count
      */
     public AiResumeResponse generate(String employeeId, AiResumeRequest req) {
-        // ── Guard: resume must belong to this user AND usage limit not exceeded ──
-        if (!resumeService.canUseAi(req.getResumeId(), employeeId)) {
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "AI usage limit reached for this resume. Maximum " +
-                            ResumeSummaryDto.MAX_AI_USAGE + " generations per resume.");
-        }
+        // Enforce global AI credit system
+        aiUsageService.consumeCredits(employeeId, AIUsageType.GENERATION, 1);
 
         // ── Dispatch by type ─────────────────────────────────────────────────
         AiResumeResponse response = switch (req.getType()) {
@@ -65,7 +63,8 @@ public class ResumeAiService {
 
         // ── Increment counter AFTER successful generation ────────────────────
         ResumeModel updated = resumeService.incrementAiUsage(req.getResumeId(), employeeId);
-        response.setAiUsageRemaining(Math.max(0, ResumeSummaryDto.MAX_AI_USAGE - updated.getAiUsageCount()));
+        // Map to global system or keep legacy field for now (dummy value)
+        response.setAiUsageRemaining(999); 
         return response;
     }
 

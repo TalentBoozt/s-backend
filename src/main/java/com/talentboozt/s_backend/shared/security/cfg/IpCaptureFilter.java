@@ -33,13 +33,13 @@ public class IpCaptureFilter extends OncePerRequestFilter {
     private final TimeZoneMismatchService timeZoneMisMatchService;
     private final ClientActAuditLogService clientActAuditLogService;
     private final CreditService creditService;
-    private final com.talentboozt.s_backend.domains.payment.service.SubscriptionService subscriptionService;
+    private final com.talentboozt.s_backend.domains.payment.service.PaymentSubscriptionService subscriptionService;
 
     public IpCaptureFilter(UserActivityService userActivityService, RateLimiterService rateLimiterService,
             JwtService jwtService,
             IpTimeZoneService ipTimeZoneService, TimeZoneMismatchService timeZoneMisMatchService,
             ClientActAuditLogService clientActAuditLogService, CreditService creditService,
-            com.talentboozt.s_backend.domains.payment.service.SubscriptionService subscriptionService) {
+            com.talentboozt.s_backend.domains.payment.service.PaymentSubscriptionService subscriptionService) {
         this.userActivityService = userActivityService;
         this.rateLimiterService = rateLimiterService;
         this.jwtService = jwtService;

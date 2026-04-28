@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @ToString
 
 @Document(collection = "portal_subscriptions")
-public class SubscriptionsModel {
+public class PaymentSubscriptionsModel {
     @Id
     private String id;
     private String companyId;

@@ -21,15 +21,21 @@ public class EduEnrollmentService {
     private final ECoursesRepository coursesRepository;
     private final EduCertificateService certificateService;
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonsRepository;
+    private final EduAnalyticsEventService analyticsEventService;
+    private final EduTrustScoreService trustScoreService;
 
     public EduEnrollmentService(EEnrollmentsRepository enrollmentsRepository,
             ECoursesRepository coursesRepository,
             EduCertificateService certificateService,
-            com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonsRepository) {
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonsRepository,
+            EduAnalyticsEventService analyticsEventService,
+            EduTrustScoreService trustScoreService) {
         this.enrollmentsRepository = enrollmentsRepository;
         this.coursesRepository = coursesRepository;
         this.certificateService = certificateService;
         this.lessonsRepository = lessonsRepository;
+        this.analyticsEventService = analyticsEventService;
+        this.trustScoreService = trustScoreService;
     }
 
     /**
@@ -161,7 +167,8 @@ public class EduEnrollmentService {
             enrollment.setCompletedLessons(count);
 
             int total = 0;
-            if (enrollment.getCourse() != null && enrollment.getCourse().getTotalLessons() != null && enrollment.getCourse().getTotalLessons() > 0) {
+            if (enrollment.getCourse() != null && enrollment.getCourse().getTotalLessons() != null
+                    && enrollment.getCourse().getTotalLessons() > 0) {
                 total = enrollment.getCourse().getTotalLessons();
             } else if (enrollment.getTotalLessons() != null && enrollment.getTotalLessons() > 0) {
                 total = enrollment.getTotalLessons();
@@ -176,13 +183,20 @@ public class EduEnrollmentService {
                 if (enrollment.getProgress() >= 100 && !Boolean.TRUE.equals(enrollment.getCompleted())) {
                     enrollment.setCompleted(true);
                     enrollment.setCompletedAt(Instant.now());
-                    
+
+                    // Tracking: Course Completion
+                    analyticsEventService.recordEvent(
+                            com.talentboozt.s_backend.domains.edu.enums.EAnalyticsEvent.COMPLETE,
+                            enrollment.getUserId(), enrollment.getCourseId(),
+                            java.util.Map.of("enrollmentId", enrollmentId));
+
                     // Auto-trigger certificate generation
                     try {
                         certificateService.generateCertificate(enrollmentId);
                     } catch (Exception e) {
                         // Log error but don't fail the progress recording
-                        System.err.println("Failed to auto-generate certificate for enrollment " + enrollmentId + ": " + e.getMessage());
+                        System.err.println("Failed to auto-generate certificate for enrollment " + enrollmentId + ": "
+                                + e.getMessage());
                     }
                 }
             }
@@ -194,16 +208,24 @@ public class EduEnrollmentService {
         enrollment.setLastAccessedLessonId(lessonId);
         enrollment.setLastAccessedAt(Instant.now());
 
-        return enrollmentsRepository.save(enrollment);
+        EEnrollments saved = enrollmentsRepository.save(enrollment);
+
+        // Update Trust Score if completed
+        if (Boolean.TRUE.equals(saved.getCompleted()) && saved.getCourse() != null) {
+            trustScoreService.updateScore(saved.getCourse().getCreatorId());
+        }
+
+        return saved;
     }
 
     @Transactional
     public EEnrollments completeEnrollment(String enrollmentId) {
         EEnrollments enrollment = getEnrollmentDetails(enrollmentId);
-        
+
         // Recalculate total lessons just in case
         int total = 0;
-        if (enrollment.getCourse() != null && enrollment.getCourse().getTotalLessons() != null && enrollment.getCourse().getTotalLessons() > 0) {
+        if (enrollment.getCourse() != null && enrollment.getCourse().getTotalLessons() != null
+                && enrollment.getCourse().getTotalLessons() > 0) {
             total = enrollment.getCourse().getTotalLessons();
         } else if (enrollment.getTotalLessons() != null && enrollment.getTotalLessons() > 0) {
             total = enrollment.getTotalLessons();
@@ -211,8 +233,9 @@ public class EduEnrollmentService {
             total = (int) lessonsRepository.countByCourseId(enrollment.getCourseId());
         }
 
-        if (total > 0) enrollment.setTotalLessons(total);
-        
+        if (total > 0)
+            enrollment.setTotalLessons(total);
+
         enrollment.setCompletedLessons(total);
         enrollment.setProgress(100);
         enrollment.setCompleted(true);
@@ -221,11 +244,22 @@ public class EduEnrollmentService {
 
         EEnrollments saved = enrollmentsRepository.save(enrollment);
 
+        // Update Trust Score
+        if (saved.getCourse() != null) {
+            trustScoreService.updateScore(saved.getCourse().getCreatorId());
+        }
+
+        // Tracking: Course Completion (Manual)
+        analyticsEventService.recordEvent(com.talentboozt.s_backend.domains.edu.enums.EAnalyticsEvent.COMPLETE,
+                enrollment.getUserId(), enrollment.getCourseId(),
+                java.util.Map.of("enrollmentId", enrollmentId, "status", "MANUAL"));
+
         // Ensure certificate is generated
         try {
             certificateService.generateCertificate(enrollmentId);
         } catch (Exception e) {
-            System.err.println("Manual completion: Failed to auto-generate certificate for enrollment " + enrollmentId + ": " + e.getMessage());
+            System.err.println("Manual completion: Failed to auto-generate certificate for enrollment " + enrollmentId
+                    + ": " + e.getMessage());
         }
 
         return saved;

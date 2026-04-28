@@ -17,18 +17,19 @@ import java.util.Map;
 public class EduCouponController {
 
     private final EduCouponService couponService;
+    private final com.talentboozt.s_backend.shared.security.utils.SecurityUtils securityUtils;
 
     @PostMapping
     @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
-    public ResponseEntity<ECoupons> createCoupon(
-            @RequestParam String creatorId,
-            @Valid @RequestBody ECoupons request) {
+    public ResponseEntity<ECoupons> createCoupon(@Valid @RequestBody ECoupons request) {
+        String creatorId = securityUtils.getCurrentUserId();
         return ResponseEntity.ok(couponService.createCoupon(creatorId, request));
     }
 
-    @GetMapping("/creator/{creatorId}")
+    @GetMapping("/creator")
     @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
-    public ResponseEntity<List<ECoupons>> getCouponsByCreator(@PathVariable String creatorId) {
+    public ResponseEntity<List<ECoupons>> getCouponsByCreator() {
+        String creatorId = securityUtils.getCurrentUserId();
         return ResponseEntity.ok(couponService.getCouponsByCreator(creatorId));
     }
 
@@ -36,16 +37,15 @@ public class EduCouponController {
     @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
     public ResponseEntity<ECoupons> updateCoupon(
             @PathVariable String couponId,
-            @RequestParam String creatorId,
             @Valid @RequestBody ECoupons request) {
+        String creatorId = securityUtils.getCurrentUserId();
         return ResponseEntity.ok(couponService.updateCoupon(couponId, creatorId, request));
     }
 
     @DeleteMapping("/{couponId}")
     @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_INSTRUCTOR')")
-    public ResponseEntity<Void> deleteCoupon(
-            @PathVariable String couponId,
-            @RequestParam String creatorId) {
+    public ResponseEntity<Void> deleteCoupon(@PathVariable String couponId) {
+        String creatorId = securityUtils.getCurrentUserId();
         couponService.deleteCoupon(couponId, creatorId);
         return ResponseEntity.noContent().build();
     }
@@ -60,11 +60,16 @@ public class EduCouponController {
         Double currentPrice = currentPriceObj != null ? Double.parseDouble(currentPriceObj.toString()) : 0.0;
         
         String userId = (String) request.get("userId");
+        if (userId == null) {
+            userId = securityUtils.getCurrentUserId();
+        }
         
-        Double discountAmount = couponService.validateCoupon(code, courseId, userId, currentPrice);
+        com.talentboozt.s_backend.domains.edu.dto.coupon.CouponValidationResult result = couponService.applyCoupon(code, courseId, userId, currentPrice);
         return ResponseEntity.ok(Map.of(
-            "valid", discountAmount > 0 || (currentPriceObj != null && discountAmount >= 0),
-            "discountAmount", discountAmount
+            "valid", true,
+            "discountAmount", result.getDiscountAmount(),
+            "finalPrice", result.getFinalPrice(),
+            "details", result
         ));
     }
 }

@@ -88,6 +88,10 @@ public class ETransactions {
     /** Applied tax rate (e.g. 0.15 for 15%) */
     private Double taxRate;
     
+    @Indexed
+    private String referrerId;
+    private Double referralCommission;
+    
     @Version
     private Long version;
     

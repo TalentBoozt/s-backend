@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.ambassador.service;
 
-import com.talentboozt.s_backend.domains.ambassador.model.ReferralModel;
-import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.ReferralRepository;
+import com.talentboozt.s_backend.domains.ambassador.model.AmbReferralModel;
+import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbReferralRepository;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Test;
@@ -19,20 +19,20 @@ import static org.mockito.Mockito.*;
 class ReferralServiceTest {
 
     @Mock
-    private ReferralRepository referralRepository;
+    private AmbReferralRepository referralRepository;
 
     @InjectMocks
-    private ReferralService referralService;
+    private AmbReferralService referralService;
 
     @Test
     void addReferral_savesAndReturnsReferral() {
-        ReferralModel referral = new ReferralModel();
+        AmbReferralModel referral = new AmbReferralModel();
         referral.setReferralCode("REF123");
         referral.setAmbassadorId("AMB001");
 
-        when(referralRepository.save(any(ReferralModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(referralRepository.save(any(AmbReferralModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ReferralModel result = referralService.addReferral(referral);
+        AmbReferralModel result = referralService.addReferral(referral);
 
         assertNotNull(result);
         assertEquals("REF123", result.getReferralCode());
@@ -43,11 +43,11 @@ class ReferralServiceTest {
     @Test
     void getReferral_returnsListOfReferralsForCode() {
         String referralCode = "REF123";
-        List<ReferralModel> referrals = List.of(new ReferralModel(), new ReferralModel());
+        List<AmbReferralModel> referrals = List.of(new AmbReferralModel(), new AmbReferralModel());
 
         when(referralRepository.findAllByReferralCode(referralCode)).thenReturn(referrals);
 
-        List<ReferralModel> result = referralService.getReferral(referralCode);
+        List<AmbReferralModel> result = referralService.getReferral(referralCode);
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -57,11 +57,11 @@ class ReferralServiceTest {
     @Test
     void getReferralByAmbassador_returnsListOfReferralsForAmbassador() {
         String ambassadorId = "AMB001";
-        List<ReferralModel> referrals = List.of(new ReferralModel(), new ReferralModel());
+        List<AmbReferralModel> referrals = List.of(new AmbReferralModel(), new AmbReferralModel());
 
         when(referralRepository.findAllByAmbassadorId(ambassadorId)).thenReturn(referrals);
 
-        List<ReferralModel> result = referralService.getReferralByAmbassador(ambassadorId);
+        List<AmbReferralModel> result = referralService.getReferralByAmbassador(ambassadorId);
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -71,17 +71,17 @@ class ReferralServiceTest {
     @Test
     void updateReferral_updatesAndReturnsUpdatedReferral() {
         String id = "REF001";
-        ReferralModel existingReferral = new ReferralModel();
+        AmbReferralModel existingReferral = new AmbReferralModel();
         existingReferral.setId(id);
         existingReferral.setReferralCode("OLD_CODE");
 
-        ReferralModel updatedReferral = new ReferralModel();
+        AmbReferralModel updatedReferral = new AmbReferralModel();
         updatedReferral.setReferralCode("NEW_CODE");
 
         when(referralRepository.findById(id)).thenReturn(Optional.of(existingReferral));
-        when(referralRepository.save(any(ReferralModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(referralRepository.save(any(AmbReferralModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ReferralModel result = referralService.updateReferral(id, updatedReferral);
+        AmbReferralModel result = referralService.updateReferral(id, updatedReferral);
 
         assertNotNull(result);
         assertEquals("NEW_CODE", result.getReferralCode());
@@ -91,13 +91,13 @@ class ReferralServiceTest {
     @Test
     void updateReferral_returnsNullWhenReferralDoesNotExist() {
         String id = "REF001";
-        ReferralModel updatedReferral = new ReferralModel();
+        AmbReferralModel updatedReferral = new AmbReferralModel();
 
         when(referralRepository.findById(id)).thenReturn(Optional.empty());
 
-        ReferralModel result = referralService.updateReferral(id, updatedReferral);
+        AmbReferralModel result = referralService.updateReferral(id, updatedReferral);
 
         assertNull(result);
-        verify(referralRepository, never()).save(any(ReferralModel.class));
+        verify(referralRepository, never()).save(any(AmbReferralModel.class));
     }
 }

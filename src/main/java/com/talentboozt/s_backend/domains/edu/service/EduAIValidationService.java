@@ -39,6 +39,8 @@ public class EduAIValidationService {
     private final LLMRouter llmRouter;
     private final EduAccessGuardService accessGuard;
     private final ObjectMapper objectMapper;
+    private final com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService;
+    private final EduAnalyticsEventService analyticsEventService;
 
     public EduAIValidationService(EduAICreditService creditService,
             EValidationReportsRepository validationRepository,
@@ -48,7 +50,9 @@ public class EduAIValidationService {
             EduNotificationService notificationService,
             LLMRouter llmRouter,
             EduAccessGuardService accessGuard,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService,
+            EduAnalyticsEventService analyticsEventService) {
         this.creditService = creditService;
         this.validationRepository = validationRepository;
         this.coursesRepository = coursesRepository;
@@ -58,6 +62,8 @@ public class EduAIValidationService {
         this.llmRouter = llmRouter;
         this.accessGuard = accessGuard;
         this.objectMapper = objectMapper;
+        this.featureFlagService = featureFlagService;
+        this.analyticsEventService = analyticsEventService;
     }
 
     public void submitCourseForValidation(String userId, String courseId) {
@@ -76,6 +82,10 @@ public class EduAIValidationService {
         }
         if (lessons.size() < 5) {
             throw new EduBadRequestException("Course must have at least 5 lessons before AI validation.");
+        }
+
+        if (!featureFlagService.isFeatureEnabled(userId, "AI_VALIDATION")) {
+            throw new EduAccessDeniedException("AI Validation is not available for your current plan.");
         }
 
         ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
@@ -180,6 +190,10 @@ public class EduAIValidationService {
 
             validationRepository.save(report);
 
+            // Tracking: AI Usage
+            analyticsEventService.recordEvent(com.talentboozt.s_backend.domains.edu.enums.EAnalyticsEvent.AI_USAGE, 
+                                            latestCourse.getCreatorId(), courseId, java.util.Map.of("task", "AI_VALIDATION", "status", "SUCCESS", "cost", 50));
+
             notificationService.triggerNotification(
                     latestCourse.getCreatorId(),
                     "AI Validation Complete",
@@ -192,6 +206,10 @@ public class EduAIValidationService {
             ECourses failedCourse = coursesRepository.findById(courseId).orElse(course);
             failedCourse.setValidationStatus(ECourseValidationStatus.NEEDS_IMPROVEMENT);
             coursesRepository.save(failedCourse);
+
+            // Tracking: AI Usage (Failed)
+            analyticsEventService.recordEvent(com.talentboozt.s_backend.domains.edu.enums.EAnalyticsEvent.AI_USAGE, 
+                                            failedCourse.getCreatorId(), courseId, java.util.Map.of("task", "AI_VALIDATION", "status", "FAILED", "cost", 50));
 
             notificationService.triggerNotification(
                     userId,

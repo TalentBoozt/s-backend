@@ -18,7 +18,7 @@ import com.talentboozt.s_backend.domains.com_job_portal.service.CompanyService;
 import com.talentboozt.s_backend.domains.payment.model.BillingHistoryModel;
 import com.talentboozt.s_backend.domains.payment.model.InvoicesModel;
 import com.talentboozt.s_backend.domains.payment.model.PaymentMethodsModel;
-import com.talentboozt.s_backend.domains.payment.model.SubscriptionsModel;
+import com.talentboozt.s_backend.domains.payment.model.PaymentSubscriptionsModel;
 import com.talentboozt.s_backend.domains.payment.repository.mongodb.InvoiceRepository;
 import com.talentboozt.s_backend.domains.plat_courses.dto.CourseProgressDTO;
 import com.talentboozt.s_backend.domains.plat_courses.dto.RecordedCourseEnrollment;
@@ -49,7 +49,7 @@ public class StripeService {
     private final PaymentMethodService paymentMethodService;
     private final InvoiceRepository invoiceRepository;
     private final PrePaymentService prePaymentService;
-    private final SubscriptionService subscriptionService;
+    private final PaymentSubscriptionService subscriptionService;
     private final EmpCoursesService empCoursesService;
     private final CompanyService companyService;
     private final CredentialsService credentialsService;
@@ -61,7 +61,7 @@ public class StripeService {
     public StripeService(ConfigUtility configUtility, CourseCouponsService courseCouponsService,
                          BillingHistoryService billingHistoryService, StripeAuditLogService auditLogService,
                          PaymentMethodService paymentMethodService, InvoiceRepository invoiceRepository,
-                         PrePaymentService prePaymentService, SubscriptionService subscriptionService,
+                         PrePaymentService prePaymentService, PaymentSubscriptionService subscriptionService,
                          EmpCoursesService empCoursesService, CompanyService companyService,
                          CredentialsService credentialsService, CmpPostedJobsService cmpPostedJobsService,
                          RecordedCoursePaymentService recordedCoursePaymentService,
@@ -409,7 +409,7 @@ public class StripeService {
     public void createSubscriptionWH(String companyId, String planName, Session subscriptionSession) throws StripeException {
         Subscription subscription = Subscription.retrieve(subscriptionSession.getSubscription());
 
-        SubscriptionsModel subscriptionsModel = new SubscriptionsModel();
+        PaymentSubscriptionsModel subscriptionsModel = new PaymentSubscriptionsModel();
         subscriptionsModel.setCompanyId(companyId);
         subscriptionsModel.setSubscriptionId(subscription.getId());
         subscriptionsModel.setPlan_name(planName);
@@ -426,7 +426,7 @@ public class StripeService {
 
         try {
             String companyId = getCompanyIdFromSubscription(subscription);
-            SubscriptionsModel model = new SubscriptionsModel();
+            PaymentSubscriptionsModel model = new PaymentSubscriptionsModel();
             model.setPlan_name(subscription.getItems().getData().get(0).getPlan().getNickname());
             model.setCost(String.valueOf(subscription.getItems().getData().get(0).getPlan().getAmount() / 100.0));
             model.setBilling_cycle(subscription.getBillingCycleAnchor().toString());

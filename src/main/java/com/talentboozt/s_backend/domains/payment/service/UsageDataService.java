@@ -13,7 +13,7 @@ public class UsageDataService {
     private UsageDataRepository usageDataRepository;
 
     @Autowired
-    private SubscriptionService subscriptionService;
+    private PaymentSubscriptionService subscriptionService;
 
     public UsageDataModel getUsageData(String companyId) {
         if (subscriptionService.isExempt(companyId)) {

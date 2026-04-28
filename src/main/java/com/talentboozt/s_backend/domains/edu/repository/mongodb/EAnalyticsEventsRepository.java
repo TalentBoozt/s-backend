@@ -10,4 +10,6 @@ import java.util.List;
 public interface EAnalyticsEventsRepository extends MongoRepository<EAnalyticsEvents, String> {
     List<EAnalyticsEvents> findByCourseId(String courseId);
     List<EAnalyticsEvents> findByUserId(String userId);
+    List<EAnalyticsEvents> findByUserIdOrderByTimestampDesc(String userId);
+    long countByType(com.talentboozt.s_backend.domains.edu.enums.EAnalyticsEvent type);
 }

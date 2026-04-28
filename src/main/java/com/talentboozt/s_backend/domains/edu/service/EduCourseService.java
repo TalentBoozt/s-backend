@@ -1,5 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
+import com.talentboozt.s_backend.domains.edu.service.EduAnalyticsEventService;
+import com.talentboozt.s_backend.shared.security.utils.SecurityUtils;
 import com.talentboozt.s_backend.domains.edu.dto.course.CourseRequest;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
 import com.talentboozt.s_backend.domains.edu.enums.ECourseValidationStatus;
@@ -34,18 +36,21 @@ public class EduCourseService {
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonRepository;
     private final com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService;
     private final EduContentValidationService validationService;
+    private final EduAnalyticsEventService analyticsEventService;
+    private final SecurityUtils securityUtils;
 
-    public EduCourseService(ECoursesRepository courseRepository, 
-            EEnrollmentsRepository enrollmentsRepository, 
-            EWorkspacesRepository workspaceRepository, 
-            EduWorkspaceGuardService guardService, 
-            EduTrustScoreService trustScoreService, 
-            EduAccessGuardService accessGuard, 
-            com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository, 
-            com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository sectionRepository, 
+    public EduCourseService(ECoursesRepository courseRepository,
+            EEnrollmentsRepository enrollmentsRepository,
+            EWorkspacesRepository workspaceRepository,
+            EduWorkspaceGuardService guardService,
+            EduTrustScoreService trustScoreService,
+            EduAccessGuardService accessGuard,
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository,
+            com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository sectionRepository,
             com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonRepository,
             com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService,
-            EduContentValidationService validationService) {
+            EduContentValidationService validationService, SecurityUtils securityUtils,
+            EduAnalyticsEventService analyticsEventService) {
         this.courseRepository = courseRepository;
         this.enrollmentsRepository = enrollmentsRepository;
         this.workspaceRepository = workspaceRepository;
@@ -57,11 +62,13 @@ public class EduCourseService {
         this.lessonRepository = lessonRepository;
         this.credentialsService = credentialsService;
         this.validationService = validationService;
+        this.analyticsEventService = analyticsEventService;
+        this.securityUtils = securityUtils;
     }
 
     public ECourses createCourse(String creatorId, String workspaceId, CourseRequest request) {
         accessGuard.enforceCourseCreationLimit(creatorId);
-        
+
         if (workspaceId != null && !workspaceId.isEmpty() && !"default".equals(workspaceId)) {
             guardService.enforceMembership(workspaceId, creatorId);
         }
@@ -99,16 +106,16 @@ public class EduCourseService {
                 .sections(new String[0])
                 .createdAt(Instant.now())
                 .build();
-                
+
         ECourses saved = courseRepository.save(course);
-        
+
         if (workspaceId != null && !workspaceId.isEmpty() && !"default".equals(workspaceId)) {
             workspaceRepository.findById(workspaceId).ifPresent(ws -> {
                 ws.setTotalCourses(ws.getTotalCourses() + 1);
                 workspaceRepository.save(ws);
             });
         }
-        
+
         return saved;
     }
 
@@ -117,17 +124,25 @@ public class EduCourseService {
                 .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + id));
         guardService.enforceResourceIsolation(course.getWorkspaceId());
         populateTrustData(course);
+
+        // Tracking: Course View
+        String currentUserId = securityUtils.getCurrentUserId();
+        analyticsEventService.recordEvent(com.talentboozt.s_backend.domains.edu.enums.EAnalyticsEvent.VIEW,
+                currentUserId, id, java.util.Map.of("slug", course.getSlug() != null ? course.getSlug() : ""));
+
         return course;
     }
 
     public List<ECourses> getCoursesByCreator(String creatorId) {
         List<ECourses> courses = courseRepository.findByCreatorId(creatorId);
-        
-        com.talentboozt.s_backend.shared.tenant.TenantContext ctx = com.talentboozt.s_backend.shared.tenant.TenantContext.getCurrent();
-        if (ctx != null && ctx.getWorkspaceId() != null && !ctx.getWorkspaceId().isEmpty() && !"default".equals(ctx.getWorkspaceId())) {
+
+        com.talentboozt.s_backend.shared.tenant.TenantContext ctx = com.talentboozt.s_backend.shared.tenant.TenantContext
+                .getCurrent();
+        if (ctx != null && ctx.getWorkspaceId() != null && !ctx.getWorkspaceId().isEmpty()
+                && !"default".equals(ctx.getWorkspaceId())) {
             courses = courses.stream()
-                .filter(c -> ctx.getWorkspaceId().equals(c.getWorkspaceId()))
-                .collect(Collectors.toList());
+                    .filter(c -> ctx.getWorkspaceId().equals(c.getWorkspaceId()))
+                    .collect(Collectors.toList());
         }
 
         courses.forEach(this::populateTrustData);
@@ -187,11 +202,17 @@ public class EduCourseService {
     }
 
     /**
-     * Creator submits course for platform moderation. Not visible in marketplace until approved.
+     * Creator submits course for platform moderation. Not visible in marketplace
+     * until approved.
      */
     public ECourses publishCourse(String creatorId, String id) {
         accessGuard.enforceCourseOwnership(creatorId, id);
         ECourses course = getCourseById(id);
+
+        if (course.getStatus() != ECourseStatus.APPROVED) {
+            throw new EduBadRequestException("Course must be APPROVED before it can be published.");
+        }
+
         course.setStatus(ECourseStatus.PUBLISHED);
         course.setPublished(true);
         course.setPublishedAt(Instant.now());
@@ -201,7 +222,8 @@ public class EduCourseService {
         // Integrity Guard on Publish
         var report = validationService.validateCourse(course);
         if (!"PASSED".equals(report.getStatus()) && !"WARNING".equals(report.getStatus())) {
-            throw new EduBadRequestException("Course cannot be published due to critical quality issues: " + String.join(", ", report.getFindings()));
+            throw new EduBadRequestException("Course cannot be published due to critical quality issues: "
+                    + String.join(", ", report.getFindings()));
         }
         course.setOverallQualityScore(report.getQualityScore());
 
@@ -209,7 +231,7 @@ public class EduCourseService {
     }
 
     public List<ECourses> listCoursesPendingModeration() {
-        return courseRepository.findByStatus(ECourseStatus.PENDING_REVIEW);
+        return courseRepository.findByStatus(ECourseStatus.SUBMITTED);
     }
 
     public ECourses approveCourseForMarketplace(String courseId) {
@@ -229,10 +251,10 @@ public class EduCourseService {
 
     public ECourses rejectCourseReview(String courseId, String reason) {
         ECourses course = getCourseById(courseId);
-        if (course.getStatus() != ECourseStatus.PENDING_REVIEW) {
+        if (course.getStatus() != ECourseStatus.SUBMITTED && course.getStatus() != ECourseStatus.UNDER_REVIEW) {
             throw new EduBadRequestException("Course is not awaiting moderation");
         }
-        course.setStatus(ECourseStatus.DRAFT);
+        course.setStatus(ECourseStatus.REJECTED);
         course.setPublished(false);
         course.setModerationRejectionReason(reason != null ? reason : "");
         course.setUpdatedAt(Instant.now());
@@ -245,15 +267,18 @@ public class EduCourseService {
     }
 
     /**
-     * All enrollments for courses owned by a creator (optional filter by course and user id text).
+     * All enrollments for courses owned by a creator (optional filter by course and
+     * user id text).
      */
     public List<EEnrollments> getCreatorStudentEnrollments(String creatorId, String courseId, String search) {
-        com.talentboozt.s_backend.shared.tenant.TenantContext ctx = com.talentboozt.s_backend.shared.tenant.TenantContext.getCurrent();
-        
+        com.talentboozt.s_backend.shared.tenant.TenantContext ctx = com.talentboozt.s_backend.shared.tenant.TenantContext
+                .getCurrent();
+
         List<ECourses> owned = courseRepository.findByCreatorId(creatorId).stream()
                 .filter(c -> courseId == null || courseId.isEmpty() || c.getId().equals(courseId))
                 .filter(c -> {
-                    if (ctx == null || ctx.getWorkspaceId() == null || ctx.getWorkspaceId().isEmpty() || "default".equals(ctx.getWorkspaceId())) {
+                    if (ctx == null || ctx.getWorkspaceId() == null || ctx.getWorkspaceId().isEmpty()
+                            || "default".equals(ctx.getWorkspaceId())) {
                         return true;
                     }
                     return ctx.getWorkspaceId().equals(c.getWorkspaceId());
@@ -263,23 +288,27 @@ public class EduCourseService {
         Stream<EEnrollments> stream = owned.stream()
                 .flatMap(c -> enrollmentsRepository.findByCourseId(c.getId()).stream());
         if (!needle.isEmpty()) {
-            stream = stream.filter(e -> e.getUserId() != null && e.getUserId().toLowerCase(Locale.ROOT).contains(needle));
+            stream = stream
+                    .filter(e -> e.getUserId() != null && e.getUserId().toLowerCase(Locale.ROOT).contains(needle));
         }
-        
+
         List<EEnrollments> results = stream.collect(Collectors.toList());
         for (EEnrollments e : results) {
             // Default fallbacks
             e.setName("Learner");
-            
+
             if (e.getCourseId() != null) {
                 courseRepository.findById(e.getCourseId()).ifPresent(e::setCourse);
             }
             if (e.getUserId() != null) {
                 profilesRepository.findByUserId(e.getUserId()).ifPresent(p -> {
                     String name = "";
-                    if (p.getFirstName() != null) name += p.getFirstName();
-                    if (p.getLastName() != null) name += (name.isEmpty() ? "" : " ") + p.getLastName();
-                    if (!name.isEmpty()) e.setName(name);
+                    if (p.getFirstName() != null)
+                        name += p.getFirstName();
+                    if (p.getLastName() != null)
+                        name += (name.isEmpty() ? "" : " ") + p.getLastName();
+                    if (!name.isEmpty())
+                        e.setName(name);
                     e.setEmail(p.getPublicEmail());
                     e.setAvatar(p.getAvatarUrl());
                 });
@@ -304,16 +333,18 @@ public class EduCourseService {
         // Apply search filter on populated data if needed
         if (!needle.isEmpty()) {
             results = results.stream()
-                .filter(e -> (e.getName() != null && e.getName().toLowerCase(Locale.ROOT).contains(needle)) ||
-                             (e.getEmail() != null && e.getEmail().toLowerCase(Locale.ROOT).contains(needle)) ||
-                             (e.getUserId() != null && e.getUserId().toLowerCase(Locale.ROOT).contains(needle)))
-                .collect(Collectors.toList());
+                    .filter(e -> (e.getName() != null && e.getName().toLowerCase(Locale.ROOT).contains(needle)) ||
+                            (e.getEmail() != null && e.getEmail().toLowerCase(Locale.ROOT).contains(needle)) ||
+                            (e.getUserId() != null && e.getUserId().toLowerCase(Locale.ROOT).contains(needle)))
+                    .collect(Collectors.toList());
         }
 
         return results;
     }
+
     public List<com.talentboozt.s_backend.domains.edu.model.ECourseSections> getFullCurriculum(String courseId) {
-        List<com.talentboozt.s_backend.domains.edu.model.ECourseSections> sections = sectionRepository.findByCourseId(courseId);
+        List<com.talentboozt.s_backend.domains.edu.model.ECourseSections> sections = sectionRepository
+                .findByCourseId(courseId);
         List<com.talentboozt.s_backend.domains.edu.model.ELessons> lessons = lessonRepository.findByCourseId(courseId);
 
         // Group lessons by sectionId for efficient population
@@ -323,12 +354,14 @@ public class EduCourseService {
         for (com.talentboozt.s_backend.domains.edu.model.ECourseSections section : sections) {
             section.setLessonDetails(lessonMap.getOrDefault(section.getId(), java.util.Collections.emptyList())
                     .stream()
-                    .sorted(java.util.Comparator.comparingInt(com.talentboozt.s_backend.domains.edu.model.ELessons::getOrder))
+                    .sorted(java.util.Comparator
+                            .comparingInt(com.talentboozt.s_backend.domains.edu.model.ELessons::getOrder))
                     .collect(Collectors.toList()));
         }
 
         return sections.stream()
-                .sorted(java.util.Comparator.comparingInt(com.talentboozt.s_backend.domains.edu.model.ECourseSections::getOrder))
+                .sorted(java.util.Comparator
+                        .comparingInt(com.talentboozt.s_backend.domains.edu.model.ECourseSections::getOrder))
                 .collect(Collectors.toList());
     }
 
@@ -343,8 +376,10 @@ public class EduCourseService {
             // Populate instructor name
             profilesRepository.findByUserId(course.getCreatorId()).ifPresent(p -> {
                 String name = "";
-                if (p.getFirstName() != null) name += p.getFirstName();
-                if (p.getLastName() != null) name += (name.isEmpty() ? "" : " ") + p.getLastName();
+                if (p.getFirstName() != null)
+                    name += p.getFirstName();
+                if (p.getLastName() != null)
+                    name += (name.isEmpty() ? "" : " ") + p.getLastName();
                 course.setInstructorName(name.isEmpty() ? "Talnova Creator" : name);
             });
         }
@@ -361,7 +396,8 @@ public class EduCourseService {
         if (slug.endsWith("-")) {
             slug = slug.substring(0, slug.length() - 1);
         }
-        // Ensure uniqueness (simple append, ideally check in DB if needed but short UUID is safer)
+        // Ensure uniqueness (simple append, ideally check in DB if needed but short
+        // UUID is safer)
         return slug + "-" + UUID.randomUUID().toString().substring(0, 8);
     }
 }

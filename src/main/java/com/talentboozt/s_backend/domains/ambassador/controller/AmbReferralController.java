@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.ambassador.controller;
 
-import com.talentboozt.s_backend.domains.ambassador.model.ReferralModel;
-import com.talentboozt.s_backend.domains.ambassador.service.ReferralService;
+import com.talentboozt.s_backend.domains.ambassador.model.AmbReferralModel;
+import com.talentboozt.s_backend.domains.ambassador.service.AmbReferralService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,28 +9,28 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v2/ambassador/referral")
-public class ReferralController {
+public class AmbReferralController {
 
     @Autowired
-    ReferralService referralService;
+    AmbReferralService referralService;
 
     @PostMapping("/add")
-    public ReferralModel addReferral(@RequestBody ReferralModel referralModel) {
+    public AmbReferralModel addReferral(@RequestBody AmbReferralModel referralModel) {
         return referralService.addReferral(referralModel);
     }
 
     @GetMapping("/get/ref/{referralCode}")
-    public List<ReferralModel> getReferral(@PathVariable String referralCode) {
+    public List<AmbReferralModel> getReferral(@PathVariable String referralCode) {
         return referralService.getReferral(referralCode);
     }
 
     @GetMapping("/get/ambassador/{ambassadorId}")
-    public List<ReferralModel> getReferralByAmbassador(@PathVariable String ambassadorId) {
+    public List<AmbReferralModel> getReferralByAmbassador(@PathVariable String ambassadorId) {
         return referralService.getReferralByAmbassador(ambassadorId);
     }
 
     @PutMapping("/update/{id}")
-    public ReferralModel updateReferral(@PathVariable String id, @RequestBody ReferralModel referralModel) {
+    public AmbReferralModel updateReferral(@PathVariable String id, @RequestBody AmbReferralModel referralModel) {
         return referralService.updateReferral(id, referralModel);
     }
 }

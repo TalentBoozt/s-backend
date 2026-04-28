@@ -12,7 +12,7 @@ import java.time.Instant;
 @Setter
 
 @Document(collection = "ambassador_referrals")
-public class ReferralModel {
+public class AmbReferralModel {
     @Id
     private String id;
 

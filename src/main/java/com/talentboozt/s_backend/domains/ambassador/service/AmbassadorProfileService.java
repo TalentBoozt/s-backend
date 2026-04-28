@@ -7,7 +7,7 @@ import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
 
 import com.talentboozt.s_backend.domains.auth.service.UserPermissionsService;
-import com.talentboozt.s_backend.domains.payment.service.SubscriptionService;
+import com.talentboozt.s_backend.domains.payment.service.PaymentSubscriptionService;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -22,11 +22,11 @@ public class AmbassadorProfileService {
     private final AmbassadorLevelService ambassadorLevelService;
     private final CredentialsRepository credentialsRepository;
     private final UserPermissionsService userPermissionsService;
-    private final SubscriptionService subscriptionService;
+    private final PaymentSubscriptionService subscriptionService;
 
     public AmbassadorProfileService(AmbassadorProfileRepository ambassadorProfileRepository,
             AmbassadorLevelService ambassadorLevelService, CredentialsRepository credentialsRepository,
-            UserPermissionsService userPermissionsService, SubscriptionService subscriptionService) {
+            UserPermissionsService userPermissionsService, PaymentSubscriptionService subscriptionService) {
         this.ambassadorProfileRepository = ambassadorProfileRepository;
         this.ambassadorLevelService = ambassadorLevelService;
         this.credentialsRepository = credentialsRepository;

@@ -6,6 +6,8 @@ import com.talentboozt.s_backend.domains.article.model.ArticleEvaluationLog;
 import com.talentboozt.s_backend.domains.article.model.ArticleStatus;
 import com.talentboozt.s_backend.domains.article.repository.mongodb.ArticleEvaluationLogRepository;
 import com.talentboozt.s_backend.domains.article.repository.mongodb.ArticleRepository;
+import com.talentboozt.s_backend.domains.ai_tool.enums.AIUsageType;
+import com.talentboozt.s_backend.domains.ai_tool.service.AIUsageService;
 import com.talentboozt.s_backend.shared.ai.GeminiClient;
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +25,7 @@ public class ArticleValidationService {
     private final GeminiClient geminiClient;
     private final ArticleEvaluationLogRepository logRepository;
     private final ArticleRepository articleRepository;
+    private final AIUsageService aiUsageService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     @Async
@@ -92,6 +95,11 @@ public class ArticleValidationService {
 
         String userPrompt = "Title: " + article.getTitle() + "\n\nExcerpt: " + article.getExcerpt() + "\n\nContent:\n"
                 + article.getContent();
+
+        // Enforcement: Consume credits before calling AI
+        if (article.getAuthorId() != null) {
+            aiUsageService.consumeCredits(article.getAuthorId(), AIUsageType.VALIDATION, 1);
+        }
 
         GeminiClient.AiResponse<ArticleEvaluationDTO> response = geminiClient.callStructuredApiWithRaw(
                 systemPrompt,

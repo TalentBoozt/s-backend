@@ -1,5 +1,7 @@
 package com.talentboozt.s_backend.domains.auth.service;
 
+import lombok.extern.slf4j.Slf4j;
+
 import com.talentboozt.s_backend.domains.auth.dto.SSO.AuthResponse;
 import com.talentboozt.s_backend.domains.auth.dto.SSO.JwtUserPayload;
 import com.talentboozt.s_backend.domains.auth.dto.SSO.RegisterRequest;
@@ -11,7 +13,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import com.talentboozt.s_backend.domains.referral.service.ReferralService;
+import com.talentboozt.s_backend.domains.referral.enums.ReferralType;
+
 @Service
+@Slf4j
 public class AuthService {
 
     @Autowired
@@ -27,7 +33,10 @@ public class AuthService {
     private UserPermissionsService userPermissionsService;
 
     @Autowired
-    private com.talentboozt.s_backend.domains.payment.service.SubscriptionService subscriptionService;
+    private com.talentboozt.s_backend.domains.payment.service.PaymentSubscriptionService subscriptionService;
+
+    @Autowired
+    private ReferralService referralService;
 
     // Add JWTService if you need to generate token inside service level (for
     // flexibility)
@@ -114,6 +123,21 @@ public class AuthService {
         // add other fields if you have
 
         CredentialsModel savedUser = credentialsService.addCredentials(user, platform, referrer);
+
+        // Referral System Integration: Register referral if code is present
+        if (registerRequest.getReferralCode() != null && !registerRequest.getReferralCode().isBlank()) {
+            try {
+                referralService.validateReferralCode(registerRequest.getReferralCode()).ifPresent(refCode -> {
+                    // Default to LEARNER referral during signup. If user becomes a creator later, 
+                    // it can be upgraded or handled accordingly.
+                    referralService.registerReferral(refCode.getUserId(), savedUser.getEmployeeId(), ReferralType.LEARNER);
+                });
+            } catch (Exception e) {
+                // We don't want to break registration if referral fails, but log it.
+                log.error("Failed to register referral during signup for user {}: {}", savedUser.getEmail(), e.getMessage());
+            }
+        }
+
         JwtUserPayload userPayload = new JwtUserPayload();
         userPayload.setUserId(savedUser.getEmployeeId());
         userPayload.setEmail(savedUser.getEmail());

@@ -52,23 +52,16 @@ public class EduTrustScoreService {
             return getOrCreateTrustScore(creatorId);
         }
 
-        // --- 1. Validation level (0–30 points) ---
-        long verifiedCount = courses.stream()
-                .filter(c -> c.getValidationStatus() == ECourseValidationStatus.AI_APPROVED
-                          || Boolean.TRUE.equals(c.getTalnovaVerified()))
-                .count();
-        double percentVerified = courses.isEmpty() ? 0 : (double) verifiedCount / courses.size();
-        double validationScore = percentVerified * 30.0;
-
-        // --- 2. Rating quality (0–25 points) ---
+        // --- 1. Rating quality (40% weight) ---
         double avgRating = courses.stream()
                 .filter(c -> c.getRating() != null && c.getRating() > 0)
                 .mapToDouble(ECourses::getRating)
                 .average()
                 .orElse(0.0);
-        double ratingScore = (avgRating / 5.0) * 25.0;
+        int totalReviews = courses.stream().mapToInt(c -> c.getTotalReviews() != null ? c.getTotalReviews() : 0).sum();
+        double ratingComp = (avgRating / 5.0) * 40.0;
 
-        // --- 3. Completion rate (0–15 points) ---
+        // --- 2. Completion rate (30% weight) ---
         List<String> courseIds = courses.stream().map(ECourses::getId).collect(Collectors.toList());
         List<EEnrollments> allEnrollments = courseIds.stream()
                 .flatMap(cid -> enrollmentsRepository.findByCourseId(cid).stream())
@@ -80,9 +73,9 @@ public class EduTrustScoreService {
                     .average()
                     .orElse(0.0);
         }
-        double completionScore = avgCompletion * 15.0;
+        double completionComp = avgCompletion * 30.0;
 
-        // --- 4. Refund health (0–15 points, inverted) ---
+        // --- 3. Refund health (30% weight, inverted) ---
         List<ETransactions> allTxs = transactionsRepository.findBySellerId(creatorId);
         long totalTxs = allTxs.stream()
                 .filter(t -> t.getPaymentStatus() == EPaymentStatus.SUCCESS 
@@ -91,28 +84,18 @@ public class EduTrustScoreService {
         long refundedTxs = allTxs.stream()
                 .filter(t -> t.getPaymentStatus() == EPaymentStatus.REFUNDED)
                 .count();
-        double refundRate = totalTxs > 0 ? (double) refundedTxs / totalTxs : 0.0;
-        double refundHealthScore = (1.0 - Math.min(refundRate, 1.0)) * 15.0;
+        double refundRateValue = totalTxs > 0 ? (double) refundedTxs / totalTxs : 0.0;
+        double refundComp = (1.0 - Math.min(refundRateValue, 1.0)) * 30.0;
 
-        // --- 5. Report health (0–10 points, inverted) ---
-        // Use moderation rejections as a proxy for reports
-        long rejectedCount = courses.stream()
-                .filter(c -> c.getModerationRejectionReason() != null 
-                          && !c.getModerationRejectionReason().isEmpty())
+        // --- Bonus: Validation & Reports (keep for existing features) ---
+        long verifiedCount = courses.stream()
+                .filter(c -> c.getValidationStatus() == ECourseValidationStatus.AI_APPROVED
+                          || Boolean.TRUE.equals(c.getTalnovaVerified()))
                 .count();
-        double reportRate = courses.isEmpty() ? 0 : (double) rejectedCount / courses.size();
-        double reportHealthScore = (1.0 - Math.min(reportRate, 1.0)) * 10.0;
+        double validationBonus = (courses.isEmpty() ? 0 : (double) verifiedCount / courses.size()) * 5.0;
 
-        // --- 6. Activity bonus (0–5 points) ---
-        Instant recentThreshold = Instant.now().minus(90, ChronoUnit.DAYS);
-        boolean isActive = courses.stream()
-                .anyMatch(c -> c.getPublishedAt() != null && c.getPublishedAt().isAfter(recentThreshold));
-        double activityScore = isActive ? 5.0 : 0.0;
-
-        // --- Composite ---
-        double totalScore = Math.min(100, Math.max(0,
-                validationScore + ratingScore + completionScore 
-                + refundHealthScore + reportHealthScore + activityScore));
+        // --- Composite (0-100) ---
+        double totalScore = Math.min(100, Math.max(0, ratingComp + completionComp + refundComp + validationBonus));
 
         String tier = determineTier(totalScore);
 
@@ -121,12 +104,19 @@ public class EduTrustScoreService {
         existing.setPreviousTier(existing.getCurrentTier());
         existing.setCurrentScore(round2(totalScore));
         existing.setCurrentTier(tier);
-        existing.setValidationScore(round2(validationScore));
-        existing.setRatingScore(round2(ratingScore));
-        existing.setCompletionScore(round2(completionScore));
-        existing.setRefundHealthScore(round2(refundHealthScore));
-        existing.setReportHealthScore(round2(reportHealthScore));
-        existing.setActivityScore(round2(activityScore));
+        
+        // Store requested fields
+        existing.setAverageRating(round2(avgRating));
+        existing.setTotalReviews(totalReviews);
+        existing.setCompletionRate(round2(avgCompletion));
+        existing.setRefundRate(round2(refundRateValue));
+
+        // Dimension scores for UI
+        existing.setRatingScore(round2(ratingComp));
+        existing.setCompletionScore(round2(completionComp));
+        existing.setRefundHealthScore(round2(refundComp));
+        existing.setValidationScore(round2(validationBonus));
+
         existing.setLastCalculatedAt(Instant.now());
 
         if (existing.getPreviousTier() != null && !tier.equals(existing.getPreviousTier())) {
@@ -144,6 +134,13 @@ public class EduTrustScoreService {
         }
 
         return trustScoresRepository.save(existing);
+    }
+
+    /**
+     * Requirement alias for calculateTrustScore.
+     */
+    public void updateScore(String creatorId) {
+        calculateTrustScore(creatorId);
     }
 
     public ETrustScores getTrustScore(String creatorId) {
