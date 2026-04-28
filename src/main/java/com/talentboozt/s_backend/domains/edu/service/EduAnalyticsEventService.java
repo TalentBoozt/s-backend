@@ -31,4 +31,28 @@ public class EduAnalyticsEventService {
                 
         eventsRepository.save(event);
     }
+
+    /**
+     * Unified tracking method matching requested objective.
+     */
+    @Async
+    public void trackEvent(String userId, EAnalyticsEvent type, Map<String, Object> metadata) {
+        // userId can be null for public views
+        recordEvent(type, userId, (String) metadata.get("courseId"), metadata);
+    }
+
+    public java.util.List<EAnalyticsEvents> getEventsByUser(String userId) {
+        return eventsRepository.findByUserIdOrderByTimestampDesc(userId);
+    }
+
+    /**
+     * Basic metric aggregation placeholder for high-level summaries.
+     */
+    public Map<String, Long> aggregateMetrics() {
+        java.util.Map<String, Long> metrics = new java.util.HashMap<>();
+        for (EAnalyticsEvent type : EAnalyticsEvent.values()) {
+            metrics.put(type.name(), eventsRepository.countByType(type));
+        }
+        return metrics;
+    }
 }

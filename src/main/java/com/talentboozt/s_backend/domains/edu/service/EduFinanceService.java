@@ -34,6 +34,7 @@ public class EduFinanceService {
     private final EduAuditService auditService;
     private final EduLedgerService ledgerService;
     private final StripeConnectService stripeConnectService;
+    private final EduWalletService walletService;
 
     public EduFinanceService(ETransactionsRepository transactionsRepository,
             EPayoutsRepository payoutsRepository,
@@ -42,7 +43,8 @@ public class EduFinanceService {
             EduCryptoService cryptoService,
             EduAuditService auditService,
             EduLedgerService ledgerService,
-            StripeConnectService stripeConnectService) {
+            StripeConnectService stripeConnectService,
+            EduWalletService walletService) {
         this.transactionsRepository = transactionsRepository;
         this.payoutsRepository = payoutsRepository;
         this.financeSettingsRepository = financeSettingsRepository;
@@ -51,6 +53,7 @@ public class EduFinanceService {
         this.auditService = auditService;
         this.ledgerService = ledgerService;
         this.stripeConnectService = stripeConnectService;
+        this.walletService = walletService;
     }
 
     public RevenueSummaryDTO getRevenueSummary(String creatorId) {
@@ -141,7 +144,9 @@ public class EduFinanceService {
                 .createdAt(Instant.now())
                 .build();
 
-        return payoutsRepository.save(payout);
+        EPayouts saved = payoutsRepository.save(payout);
+        walletService.requestPayout(creatorId, request.getAmount(), saved.getId());
+        return saved;
     }
 
     public List<EPayouts> getPayoutHistory(String creatorId) {

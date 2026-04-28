@@ -1,6 +1,8 @@
 package com.talentboozt.s_backend.domains.resume.controller;
 
 import com.talentboozt.s_backend.domains.resume.service.AtsService;
+import com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser;
+import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
 import com.talentboozt.s_backend.shared.utils.DocumentExtractionService;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import lombok.AllArgsConstructor;
@@ -26,6 +28,7 @@ public class AtsController {
     @PostMapping("/analyze")
     @RateLimiter(name = "postLimiter")
     public ResponseEntity<AtsAnalysisResponse> analyzeResume(
+            @AuthenticatedUser CustomUserDetails user,
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "jobDescription", required = false) String jobDescription) {
         log.info("Analyzing resume: {} with JD: {}", file.getOriginalFilename(), jobDescription != null);
@@ -40,7 +43,7 @@ public class AtsController {
             }
 
             // 2. Real AI analysis
-            AtsService.AtsAnalysisResult result = atsService.analyze(text, jobDescription);
+            AtsService.AtsAnalysisResult result = atsService.analyze(user.getUserId(), text, jobDescription);
 
             // 3. Map to response
             AtsAnalysisResponse response = new AtsAnalysisResponse();

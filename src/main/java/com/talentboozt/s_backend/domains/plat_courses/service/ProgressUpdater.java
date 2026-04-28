@@ -2,7 +2,7 @@ package com.talentboozt.s_backend.domains.plat_courses.service;
 
 import com.talentboozt.s_backend.domains.ambassador.model.AmbassadorProfileModel;
 import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbassadorSessionRepository;
-import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.ReferralRepository;
+import com.talentboozt.s_backend.domains.ambassador.repository.mongodb.AmbReferralRepository;
 import com.talentboozt.s_backend.domains.plat_courses.model.AmbassadorTaskProgressModel;
 import com.talentboozt.s_backend.domains.plat_courses.model.CourseCouponsModel;
 import com.talentboozt.s_backend.domains.plat_courses.model.GamificationTaskModel;
@@ -23,7 +23,7 @@ import java.util.UUID;
 public class ProgressUpdater {
 
     @Autowired
-    private ReferralRepository referralRepo;
+    private AmbReferralRepository referralRepo;
 
     @Autowired
     private AmbassadorSessionRepository sessionRepo;

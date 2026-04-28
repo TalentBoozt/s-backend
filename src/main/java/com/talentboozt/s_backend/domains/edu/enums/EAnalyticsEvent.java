@@ -9,5 +9,7 @@ public enum EAnalyticsEvent {
     SHARE,
     LESSON_START,
     LESSON_COMPLETE,
-    QUIZ_ATTEMPT
+    QUIZ_ATTEMPT,
+    AI_USAGE,
+    REFERRAL_USED
 }

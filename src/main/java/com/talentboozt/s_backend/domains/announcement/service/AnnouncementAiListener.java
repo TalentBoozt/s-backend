@@ -23,6 +23,7 @@ public class AnnouncementAiListener {
     @EventListener
     public void handleAnnouncementPublished(AnnouncementPublishedEvent event) {
         Announcement announcement = event.getAnnouncement();
+        String userId = announcement.getCreatedBy();
 
         boolean shouldGenerate = announcement.isGenerateSummary() ||
                 announcement.getType() == AnnouncementType.FEATURE_RELEASE;
@@ -30,7 +31,7 @@ public class AnnouncementAiListener {
         if (shouldGenerate) {
             try {
                 log.info("Generating AI summary for announcement: {}", announcement.getId());
-                AiGeneratedSummary summary = aiService.generateReleaseSummary(announcement.getContent());
+                AiGeneratedSummary summary = aiService.generateReleaseSummary(userId, announcement.getContent());
 
                 announcement.setAiSummary(summary.getSummary());
                 announcement.setAiHighlights(summary.getHighlights());

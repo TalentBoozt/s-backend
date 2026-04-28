@@ -20,7 +20,7 @@ import java.util.Optional;
 public class BillingPortalController {
 
     @Autowired
-    private SubscriptionService subscriptionService;
+    private PaymentSubscriptionService subscriptionService;
     @Autowired
     private BillingHistoryService billingHistoryService;
     @Autowired
@@ -50,7 +50,7 @@ public class BillingPortalController {
         if (companyId == null)
             return ResponseEntity.status(401).build();
 
-        SubscriptionsModel sub = subscriptionService.getSubscription(companyId);
+        PaymentSubscriptionsModel sub = subscriptionService.getSubscription(companyId);
         return sub != null ? ResponseEntity.ok(sub) : ResponseEntity.notFound().build();
     }
 

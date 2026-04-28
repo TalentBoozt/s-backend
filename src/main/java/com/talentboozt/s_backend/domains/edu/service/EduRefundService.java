@@ -48,19 +48,25 @@ public class EduRefundService {
     private final EEnrollmentsRepository enrollmentsRepository;
     private final EduAuditService auditService;
     private final EduLedgerService ledgerService;
+    private final EduWalletService walletService;
+    private final EduTrustScoreService trustScoreService;
 
     public EduRefundService(ERefundRepository refundRepository,
             ETransactionsRepository transactionsRepository,
             EHoldingLedgerRepository holdingLedgerRepository,
             EEnrollmentsRepository enrollmentsRepository,
             EduAuditService auditService,
-            EduLedgerService ledgerService) {
+            EduLedgerService ledgerService,
+            EduWalletService walletService,
+            EduTrustScoreService trustScoreService) {
         this.refundRepository = refundRepository;
         this.transactionsRepository = transactionsRepository;
         this.holdingLedgerRepository = holdingLedgerRepository;
         this.enrollmentsRepository = enrollmentsRepository;
         this.auditService = auditService;
         this.ledgerService = ledgerService;
+        this.walletService = walletService;
+        this.trustScoreService = trustScoreService;
     }
 
     /**
@@ -235,6 +241,9 @@ public class EduRefundService {
                 tx.getSellerId(), refundAmount, txAmount,
                 tx.getCurrency(), tx.getCourseId(), type == RefundType.FULL);
 
+        // Update Wallet
+        walletService.processRefund(tx.getSellerId(), refundAmount, saved.getId());
+
         // 5. Audit log
         auditService.logAction(
                 refund.getInitiatedBy(),
@@ -244,6 +253,9 @@ public class EduRefundService {
                 tx.getPaymentStatus(),
                 EPaymentStatus.REFUNDED,
                 request);
+
+        // Update Trust Score
+        trustScoreService.updateScore(tx.getSellerId());
 
         log.info("Refund processed: tx={}, amount={}, type={}, course={}, buyer={}",
                 tx.getId(), refundAmount, type, tx.getCourseId(), tx.getBuyerId());

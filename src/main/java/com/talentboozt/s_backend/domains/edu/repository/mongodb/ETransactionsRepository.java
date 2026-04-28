@@ -12,15 +12,24 @@ import java.util.Optional;
 @Repository
 public interface ETransactionsRepository extends MongoRepository<ETransactions, String> {
     List<ETransactions> findBySellerId(String sellerId);
+
     List<ETransactions> findByBuyerId(String buyerId);
+
+    List<ETransactions> findByCourseId(String courseId);
 
     Optional<ETransactions> findByStripeCheckoutSessionId(String stripeCheckoutSessionId);
 
     List<ETransactions> findAllByStripeCheckoutSessionId(String stripeCheckoutSessionId);
 
-    /** Finds PENDING transactions whose expiresAt has passed — candidates for cleanup. */
+    /**
+     * Finds PENDING transactions whose expiresAt has passed — candidates for
+     * cleanup.
+     */
     List<ETransactions> findByPaymentStatusAndExpiresAtBefore(EPaymentStatus status, Instant cutoff);
 
-    /** Fallback: finds old PENDING transactions created before cutoff (for records without expiresAt). */
+    /**
+     * Fallback: finds old PENDING transactions created before cutoff (for records
+     * without expiresAt).
+     */
     List<ETransactions> findByPaymentStatusAndCreatedAtBefore(EPaymentStatus status, Instant cutoff);
 }

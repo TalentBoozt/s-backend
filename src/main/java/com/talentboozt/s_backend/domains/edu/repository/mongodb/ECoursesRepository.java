@@ -16,4 +16,5 @@ public interface ECoursesRepository extends MongoRepository<ECourses, String> {
 
     List<ECourses> findByStatus(ECourseStatus status);
     List<ECourses> findByValidationStatusIn(List<ECourseValidationStatus> statuses);
+    List<ECourses> findByPublishedTrueAndIsPrivateFalseAndStatus(ECourseStatus status);
 }

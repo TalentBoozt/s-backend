@@ -28,6 +28,12 @@ public class ETrustScores {
     private Double currentScore;
     private Double previousScore;
 
+    // Core Metrics (for calculation)
+    private Double averageRating;
+    private Integer totalReviews;
+    private Double completionRate;
+    private Double refundRate;
+
     private String currentTier;  // BRONZE, SILVER, GOLD, PLATINUM
     private String previousTier;
 

@@ -3,10 +3,10 @@ package com.talentboozt.s_backend.shared.security.interceptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.talentboozt.s_backend.domains.edu.enums.ERoles;
 import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
-import com.talentboozt.s_backend.domains.edu.model.ESubscriptions;
 import com.talentboozt.s_backend.domains.edu.model.EUser;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository;
-import com.talentboozt.s_backend.domains.edu.service.EduSubscriptionService;
+import com.talentboozt.s_backend.domains.subscription.model.Subscription;
+import com.talentboozt.s_backend.domains.subscription.service.SubscriptionService;
 import com.talentboozt.s_backend.shared.security.annotations.RequirePlan;
 import com.talentboozt.s_backend.shared.security.annotations.RequireRole;
 import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
@@ -31,10 +31,10 @@ import java.util.Optional;
 public class RbacInterceptor implements HandlerInterceptor {
 
     private final EUserRepository userRepository;
-    private final EduSubscriptionService subscriptionService;
+    private final SubscriptionService subscriptionService;
     private final ObjectMapper objectMapper;
 
-    public RbacInterceptor(EUserRepository userRepository, EduSubscriptionService subscriptionService, ObjectMapper objectMapper) {
+    public RbacInterceptor(EUserRepository userRepository, SubscriptionService subscriptionService, ObjectMapper objectMapper) {
         this.userRepository = userRepository;
         this.subscriptionService = subscriptionService;
         this.objectMapper = objectMapper;
@@ -126,10 +126,16 @@ public class RbacInterceptor implements HandlerInterceptor {
         // 2. Check Plan
         if (planAnnotation != null) {
             ESubscriptionPlan[] requiredPlans = planAnnotation.value();
-            ESubscriptions subscription = subscriptionService.getUserSubscription(user.getId());
+            Subscription subscription = subscriptionService.getActiveSubscription(user.getId());
             ESubscriptionPlan currentPlan = subscription != null ? subscription.getPlan() : ESubscriptionPlan.FREE;
 
-            boolean hasPlan = Arrays.asList(requiredPlans).contains(currentPlan);
+            boolean hasPlan = false;
+            for (ESubscriptionPlan required : requiredPlans) {
+                if (currentPlan.ordinal() >= required.ordinal()) {
+                    hasPlan = true;
+                    break;
+                }
+            }
             
             if (!hasPlan) {
                 sendErrorResponse(response, HttpStatus.FORBIDDEN, "Upgrade required.");

@@ -23,6 +23,7 @@ public class StripeWebhookController {
 
     @Autowired private StripeAuditLogService auditLogService;
     @Autowired private StripeService stripeService;
+    @Autowired private com.talentboozt.s_backend.domains.subscription.service.SubscriptionService userSubscriptionService;
 
 
     private final String endpointSecret;
@@ -166,11 +167,34 @@ public class StripeWebhookController {
     }
 
     private void handleSubscriptionUpdated(Event event) {
-        stripeService.updateSubscription((Subscription) event.getDataObjectDeserializer().getObject().orElse(null));
+        com.stripe.model.Subscription subscription = (com.stripe.model.Subscription) event.getDataObjectDeserializer().getObject().orElse(null);
+        if (subscription != null) {
+            String userId = subscription.getMetadata() != null ? subscription.getMetadata().get("user_id") : null;
+            if (userId != null) {
+                // Handle user subscription update
+                // You might want to map Stripe status to our ESubscriptionStatus
+                userSubscriptionService.updateFromStripeEvent(
+                    subscription.getCustomer(),
+                    subscription.getId(),
+                    subscription.getStatus(),
+                    subscription.getItems().getData().get(0).getPrice().getId()
+                );
+            } else {
+                stripeService.updateSubscription(subscription);
+            }
+        }
     }
 
     private void handleSubscriptionDeleted(Event event) {
-        stripeService.deleteSubscription((Subscription) event.getDataObjectDeserializer().getObject().orElse(null));
+        com.stripe.model.Subscription subscription = (com.stripe.model.Subscription) event.getDataObjectDeserializer().getObject().orElse(null);
+        if (subscription != null) {
+            String userId = subscription.getMetadata() != null ? subscription.getMetadata().get("user_id") : null;
+            if (userId != null) {
+                userSubscriptionService.handleSubscriptionDeleted(subscription.getId());
+            } else {
+                stripeService.deleteSubscription(subscription);
+            }
+        }
     }
 
     // ------------------- HELPERS -------------------
@@ -222,21 +246,41 @@ public class StripeWebhookController {
         }
         Customer customer = Customer.retrieve(session.getCustomer());
 
-        CustomerUpdateParams updateParams = CustomerUpdateParams.builder()
-                .putMetadata("company_id", metadata.get("company_id"))
-                .putMetadata("plan_name", metadata.get("plan_name"))
-                .build();
+        String userId = metadata.get("user_id");
+        String companyId = metadata.get("company_id");
+        String planName = metadata.get("plan_name");
 
-        customer.update(updateParams);
-        auditLogService.logEvent(event, "Updated customer metadata for company_id: " + metadata.get("company_id"));
-
-        String companyId = session.getMetadata().get("company_id");
-        String planName = session.getMetadata().get("plan_name");
+        if (userId != null) {
+            // User subscription
+            try {
+                com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan plan = 
+                    com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.valueOf(planName.toUpperCase());
+                
+                com.stripe.model.Subscription stripeSub = com.stripe.model.Subscription.retrieve(session.getSubscription());
+                java.time.Instant endDate = java.time.Instant.ofEpochSecond(stripeSub.getCurrentPeriodEnd());
+                
+                userSubscriptionService.handleSubscriptionCreated(userId, plan, stripeSub.getId(), endDate);
+                auditLogService.markProcessed(event.getId());
+                return;
+            } catch (Exception e) {
+                auditLogService.markFailed(event.getId(), "Error creating user subscription: " + e.getMessage(), true);
+                return;
+            }
+        }
 
         if (companyId == null || planName == null) {
             auditLogService.markFailed(event.getId(), "Missing required metadata: company_id or plan_name", true);
             return;
         }
+
+        CustomerUpdateParams updateParams = CustomerUpdateParams.builder()
+                .putMetadata("company_id", companyId)
+                .putMetadata("plan_name", planName)
+                .build();
+
+        customer.update(updateParams);
+        auditLogService.logEvent(event, "Updated customer metadata for company_id: " + companyId);
+
         try {
             stripeService.createSubscriptionWH(companyId, planName, session);
             stripeService.createBillingHistory(companyId, session.getId(), session, "subscription");

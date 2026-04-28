@@ -3,9 +3,9 @@ package com.talentboozt.s_backend.domains.payment.service;
 import com.talentboozt.s_backend.domains.com_job_portal.model.CompanyModel;
 import com.talentboozt.s_backend.domains.com_job_portal.repository.mongodb.CompanyRepository;
 import com.talentboozt.s_backend.domains.payment.model.BillingHistoryModel;
-import com.talentboozt.s_backend.domains.payment.model.SubscriptionsModel;
+import com.talentboozt.s_backend.domains.payment.model.PaymentSubscriptionsModel;
 import com.talentboozt.s_backend.domains.payment.repository.mongodb.BillingHistoryRepository;
-import com.talentboozt.s_backend.domains.payment.repository.mongodb.SubscriptionRepository;
+import com.talentboozt.s_backend.domains.payment.repository.mongodb.PaymentSubscriptionRepository;
 import com.stripe.model.Subscription;
 import com.stripe.model.SubscriptionItem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +17,10 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Service
-public class SubscriptionService {
+public class PaymentSubscriptionService {
 
     @Autowired
-    private SubscriptionRepository subscriptionRepository;
+    private PaymentSubscriptionRepository subscriptionRepository;
 
     @Autowired
     private BillingHistoryRepository billingHistoryRepository;
@@ -36,9 +36,9 @@ public class SubscriptionService {
                 .orElse(false);
     }
 
-    public SubscriptionsModel getSubscription(String companyId) {
+    public PaymentSubscriptionsModel getSubscription(String companyId) {
         if (isExempt(companyId)) {
-            SubscriptionsModel systemOwnerSub = new SubscriptionsModel();
+            PaymentSubscriptionsModel systemOwnerSub = new PaymentSubscriptionsModel();
             systemOwnerSub.setPlan_name("System Owner (Root)");
             systemOwnerSub.set_active(true);
             systemOwnerSub.setCost("0");
@@ -49,8 +49,8 @@ public class SubscriptionService {
         return subscriptionRepository.findByCompanyId(companyId);
     }
 
-    public SubscriptionsModel updateSubscription(String companyId, SubscriptionsModel subscription) {
-        SubscriptionsModel existingSubscription = subscriptionRepository.findByCompanyId(companyId);
+    public PaymentSubscriptionsModel updateSubscription(String companyId, PaymentSubscriptionsModel subscription) {
+        PaymentSubscriptionsModel existingSubscription = subscriptionRepository.findByCompanyId(companyId);
         if (existingSubscription != null) {
             existingSubscription.setPlan_name(subscription.getPlan_name());
             existingSubscription.setCost(subscription.getCost());
@@ -69,7 +69,7 @@ public class SubscriptionService {
     }
 
     public void updateBillingHistory(String subscriptionId, String amountPaid, String status) {
-        SubscriptionsModel subscription = subscriptionRepository.findBySubscriptionId(subscriptionId).orElse(null);
+        PaymentSubscriptionsModel subscription = subscriptionRepository.findBySubscriptionId(subscriptionId).orElse(null);
         if (subscription != null) {
             BillingHistoryModel billingHistory = new BillingHistoryModel();
             billingHistory.setCompanyId(subscription.getCompanyId());
@@ -82,7 +82,7 @@ public class SubscriptionService {
     }
 
     public void updateSubscriptionDetails(Subscription subscription) {
-        SubscriptionsModel existing = subscriptionRepository.findBySubscriptionId(subscription.getId()).orElse(null);
+        PaymentSubscriptionsModel existing = subscriptionRepository.findBySubscriptionId(subscription.getId()).orElse(null);
         if (existing != null) {
             List<SubscriptionItem> items = subscription.getItems().getData();
             if (!items.isEmpty()) {
@@ -97,7 +97,7 @@ public class SubscriptionService {
     }
 
     public void markAsInactive(String subscriptionId) {
-        SubscriptionsModel subscription = subscriptionRepository.findById(Objects.requireNonNull(subscriptionId))
+        PaymentSubscriptionsModel subscription = subscriptionRepository.findById(Objects.requireNonNull(subscriptionId))
                 .orElse(null);
         if (subscription != null) {
             subscription.set_active(false);

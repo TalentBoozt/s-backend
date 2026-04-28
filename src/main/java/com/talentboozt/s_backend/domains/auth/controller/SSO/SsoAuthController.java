@@ -28,12 +28,12 @@ public class SsoAuthController {
     private final CredentialsRepository credentialsRepository;
     private final JwtUtil jwtUtil;
     private final UserPermissionsService userPermissionsService;
-    private final com.talentboozt.s_backend.domains.payment.service.SubscriptionService subscriptionService;
+    private final com.talentboozt.s_backend.domains.payment.service.PaymentSubscriptionService subscriptionService;
 
     public SsoAuthController(AuthService authService, JwtService jwtService,
             CredentialsRepository credentialsRepository,
             JwtUtil jwtUtil, UserPermissionsService userPermissionsService,
-            com.talentboozt.s_backend.domains.payment.service.SubscriptionService subscriptionService) {
+            com.talentboozt.s_backend.domains.payment.service.PaymentSubscriptionService subscriptionService) {
         this.authService = authService;
         this.jwtService = jwtService;
         this.credentialsRepository = credentialsRepository;

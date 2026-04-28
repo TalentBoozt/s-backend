@@ -1,21 +1,21 @@
 package com.talentboozt.s_backend.domains.payment.controller;
 
-import com.talentboozt.s_backend.domains.payment.model.SubscriptionsModel;
-import com.talentboozt.s_backend.domains.payment.service.SubscriptionService;
+import com.talentboozt.s_backend.domains.payment.model.PaymentSubscriptionsModel;
+import com.talentboozt.s_backend.domains.payment.service.PaymentSubscriptionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v2/subscriptions")
-public class SubscriptionController {
+public class PaymentSubscriptionController {
 
     @Autowired
-    private SubscriptionService subscriptionService;
+    private PaymentSubscriptionService subscriptionService;
 
     @GetMapping("/get/{companyId}")
-    public ResponseEntity<SubscriptionsModel> getSubscription(@PathVariable String companyId) {
-        SubscriptionsModel subscription = subscriptionService.getSubscription(companyId);
+    public ResponseEntity<PaymentSubscriptionsModel> getSubscription(@PathVariable String companyId) {
+        PaymentSubscriptionsModel subscription = subscriptionService.getSubscription(companyId);
         if (subscription != null) {
             return ResponseEntity.ok(subscription);
         }
@@ -23,10 +23,10 @@ public class SubscriptionController {
     }
 
     @PutMapping("/update/{companyId}")
-    public ResponseEntity<SubscriptionsModel> updateSubscription(
+    public ResponseEntity<PaymentSubscriptionsModel> updateSubscription(
             @PathVariable String companyId,
-            @RequestBody SubscriptionsModel subscription) {
-        SubscriptionsModel updatedSubscription = subscriptionService.updateSubscription(companyId, subscription);
+            @RequestBody PaymentSubscriptionsModel subscription) {
+        PaymentSubscriptionsModel updatedSubscription = subscriptionService.updateSubscription(companyId, subscription);
         if (updatedSubscription != null) {
             return ResponseEntity.ok(updatedSubscription);
         }

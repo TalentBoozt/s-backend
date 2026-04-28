@@ -1,5 +1,7 @@
 package com.talentboozt.s_backend.domains.resume.service;
 
+import com.talentboozt.s_backend.domains.ai_tool.enums.AIUsageType;
+import com.talentboozt.s_backend.domains.ai_tool.service.AIUsageService;
 import com.talentboozt.s_backend.shared.ai.GeminiClient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,13 +20,17 @@ import java.util.Objects;
 public class AtsService {
 
     private final GeminiClient geminiClient;
+    private final AIUsageService aiUsageService;
 
     private static final String SYSTEM_PROMPT = "You are an AI ATS (Applicant Tracking System) expert. " +
             "Your task is to analyze resume text and provide a compatibility score, identified keywords, and specific improvement suggestions. "
             +
             "Be critical but constructive. Ensure the output is valid JSON.";
 
-    public AtsAnalysisResult analyze(String resumeText, String jobDescription) {
+    public AtsAnalysisResult analyze(String userId, String resumeText, String jobDescription) {
+        // Enforce AI credits
+        aiUsageService.consumeCredits(userId, AIUsageType.VALIDATION, 1);
+
         String jdPart = (jobDescription != null && !jobDescription.isBlank())
                 ? "Job Description to match against:\n" + jobDescription + "\n\n"
                 : "No specific job description provided. Analyze for general ATS best practices.\n\n";

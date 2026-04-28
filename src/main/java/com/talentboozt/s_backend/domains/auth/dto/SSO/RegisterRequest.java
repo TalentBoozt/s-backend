@@ -12,6 +12,7 @@ public class RegisterRequest {
     private String userLevel;
     private String platform;
     private String referrerId;
+    private String referralCode;
     private String promotion;
     private boolean active;
 }

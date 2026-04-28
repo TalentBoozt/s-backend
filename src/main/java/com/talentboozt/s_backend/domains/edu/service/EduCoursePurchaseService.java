@@ -36,6 +36,9 @@ import com.talentboozt.s_backend.domains.edu.repository.mongodb.EAffiliatesRepos
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EBundlesRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EEnrollmentsRepository;
 
+import com.talentboozt.s_backend.domains.referral.service.ReferralService;
+import com.talentboozt.s_backend.domains.edu.service.EduAnalyticsEventService;
+
 @Service
 public class EduCoursePurchaseService {
 
@@ -54,6 +57,10 @@ public class EduCoursePurchaseService {
     private final EBundlesRepository bundlesRepository;
     private final EEnrollmentsRepository enrollmentsRepository;
     private final EduLedgerService ledgerService;
+    private final EduWalletService walletService;
+    private final ReferralService referralService;
+    private final EduAnalyticsEventService analyticsEventService;
+    private final EduAffiliateService affiliateService;
 
     @Value("${app.frontend.url:https://edu.talnova.io}")
     private String frontendUrl;
@@ -68,7 +75,11 @@ public class EduCoursePurchaseService {
             EduCouponService couponService,
             EBundlesRepository bundlesRepository,
             EEnrollmentsRepository enrollmentsRepository,
-            EduLedgerService ledgerService) {
+            EduLedgerService ledgerService,
+            EduWalletService walletService,
+            ReferralService referralService,
+            EduAnalyticsEventService analyticsEventService,
+            EduAffiliateService affiliateService) {
         this.coursesRepository = coursesRepository;
         this.transactionsRepository = transactionsRepository;
         this.enrollmentService = enrollmentService;
@@ -80,20 +91,33 @@ public class EduCoursePurchaseService {
         this.bundlesRepository = bundlesRepository;
         this.enrollmentsRepository = enrollmentsRepository;
         this.ledgerService = ledgerService;
+        this.walletService = walletService;
+        this.referralService = referralService;
+        this.analyticsEventService = analyticsEventService;
+        this.affiliateService = affiliateService;
     }
 
     /**
      * Starts Stripe Checkout for a paid marketplace course; persists a PENDING
      * transaction row.
      */
-    public Map<String, String> createCourseCheckoutSession(String userId, String courseId, String affiliateId,
+    public Map<String, String> createCourseCheckoutSession(String userId, String courseId, String trackingCode,
             String couponCode) throws StripeException {
         ECourses course = coursesRepository.findById(courseId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Course not found"));
 
-        fraudDetectionService.validateBulkPurchases(userId, Map.of(course.getCreatorId(), 1L));
+        // Lookup affiliate from tracking code
+        String affiliateId = null;
+        if (trackingCode != null && !trackingCode.isBlank()) {
+            EAffiliates aff = affiliatesRepository.findByReferralCode(trackingCode.split("-")[0]).orElse(null);
+            if (aff != null && !aff.getUserId().equals(userId)) {
+                affiliateId = aff.getId();
+            }
+        }
 
-        if (!Boolean.TRUE.equals(course.getPublished())) {
+        fraudDetectionService.validateBulkPurchases(userId, Map.of(course.getCreatorId(), 1L));
+        fraudDetectionService.detectSelfPurchase(userId, course.getCreatorId());
+        if (!Boolean.TRUE.equals(course.getPublished()) || course.getStatus() != com.talentboozt.s_backend.domains.edu.enums.ECourseStatus.PUBLISHED) {
             throw new EduBadRequestException("Course is not available for purchase");
         }
         if (Boolean.TRUE.equals(course.getIsPrivate())) {
@@ -416,13 +440,30 @@ public class EduCoursePurchaseService {
                 // Double-entry ledger
                 ledgerService.recordPurchase(tx);
 
-                // Affiliate ledger entry
-                if (tx.getAffiliateId() != null && tx.getAffiliateEarning() != null && tx.getAffiliateEarning() > 0) {
-                    EAffiliates aff = affiliatesRepository.findById(tx.getAffiliateId()).orElse(null);
-                    if (aff != null) {
-                        ledgerService.recordAffiliateCommission(tx.getId(), aff.getUserId(),
-                                tx.getAffiliateEarning(), tx.getCurrency(), tx.getCourseId());
-                    }
+                // Update Wallet (Pending Balance)
+                walletService.addSale(tx.getSellerId(), tx.getCreatorEarning(), tx.getId());
+
+                // Referral System Integration
+                // 1. Handle Learner Referral (First Purchase Flow)
+                referralService.handlePurchaseFinalization(userId);
+
+                // 2. Handle Creator Referral Commission (Source: Platform Commission)
+                double creatorReferralComm = referralService.getReferrerCommissionShare(tx.getSellerId(), tx.getAmount());
+                if (creatorReferralComm > 0) {
+                    referralService.distributeCreatorReferralCommission(tx.getSellerId(), tx.getAmount(), tx.getId());
+                    tx.setReferralCommission(creatorReferralComm);
+                    // Note: We don't deduct from tx.platformFee here because platformFee represents total platform take,
+                    // but we track it in the transaction for clarity.
+                    transactionsRepository.save(tx);
+                }
+
+                // Tracking: Course Purchase
+                analyticsEventService.recordEvent(com.talentboozt.s_backend.domains.edu.enums.EAnalyticsEvent.PURCHASE, 
+                                                userId, tx.getCourseId(), java.util.Map.of("transactionId", tx.getId(), "amount", tx.getAmount()));
+
+                // Affiliate commission processing
+                if (tx.getAffiliateId() != null) {
+                    affiliateService.processAffiliateCommission(tx.getId(), tx.getAffiliateId(), tx.getCourseId(), tx.getAmount(), tx.getCurrency(), tx.getBuyerId());
                 }
             }
 
@@ -473,6 +514,22 @@ public class EduCoursePurchaseService {
 
                     // Double-entry ledger
                     ledgerService.recordPurchase(tx);
+
+                    // Update Wallet (Pending Balance)
+                    walletService.addSale(tx.getSellerId(), tx.getCreatorEarning(), tx.getId());
+
+                    // Referral System Integration
+                    referralService.handlePurchaseFinalization(userId);
+                    double creatorRefComm = referralService.getReferrerCommissionShare(tx.getSellerId(), tx.getAmount());
+                    if (creatorRefComm > 0) {
+                        referralService.distributeCreatorReferralCommission(tx.getSellerId(), tx.getAmount(), tx.getId());
+                        tx.setReferralCommission(creatorRefComm);
+                        transactionsRepository.save(tx);
+                    }
+
+                    // Tracking: Course Purchase (Multi)
+                    analyticsEventService.recordEvent(com.talentboozt.s_backend.domains.edu.enums.EAnalyticsEvent.PURCHASE, 
+                                                    userId, tx.getCourseId(), java.util.Map.of("transactionId", tx.getId(), "amount", tx.getAmount(), "cartSession", sessionId));
 
                     // Affiliate ledger entry (if applicable in future)
                     if (tx.getAffiliateId() != null && tx.getAffiliateEarning() != null
@@ -541,6 +598,22 @@ public class EduCoursePurchaseService {
 
                     // Double-entry ledger
                     ledgerService.recordPurchase(tx);
+
+                    // Update Wallet (Pending Balance)
+                    walletService.addSale(tx.getSellerId(), tx.getCreatorEarning(), tx.getId());
+
+                    // Referral System Integration
+                    referralService.handlePurchaseFinalization(userId);
+                    double creatorRefComm = referralService.getReferrerCommissionShare(tx.getSellerId(), tx.getAmount());
+                    if (creatorRefComm > 0) {
+                        referralService.distributeCreatorReferralCommission(tx.getSellerId(), tx.getAmount(), tx.getId());
+                        tx.setReferralCommission(creatorRefComm);
+                        transactionsRepository.save(tx);
+                    }
+
+                    // Tracking: Course Purchase (Bundle)
+                    analyticsEventService.recordEvent(com.talentboozt.s_backend.domains.edu.enums.EAnalyticsEvent.PURCHASE, 
+                                                    userId, tx.getCourseId(), java.util.Map.of("transactionId", tx.getId(), "amount", tx.getAmount(), "bundleId", meta.get("bundleId")));
 
                     // Affiliate ledger entry (if applicable in future)
                     if (tx.getAffiliateId() != null && tx.getAffiliateEarning() != null

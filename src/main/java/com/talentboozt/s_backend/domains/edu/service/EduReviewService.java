@@ -12,7 +12,9 @@ import com.talentboozt.s_backend.domains.edu.repository.mongodb.EReviewsReposito
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class EduReviewService {
@@ -20,29 +22,30 @@ public class EduReviewService {
     private final EReviewsRepository reviewsRepository;
     private final ECoursesRepository coursesRepository;
     private final EEnrollmentsRepository enrollmentsRepository;
+    private final EduAnalyticsEventService analyticsEventService;
+    private final EduTrustScoreService trustScoreService;
 
     public EduReviewService(EReviewsRepository reviewsRepository,
             ECoursesRepository coursesRepository,
-            EEnrollmentsRepository enrollmentsRepository) {
+            EEnrollmentsRepository enrollmentsRepository,
+            EduAnalyticsEventService analyticsEventService,
+            EduTrustScoreService trustScoreService) {
         this.reviewsRepository = reviewsRepository;
         this.coursesRepository = coursesRepository;
         this.enrollmentsRepository = enrollmentsRepository;
+        this.analyticsEventService = analyticsEventService;
+        this.trustScoreService = trustScoreService;
     }
 
     public EReviews addReview(String courseId, String userId, ReviewRequest request) {
         // Enforce only enrolled learners can post reviews
-        boolean isEnrolled = enrollmentsRepository.findAll().stream()
-                .anyMatch(e -> userId.equals(e.getUserId()) && courseId.equals(e.getCourseId()));
-
+        boolean isEnrolled = enrollmentsRepository.findByUserIdAndCourseId(userId, courseId).isPresent();
         if (!isEnrolled) {
             throw new EduAccessDeniedException("Must be enrolled in the course to leave a review.");
         }
 
         // Ensure user hasn't already reviewed
-        boolean alreadyReviewed = reviewsRepository.findByCourseId(courseId).stream()
-                .anyMatch(r -> userId.equals(r.getUserId()));
-
-        if (alreadyReviewed) {
+        if (reviewsRepository.existsByUserIdAndCourseId(userId, courseId)) {
             throw new EduBadRequestException("You have already reviewed this course.");
         }
 
@@ -62,6 +65,14 @@ public class EduReviewService {
         EReviews saved = reviewsRepository.save(review);
         updateCourseAverageRating(courseId);
 
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("rating", review.getRating());
+        metadata.put("courseId", courseId);
+
+        // Track analytics
+        analyticsEventService.trackEvent(userId, com.talentboozt.s_backend.domains.edu.enums.EAnalyticsEvent.REVIEW,
+                metadata);
+
         return saved;
     }
 
@@ -69,9 +80,13 @@ public class EduReviewService {
         return reviewsRepository.findByCourseId(courseId);
     }
 
-    public EReviews updateReview(String reviewId, ReviewRequest request) {
+    public EReviews updateReview(String reviewId, String userId, boolean isAdmin, ReviewRequest request) {
         EReviews review = reviewsRepository.findById(reviewId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Review not found with id: " + reviewId));
+
+        if (!isAdmin && !review.getUserId().equals(userId)) {
+            throw new EduAccessDeniedException("You can only edit your own reviews.");
+        }
 
         if (request.getRating() != null) {
             if (request.getRating() < 1.0 || request.getRating() > 5.0) {
@@ -90,12 +105,16 @@ public class EduReviewService {
         return saved;
     }
 
-    public void deleteReview(String reviewId) {
-        EReviews review = reviewsRepository.findById(reviewId).orElse(null);
-        if (review != null) {
-            reviewsRepository.deleteById(reviewId);
-            updateCourseAverageRating(review.getCourseId());
+    public void deleteReview(String reviewId, String userId, boolean isAdmin) {
+        EReviews review = reviewsRepository.findById(reviewId)
+                .orElseThrow(() -> new EduResourceNotFoundException("Review not found"));
+
+        if (!isAdmin && !review.getUserId().equals(userId)) {
+            throw new EduAccessDeniedException("You can only delete your own reviews.");
         }
+
+        reviewsRepository.deleteById(reviewId);
+        updateCourseAverageRating(review.getCourseId());
     }
 
     public EReviews incrementHelpful(String reviewId) {
@@ -105,6 +124,21 @@ public class EduReviewService {
         review.setHelpfulVotes(votes + 1);
         review.setUpdatedAt(Instant.now());
         return reviewsRepository.save(review);
+    }
+
+    public void reportReview(String reviewId) {
+        EReviews review = reviewsRepository.findById(reviewId)
+                .orElseThrow(() -> new EduResourceNotFoundException("Review not found"));
+        review.setIsReported(true);
+        reviewsRepository.save(review);
+    }
+
+    public void toggleVisibility(String reviewId, boolean isVisible) {
+        EReviews review = reviewsRepository.findById(reviewId)
+                .orElseThrow(() -> new EduResourceNotFoundException("Review not found"));
+        review.setIsVisible(isVisible);
+        reviewsRepository.save(review);
+        updateCourseAverageRating(review.getCourseId());
     }
 
     private void updateCourseAverageRating(String courseId) {
@@ -121,6 +155,11 @@ public class EduReviewService {
                 course.setTotalReviews(allReviews.size());
             }
             coursesRepository.save(course);
+            
+            // Trigger Trust Score update
+            if (course.getCreatorId() != null) {
+                trustScoreService.updateScore(course.getCreatorId());
+            }
         }
     }
 }

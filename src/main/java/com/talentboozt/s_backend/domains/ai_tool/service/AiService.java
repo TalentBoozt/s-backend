@@ -1,17 +1,23 @@
 package com.talentboozt.s_backend.domains.ai_tool.service;
 
 import com.talentboozt.s_backend.domains.ai_tool.dto.*;
+import com.talentboozt.s_backend.domains.ai_tool.enums.AIUsageType;
+import com.talentboozt.s_backend.domains.ai_tool.service.AIUsageService;
 import com.talentboozt.s_backend.shared.ai.OpenAiClient;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AiService {
 
-    private final OpenAiClient openAiClient; // HTTP client to OpenAI API
+    private final OpenAiClient openAiClient;
+    private final AIUsageService aiUsageService;
 
-    public CareerPathResponse getCareerPaths(CareerPathRequest req) {
+    public CareerPathResponse getCareerPaths(String userId, CareerPathRequest req) {
+        aiUsageService.consumeCredits(userId, AIUsageType.GENERATION, 1);
         String prompt = """
                 You are a career guidance AI.
                 User's education: %s
@@ -25,7 +31,8 @@ public class AiService {
         return openAiClient.callStructuredApi(prompt, CareerPathResponse.class);
     }
 
-    public RoadmapResponse getRoadmap(RoadmapRequest req) {
+    public RoadmapResponse getRoadmap(String userId, RoadmapRequest req) {
+        aiUsageService.consumeCredits(userId, AIUsageType.VALIDATION, 1);
         String prompt = """
                     You are a career coach.
                     Dream Job: %s
@@ -46,7 +53,8 @@ public class AiService {
         return openAiClient.callStructuredApi(prompt, RoadmapResponse.class);
     }
 
-    public ChatResponse chat(ChatRequest req) {
+    public ChatResponse chat(String userId, ChatRequest req) {
+        aiUsageService.consumeCredits(userId, AIUsageType.GENERATION, 1);
         String prompt = """
                 You are a helpful assistant. Keep the response under 60 words.
                 Respond strictly in the following JSON format: { "reply": "<your short reply here>" }
@@ -57,7 +65,8 @@ public class AiService {
         return openAiClient.callStructuredApi(prompt, ChatResponse.class);
     }
 
-    public AiGeneratedSummary generateReleaseSummary(String content) {
+    public AiGeneratedSummary generateReleaseSummary(String userId, String content) {
+        aiUsageService.consumeCredits(userId, AIUsageType.GENERATION, 1);
         // Simple truncation to stay within typical context limits if needed
         String truncated = content.length() > 5000 ? content.substring(0, 5000) : content;
 

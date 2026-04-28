@@ -18,16 +18,55 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class EduCouponService {
 
     private final ECouponsRepository couponsRepository;
     private final ECouponRedemptionRepository redemptionRepository;
+    private final com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService;
+    private final EduFraudDetectionService fraudDetectionService;
+
+    public EduCouponService(ECouponsRepository couponsRepository, 
+                          ECouponRedemptionRepository redemptionRepository,
+                          com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService,
+                          EduFraudDetectionService fraudDetectionService) {
+        this.couponsRepository = couponsRepository;
+        this.redemptionRepository = redemptionRepository;
+        this.featureFlagService = featureFlagService;
+        this.fraudDetectionService = fraudDetectionService;
+    }
 
     public ECoupons createCoupon(String creatorId, ECoupons request) {
+        if (creatorId == null) {
+            throw new EduBadRequestException("Creator ID is required.");
+        }
+        if (!featureFlagService.isFeatureEnabled(creatorId, "COUPONS")) {
+            throw new EduAccessDeniedException("Coupon creation is not available for your current plan.");
+        }
+        
+        // Service-level validations
+        if (request.getCode() == null || request.getCode().trim().isEmpty()) {
+            throw new EduBadRequestException("Coupon code is required.");
+        }
+        request.setCode(request.getCode().trim().toUpperCase());
+        
         if (couponsRepository.findByCode(request.getCode()).isPresent()) {
             throw new EduBadRequestException("Coupon code already exists.");
         }
+        
+        if (request.getDiscountValue() == null || request.getDiscountValue() <= 0) {
+            throw new EduBadRequestException("Discount value must be greater than zero.");
+        }
+        
+        if (request.getDiscountType() == null || 
+            (!request.getDiscountType().equalsIgnoreCase("PERCENTAGE") && 
+             !request.getDiscountType().equalsIgnoreCase("FLAT"))) {
+            throw new EduBadRequestException("Discount type must be PERCENTAGE or FLAT.");
+        }
+
+        if ("PERCENTAGE".equalsIgnoreCase(request.getDiscountType()) && request.getDiscountValue() > 100) {
+            throw new EduBadRequestException("Percentage discount cannot exceed 100%.");
+        }
+
         request.setCreatorId(creatorId);
         request.setCreatedAt(Instant.now());
         if (request.getIsActive() == null) {
@@ -79,12 +118,18 @@ public class EduCouponService {
     }
 
     /**
-     * Legacy method — returns discount amount only.
-     * @deprecated Use {@link #validateAndCalculate} for structured results.
+     * Requirement alias for validateAndCalculate.
      */
-    public Double validateCoupon(String code, String courseId, String userId, Double currentPrice) {
-        CouponValidationResult result = validateAndCalculate(code, courseId, userId, currentPrice);
-        return result.getDiscountAmount();
+    public CouponValidationResult applyCoupon(String code, String courseId, String userId, Double currentPrice) {
+        return validateAndCalculate(code, courseId, userId, currentPrice);
+    }
+
+    /**
+     * Requirement alias for validateAndCalculate.
+     */
+    public CouponValidationResult validateCoupon(String code, String courseId) {
+        // Fallback for UI-only validation where price/user might not be known yet
+        return validateAndCalculate(code, courseId, null, 0.0);
     }
 
     /**
@@ -95,6 +140,9 @@ public class EduCouponService {
      * @throws EduBadRequestException if coupon is invalid, expired, or not applicable
      */
     public CouponValidationResult validateAndCalculate(String code, String courseId, String userId, Double currentPrice) {
+        if (userId != null) {
+            fraudDetectionService.detectCouponAbuse(userId);
+        }
         Optional<ECoupons> opt = couponsRepository.findByCode(code);
         if (opt.isEmpty()) {
             throw new EduResourceNotFoundException("Coupon not found with code: " + code);
@@ -154,6 +202,13 @@ public class EduCouponService {
     }
 
     public void redeemCoupon(String code, String userId, String transactionId) {
+        incrementUsage(code, userId, transactionId);
+    }
+
+    /**
+     * Requirement alias for redeemCoupon.
+     */
+    public void incrementUsage(String code, String userId, String transactionId) {
         couponsRepository.findByCode(code).ifPresent(coupon -> {
             coupon.setCurrentRedemptions((coupon.getCurrentRedemptions() == null ? 0 : coupon.getCurrentRedemptions()) + 1);
             couponsRepository.save(coupon);
