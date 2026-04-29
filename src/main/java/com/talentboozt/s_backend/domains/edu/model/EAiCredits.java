@@ -27,11 +27,15 @@ public class EAiCredits {
     private String userId;
     
     private Integer balance;
+    private Integer monthlyLimit;
     private Integer lifetimePurchased;
     private Integer lifetimeUsed;
     
     @Indexed
     private Instant expiresAt;
+
+    @Indexed
+    private Instant lastResetDate;
     
     @Version
     private Long version;

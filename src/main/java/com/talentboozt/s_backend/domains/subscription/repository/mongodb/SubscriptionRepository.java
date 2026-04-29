@@ -9,5 +9,8 @@ import java.util.Optional;
 @Repository
 public interface SubscriptionRepository extends MongoRepository<Subscription, String> {
     Optional<Subscription> findByUserId(String userId);
+
     Optional<Subscription> findByStripeSubscriptionId(String stripeSubscriptionId);
+
+    Optional<Subscription> findByStripeCustomerId(String stripeCustomerId);
 }

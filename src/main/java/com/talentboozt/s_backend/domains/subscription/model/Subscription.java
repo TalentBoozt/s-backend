@@ -36,7 +36,24 @@ public class Subscription {
     private Instant endDate;
     
     @Indexed(sparse = true)
+    private String stripeCustomerId;
+
+    @Indexed(sparse = true)
     private String stripeSubscriptionId;
+
+    private String stripePriceId;
+    private String billingCycle;
+    
+    @Builder.Default
+    private Boolean autoRenew = true;
+
+    @Builder.Default
+    private Boolean cancelAtPeriodEnd = false;
+
+    private Instant trialEndDate;
+    private Instant cancelledAt;
+    private Instant lastPaymentAt;
+    private Instant lastCreditResetAt;
 
     @CreatedDate
     private Instant createdAt;

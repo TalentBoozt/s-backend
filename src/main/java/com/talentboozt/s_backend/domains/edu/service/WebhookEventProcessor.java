@@ -26,12 +26,12 @@ public class WebhookEventProcessor {
     private static final Logger log = LoggerFactory.getLogger(WebhookEventProcessor.class);
 
     private final EduCoursePurchaseService coursePurchaseService;
-    private final EduSubscriptionService subscriptionService;
+    private final com.talentboozt.s_backend.domains.subscription.service.SubscriptionService subscriptionService;
     private final EduRefundService refundService;
 
     public WebhookEventProcessor(EduCoursePurchaseService coursePurchaseService,
-                                  EduSubscriptionService subscriptionService,
-                                  EduRefundService refundService) {
+            com.talentboozt.s_backend.domains.subscription.service.SubscriptionService subscriptionService,
+            EduRefundService refundService) {
         this.coursePurchaseService = coursePurchaseService;
         this.subscriptionService = subscriptionService;
         this.refundService = refundService;
@@ -107,8 +107,7 @@ public class WebhookEventProcessor {
                     subscription.getCustomer(),
                     subscription.getId(),
                     subscription.getStatus(),
-                    priceId
-            );
+                    priceId);
             log.info("Handled {} for subscription {}", event.getType(), subscription.getId());
         }
     }
