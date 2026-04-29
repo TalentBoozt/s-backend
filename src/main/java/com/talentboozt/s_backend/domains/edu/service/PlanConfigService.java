@@ -17,26 +17,25 @@ public class PlanConfigService {
         switch (plan) {
             case PRO:
                 return LimitConfig.builder()
-                        .maxCourses(30)
-                        .aiCreditsPerMonth(5000)
-                        .maxAiGenerationsPerMonth(1500)
-                        .validationCreditsPerMonth(0)
-                        .hourlyAiLimit(30)
-                        .dailyAiLimit(200)
+                        .maxCourses(Integer.MAX_VALUE) // Unlimited courses
+                        .aiCreditsPerMonth(1000) // Basic AI syllabus generator
+                        .maxAiGenerationsPerMonth(100)
+                        .validationCreditsPerMonth(0) // No AI validation
+                        .hourlyAiLimit(10)
+                        .dailyAiLimit(50)
                         .commissionRate(0.05)
-                        .features(List.of("BASIC_ANALYTICS", "AI_TOOLS", "COURSE_VALIDATION"))
+                        .features(List.of("COUPONS", "BASIC_ANALYTICS", "AI_TOOLS"))
                         .build();
             case PREMIUM:
                 return LimitConfig.builder()
                         .maxCourses(Integer.MAX_VALUE)
-                        .aiCreditsPerMonth(25000)
-                        .maxAiGenerationsPerMonth(5000)
-                        .validationCreditsPerMonth(10)
-                        .hourlyAiLimit(80)
-                        .dailyAiLimit(500)
+                        .aiCreditsPerMonth(5000)
+                        .maxAiGenerationsPerMonth(10) // 10 content generations/month
+                        .validationCreditsPerMonth(10) // 10 validations/month
+                        .hourlyAiLimit(5)
+                        .dailyAiLimit(10)
                         .commissionRate(0.03)
-                        .features(List.of("ADVANCED_ANALYTICS", "AI_TOOLS", "COURSE_VALIDATION", "PRIORITY_SUPPORT",
-                                "MARKETING_TOOLS"))
+                        .features(List.of("COUPONS", "ADVANCED_ANALYTICS", "AI_TOOLS", "COURSE_VALIDATION", "PRIORITY_SUPPORT", "MARKETING_TOOLS"))
                         .build();
             case ENTERPRISE:
                 return LimitConfig.builder()
@@ -46,21 +45,20 @@ public class PlanConfigService {
                         .validationCreditsPerMonth(500)
                         .hourlyAiLimit(200)
                         .dailyAiLimit(2000)
-                        .commissionRate(0.0) // Custom agreements
-                        .features(List.of("ADVANCED_ANALYTICS", "AI_TOOLS", "COURSE_VALIDATION", "PRIORITY_SUPPORT",
-                                "MARKETING_TOOLS", "WHITE_LABEL", "CUSTOM_DOMAIN", "API_ACCESS"))
+                        .commissionRate(0.01) // 1% or custom
+                        .features(List.of("COUPONS", "ADVANCED_ANALYTICS", "AI_TOOLS", "COURSE_VALIDATION", "PRIORITY_SUPPORT", "MARKETING_TOOLS", "WHITE_LABEL", "CUSTOM_DOMAIN", "API_ACCESS", "WORKSPACE"))
                         .build();
             case FREE:
             default:
                 return LimitConfig.builder()
-                        .maxCourses(3)
-                        .aiCreditsPerMonth(0)
+                        .maxCourses(1) // Max 1 active course
+                        .aiCreditsPerMonth(0) // No AI tools
                         .maxAiGenerationsPerMonth(0)
-                        .validationCreditsPerMonth(0)
+                        .validationCreditsPerMonth(0) // No validation system
                         .hourlyAiLimit(0)
                         .dailyAiLimit(0)
                         .commissionRate(0.07)
-                        .features(List.of("BASIC_ANALYTICS"))
+                        .features(List.of()) // No advanced features
                         .build();
         }
     }
