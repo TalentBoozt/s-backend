@@ -133,18 +133,27 @@ public class EduAffiliateService {
     }
 
     public java.util.Map<String, Object> getAffiliateStats(String userId) {
-        EAffiliates affiliate = affiliatesRepository.findByUserId(userId)
-                .orElseThrow(() -> new EduBadRequestException("Affiliate not found"));
-        
-        long totalClicks = linksRepository.findByAffiliateId(affiliate.getId()).stream()
-                .mapToLong(l -> l.getClicks() != null ? l.getClicks() : 0L)
-                .sum();
-        
-        return java.util.Map.of(
-            "totalEarnings", affiliate.getTotalEarnings() != null ? affiliate.getTotalEarnings() : 0.0,
-            "referralCode", affiliate.getReferralCode(),
-            "totalClicks", totalClicks,
-            "status", affiliate.getStatus()
-        );
+        return affiliatesRepository.findByUserId(userId)
+                .map(affiliate -> {
+                    long totalClicks = linksRepository.findByAffiliateId(affiliate.getId()).stream()
+                            .mapToLong(l -> l.getClicks() != null ? l.getClicks() : 0L)
+                            .sum();
+                    
+                    java.util.Map<String, Object> stats = new java.util.HashMap<>();
+                    stats.put("totalEarnings", affiliate.getTotalEarnings() != null ? affiliate.getTotalEarnings() : 0.0);
+                    stats.put("referralCode", affiliate.getReferralCode());
+                    stats.put("totalClicks", totalClicks);
+                    stats.put("status", affiliate.getStatus() != null ? affiliate.getStatus().name() : null);
+                    stats.put("isRegistered", true);
+                    return stats;
+                })
+                .orElseGet(() -> {
+                    java.util.Map<String, Object> fallback = new java.util.HashMap<>();
+                    fallback.put("totalEarnings", 0.0);
+                    fallback.put("totalClicks", 0L);
+                    fallback.put("status", "NOT_REGISTERED");
+                    fallback.put("isRegistered", false);
+                    return fallback;
+                });
     }
 }

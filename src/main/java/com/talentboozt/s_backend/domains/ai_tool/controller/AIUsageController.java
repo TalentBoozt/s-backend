@@ -26,9 +26,14 @@ public class AIUsageController {
 
     @GetMapping("/quota")
     public ResponseEntity<AIQuota> getMyQuota(@AuthenticatedUser String userId) {
-        return quotaRepository.findByUserId(userId)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(quotaRepository.findByUserId(userId).orElseGet(() -> 
+            AIQuota.builder()
+                .userId(userId)
+                .monthlyLimit(100) // Default free limit
+                .used(0)
+                .resetDate(java.time.Instant.now().plus(30, java.time.temporal.ChronoUnit.DAYS))
+                .build()
+        ));
     }
 
     @GetMapping("/logs")
