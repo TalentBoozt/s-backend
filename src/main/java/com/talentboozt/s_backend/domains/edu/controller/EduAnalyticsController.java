@@ -46,7 +46,7 @@ public class EduAnalyticsController {
     @PreAuthorize("hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<java.util.Map<String, Double>> getRevenueTimeline(@PathVariable String creatorId) {
         if (!featureFlagService.isFeatureEnabled(creatorId, "ADVANCED_ANALYTICS")) {
-            throw new EduAccessDeniedException("Advanced analytics are not available for your current plan.");
+            return ResponseEntity.ok(java.util.Map.of());
         }
         return ResponseEntity.ok(analyticsDataService.getRevenueTimeline(creatorId));
     }
