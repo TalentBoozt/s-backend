@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.ai_tool.controller;
 import com.talentboozt.s_backend.domains.ai_tool.model.AIQuota;
 import com.talentboozt.s_backend.domains.ai_tool.repository.mongodb.AIQuotaRepository;
 import com.talentboozt.s_backend.domains.ai_tool.repository.mongodb.AIUsageRepository;
+import com.talentboozt.s_backend.domains.ai_tool.service.AIUsageService;
 import com.talentboozt.s_backend.domains.ai_tool.model.AIUsage;
 import com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser;
 import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
@@ -21,19 +22,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AIUsageController {
 
-    private final AIQuotaRepository quotaRepository;
+    private final AIUsageService usageService;
     private final AIUsageRepository usageRepository;
 
     @GetMapping("/quota")
     public ResponseEntity<AIQuota> getMyQuota(@AuthenticatedUser String userId) {
-        return ResponseEntity.ok(quotaRepository.findByUserId(userId).orElseGet(() -> 
-            AIQuota.builder()
-                .userId(userId)
-                .monthlyLimit(100) // Default free limit
-                .used(0)
-                .resetDate(java.time.Instant.now().plus(30, java.time.temporal.ChronoUnit.DAYS))
-                .build()
-        ));
+        return ResponseEntity.ok(usageService.getOrCreateQuota(userId, null));
     }
 
     @GetMapping("/logs")
