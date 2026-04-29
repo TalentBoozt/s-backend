@@ -9,6 +9,7 @@ import com.talentboozt.s_backend.domains.ai_tool.repository.mongodb.AIUsageRepos
 import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
 import com.talentboozt.s_backend.domains.subscription.model.Subscription;
 import com.talentboozt.s_backend.domains.subscription.service.SubscriptionService;
+import com.talentboozt.s_backend.domains.edu.service.PlanConfigService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class AIUsageService {
     private final AIQuotaRepository quotaRepository;
     private final AIUsageRepository usageRepository;
     private final SubscriptionService subscriptionService;
+    private final PlanConfigService planConfigService;
 
     public void checkQuota(String userId, AIUsageType type, Integer creditsRequired) {
         Subscription subscription = subscriptionService.getActiveSubscription(userId);
@@ -70,7 +72,12 @@ public class AIUsageService {
         usageRepository.save(usage);
     }
 
-    private AIQuota getOrCreateQuota(String userId, ESubscriptionPlan plan) {
+    public AIQuota getOrCreateQuota(String userId, ESubscriptionPlan plan) {
+        if (plan == null) {
+            Subscription sub = subscriptionService.getActiveSubscription(userId);
+            plan = sub != null ? sub.getPlan() : ESubscriptionPlan.FREE;
+        }
+
         Optional<AIQuota> quotaOpt = quotaRepository.findByUserId(userId);
         if (quotaOpt.isPresent()) {
             AIQuota quota = quotaOpt.get();
@@ -100,14 +107,7 @@ public class AIUsageService {
     }
 
     private int getLimitForPlan(ESubscriptionPlan plan) {
-        if (plan == null) return 0;
-        switch (plan) {
-            case PRO: return 50;
-            case PREMIUM: return 200;
-            case ENTERPRISE: return 1000;
-            case FREE:
-            default: return 0;
-        }
+        return planConfigService.getPlanLimits(plan).getAiCreditsPerMonth();
     }
 
     @Transactional
