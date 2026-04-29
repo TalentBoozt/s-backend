@@ -28,7 +28,7 @@ public class AtsController {
     @PostMapping("/analyze")
     @RateLimiter(name = "postLimiter")
     public ResponseEntity<AtsAnalysisResponse> analyzeResume(
-            @AuthenticatedUser CustomUserDetails user,
+            @AuthenticatedUser String userId,
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "jobDescription", required = false) String jobDescription) {
         log.info("Analyzing resume: {} with JD: {}", file.getOriginalFilename(), jobDescription != null);
@@ -43,7 +43,7 @@ public class AtsController {
             }
 
             // 2. Real AI analysis
-            AtsService.AtsAnalysisResult result = atsService.analyze(user.getUserId(), text, jobDescription);
+            AtsService.AtsAnalysisResult result = atsService.analyze(userId, text, jobDescription);
 
             // 3. Map to response
             AtsAnalysisResponse response = new AtsAnalysisResponse();
