@@ -10,6 +10,7 @@ import com.talentboozt.s_backend.domains.edu.service.EduAIEngineService;
 import com.talentboozt.s_backend.domains.edu.service.EduAIValidationService;
 import com.talentboozt.s_backend.shared.security.service.RateLimiterService;
 import com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +22,7 @@ import java.util.List;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/edu/ai")
 public class EduAIController {
@@ -61,7 +63,10 @@ public class EduAIController {
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
             @Valid @RequestBody AIGenerationRequest request) {
+        log.info("AI Outline generation requested: userId={}, courseId={}, topic={}", userId, courseId, request.getTopic());
+        
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
+            log.warn("Rate limit exceeded for AI generation: userId={}", userId);
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
         accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
@@ -78,7 +83,10 @@ public class EduAIController {
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
             @RequestParam String lessonObjective) {
+        log.info("AI Lesson generation requested: userId={}, courseId={}, objective={}", userId, courseId, lessonObjective);
+        
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
+            log.warn("Rate limit exceeded for AI generation: userId={}", userId);
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
         accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
@@ -95,7 +103,10 @@ public class EduAIController {
             @PathVariable String courseId,
             @AuthenticatedUser String userId,
             @RequestParam String topic) {
+        log.info("AI Quiz generation requested: userId={}, courseId={}, topic={}", userId, courseId, topic);
+        
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
+            log.warn("Rate limit exceeded for AI generation: userId={}", userId);
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
         accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
@@ -113,7 +124,10 @@ public class EduAIController {
             @AuthenticatedUser String userId,
             @RequestBody Map<String, String> body) {
         String courseContext = body.get("courseContext");
+        log.info("AI Summary generation requested: userId={}, courseId={}", userId, courseId);
+        
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
+            log.warn("Rate limit exceeded for AI generation: userId={}", userId);
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
         accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
@@ -132,7 +146,10 @@ public class EduAIController {
             @RequestBody Map<String, String> body) {
         String content = body.get("content");
         String language = body.get("language");
+        log.info("AI Translation requested: userId={}, courseId={}, language={}", userId, courseId, language);
+        
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
+            log.warn("Rate limit exceeded for AI generation: userId={}", userId);
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
         accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
@@ -151,7 +168,10 @@ public class EduAIController {
             @RequestBody Map<String, String> body) {
         String content = body.get("content");
         String style = body.get("style");
+        log.info("AI Rewrite requested: userId={}, courseId={}, style={}", userId, courseId, style);
+        
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
+            log.warn("Rate limit exceeded for AI generation: userId={}", userId);
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
         accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
@@ -169,7 +189,10 @@ public class EduAIController {
             @AuthenticatedUser String userId,
             @RequestBody Map<String, String> body) {
         String content = body.get("content");
+        log.info("AI Revision requested: userId={}, courseId={}", userId, courseId);
+        
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
+            log.warn("Rate limit exceeded for AI generation: userId={}", userId);
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
         accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
@@ -185,6 +208,7 @@ public class EduAIController {
     public ResponseEntity<?> validateCourse(
             @PathVariable String courseId,
             @AuthenticatedUser String userId) {
+        log.info("AI Course validation requested: userId={}, courseId={}", userId, courseId);
         accessGuard.enforceFeatureAccess(userId, "COURSE_VALIDATION");
         accessGuard.enforceCourseOwnership(userId, courseId);
 
@@ -213,6 +237,8 @@ public class EduAIController {
         if (content == null)
             throw new EduBadRequestException("Content is required");
 
+        log.debug("AI Content check requested: userId={}", userId);
+        
         // Deduction and access checks (reduced cost for single snippet check)
         accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
 

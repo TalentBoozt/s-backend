@@ -1,7 +1,6 @@
 package com.talentboozt.s_backend.config;
 
 import com.talentboozt.s_backend.domains.common.dto.ApiErrorResponse;
-import com.talentboozt.s_backend.domains.plat_courses.cfg.CouponValidationException;
 import com.talentboozt.s_backend.domains.edu.exception.EduBaseException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
@@ -17,6 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -35,19 +35,9 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(CouponValidationException.class)
-    public ResponseEntity<ApiErrorResponse> handleCouponException(CouponValidationException ex, WebRequest request) {
-        logger.warn("Coupon validation failed: {}", ex.getMessage());
-        ApiErrorResponse error = new ApiErrorResponse(
-                ex.getMessage(),
-                HttpStatus.BAD_REQUEST.value(),
-                ex.getErrorCode());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationExceptions(
-            MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiErrorResponse> handleValidationExceptions(
+            MethodArgumentNotValidException ex, WebRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
@@ -55,180 +45,223 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("timestamp", Instant.now());
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", "Validation Failed");
-        response.put("message", "Invalid input parameters");
-        response.put("errors", errors);
-
-        logger.warn("Validation failed: {}", errors);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        logger.warn("Validation failed for request {}: {}", getRequestPath(request), errors);
+        
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
+                "Invalid input parameters",
+                "VALIDATION_FAILED",
+                request,
+                errors
+        );
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<ApiErrorResponse> handleExpiredJwtException(ExpiredJwtException ex) {
-        logger.debug("JWT token expired");
-        ApiErrorResponse error = new ApiErrorResponse(
+    public ResponseEntity<ApiErrorResponse> handleExpiredJwtException(ExpiredJwtException ex, WebRequest request) {
+        logger.debug("JWT token expired for request {}", getRequestPath(request));
+        return buildErrorResponse(
+                HttpStatus.UNAUTHORIZED,
                 "Token has expired. Please refresh your token.",
-                HttpStatus.UNAUTHORIZED.value(),
-                "TOKEN_EXPIRED");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+                "TOKEN_EXPIRED",
+                request
+        );
     }
 
     @ExceptionHandler(SignatureException.class)
-    public ResponseEntity<ApiErrorResponse> handleSignatureException(SignatureException ex) {
-        logger.warn("Invalid JWT signature");
-        ApiErrorResponse error = new ApiErrorResponse(
+    public ResponseEntity<ApiErrorResponse> handleSignatureException(SignatureException ex, WebRequest request) {
+        logger.warn("Invalid JWT signature for request {}", getRequestPath(request));
+        return buildErrorResponse(
+                HttpStatus.UNAUTHORIZED,
                 "Invalid token signature",
-                HttpStatus.UNAUTHORIZED.value(),
-                "INVALID_TOKEN");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+                "INVALID_TOKEN",
+                request
+        );
     }
 
     @ExceptionHandler(AuthenticationCredentialsNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleAuthenticationException(
-            AuthenticationCredentialsNotFoundException ex) {
-        logger.debug("Authentication credentials not found");
-        ApiErrorResponse error = new ApiErrorResponse(
+            AuthenticationCredentialsNotFoundException ex, WebRequest request) {
+        logger.debug("Authentication credentials not found for request {}", getRequestPath(request));
+        return buildErrorResponse(
+                HttpStatus.UNAUTHORIZED,
                 "Authentication required",
-                HttpStatus.UNAUTHORIZED.value(),
-                "AUTHENTICATION_REQUIRED");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+                "AUTHENTICATION_REQUIRED",
+                request
+        );
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
-        logger.warn("Access denied: {}", ex.getMessage());
-        ApiErrorResponse error = new ApiErrorResponse(
+    public ResponseEntity<ApiErrorResponse> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
+        logger.warn("Access denied for request {}: {}", getRequestPath(request), ex.getMessage());
+        return buildErrorResponse(
+                HttpStatus.FORBIDDEN,
                 "Access denied. Insufficient permissions.",
-                HttpStatus.FORBIDDEN.value(),
-                "ACCESS_DENIED");
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+                "ACCESS_DENIED",
+                request
+        );
     }
 
     @ExceptionHandler(DataAccessException.class)
-    public ResponseEntity<ApiErrorResponse> handleDataAccessException(DataAccessException ex) {
-        logger.error("Database access error", ex);
-        ApiErrorResponse error = new ApiErrorResponse(
-                "Database operation failed. Please try again later.",
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "DATABASE_ERROR");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+    public ResponseEntity<ApiErrorResponse> handleDataAccessException(DataAccessException ex, WebRequest request) {
+        logger.error("Database access error for request {}", getRequestPath(request), ex);
+        return buildErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "A database error occurred. Please try again later.",
+                "DATABASE_ERROR",
+                request
+        );
     }
 
     @ExceptionHandler(TimeoutException.class)
-    public ResponseEntity<ApiErrorResponse> handleTimeoutException(TimeoutException ex) {
-        logger.error("Operation timeout", ex);
-        ApiErrorResponse error = new ApiErrorResponse(
+    public ResponseEntity<ApiErrorResponse> handleTimeoutException(TimeoutException ex, WebRequest request) {
+        logger.error("Operation timeout for request {}", getRequestPath(request), ex);
+        return buildErrorResponse(
+                HttpStatus.REQUEST_TIMEOUT,
                 "Request timeout. Please try again.",
-                HttpStatus.REQUEST_TIMEOUT.value(),
-                "TIMEOUT");
-        return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(error);
+                "TIMEOUT",
+                request
+        );
     }
 
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleNoHandlerFoundException(NoHandlerFoundException ex) {
+    public ResponseEntity<ApiErrorResponse> handleNoHandlerFoundException(NoHandlerFoundException ex, WebRequest request) {
         logger.debug("No handler found for: {}", ex.getRequestURL());
-        ApiErrorResponse error = new ApiErrorResponse(
+        return buildErrorResponse(
+                HttpStatus.NOT_FOUND,
                 "Endpoint not found",
-                HttpStatus.NOT_FOUND.value(),
-                "NOT_FOUND");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+                "NOT_FOUND",
+                request
+        );
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleNoResourceFoundException(NoResourceFoundException ex) {
+    public ResponseEntity<ApiErrorResponse> handleNoResourceFoundException(NoResourceFoundException ex, WebRequest request) {
         logger.debug("No static resource found: {}", ex.getResourcePath());
-        ApiErrorResponse error = new ApiErrorResponse(
+        return buildErrorResponse(
+                HttpStatus.NOT_FOUND,
                 "Resource not found",
-                HttpStatus.NOT_FOUND.value(),
-                "RESOURCE_NOT_FOUND");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+                "RESOURCE_NOT_FOUND",
+                request
+        );
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        logger.warn("Invalid argument: {}", ex.getMessage());
-        ApiErrorResponse error = new ApiErrorResponse(
+    public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        logger.warn("Invalid argument for request {}: {}", getRequestPath(request), ex.getMessage());
+        return buildErrorResponse(
+                HttpStatus.BAD_REQUEST,
                 ex.getMessage(),
-                HttpStatus.BAD_REQUEST.value(),
-                "INVALID_ARGUMENT");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+                "INVALID_ARGUMENT",
+                request
+        );
     }
 
     @ExceptionHandler(com.talentboozt.s_backend.domains.community.exception.ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleResourceNotFoundException(
-            com.talentboozt.s_backend.domains.community.exception.ResourceNotFoundException ex) {
-        logger.warn("Resource not found: {}", ex.getMessage());
-        ApiErrorResponse error = new ApiErrorResponse(
+            com.talentboozt.s_backend.domains.community.exception.ResourceNotFoundException ex, WebRequest request) {
+        logger.warn("Resource not found for request {}: {}", getRequestPath(request), ex.getMessage());
+        return buildErrorResponse(
+                HttpStatus.NOT_FOUND,
                 ex.getMessage(),
-                HttpStatus.NOT_FOUND.value(),
-                "RESOURCE_NOT_FOUND");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+                "RESOURCE_NOT_FOUND",
+                request
+        );
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiErrorResponse> handleRuntimeException(RuntimeException ex, WebRequest request) {
-        // If the response is already committed, we can't write a JSON body
-        // Also check if the request is looking for application/javascript (SockJS
-        // fallback)
         String acceptHeader = request.getHeader("Accept");
         if (acceptHeader != null && acceptHeader.contains("application/javascript")) {
-            logger.warn("Runtime exception during non-JSON request: {}", ex.getMessage());
-            return null; // Let the container handle it or return empty
+            logger.warn("Runtime exception during non-JSON request {}: {}", getRequestPath(request), ex.getMessage());
+            return null;
         }
 
-        logger.error("Runtime exception occurred: {}", ex.getMessage(), ex);
-        ApiErrorResponse error = new ApiErrorResponse(
-                ex.getMessage() != null ? ex.getMessage() : "An error occurred",
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "RUNTIME_ERROR");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        logger.error("Runtime exception occurred for request {}: {}", getRequestPath(request), ex.getMessage(), ex);
+        return buildErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "An unexpected internal error occurred",
+                "RUNTIME_ERROR",
+                request
+        );
     }
 
     @ExceptionHandler(HttpMessageNotWritableException.class)
     public ResponseEntity<ApiErrorResponse> handleHttpMessageNotWritableException(HttpMessageNotWritableException ex,
             WebRequest request) {
-        logger.warn("Could not write JSON response (possibly response already committed or incompatible type): {}",
-                ex.getMessage());
-        return null; // Prevent infinite loop or secondary errors in ExceptionHandler
+        logger.warn("Could not write JSON response for request {}: {}", getRequestPath(request), ex.getMessage());
+        return null;
     }
 
     @ExceptionHandler(io.github.resilience4j.ratelimiter.RequestNotPermitted.class)
     public ResponseEntity<ApiErrorResponse> handleRateLimitException(
-            io.github.resilience4j.ratelimiter.RequestNotPermitted ex) {
-        logger.warn("Rate limit exceeded");
-        ApiErrorResponse error = new ApiErrorResponse(
+            io.github.resilience4j.ratelimiter.RequestNotPermitted ex, WebRequest request) {
+        logger.warn("Rate limit exceeded for request {}", getRequestPath(request));
+        return buildErrorResponse(
+                HttpStatus.TOO_MANY_REQUESTS,
                 "Rate limit exceeded. Please try again later.",
-                HttpStatus.TOO_MANY_REQUESTS.value(),
-                "RATE_LIMIT_EXCEEDED");
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(error);
+                "RATE_LIMIT_EXCEEDED",
+                request
+        );
     }
 
     @ExceptionHandler(EduBaseException.class)
-    public ResponseEntity<ApiErrorResponse> handleEduBaseException(EduBaseException ex) {
-        // Log at WARN or DEBUG instead of ERROR for planned domain errors
+    public ResponseEntity<ApiErrorResponse> handleEduBaseException(EduBaseException ex, WebRequest request) {
         if (ex.getStatus().is4xxClientError()) {
-            logger.warn("EDU domain client error: {} - {} - {}", ex.getStatus(), ex.getErrorCode(), ex.getMessage());
+            logger.warn("EDU domain client error for request {}: {} - {} - {}", getRequestPath(request), ex.getStatus(), ex.getErrorCode(), ex.getMessage());
         } else {
-            logger.error("EDU domain server error: {} - {} - {}", ex.getStatus(), ex.getErrorCode(), ex.getMessage());
+            logger.error("EDU domain server error for request {}: {} - {} - {}", getRequestPath(request), ex.getStatus(), ex.getErrorCode(), ex.getMessage());
         }
 
-        ApiErrorResponse error = new ApiErrorResponse(
+        return buildErrorResponse(
+                (HttpStatus) ex.getStatus(),
                 ex.getMessage(),
-                ex.getStatus().value(),
-                ex.getErrorCode());
-        return ResponseEntity.status(ex.getStatus()).body(error);
+                ex.getErrorCode(),
+                request
+        );
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGenericException(Exception ex, WebRequest request) {
-        logger.error("Unexpected error occurred", ex);
-        ApiErrorResponse error = new ApiErrorResponse(
+        logger.error("Unexpected error occurred for request {}", getRequestPath(request), ex);
+        return buildErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
                 "An unexpected error occurred. Please contact support if the problem persists.",
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "INTERNAL_ERROR");
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+                "INTERNAL_ERROR",
+                request
+        );
+    }
+
+    private ResponseEntity<ApiErrorResponse> buildErrorResponse(
+            HttpStatus status,
+            String message,
+            String errorCode,
+            WebRequest request) {
+        return buildErrorResponse(status, message, errorCode, request, null);
+    }
+
+    private ResponseEntity<ApiErrorResponse> buildErrorResponse(
+            HttpStatus status,
+            String message,
+            String errorCode,
+            WebRequest request,
+            Object errors) {
+        
+        ApiErrorResponse response = ApiErrorResponse.builder()
+                .timestamp(Instant.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(message)
+                .path(getRequestPath(request))
+                .errorCode(errorCode)
+                .build();
+        
+        return new ResponseEntity<>(response, status);
+    }
+
+    private String getRequestPath(WebRequest request) {
+        if (request instanceof ServletWebRequest) {
+            return ((ServletWebRequest) request).getRequest().getRequestURI();
+        }
+        return "unknown";
     }
 }
