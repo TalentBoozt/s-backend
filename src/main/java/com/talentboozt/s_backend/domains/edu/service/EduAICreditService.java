@@ -166,6 +166,7 @@ public class EduAICreditService {
 
     // Webhook receiver for Stripe checkout
     public EAiCredits topUpCredits(String userId, int purchasedTokens, String referenceId, String referenceType) {
+        log.info("Processing credit top-up: userId={}, tokens={}, refId={}, refType={}", userId, purchasedTokens, referenceId, referenceType);
         EAiCredits credits = getUserCredits(userId);
         credits.setBalance(credits.getBalance() + purchasedTokens);
         credits.setLifetimePurchased(credits.getLifetimePurchased() + purchasedTokens);
@@ -186,10 +187,12 @@ public class EduAICreditService {
                 .build();
         ledgerRepository.save(ledger);
 
+        log.info("Successfully topped up credits: userId={}, newBalance={}", userId, saved.getBalance());
         return saved;
     }
 
     public EAiCredits grantMonthlyCredits(String userId, int tokens, int validityDays, String referenceId) {
+        log.info("Granting monthly credits: userId={}, tokens={}, refId={}", userId, tokens, referenceId);
         EAiCredits credits = getUserCredits(userId);
         credits.setBalance(credits.getBalance() + tokens);
         credits.setLifetimePurchased(credits.getLifetimePurchased() + tokens);
@@ -212,6 +215,7 @@ public class EduAICreditService {
                 .build();
         ledgerRepository.save(ledger);
 
+        log.info("Successfully granted monthly credits: userId={}, newBalance={}", userId, saved.getBalance());
         return saved;
     }
 

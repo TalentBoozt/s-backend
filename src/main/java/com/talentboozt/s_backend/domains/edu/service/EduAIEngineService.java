@@ -6,10 +6,12 @@ import com.talentboozt.s_backend.domains.edu.enums.LLMTaskType;
 import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
 import com.talentboozt.s_backend.domains.edu.exception.EduAccessDeniedException;
 import com.talentboozt.s_backend.domains.edu.enums.EAnalyticsEvent;
+import lombok.extern.slf4j.Slf4j;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 public class EduAIEngineService {
 
@@ -29,10 +31,13 @@ public class EduAIEngineService {
 
     public String generateCourseOutline(String userId, String courseId, AIGenerationRequest request) {
         if (!featureFlagService.isFeatureEnabled(userId, "AI_GENERATION")) {
+            log.warn("Feature AI_GENERATION disabled for user: {}", userId);
             throw new EduAccessDeniedException("AI Generation is not available for your current plan.");
         }
         int tokenCost = 15;
         ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        log.debug("Generating course outline: userId={}, plan={}, cost={}", userId, plan, tokenCost);
 
         // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
         creditService.preValidate(userId, tokenCost, plan);
@@ -62,15 +67,19 @@ public class EduAIEngineService {
 
         analyticsEventService.recordEvent(EAnalyticsEvent.AI_USAGE, userId, courseId, Map.of("task", "COURSE_OUTLINE", "cost", tokenCost));
 
+        log.info("Successfully generated course outline: userId={}, courseId={}", userId, courseId);
         return aiResponse;
     }
 
     public String generateLessonContent(String userId, String courseId, String lessonObjective) {
         if (!featureFlagService.isFeatureEnabled(userId, "AI_GENERATION")) {
+            log.warn("Feature AI_GENERATION disabled for user: {}", userId);
             throw new EduAccessDeniedException("AI Generation is not available for your current plan.");
         }
         int tokenCost = 30;
         ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        log.debug("Generating lesson content: userId={}, plan={}, cost={}", userId, plan, tokenCost);
 
         // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
         creditService.preValidate(userId, tokenCost, plan);
@@ -86,15 +95,19 @@ public class EduAIEngineService {
 
         analyticsEventService.recordEvent(EAnalyticsEvent.AI_USAGE, userId, courseId, Map.of("task", "LESSON_CONTENT", "cost", tokenCost));
 
+        log.info("Successfully generated lesson content: userId={}, courseId={}", userId, courseId);
         return aiResponse;
     }
 
     public String generateSystemQuiz(String userId, String courseId, String topic) {
         if (!featureFlagService.isFeatureEnabled(userId, "AI_GENERATION")) {
+            log.warn("Feature AI_GENERATION disabled for user: {}", userId);
             throw new EduAccessDeniedException("AI Generation is not available for your current plan.");
         }
         int tokenCost = 10;
         ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        log.debug("Generating quiz: userId={}, plan={}, cost={}", userId, plan, tokenCost);
 
         // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
         creditService.preValidate(userId, tokenCost, plan);
@@ -116,15 +129,19 @@ public class EduAIEngineService {
 
         analyticsEventService.recordEvent(EAnalyticsEvent.AI_USAGE, userId, courseId, Map.of("task", "QUIZ_GENERATION", "cost", tokenCost));
 
+        log.info("Successfully generated quiz: userId={}, courseId={}", userId, courseId);
         return aiResponse;
     }
 
     public String generateCourseSummary(String userId, String courseId, String courseContext) {
         if (!featureFlagService.isFeatureEnabled(userId, "AI_GENERATION")) {
+            log.warn("Feature AI_GENERATION disabled for user: {}", userId);
             throw new EduAccessDeniedException("AI Generation is not available for your current plan.");
         }
         int tokenCost = 10;
         ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        log.debug("Generating course summary: userId={}, plan={}, cost={}", userId, plan, tokenCost);
 
         // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
         creditService.preValidate(userId, tokenCost, plan);
@@ -139,15 +156,19 @@ public class EduAIEngineService {
 
         analyticsEventService.recordEvent(EAnalyticsEvent.AI_USAGE, userId, courseId, Map.of("task", "COURSE_SUMMARY", "cost", tokenCost));
 
+        log.info("Successfully generated course summary: userId={}, courseId={}", userId, courseId);
         return aiResponse;
     }
 
     public String translateCourseContent(String userId, String courseId, String content, String language) {
         if (!featureFlagService.isFeatureEnabled(userId, "AI_GENERATION")) {
+            log.warn("Feature AI_GENERATION disabled for user: {}", userId);
             throw new EduAccessDeniedException("AI Generation is not available for your current plan.");
         }
         int tokenCost = 15;
         ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        log.debug("Translating course content: userId={}, plan={}, language={}, cost={}", userId, plan, language, tokenCost);
 
         // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
         creditService.preValidate(userId, tokenCost, plan);
@@ -162,15 +183,19 @@ public class EduAIEngineService {
 
         analyticsEventService.recordEvent(EAnalyticsEvent.AI_USAGE, userId, courseId, Map.of("task", "TRANSLATION", "language", language, "cost", tokenCost));
 
+        log.info("Successfully translated course content: userId={}, courseId={}, language={}", userId, courseId, language);
         return aiResponse;
     }
 
     public String rewriteContent(String userId, String courseId, String content, String style) {
         if (!featureFlagService.isFeatureEnabled(userId, "AI_GENERATION")) {
+            log.warn("Feature AI_GENERATION disabled for user: {}", userId);
             throw new EduAccessDeniedException("AI Generation is not available for your current plan.");
         }
         int tokenCost = 15;
         ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        log.debug("Rewriting course content: userId={}, plan={}, style={}, cost={}", userId, plan, style, tokenCost);
 
         // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
         creditService.preValidate(userId, tokenCost, plan);
@@ -185,15 +210,19 @@ public class EduAIEngineService {
 
         analyticsEventService.recordEvent(EAnalyticsEvent.AI_USAGE, userId, courseId, Map.of("task", "REWRITE", "style", style, "cost", tokenCost));
 
+        log.info("Successfully rewrote course content: userId={}, courseId={}, style={}", userId, courseId, style);
         return aiResponse;
     }
 
     public String reviseContent(String userId, String courseId, String content) {
         if (!featureFlagService.isFeatureEnabled(userId, "AI_GENERATION")) {
+            log.warn("Feature AI_GENERATION disabled for user: {}", userId);
             throw new EduAccessDeniedException("AI Generation is not available for your current plan.");
         }
         int tokenCost = 10;
         ESubscriptionPlan plan = accessGuard.getUser(userId).getPlan();
+
+        log.debug("Revising course content: userId={}, plan={}, cost={}", userId, plan, tokenCost);
 
         // PRE-VALIDATE: check rate limits + balance BEFORE expensive LLM call
         creditService.preValidate(userId, tokenCost, plan);
@@ -208,6 +237,7 @@ public class EduAIEngineService {
 
         analyticsEventService.recordEvent(EAnalyticsEvent.AI_USAGE, userId, courseId, Map.of("task", "REVISION", "cost", tokenCost));
 
+        log.info("Successfully revised course content: userId={}, courseId={}", userId, courseId);
         return aiResponse;
     }
 }
