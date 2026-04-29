@@ -64,7 +64,7 @@ public class EduAIController {
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
-        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
         accessGuard.enforceAIGenerationLimits(userId, request.getTopic());
         accessGuard.enforceCourseOwnership(userId, courseId);
 
@@ -81,7 +81,7 @@ public class EduAIController {
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
-        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
         accessGuard.enforceAIGenerationLimits(userId, lessonObjective);
         accessGuard.enforceCourseOwnership(userId, courseId);
 
@@ -98,7 +98,7 @@ public class EduAIController {
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
-        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
         accessGuard.enforceAIGenerationLimits(userId, topic);
         accessGuard.enforceCourseOwnership(userId, courseId);
 
@@ -116,7 +116,7 @@ public class EduAIController {
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
-        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
         accessGuard.enforceAIGenerationLimits(userId, courseContext);
         accessGuard.enforceCourseOwnership(userId, courseId);
 
@@ -135,7 +135,7 @@ public class EduAIController {
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
-        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
         accessGuard.enforceAIGenerationLimits(userId, content);
         accessGuard.enforceCourseOwnership(userId, courseId);
 
@@ -154,7 +154,7 @@ public class EduAIController {
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
-        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
         accessGuard.enforceAIGenerationLimits(userId, content);
         accessGuard.enforceCourseOwnership(userId, courseId);
 
@@ -172,7 +172,7 @@ public class EduAIController {
         if (!rateLimiterService.checkRateLimit(userId, "edu-ai-generate")) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Too many requests");
         }
-        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
+        accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
         accessGuard.enforceAIGenerationLimits(userId, content);
         accessGuard.enforceCourseOwnership(userId, courseId);
 
@@ -210,11 +210,12 @@ public class EduAIController {
             @AuthenticatedUser String userId,
             @RequestBody Map<String, String> body) {
         String content = body.get("content");
-        if (content == null) throw new EduBadRequestException("Content is required");
-        
+        if (content == null)
+            throw new EduBadRequestException("Content is required");
+
         // Deduction and access checks (reduced cost for single snippet check)
-        accessGuard.enforceFeatureAccess(userId, "AI_TOOLS");
-        
+        accessGuard.enforceFeatureAccess(userId, "AI_GENERATION");
+
         return ResponseEntity.ok(contentValidationService.validateContent(content));
     }
 }

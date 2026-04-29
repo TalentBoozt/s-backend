@@ -1,10 +1,6 @@
 package com.talentboozt.s_backend.domains.ai_tool.controller;
 
-import com.talentboozt.s_backend.domains.ai_tool.model.AIQuota;
-import com.talentboozt.s_backend.domains.ai_tool.repository.mongodb.AIQuotaRepository;
-import com.talentboozt.s_backend.domains.ai_tool.repository.mongodb.AIUsageRepository;
-import com.talentboozt.s_backend.domains.ai_tool.service.AIUsageService;
-import com.talentboozt.s_backend.domains.ai_tool.model.AIUsage;
+import com.talentboozt.s_backend.domains.edu.model.EAiUsage;
 import com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser;
 import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -22,23 +18,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AIUsageController {
 
-    private final AIUsageService usageService;
-    private final AIUsageRepository usageRepository;
+    private final com.talentboozt.s_backend.domains.edu.service.EduAICreditService creditService;
+    private final com.talentboozt.s_backend.domains.subscription.service.SubscriptionService subscriptionService;
 
     @GetMapping("/quota")
-    public ResponseEntity<AIQuota> getMyQuota(@AuthenticatedUser String userId) {
-        return ResponseEntity.ok(usageService.getOrCreateQuota(userId, null));
+    public ResponseEntity<java.util.Map<String, Object>> getMyQuota(@AuthenticatedUser String userId) {
+        var sub = subscriptionService.getActiveSubscription(userId);
+        var plan = sub != null ? sub.getPlan() : com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.FREE;
+        var credits = creditService.getQuota(userId, plan);
+        
+        return ResponseEntity.ok(java.util.Map.of(
+            "used", (credits.getMonthlyLimit() != null ? credits.getMonthlyLimit() : 0) - (credits.getBalance() != null ? credits.getBalance() : 0),
+            "monthlyLimit", credits.getMonthlyLimit() != null ? credits.getMonthlyLimit() : 0,
+            "remaining", credits.getBalance() != null ? credits.getBalance() : 0,
+            "resetDate", credits.getLastResetDate() != null ? credits.getLastResetDate().plus(30, java.time.temporal.ChronoUnit.DAYS) : java.time.Instant.now()
+        ));
     }
 
     @GetMapping("/logs")
-    public ResponseEntity<Page<AIUsage>> getMyUsageLogs(
-            @AuthenticatedUser String userId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        Page<AIUsage> logs = usageRepository.findByUserId(
-                userId, 
-                PageRequest.of(page, size, Sort.by("createdAt").descending())
-        );
-        return ResponseEntity.ok(logs);
+    public ResponseEntity<java.util.List<com.talentboozt.s_backend.domains.edu.model.ECreditLedger>> getMyUsageLogs(
+            @AuthenticatedUser String userId) {
+        return ResponseEntity.ok(creditService.getCreditLedger(userId));
     }
 }

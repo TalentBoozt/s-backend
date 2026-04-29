@@ -18,10 +18,12 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
+@Slf4j
 @Service
 public class EduAICreditService {
 
@@ -45,15 +47,28 @@ public class EduAICreditService {
         return creditsRepository.findByUserId(userId).orElseGet(() -> {
             EAiCredits newCredits = EAiCredits.builder()
                     .userId(userId)
-                    // AI credits available only for premium and enterprise users
                     .balance(0)
+                    .monthlyLimit(0)
                     .lifetimePurchased(0)
                     .lifetimeUsed(0)
                     .createdAt(Instant.now())
                     .updatedAt(Instant.now())
+                    .lastResetDate(Instant.now())
                     .build();
             return creditsRepository.save(newCredits);
         });
+    }
+
+    private void resetMonthlyQuotaIfNeeded(EAiCredits credits, ESubscriptionPlan plan) {
+        Instant now = Instant.now();
+        if (credits.getLastResetDate() == null || now.isAfter(credits.getLastResetDate().plus(30, ChronoUnit.DAYS))) {
+            LimitConfig limits = planConfigService.getPlanLimits(plan);
+            credits.setMonthlyLimit(limits.getAiCreditsPerMonth());
+            credits.setBalance(limits.getAiCreditsPerMonth()); // Reset balance for the new month
+            credits.setLastResetDate(now);
+            creditsRepository.save(credits);
+            log.info("Reset monthly AI quota for user: {}. New limit: {}", credits.getUserId(), limits.getAiCreditsPerMonth());
+        }
     }
 
     /**
@@ -62,9 +77,17 @@ public class EduAICreditService {
      * without deducting anything yet.
      */
     public void preValidate(String userId, int requiredCredits, ESubscriptionPlan plan) {
+        EAiCredits credits = getUserCredits(userId);
+        resetMonthlyQuotaIfNeeded(credits, plan);
+
         LimitConfig limits = planConfigService.getPlanLimits(plan);
 
-        // Enforce hourly rate limits (plan-aware)
+        // Feature Gating (from AIUsageService logic)
+        if (plan == ESubscriptionPlan.FREE) {
+            throw new EduLimitExceededException("Free plan does not include AI credits. Please upgrade.");
+        }
+
+        // Rate limits
         int hourlyLimit = limits.getHourlyAiLimit();
         if (hourlyLimit > 0) {
             Instant last1h = Instant.now().minus(1, ChronoUnit.HOURS);
@@ -75,19 +98,7 @@ public class EduAICreditService {
             }
         }
 
-        // Enforce daily rate limits (plan-aware)
-        int dailyLimit = limits.getDailyAiLimit();
-        if (dailyLimit > 0) {
-            Instant last24h = Instant.now().minus(24, ChronoUnit.HOURS);
-            long dailyUsage = usageRepository.countByUserIdAndCreatedAtGreaterThanEqual(userId, last24h);
-            if (dailyUsage >= dailyLimit) {
-                throw new EduLimitExceededException(
-                        "Daily AI usage limit reached (" + dailyLimit + " actions). Please try again later.");
-            }
-        }
-
-        // Pre-check balance (non-atomic, just a guard before expensive LLM call)
-        EAiCredits credits = getUserCredits(userId);
+        // Pre-check balance
         if (credits.getBalance() < requiredCredits) {
             throw new EduLimitExceededException(
                     "Insufficient AI Credits (" + credits.getBalance() + " available, " + requiredCredits
@@ -206,5 +217,11 @@ public class EduAICreditService {
 
     public List<ECreditLedger> getCreditLedger(String userId) {
         return ledgerRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    public EAiCredits getQuota(String userId, ESubscriptionPlan plan) {
+        EAiCredits credits = getUserCredits(userId);
+        resetMonthlyQuotaIfNeeded(credits, plan);
+        return credits;
     }
 }
