@@ -18,8 +18,8 @@ public class SubscriptionController {
     private final SubscriptionService subscriptionService;
 
     @GetMapping("/me")
-    public ResponseEntity<Subscription> getMySubscription(@AuthenticatedUser CustomUserDetails userDetails) {
-        Subscription subscription = subscriptionService.getActiveSubscription(userDetails.getUserId());
+    public ResponseEntity<Subscription> getMySubscription(@AuthenticatedUser String userId) {
+        Subscription subscription = subscriptionService.getActiveSubscription(userId);
         if (subscription == null) {
             return ResponseEntity.notFound().build();
         }

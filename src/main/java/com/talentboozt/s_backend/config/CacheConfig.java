@@ -136,6 +136,22 @@ public class CacheConfig {
                                         .expireAfterWrite(30, TimeUnit.MINUTES)
                                         .maximumSize(5_000)
                                         .recordStats()
+                                        .build())),
+
+                new CaffeineCache("featureFlags",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(1, TimeUnit.HOURS)
+                                        .maximumSize(10_000)
+                                        .recordStats()
+                                        .build())),
+
+                new CaffeineCache("planFeatures",
+                        Objects.requireNonNull(
+                                Caffeine.newBuilder()
+                                        .expireAfterWrite(2, TimeUnit.HOURS)
+                                        .maximumSize(1_000)
+                                        .recordStats()
                                         .build())));
 
 

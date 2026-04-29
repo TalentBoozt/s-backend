@@ -25,19 +25,19 @@ public class AIUsageController {
     private final AIUsageRepository usageRepository;
 
     @GetMapping("/quota")
-    public ResponseEntity<AIQuota> getMyQuota(@AuthenticatedUser CustomUserDetails user) {
-        return quotaRepository.findByUserId(user.getUserId())
+    public ResponseEntity<AIQuota> getMyQuota(@AuthenticatedUser String userId) {
+        return quotaRepository.findByUserId(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/logs")
     public ResponseEntity<Page<AIUsage>> getMyUsageLogs(
-            @AuthenticatedUser CustomUserDetails user,
+            @AuthenticatedUser String userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Page<AIUsage> logs = usageRepository.findByUserId(
-                user.getUserId(), 
+                userId, 
                 PageRequest.of(page, size, Sort.by("createdAt").descending())
         );
         return ResponseEntity.ok(logs);

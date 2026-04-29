@@ -18,17 +18,18 @@ public class AiController {
     private final AiService aiService;
 
     @PostMapping("/career-paths")
-    public CareerPathResponse careerPaths(@AuthenticatedUser CustomUserDetails user, @RequestBody CareerPathRequest req) {
-        return aiService.getCareerPaths(user.getUserId(), req);
+    public CareerPathResponse careerPaths(@AuthenticatedUser String userId,
+            @RequestBody CareerPathRequest req) {
+        return aiService.getCareerPaths(userId, req);
     }
 
     @PostMapping("/roadmap")
-    public RoadmapResponse roadmap(@AuthenticatedUser CustomUserDetails user, @RequestBody RoadmapRequest req) {
-        return aiService.getRoadmap(user.getUserId(), req);
+    public RoadmapResponse roadmap(@AuthenticatedUser String userId, @RequestBody RoadmapRequest req) {
+        return aiService.getRoadmap(userId, req);
     }
 
     @PostMapping("/chat")
-    public ChatResponse chat(@AuthenticatedUser CustomUserDetails user, @RequestBody ChatRequest req) {
-        return aiService.chat(user.getUserId(), req);
+    public ChatResponse chat(@AuthenticatedUser String userId, @RequestBody ChatRequest req) {
+        return aiService.chat(userId, req);
     }
 }
