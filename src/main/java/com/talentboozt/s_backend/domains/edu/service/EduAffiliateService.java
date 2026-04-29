@@ -131,4 +131,20 @@ public class EduAffiliateService {
 
         log.info("Processed affiliate commission: amount={}, affiliate={}, tx={}", commissionAmount, affiliateId, transactionId);
     }
+
+    public java.util.Map<String, Object> getAffiliateStats(String userId) {
+        EAffiliates affiliate = affiliatesRepository.findByUserId(userId)
+                .orElseThrow(() -> new EduBadRequestException("Affiliate not found"));
+        
+        long totalClicks = linksRepository.findByAffiliateId(affiliate.getId()).stream()
+                .mapToLong(l -> l.getClicks() != null ? l.getClicks() : 0L)
+                .sum();
+        
+        return java.util.Map.of(
+            "totalEarnings", affiliate.getTotalEarnings() != null ? affiliate.getTotalEarnings() : 0.0,
+            "referralCode", affiliate.getReferralCode(),
+            "totalClicks", totalClicks,
+            "status", affiliate.getStatus()
+        );
+    }
 }

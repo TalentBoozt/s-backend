@@ -22,8 +22,14 @@ public class EduAffiliateController {
 
     @PostMapping("/links")
     @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('MARKETER')")
-    public ResponseEntity<EAffiliateLinks> generateLink(@RequestParam String affiliateId, @RequestParam String courseId) {
+    public ResponseEntity<EAffiliateLinks> generateLink(@RequestParam String affiliateId,
+            @RequestParam String courseId) {
         return ResponseEntity.ok(affiliateService.generateAffiliateLink(affiliateId, courseId));
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<java.util.Map<String, Object>> getStats(@com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser String userId) {
+        return ResponseEntity.ok(affiliateService.getAffiliateStats(userId));
     }
 
     @PostMapping("/track/{trackingCode}")
