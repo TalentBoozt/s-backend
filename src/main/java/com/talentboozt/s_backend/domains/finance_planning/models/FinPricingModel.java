@@ -16,6 +16,7 @@ public class FinPricingModel implements VersionedEntity {
     private String tier; // free/pro/premium
     private Double price;
     private Double costPerUser;
+    private Double commissionPercent;
     private Double margin;
     @Version
     private Integer version;

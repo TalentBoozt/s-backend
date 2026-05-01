@@ -38,7 +38,9 @@ public class OperationProcessor {
             case UPDATE_ASSUMPTION:
                 applied = handleUpdateAssumption(op);
                 break;
-            // Add other cases as needed
+            case APPLY_SCENARIO:
+                applied = handleApplyScenario(op);
+                break;
             default:
                 log.warn("Unsupported operation type: {}", op.getType());
         }
@@ -89,8 +91,37 @@ public class OperationProcessor {
             budget.getMonthlyAllocations().put(op.getMonth(), ((Number) op.getValue()).doubleValue());
             budgetRepository.save(budget);
             return true;
+        } else if (path.startsWith("pricing.")) {
+            String[] parts = path.split("\\.");
+            String field = parts[1]; // price or commissionPercent
+            String tier = parts[2];
+            
+            Optional<FinPricingModel> modelOpt = pricingModelRepository.findByOrganizationIdAndProjectIdAndTier(
+                op.getOrganizationId(), op.getProjectId(), tier);
+            
+            FinPricingModel model = modelOpt.orElse(new FinPricingModel());
+            if (modelOpt.isEmpty()) {
+                model.setOrganizationId(op.getOrganizationId());
+                model.setProjectId(op.getProjectId());
+                model.setTier(tier);
+            }
+            
+            if ("price".equals(field)) {
+                model.setPrice(((Number) op.getValue()).doubleValue());
+            } else {
+                model.setCommissionPercent(((Number) op.getValue()).doubleValue());
+            }
+            pricingModelRepository.save(model);
+            return true;
         }
         return false;
+    }
+
+    private boolean handleApplyScenario(CollaborationOperation op) {
+        log.info("Applying scenario: {} to project: {}", op.getValue(), op.getProjectId());
+        // Logic to apply scenario overrides...
+        // For now we just return true to trigger a broadcast which forces clients to reload
+        return true;
     }
 
     private boolean handleUpdateAssumption(CollaborationOperation op) {
