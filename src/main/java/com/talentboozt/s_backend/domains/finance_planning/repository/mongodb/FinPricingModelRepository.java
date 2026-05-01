@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface FinPricingModelRepository extends MongoRepository<FinPricingModel, String> {
     List<FinPricingModel> findByOrganizationIdAndProjectId(String organizationId, String projectId);
+    Optional<FinPricingModel> findByOrganizationIdAndProjectIdAndTier(String organizationId, String projectId, String tier);
 }
