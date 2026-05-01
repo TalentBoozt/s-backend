@@ -16,5 +16,6 @@ public class FinBudget {
     private String category;
     private String type; // fixed/variable
     private Map<String, Double> monthlyAllocations; // month -> amount
+    private String formula; // Dynamic calculation formula
     private Instant createdAt;
 }

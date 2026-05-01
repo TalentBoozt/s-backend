@@ -16,8 +16,11 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 import java.util.List;
 
+import com.talentboozt.s_backend.shared.dto.ApiResponse;
+import org.springframework.http.ResponseEntity;
+
 @RestController
-@RequestMapping("/api/scenarios")
+@RequestMapping("/api/v1/finance/scenarios")
 @RequiredArgsConstructor
 public class ScenarioController {
     private final ScenarioRepository scenarioRepository;
@@ -28,30 +31,30 @@ public class ScenarioController {
     private final ScenarioMergeService mergeService;
 
     @PostMapping
-    public Scenario createScenario(@RequestBody Scenario scenario) {
+    public ResponseEntity<ApiResponse<Scenario>> createScenario(@RequestBody Scenario scenario) {
         scenario.setCreatedAt(Instant.now());
-        return scenarioRepository.save(scenario);
+        return ResponseEntity.ok(ApiResponse.success(scenarioRepository.save(scenario)));
     }
 
     @GetMapping
-    public List<Scenario> listScenarios(@RequestParam String projectId) {
-        return scenarioRepository.findByProjectId(projectId);
+    public ResponseEntity<ApiResponse<List<Scenario>>> listScenarios(@RequestParam String projectId) {
+        return ResponseEntity.ok(ApiResponse.success(scenarioRepository.findByProjectId(projectId)));
     }
 
     @PostMapping("/{id}/override")
-    public ScenarioOverride addOverride(@PathVariable String id, @RequestBody ScenarioOverride override) {
+    public ResponseEntity<ApiResponse<ScenarioOverride>> addOverride(@PathVariable String id, @RequestBody ScenarioOverride override) {
         override.setScenarioId(id);
         override.setCreatedAt(Instant.now());
-        return overrideRepository.save(override);
+        return ResponseEntity.ok(ApiResponse.success(overrideRepository.save(override)));
     }
 
     @GetMapping("/{id}/state")
-    public EffectiveProjectState getResolvedState(@PathVariable String id, @RequestParam String organizationId, @RequestParam String projectId) {
-        return scenarioResolver.resolveState(id, organizationId, projectId);
+    public ResponseEntity<ApiResponse<EffectiveProjectState>> getResolvedState(@PathVariable String id, @RequestParam String organizationId, @RequestParam String projectId) {
+        return ResponseEntity.ok(ApiResponse.success(scenarioResolver.resolveState(id, organizationId, projectId)));
     }
 
     @GetMapping("/{id}/diff")
-    public List<DiffResult> getDiff(@PathVariable String id, @RequestParam String organizationId, @RequestParam String projectId, @RequestParam(required = false) String compareWith) {
+    public ResponseEntity<ApiResponse<List<DiffResult>>> getDiff(@PathVariable String id, @RequestParam String organizationId, @RequestParam String projectId, @RequestParam(required = false) String compareWith) {
         EffectiveProjectState current = scenarioResolver.resolveState(id, organizationId, projectId);
         EffectiveProjectState other;
         if (compareWith == null || "base".equals(compareWith)) {
@@ -59,11 +62,11 @@ public class ScenarioController {
         } else {
             other = scenarioResolver.resolveState(compareWith, organizationId, projectId);
         }
-        return diffEngine.compare(other, current);
+        return ResponseEntity.ok(ApiResponse.success(diffEngine.compare(other, current)));
     }
 
     @GetMapping("/{id}/impact")
-    public ImpactAnalysisService.ImpactAnalysis getImpact(@PathVariable String id, @RequestParam String organizationId, @RequestParam String projectId, @RequestParam(required = false) String compareWith) {
+    public ResponseEntity<ApiResponse<ImpactAnalysisService.ImpactAnalysis>> getImpact(@PathVariable String id, @RequestParam String organizationId, @RequestParam String projectId, @RequestParam(required = false) String compareWith) {
         EffectiveProjectState current = scenarioResolver.resolveState(id, organizationId, projectId);
         EffectiveProjectState other;
         if (compareWith == null || "base".equals(compareWith)) {
@@ -71,15 +74,16 @@ public class ScenarioController {
         } else {
             other = scenarioResolver.resolveState(compareWith, organizationId, projectId);
         }
-        return impactService.analyzeImpact(other, current);
+        return ResponseEntity.ok(ApiResponse.success(impactService.analyzeImpact(other, current)));
     }
 
     @PostMapping("/{id}/merge")
-    public void merge(@PathVariable String id, @RequestParam(required = false) String targetId) {
+    public ResponseEntity<ApiResponse<Void>> merge(@PathVariable String id, @RequestParam(required = false) String targetId) {
         if (targetId == null || "main".equals(targetId)) {
             mergeService.mergeIntoMain(id);
         } else {
             mergeService.mergeScenarios(id, targetId);
         }
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }

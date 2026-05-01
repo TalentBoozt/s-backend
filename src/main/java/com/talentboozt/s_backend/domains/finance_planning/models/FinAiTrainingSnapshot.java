@@ -13,8 +13,11 @@ public class FinAiTrainingSnapshot {
     private String id;
     private String organizationId;
     private String projectId;
-    private String inputSnapshot; // JSON
-    private String outputSnapshot; // JSON
-    private List<String> tags; // "high_growth", "loss"
+    private String scenarioId;
+    private String userId;
+    private String inputSnapshot; // JSON of assumptions, sales, pricing, budget
+    private String outputSnapshot; // JSON of revenue, cost, profit
+    private List<String> changedFields;
+    private List<String> tags;
     private Instant createdAt;
 }

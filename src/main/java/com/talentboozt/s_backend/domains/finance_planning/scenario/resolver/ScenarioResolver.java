@@ -60,9 +60,16 @@ public class ScenarioResolver {
 
     private EffectiveProjectState loadBaseState(String orgId, String projectId) {
         EffectiveProjectState state = new EffectiveProjectState();
-        state.setAssumptions(assumptionRepository.findByOrganizationIdAndProjectId(orgId, projectId));
-        state.setSalesPlans(salesPlanRepository.findByOrganizationIdAndProjectId(orgId, projectId));
-        state.setBudgets(budgetRepository.findByOrganizationIdAndProjectId(orgId, projectId));
+        
+        state.setAssumptions(assumptionRepository.findByOrganizationIdAndProjectId(orgId, projectId)
+                .stream().map(this::copyAssumption).toList());
+        
+        state.setSalesPlans(salesPlanRepository.findByOrganizationIdAndProjectId(orgId, projectId)
+                .stream().map(this::copySalesPlan).toList());
+        
+        state.setBudgets(budgetRepository.findByOrganizationIdAndProjectId(orgId, projectId)
+                .stream().map(this::copyBudget).toList());
+        
         state.setPricingModels(pricingModelRepository.findByOrganizationIdAndProjectId(orgId, projectId));
         return state;
     }
@@ -75,14 +82,21 @@ public class ScenarioResolver {
                 state.getSalesPlans().stream()
                         .filter(p -> p.getMonth().equals(override.getMonth()))
                         .findFirst()
-                        .ifPresent(p -> p.getUserCounts().put(tier, ((Number) override.getValue()).intValue()));
+                        .ifPresent(p -> {
+                            Map<String, Integer> counts = new HashMap<>(p.getUserCounts());
+                            counts.put(tier, ((Number) override.getValue()).intValue());
+                            p.setUserCounts(counts);
+                        });
             } else if (path.startsWith("budget.")) {
                 String category = path.substring(7);
                 state.getBudgets().stream()
                         .filter(b -> b.getCategory().equalsIgnoreCase(category))
                         .findFirst()
-                        .ifPresent(b -> b.getMonthlyAllocations().put(override.getMonth(),
-                                ((Number) override.getValue()).doubleValue()));
+                        .ifPresent(b -> {
+                            Map<String, Double> allocations = new HashMap<>(b.getMonthlyAllocations());
+                            allocations.put(override.getMonth(), ((Number) override.getValue()).doubleValue());
+                            b.setMonthlyAllocations(allocations);
+                        });
             } else if (path.startsWith("assumption.")) {
                 String key = path.substring(11);
                 state.getAssumptions().stream()
@@ -90,8 +104,45 @@ public class ScenarioResolver {
                         .findFirst()
                         .ifPresent(a -> a.setValue(override.getValue().toString()));
             }
-            // Add more path handlers as needed
         }
+    }
+
+    private FinAssumption copyAssumption(FinAssumption original) {
+        FinAssumption copy = new FinAssumption();
+        copy.setId(original.getId());
+        copy.setOrganizationId(original.getOrganizationId());
+        copy.setProjectId(original.getProjectId());
+        copy.setKey(original.getKey());
+        copy.setValue(original.getValue());
+        copy.setUnit(original.getUnit());
+        copy.setCategory(original.getCategory());
+        copy.setVersion(original.getVersion());
+        copy.setCreatedAt(original.getCreatedAt());
+        return copy;
+    }
+
+    private FinSalesPlan copySalesPlan(FinSalesPlan original) {
+        FinSalesPlan copy = new FinSalesPlan();
+        copy.setId(original.getId());
+        copy.setOrganizationId(original.getOrganizationId());
+        copy.setProjectId(original.getProjectId());
+        copy.setMonth(original.getMonth());
+        copy.setUserCounts(original.getUserCounts() != null ? new HashMap<>(original.getUserCounts()) : new HashMap<>());
+        copy.setGrowthRate(original.getGrowthRate());
+        copy.setCreatedAt(original.getCreatedAt());
+        return copy;
+    }
+
+    private FinBudget copyBudget(FinBudget original) {
+        FinBudget copy = new FinBudget();
+        copy.setId(original.getId());
+        copy.setOrganizationId(original.getOrganizationId());
+        copy.setProjectId(original.getProjectId());
+        copy.setCategory(original.getCategory());
+        copy.setMonthlyAllocations(original.getMonthlyAllocations() != null ? new HashMap<>(original.getMonthlyAllocations()) : new HashMap<>());
+        copy.setFormula(original.getFormula());
+        copy.setCreatedAt(original.getCreatedAt());
+        return copy;
     }
 
     @Data
