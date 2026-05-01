@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.finance_planning.controllers;
 
-import com.talentboozt.s_backend.domains.finance_planning.models.Scenario;
-import com.talentboozt.s_backend.domains.finance_planning.repository.mongodb.ScenarioRepository;
+import com.talentboozt.s_backend.domains.finance_planning.models.FinScenario;
+import com.talentboozt.s_backend.domains.finance_planning.repository.mongodb.FinScenarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,12 +11,12 @@ import java.time.Instant;
 @RestController
 @RequestMapping("/scenarios")
 @RequiredArgsConstructor
-public class ScenarioController {
+public class FinScenarioController {
 
-    private final ScenarioRepository repository;
+    private final FinScenarioRepository repository;
 
     @PostMapping
-    public ResponseEntity<Scenario> create(@RequestBody Scenario scenario) {
+    public ResponseEntity<FinScenario> create(@RequestBody FinScenario scenario) {
         scenario.setCreatedAt(Instant.now());
         return ResponseEntity.ok(repository.save(scenario));
     }

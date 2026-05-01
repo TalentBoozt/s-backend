@@ -3,7 +3,7 @@ package com.talentboozt.s_backend.domains.finance_planning.collaboration.service
 import com.talentboozt.s_backend.domains.finance_planning.collaboration.models.CollaborationOperation;
 import com.talentboozt.s_backend.domains.finance_planning.models.*;
 import com.talentboozt.s_backend.domains.finance_planning.repository.mongodb.*;
-import com.talentboozt.s_backend.domains.finance_planning.services.FinancialComputationService;
+import com.talentboozt.s_backend.domains.finance_planning.services.FinFinancialComputationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -18,12 +18,12 @@ import java.util.Optional;
 public class OperationProcessor {
     private final SimpMessagingTemplate messagingTemplate;
     private final ConflictResolver conflictResolver;
-    private final FinancialComputationService computationService;
+    private final FinFinancialComputationService computationService;
     
-    private final SalesPlanRepository salesPlanRepository;
-    private final BudgetRepository budgetRepository;
-    private final AssumptionRepository assumptionRepository;
-    private final PricingModelRepository pricingModelRepository;
+    private final FinSalesPlanRepository salesPlanRepository;
+    private final FinBudgetRepository budgetRepository;
+    private final FinAssumptionRepository assumptionRepository;
+    private final FinPricingModelRepository pricingModelRepository;
 
     @Transactional
     public void processOperation(CollaborationOperation op) {
@@ -59,10 +59,10 @@ public class OperationProcessor {
         String path = op.getPath();
         if (path.startsWith("sales.")) {
             String tier = path.substring(6);
-            Optional<SalesPlan> planOpt = salesPlanRepository.findByOrganizationIdAndProjectIdAndMonth(
+            Optional<FinSalesPlan> planOpt = salesPlanRepository.findByOrganizationIdAndProjectIdAndMonth(
                 op.getOrganizationId(), op.getProjectId(), op.getMonth());
             
-            SalesPlan plan = planOpt.orElse(new SalesPlan());
+            FinSalesPlan plan = planOpt.orElse(new FinSalesPlan());
             if (planOpt.isEmpty()) {
                 plan.setOrganizationId(op.getOrganizationId());
                 plan.setProjectId(op.getProjectId());
@@ -76,10 +76,10 @@ public class OperationProcessor {
             return true;
         } else if (path.startsWith("budget.")) {
             String category = path.substring(7);
-            Optional<Budget> budgetOpt = budgetRepository.findByOrganizationIdAndProjectIdAndCategory(
+            Optional<FinBudget> budgetOpt = budgetRepository.findByOrganizationIdAndProjectIdAndCategory(
                 op.getOrganizationId(), op.getProjectId(), category);
             
-            Budget budget = budgetOpt.orElse(new Budget());
+            FinBudget budget = budgetOpt.orElse(new FinBudget());
             if (budgetOpt.isEmpty()) {
                 budget.setOrganizationId(op.getOrganizationId());
                 budget.setProjectId(op.getProjectId());
@@ -94,10 +94,10 @@ public class OperationProcessor {
     }
 
     private boolean handleUpdateAssumption(CollaborationOperation op) {
-        Optional<Assumption> assumptionOpt = assumptionRepository.findByOrganizationIdAndProjectIdAndKey(
+        Optional<FinAssumption> assumptionOpt = assumptionRepository.findByOrganizationIdAndProjectIdAndKey(
             op.getOrganizationId(), op.getProjectId(), op.getPath());
         
-        Assumption assumption = assumptionOpt.orElse(new Assumption());
+        FinAssumption assumption = assumptionOpt.orElse(new FinAssumption());
         if (assumptionOpt.isEmpty()) {
             assumption.setOrganizationId(op.getOrganizationId());
             assumption.setProjectId(op.getProjectId());

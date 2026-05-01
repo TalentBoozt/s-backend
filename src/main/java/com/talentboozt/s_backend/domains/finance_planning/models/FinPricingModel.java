@@ -6,16 +6,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 @Data
-@Document(collection = "assumptions_collection")
-public class Assumption {
+@Document(collection = "pricing_model_collection")
+public class FinPricingModel {
     @Id
     private String id;
     private String organizationId;
     private String projectId;
-    private String key;
-    private String value;
-    private String unit;
-    private String category;
-    private Integer version;
-    private Instant createdAt;
+    private String tier; // free/pro/premium
+    private Double price;
+    private Double costPerUser;
+    private Double margin;
+    private Instant effectiveDate;
 }

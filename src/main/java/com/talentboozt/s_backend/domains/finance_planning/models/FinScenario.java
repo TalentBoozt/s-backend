@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @Document(collection = "scenario_collection")
-public class Scenario {
+public class FinScenario {
     @Id
     private String id;
     private String organizationId;

@@ -21,10 +21,10 @@ public class ScenarioResolver {
     private final ScenarioRepository scenarioRepository;
     private final ScenarioOverrideRepository overrideRepository;
 
-    private final AssumptionRepository assumptionRepository;
-    private final SalesPlanRepository salesPlanRepository;
-    private final BudgetRepository budgetRepository;
-    private final PricingModelRepository pricingModelRepository;
+    private final FinAssumptionRepository assumptionRepository;
+    private final FinSalesPlanRepository salesPlanRepository;
+    private final FinBudgetRepository budgetRepository;
+    private final FinPricingModelRepository pricingModelRepository;
 
     public EffectiveProjectState resolveState(String scenarioId, String organizationId, String projectId) {
         if (scenarioId == null) {
@@ -96,9 +96,9 @@ public class ScenarioResolver {
 
     @Data
     public static class EffectiveProjectState {
-        private List<Assumption> assumptions;
-        private List<SalesPlan> salesPlans;
-        private List<Budget> budgets;
-        private List<PricingModel> pricingModels;
+        private List<FinAssumption> assumptions;
+        private List<FinSalesPlan> salesPlans;
+        private List<FinBudget> budgets;
+        private List<FinPricingModel> pricingModels;
     }
 }

@@ -4,17 +4,17 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
+import java.util.Map;
 
 @Data
-@Document(collection = "pricing_model_collection")
-public class PricingModel {
+@Document(collection = "sales_plan_collection")
+public class FinSalesPlan {
     @Id
     private String id;
     private String organizationId;
     private String projectId;
-    private String tier; // free/pro/premium
-    private Double price;
-    private Double costPerUser;
-    private Double margin;
-    private Instant effectiveDate;
+    private String month; // ISO format
+    private Map<String, Integer> userCounts; // free, pro, premium
+    private Double growthRate;
+    private Instant createdAt;
 }

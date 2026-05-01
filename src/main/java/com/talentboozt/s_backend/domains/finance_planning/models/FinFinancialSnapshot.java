@@ -8,7 +8,7 @@ import java.util.Map;
 
 @Data
 @Document(collection = "financial_snapshot_collection")
-public class FinancialSnapshot {
+public class FinFinancialSnapshot {
     @Id
     private String id;
     private String organizationId;
