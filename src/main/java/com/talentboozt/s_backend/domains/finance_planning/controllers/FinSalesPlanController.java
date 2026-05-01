@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.finance_planning.controllers;
 
 import com.talentboozt.s_backend.domains.finance_planning.models.FinSalesPlan;
 import com.talentboozt.s_backend.domains.finance_planning.repository.mongodb.FinSalesPlanRepository;
+import com.talentboozt.s_backend.domains.finance_planning.security.annotations.RequiresFinPermission;
+import com.talentboozt.s_backend.domains.finance_planning.security.rbac.FinPermission;
 import com.talentboozt.s_backend.domains.finance_planning.services.FinFinancialComputationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +20,11 @@ public class FinSalesPlanController {
     private final FinFinancialComputationService computationService;
 
     @PostMapping
-    public ResponseEntity<FinSalesPlan> create(@RequestBody FinSalesPlan entity) {
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header")
+    public ResponseEntity<FinSalesPlan> create(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @RequestBody FinSalesPlan entity) {
+        entity.setOrganizationId(organizationId);
         FinSalesPlan saved = repository.save(entity);
         // Trigger recomputation async or via event
         computationService.recomputeFinancials(saved.getOrganizationId(), saved.getProjectId());
@@ -26,6 +32,7 @@ public class FinSalesPlanController {
     }
 
     @GetMapping
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "param", orgIdKey = "organizationId")
     public ResponseEntity<List<FinSalesPlan>> getByProject(@RequestParam String projectId,
             @RequestParam String organizationId) {
         return ResponseEntity.ok(repository.findByOrganizationIdAndProjectId(organizationId, projectId));

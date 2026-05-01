@@ -2,12 +2,13 @@ package com.talentboozt.s_backend.domains.finance_planning.models;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 @Data
 @Document(collection = "pricing_model_collection")
-public class FinPricingModel {
+public class FinPricingModel implements VersionedEntity {
     @Id
     private String id;
     private String organizationId;
@@ -16,5 +17,7 @@ public class FinPricingModel {
     private Double price;
     private Double costPerUser;
     private Double margin;
+    @Version
+    private Integer version;
     private Instant effectiveDate;
 }

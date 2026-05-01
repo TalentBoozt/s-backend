@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.analytics.controller;
 
 import com.talentboozt.s_backend.domains.analytics.service.AnalyticsPrecomputationService;
 import com.talentboozt.s_backend.domains.analytics.service.AnalyticsQueryService;
+import com.talentboozt.s_backend.domains.finance_planning.security.annotations.RequiresFinPermission;
+import com.talentboozt.s_backend.domains.finance_planning.security.rbac.FinPermission;
 import com.talentboozt.s_backend.shared.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,7 @@ public class AnalyticsController {
     private final AnalyticsPrecomputationService precomputationService;
 
     @GetMapping
+    @RequiresFinPermission(value = FinPermission.VIEW_ANALYTICS, orgIdSource = "header")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getAnalytics(
             @RequestHeader("X-Organization-Id") String organizationId,
             @RequestParam String projectId,
@@ -28,6 +31,7 @@ public class AnalyticsController {
     }
 
     @PostMapping("/precompute")
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header")
     public ResponseEntity<ApiResponse<Void>> triggerPrecomputation(
             @RequestHeader("X-Organization-Id") String organizationId,
             @RequestParam String projectId,

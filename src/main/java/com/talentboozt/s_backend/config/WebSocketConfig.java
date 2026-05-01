@@ -1,5 +1,6 @@
 package com.talentboozt.s_backend.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -27,8 +28,15 @@ import org.slf4j.LoggerFactory;
 
 @Configuration
 @EnableWebSocketMessageBroker
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
+    private final com.talentboozt.s_backend.domains.finance_planning.security.interceptor.FinWebSocketSecurityInterceptor securityInterceptor;
+
+    @Override
+    public void configureClientInboundChannel(org.springframework.messaging.simp.config.ChannelRegistration registration) {
+        registration.interceptors(securityInterceptor);
+    }
 
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {

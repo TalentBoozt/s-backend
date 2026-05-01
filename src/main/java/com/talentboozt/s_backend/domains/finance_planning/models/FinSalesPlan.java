@@ -2,13 +2,14 @@ package com.talentboozt.s_backend.domains.finance_planning.models;
 
 import lombok.Data;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 import java.util.Map;
 
 @Data
 @Document(collection = "sales_plan_collection")
-public class FinSalesPlan {
+public class FinSalesPlan implements VersionedEntity {
     @Id
     private String id;
     private String organizationId;
@@ -16,5 +17,7 @@ public class FinSalesPlan {
     private String month; // ISO format
     private Map<String, Integer> userCounts; // free, pro, premium
     private Double growthRate;
+    @Version
+    private Integer version;
     private Instant createdAt;
 }

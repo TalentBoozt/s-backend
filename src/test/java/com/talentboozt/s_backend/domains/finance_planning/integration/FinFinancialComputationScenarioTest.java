@@ -75,7 +75,7 @@ public class FinFinancialComputationScenarioTest {
         budgetRepository.save(cloudBudget);
 
         // Compute
-        computationService.recomputeFinancials(orgId, projId, "base", "test-user", List.of());
+        computationService.recomputeFinancials(orgId, projId, "base", "test-user", List.of(), null);
 
         FinFinancialSnapshot snapshot = snapshotRepository
                 .findByOrganizationIdAndProjectIdAndScenarioIdAndMonth(orgId, projId, "base", "2024-01")
@@ -125,7 +125,7 @@ public class FinFinancialComputationScenarioTest {
     @Test
     void shouldComputeBaseAndScenarioDifferently() {
         // Compute Base
-        computationService.recomputeFinancials(orgId, projId, "base", "test-user", List.of());
+        computationService.recomputeFinancials(orgId, projId, "base", "test-user", List.of(), null);
 
         FinFinancialSnapshot baseSnapshot = snapshotRepository
                 .findByOrganizationIdAndProjectIdAndScenarioIdAndMonth(orgId, projId, "base", "2024-01")
@@ -149,7 +149,7 @@ public class FinFinancialComputationScenarioTest {
         overrideRepository.save(override);
 
         // Compute Scenario
-        computationService.recomputeFinancials(orgId, projId, scenario.getId(), "test-user", List.of());
+        computationService.recomputeFinancials(orgId, projId, scenario.getId(), "test-user", List.of(), null);
 
         FinFinancialSnapshot scenarioSnapshot = snapshotRepository
                 .findByOrganizationIdAndProjectIdAndScenarioIdAndMonth(orgId, projId, scenario.getId(), "2024-01")

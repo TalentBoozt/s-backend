@@ -13,6 +13,7 @@ public class BulkUpdateDto {
         private String type; // assumption, sales, budget, pricing
         private String action; // create, update, delete
         private String id;
+        private Integer expectedVersion;
         private Map<String, Object> payload;
     }
 }
