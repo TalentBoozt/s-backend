@@ -94,7 +94,7 @@ public class AuthController {
 
                 return ResponseEntity.ok(new AuthResponse(token, refreshToken, user.getEmployeeId(), user.getEmail(),
                         user.getUserLevel(), emp.getPlatformRole(), user.getOrganizations(), user.getPermissions(),
-                        user.getRoles(), user.isActive()));
+                        user.getRoles(), user.isActive(), user.getFirstname(), user.getLastname()));
 
             } catch (Exception e) {
                 return ResponseEntity.status(500).body(new ErrorResponse("Decryption failed: " + e.getMessage()));
@@ -132,7 +132,8 @@ public class AuthController {
 
                 return ResponseEntity.ok(new AuthResponse(token, refreshToken, newUser.getEmployeeId(),
                         newUser.getEmail(), newUser.getUserLevel(), PlatformRole.USER,
-                        newUser.getOrganizations(), newUser.getPermissions(), newUser.getRoles(), newUser.isActive()));
+                        newUser.getOrganizations(), newUser.getPermissions(), newUser.getRoles(), newUser.isActive(),
+                        newUser.getFirstname(), newUser.getLastname()));
 
             } catch (Exception e) {
                 return ResponseEntity.status(500).body(new ErrorResponse("Encryption failed: " + e.getMessage()));
@@ -168,7 +169,7 @@ public class AuthController {
             // Return new access token
             return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken, user.getEmployeeId(),
                     user.getEmail(), user.getUserLevel(), emp.getPlatformRole(), user.getOrganizations(),
-                    user.getPermissions(), user.getRoles(), user.isActive()));
+                    user.getPermissions(), user.getRoles(), user.isActive(), user.getFirstname(), user.getLastname()));
         }
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid refresh token"));
@@ -320,11 +321,13 @@ class AuthResponse {
     private String userLevel;
     private PlatformRole platformRole;
     private boolean active;
+    private String firstname;
+    private String lastname;
 
     public AuthResponse(String token, String refreshToken, String employeeId, String email, String userLevel,
             PlatformRole platformRole, List<Map<String, String>> organizations, List<String> permissions,
             List<String> roles,
-            boolean active) {
+            boolean active, String firstname, String lastname) {
         this.token = token;
         this.refreshToken = refreshToken;
         this.employeeId = employeeId;
@@ -335,6 +338,8 @@ class AuthResponse {
         this.permissions = permissions;
         this.roles = roles;
         this.active = active;
+        this.firstname = firstname;
+        this.lastname = lastname;
     }
 }
 
