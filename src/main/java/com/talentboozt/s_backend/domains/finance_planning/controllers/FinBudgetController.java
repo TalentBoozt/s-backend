@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/budget")
+@RequestMapping("/api/v1/finance/budget")
 @RequiredArgsConstructor
 public class FinBudgetController {
 
@@ -32,10 +32,10 @@ public class FinBudgetController {
     }
 
     @GetMapping
-    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "param", orgIdKey = "organizationId")
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header")
     public ResponseEntity<List<FinBudget>> getByProject(
             @RequestParam String projectId, 
-            @RequestParam String organizationId) {
+            @RequestHeader("X-Organization-Id") String organizationId) {
         return ResponseEntity.ok(repository.findByOrganizationIdAndProjectId(organizationId, projectId));
     }
 }

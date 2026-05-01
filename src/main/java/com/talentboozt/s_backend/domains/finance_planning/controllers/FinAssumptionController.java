@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/assumptions")
+@RequestMapping("/api/v1/finance/assumptions")
 @RequiredArgsConstructor
 public class FinAssumptionController {
 
@@ -31,10 +31,10 @@ public class FinAssumptionController {
     }
 
     @GetMapping
-    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "param", orgIdKey = "organizationId")
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header")
     public ResponseEntity<List<FinAssumption>> getByProject(
             @RequestParam String projectId, 
-            @RequestParam String organizationId) {
+            @RequestHeader("X-Organization-Id") String organizationId) {
         return ResponseEntity.ok(repository.findByOrganizationIdAndProjectId(organizationId, projectId));
     }
 }

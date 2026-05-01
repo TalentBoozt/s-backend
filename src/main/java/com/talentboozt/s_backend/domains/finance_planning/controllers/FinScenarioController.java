@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.Instant;
 
 @RestController
-@RequestMapping("/scenarios")
+@RequestMapping("/api/v1/finance/scenarios")
 @RequiredArgsConstructor
 public class FinScenarioController {
 
