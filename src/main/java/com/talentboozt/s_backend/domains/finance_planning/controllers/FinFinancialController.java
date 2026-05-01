@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.finance_planning.controllers;
 
 import com.talentboozt.s_backend.domains.finance_planning.models.FinFinancialSnapshot;
 import com.talentboozt.s_backend.domains.finance_planning.repository.mongodb.FinFinancialSnapshotRepository;
+import com.talentboozt.s_backend.domains.finance_planning.security.annotations.RequiresFinPermission;
+import com.talentboozt.s_backend.domains.finance_planning.security.rbac.FinPermission;
 import com.talentboozt.s_backend.domains.finance_planning.services.FinFinancialComputationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/financials")
+@RequestMapping("/api/v1/finance/financials")
 @RequiredArgsConstructor
 public class FinFinancialController {
 
@@ -19,7 +21,10 @@ public class FinFinancialController {
     private final FinFinancialComputationService computationService;
 
     @GetMapping
-    public ResponseEntity<?> getFinancials(@RequestParam String organizationId, @RequestParam String projectId,
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header")
+    public ResponseEntity<?> getFinancials(
+            @RequestHeader("X-Organization-Id") String organizationId, 
+            @RequestParam String projectId,
             @RequestParam(required = false) String month) {
         if (month != null) {
             return ResponseEntity
@@ -29,8 +34,11 @@ public class FinFinancialController {
     }
 
     @PostMapping("/recompute")
-    public ResponseEntity<Void> recompute(@RequestBody Map<String, String> payload) {
-        computationService.recomputeFinancials(payload.get("organizationId"), payload.get("projectId"));
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header")
+    public ResponseEntity<Void> recompute(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @RequestBody Map<String, String> payload) {
+        computationService.recomputeFinancials(organizationId, payload.get("projectId"));
         return ResponseEntity.ok().build();
     }
 }
