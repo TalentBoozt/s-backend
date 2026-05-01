@@ -10,6 +10,13 @@ import java.util.Optional;
 public interface FinFinancialSnapshotRepository extends MongoRepository<FinFinancialSnapshot, String> {
     List<FinFinancialSnapshot> findByOrganizationIdAndProjectId(String organizationId, String projectId);
 
+    List<FinFinancialSnapshot> findByOrganizationIdAndProjectIdAndScenarioId(String organizationId, String projectId,
+            String scenarioId);
+
     Optional<FinFinancialSnapshot> findByOrganizationIdAndProjectIdAndMonth(String organizationId, String projectId,
             String month);
+
+    Optional<FinFinancialSnapshot> findByOrganizationIdAndProjectIdAndScenarioIdAndMonth(String organizationId,
+            String projectId,
+            String scenarioId, String month);
 }

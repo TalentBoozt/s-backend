@@ -13,6 +13,7 @@ public class FinFinancialSnapshot {
     private String id;
     private String organizationId;
     private String projectId;
+    private String scenarioId;
     private String month;
     private Double revenue;
     private Double cost;
