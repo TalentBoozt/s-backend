@@ -129,6 +129,7 @@ public class ScenarioResolver {
         copy.setMonth(original.getMonth());
         copy.setUserCounts(original.getUserCounts() != null ? new HashMap<>(original.getUserCounts()) : new HashMap<>());
         copy.setGrowthRate(original.getGrowthRate());
+        copy.setVersion(original.getVersion());
         copy.setCreatedAt(original.getCreatedAt());
         return copy;
     }
@@ -141,6 +142,7 @@ public class ScenarioResolver {
         copy.setCategory(original.getCategory());
         copy.setMonthlyAllocations(original.getMonthlyAllocations() != null ? new HashMap<>(original.getMonthlyAllocations()) : new HashMap<>());
         copy.setFormula(original.getFormula());
+        copy.setVersion(original.getVersion());
         copy.setCreatedAt(original.getCreatedAt());
         return copy;
     }

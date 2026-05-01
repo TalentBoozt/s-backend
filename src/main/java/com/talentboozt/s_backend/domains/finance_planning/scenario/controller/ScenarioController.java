@@ -10,6 +10,8 @@ import com.talentboozt.s_backend.domains.finance_planning.scenario.repository.Sc
 import com.talentboozt.s_backend.domains.finance_planning.scenario.repository.ScenarioRepository;
 import com.talentboozt.s_backend.domains.finance_planning.scenario.resolver.ScenarioResolver;
 import com.talentboozt.s_backend.domains.finance_planning.scenario.resolver.ScenarioResolver.EffectiveProjectState;
+import com.talentboozt.s_backend.domains.finance_planning.security.annotations.RequiresFinPermission;
+import com.talentboozt.s_backend.domains.finance_planning.security.rbac.FinPermission;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,30 +33,50 @@ public class ScenarioController {
     private final ScenarioMergeService mergeService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<Scenario>> createScenario(@RequestBody Scenario scenario) {
+    @RequiresFinPermission(value = FinPermission.MANAGE_SCENARIOS, orgIdSource = "header")
+    public ResponseEntity<ApiResponse<Scenario>> createScenario(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @RequestBody Scenario scenario) {
+        scenario.setOrganizationId(organizationId);
         scenario.setCreatedAt(Instant.now());
         return ResponseEntity.ok(ApiResponse.success(scenarioRepository.save(scenario)));
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<Scenario>>> listScenarios(@RequestParam String projectId) {
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header")
+    public ResponseEntity<ApiResponse<List<Scenario>>> listScenarios(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @RequestParam String projectId) {
         return ResponseEntity.ok(ApiResponse.success(scenarioRepository.findByProjectId(projectId)));
     }
 
     @PostMapping("/{id}/override")
-    public ResponseEntity<ApiResponse<ScenarioOverride>> addOverride(@PathVariable String id, @RequestBody ScenarioOverride override) {
+    @RequiresFinPermission(value = FinPermission.MANAGE_SCENARIOS, orgIdSource = "header")
+    public ResponseEntity<ApiResponse<ScenarioOverride>> addOverride(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @PathVariable String id, 
+            @RequestBody ScenarioOverride override) {
         override.setScenarioId(id);
         override.setCreatedAt(Instant.now());
         return ResponseEntity.ok(ApiResponse.success(overrideRepository.save(override)));
     }
 
     @GetMapping("/{id}/state")
-    public ResponseEntity<ApiResponse<EffectiveProjectState>> getResolvedState(@PathVariable String id, @RequestParam String organizationId, @RequestParam String projectId) {
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "param", orgIdKey = "organizationId")
+    public ResponseEntity<ApiResponse<EffectiveProjectState>> getResolvedState(
+            @PathVariable String id, 
+            @RequestParam String organizationId, 
+            @RequestParam String projectId) {
         return ResponseEntity.ok(ApiResponse.success(scenarioResolver.resolveState(id, organizationId, projectId)));
     }
 
     @GetMapping("/{id}/diff")
-    public ResponseEntity<ApiResponse<List<DiffResult>>> getDiff(@PathVariable String id, @RequestParam String organizationId, @RequestParam String projectId, @RequestParam(required = false) String compareWith) {
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "param", orgIdKey = "organizationId")
+    public ResponseEntity<ApiResponse<List<DiffResult>>> getDiff(
+            @PathVariable String id, 
+            @RequestParam String organizationId, 
+            @RequestParam String projectId, 
+            @RequestParam(required = false) String compareWith) {
         EffectiveProjectState current = scenarioResolver.resolveState(id, organizationId, projectId);
         EffectiveProjectState other;
         if (compareWith == null || "base".equals(compareWith)) {
@@ -66,7 +88,12 @@ public class ScenarioController {
     }
 
     @GetMapping("/{id}/impact")
-    public ResponseEntity<ApiResponse<ImpactAnalysisService.ImpactAnalysis>> getImpact(@PathVariable String id, @RequestParam String organizationId, @RequestParam String projectId, @RequestParam(required = false) String compareWith) {
+    @RequiresFinPermission(value = FinPermission.VIEW_ANALYTICS, orgIdSource = "param", orgIdKey = "organizationId")
+    public ResponseEntity<ApiResponse<ImpactAnalysisService.ImpactAnalysis>> getImpact(
+            @PathVariable String id, 
+            @RequestParam String organizationId, 
+            @RequestParam String projectId, 
+            @RequestParam(required = false) String compareWith) {
         EffectiveProjectState current = scenarioResolver.resolveState(id, organizationId, projectId);
         EffectiveProjectState other;
         if (compareWith == null || "base".equals(compareWith)) {
@@ -78,7 +105,11 @@ public class ScenarioController {
     }
 
     @PostMapping("/{id}/merge")
-    public ResponseEntity<ApiResponse<Void>> merge(@PathVariable String id, @RequestParam(required = false) String targetId) {
+    @RequiresFinPermission(value = FinPermission.MANAGE_SCENARIOS, orgIdSource = "header")
+    public ResponseEntity<ApiResponse<Void>> merge(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @PathVariable String id, 
+            @RequestParam(required = false) String targetId) {
         if (targetId == null || "main".equals(targetId)) {
             mergeService.mergeIntoMain(id);
         } else {

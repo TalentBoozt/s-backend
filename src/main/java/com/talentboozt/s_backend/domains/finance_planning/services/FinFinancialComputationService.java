@@ -27,42 +27,82 @@ public class FinFinancialComputationService {
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final com.talentboozt.s_backend.domains.finance_planning.scenario.resolver.ScenarioResolver scenarioResolver;
     private final com.talentboozt.s_backend.domains.analytics.service.FormulaEngine formulaEngine;
+    private final io.micrometer.core.instrument.MeterRegistry meterRegistry;
 
     /**
-     * Recomputes the financial snapshots for a given project and scenario.
-     * 
-     * @param organizationId The organization ID
-     * @param projectId      The project ID
-     * @param scenarioId     The scenario ID (null or "base" for base state)
-     * @param userId         The ID of the user who triggered the change
-     * @param changedFields  List of fields that were updated
+     * Recomputes the financial snapshots for a given project and scenario incrementally.
      */
     @Transactional
-    public void recomputeFinancials(String organizationId, String projectId, String scenarioId, String userId, List<String> changedFields) {
+    public void recomputeFinancials(String organizationId, String projectId, String scenarioId, String userId, 
+                                   List<String> changedFields, List<String> affectedMonths) {
+        long startTime = System.currentTimeMillis();
         String effectiveScenarioId = (scenarioId == null || "base".equalsIgnoreCase(scenarioId)) ? "base" : scenarioId;
-        log.info("Starting financial computation for org: {}, project: {}, scenario: {}, user: {}", 
-                organizationId, projectId, effectiveScenarioId, userId);
-
-        com.talentboozt.s_backend.domains.finance_planning.scenario.resolver.ScenarioResolver.EffectiveProjectState state = 
-                scenarioResolver.resolveState(scenarioId, organizationId, projectId);
-
-        computeAndSave(organizationId, projectId, effectiveScenarioId, 
-                state.getAssumptions(), state.getSalesPlans(), state.getPricingModels(), state.getBudgets());
         
-        // Notify analytics engine with full context
-        eventPublisher.publishEvent(new com.talentboozt.s_backend.domains.finance_planning.events.FinancialsChangedEvent(
-                this, organizationId, projectId, effectiveScenarioId, userId, changedFields));
-        
-        log.info("Completed financial computation for org: {}, project: {}, scenario: {}", 
-                organizationId, projectId, effectiveScenarioId);
+        log.info("EVENT=COMPUTE_START orgId={} projId={} scenarioId={} changes={}", 
+                organizationId, projectId, effectiveScenarioId, changedFields);
+
+        try {
+            // 1. Resolve State
+            com.talentboozt.s_backend.domains.finance_planning.scenario.resolver.ScenarioResolver.EffectiveProjectState state = 
+                    scenarioResolver.resolveState(scenarioId, organizationId, projectId);
+
+            // 2. Determine affected scope
+            boolean globalChange = changedFields.stream().anyMatch(f -> 
+                f.startsWith("assumption") || f.startsWith("pricing") || f.contains("formula"));
+            
+            List<String> finalAffectedMonths;
+            if (globalChange || changedFields.isEmpty() || (affectedMonths != null && affectedMonths.isEmpty() && !changedFields.isEmpty())) {
+                finalAffectedMonths = state.getSalesPlans().stream().map(FinSalesPlan::getMonth).toList();
+            } else {
+                finalAffectedMonths = affectedMonths;
+            }
+
+            // 3. Incremental Recompute
+            computeAndSaveIncremental(organizationId, projectId, effectiveScenarioId, state, finalAffectedMonths);
+            
+            long duration = System.currentTimeMillis() - startTime;
+            meterRegistry.timer("finance.computation.duration", "scenario", effectiveScenarioId)
+                    .record(java.time.Duration.ofMillis(duration));
+            meterRegistry.counter("finance.computation.success", "scenario", effectiveScenarioId).increment();
+
+            log.info("EVENT=COMPUTE_SUCCESS durationMs={} monthsRecomputed={} scenarioId={}", 
+                    duration, finalAffectedMonths.size(), effectiveScenarioId);
+
+            eventPublisher.publishEvent(new com.talentboozt.s_backend.domains.finance_planning.events.FinancialsChangedEvent(
+                    this, organizationId, projectId, effectiveScenarioId, userId, changedFields));
+        } catch (Exception e) {
+            meterRegistry.counter("finance.computation.failure", "scenario", effectiveScenarioId).increment();
+            log.error("EVENT=COMPUTE_FAILURE scenarioId={} error={}", effectiveScenarioId, e.getMessage(), e);
+            throw e;
+        }
     }
 
-    /**
-     * Legacy support for base state recomputation
-     */
+    private void computeAndSaveIncremental(String orgId, String projId, String scenarioId, 
+                                          com.talentboozt.s_backend.domains.finance_planning.scenario.resolver.ScenarioResolver.EffectiveProjectState state,
+                                          List<String> affectedMonths) {
+        if (state.getSalesPlans().isEmpty()) return;
+
+        // Prepare base variables once for all months to improve performance
+        Map<String, Double> baseVariables = prepareBaseVariables(state.getAssumptions());
+
+        for (FinSalesPlan plan : state.getSalesPlans()) {
+            if (!affectedMonths.contains(plan.getMonth())) {
+                continue;
+            }
+
+            String month = plan.getMonth();
+            double totalRevenue = computeRevenue(plan, state.getPricingModels());
+            Map<String, Double> costBreakdown = computeCosts(month, plan, state.getPricingModels(), state.getBudgets(), state.getAssumptions(), baseVariables);
+            double totalCost = costBreakdown.values().stream().mapToDouble(Double::doubleValue).sum();
+            double profit = totalRevenue - totalCost;
+
+            saveSnapshot(orgId, projId, scenarioId, month, totalRevenue, totalCost, profit, costBreakdown);
+        }
+    }
+
     @Transactional
     public void recomputeFinancials(String organizationId, String projectId) {
-        recomputeFinancials(organizationId, projectId, "base", "system", new ArrayList<>());
+        recomputeFinancials(organizationId, projectId, "base", "system", new ArrayList<>(), null);
     }
 
     public List<FinFinancialSnapshot> computeOnly(List<FinAssumption> assumptions, List<FinSalesPlan> salesPlans, 
@@ -70,10 +110,12 @@ public class FinFinancialComputationService {
         List<FinFinancialSnapshot> snapshots = new ArrayList<>();
         if (salesPlans.isEmpty() || pricingModels.isEmpty()) return snapshots;
 
+        Map<String, Double> baseVariables = prepareBaseVariables(assumptions);
+
         for (FinSalesPlan plan : salesPlans) {
             String month = plan.getMonth();
             double totalRevenue = computeRevenue(plan, pricingModels);
-            Map<String, Double> costBreakdown = computeCosts(month, plan, pricingModels, budgets, assumptions);
+            Map<String, Double> costBreakdown = computeCosts(month, plan, pricingModels, budgets, assumptions, baseVariables);
             double totalCost = costBreakdown.values().stream().mapToDouble(Double::doubleValue).sum();
             double profit = totalRevenue - totalCost;
 
@@ -88,27 +130,25 @@ public class FinFinancialComputationService {
         return snapshots;
     }
 
-    private void computeAndSave(String orgId, String projId, String scenarioId, List<FinAssumption> assumptions, 
-                               List<FinSalesPlan> salesPlans, List<FinPricingModel> pricingModels, List<FinBudget> budgets) {
-        List<FinFinancialSnapshot> snapshots = computeOnly(assumptions, salesPlans, pricingModels, budgets);
-        for (FinFinancialSnapshot s : snapshots) {
-            saveSnapshot(orgId, projId, scenarioId, s.getMonth(), s.getRevenue(), s.getCost(), s.getProfit(), s.getBreakdown());
-        }
-    }
-
     private double computeRevenue(FinSalesPlan plan, List<FinPricingModel> pricingModels) {
         double revenue = 0.0;
-        if (plan.getUserCounts() == null)
-            return revenue;
+        if (plan.getUserCounts() == null) return revenue;
 
         for (Map.Entry<String, Integer> entry : plan.getUserCounts().entrySet()) {
             String tier = entry.getKey();
             int count = entry.getValue();
 
+            pricingModels.stream()
+                    .filter(p -> p.getTier().equalsIgnoreCase(tier))
+                    .findFirst()
+                    .ifPresent(pricing -> {
+                        // Use price from pricing model
+                    });
+            
+            // Wait, let's fix the logic to actually use the price
             Optional<FinPricingModel> pricing = pricingModels.stream()
                     .filter(p -> p.getTier().equalsIgnoreCase(tier))
                     .findFirst();
-
             if (pricing.isPresent()) {
                 revenue += pricing.get().getPrice() * count;
             }
@@ -116,14 +156,8 @@ public class FinFinancialComputationService {
         return revenue;
     }
 
-    private Map<String, Double> computeCosts(String month, FinSalesPlan plan, List<FinPricingModel> pricingModels,
-            List<FinBudget> budgets, List<FinAssumption> assumptions) {
-        Map<String, Double> breakdown = new HashMap<>();
-        
-        // 1. Prepare variable context for Formula Engine
+    private Map<String, Double> prepareBaseVariables(List<FinAssumption> assumptions) {
         Map<String, Double> variables = new HashMap<>();
-        
-        // Add Assumptions to variables
         if (assumptions != null) {
             for (FinAssumption assumption : assumptions) {
                 try {
@@ -133,8 +167,17 @@ public class FinFinancialComputationService {
                 }
             }
         }
+        return variables;
+    }
+
+    private Map<String, Double> computeCosts(String month, FinSalesPlan plan, List<FinPricingModel> pricingModels,
+            List<FinBudget> budgets, List<FinAssumption> assumptions, Map<String, Double> baseVariables) {
+        Map<String, Double> breakdown = new HashMap<>();
         
-        // Add User counts to variables
+        // 1. Prepare variable context for Formula Engine (Clone base variables)
+        Map<String, Double> variables = new HashMap<>(baseVariables);
+        
+        // Add Month-specific User counts to variables
         int totalUsers = 0;
         if (plan.getUserCounts() != null) {
             for (Map.Entry<String, Integer> entry : plan.getUserCounts().entrySet()) {
@@ -166,16 +209,13 @@ public class FinFinancialComputationService {
             double amount = 0.0;
 
             if (budget.getFormula() != null && !budget.getFormula().isEmpty()) {
-                // Use Formula Engine
                 try {
                     amount = formulaEngine.calculate(budget.getFormula(), variables);
                 } catch (Exception e) {
                     log.error("Failed to calculate formula for budget category {}: {}", budget.getCategory(), budget.getFormula(), e);
-                    // Fallback to monthly allocation if formula fails
                     amount = budget.getMonthlyAllocations() != null ? budget.getMonthlyAllocations().getOrDefault(month, 0.0) : 0.0;
                 }
             } else if (budget.getMonthlyAllocations() != null) {
-                // Use fixed monthly allocation
                 amount = budget.getMonthlyAllocations().getOrDefault(month, 0.0);
             }
 
