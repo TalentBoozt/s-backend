@@ -17,6 +17,14 @@ public class FinScenarioController {
 
     private final FinScenarioRepository repository;
 
+    @GetMapping
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header")
+    public ResponseEntity<?> getScenarios(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @RequestParam String projectId) {
+        return ResponseEntity.ok(repository.findByOrganizationIdAndProjectId(organizationId, projectId));
+    }
+
     @PostMapping
     @RequiresFinPermission(value = FinPermission.MANAGE_SCENARIOS, orgIdSource = "header")
     public ResponseEntity<FinScenario> create(
