@@ -7,14 +7,14 @@ import java.time.Instant;
 import java.util.Map;
 
 @Data
-@Document(collection = "sales_plan_collection")
-public class SalesPlan {
+@Document(collection = "budget_collection")
+public class FinBudget {
     @Id
     private String id;
     private String organizationId;
     private String projectId;
-    private String month; // ISO format
-    private Map<String, Integer> userCounts; // free, pro, premium
-    private Double growthRate;
+    private String category;
+    private String type; // fixed/variable
+    private Map<String, Double> monthlyAllocations; // month -> amount
     private Instant createdAt;
 }

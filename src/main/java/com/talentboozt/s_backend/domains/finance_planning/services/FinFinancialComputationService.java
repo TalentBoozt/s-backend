@@ -17,13 +17,13 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FinancialComputationService {
+public class FinFinancialComputationService {
 
-    private final AssumptionRepository assumptionRepository;
-    private final SalesPlanRepository salesPlanRepository;
-    private final PricingModelRepository pricingModelRepository;
-    private final BudgetRepository budgetRepository;
-    private final FinancialSnapshotRepository financialSnapshotRepository;
+    private final FinAssumptionRepository assumptionRepository;
+    private final FinSalesPlanRepository salesPlanRepository;
+    private final FinPricingModelRepository pricingModelRepository;
+    private final FinBudgetRepository budgetRepository;
+    private final FinFinancialSnapshotRepository financialSnapshotRepository;
 
     /**
      * Recomputes the financial snapshots for a given project based on hardcoded
@@ -36,29 +36,29 @@ public class FinancialComputationService {
     public void recomputeFinancials(String organizationId, String projectId) {
         log.info("Starting financial computation for org: {}, project: {}", organizationId, projectId);
 
-        List<Assumption> assumptions = assumptionRepository.findByOrganizationIdAndProjectId(organizationId, projectId);
-        List<SalesPlan> salesPlans = salesPlanRepository.findByOrganizationIdAndProjectId(organizationId, projectId);
-        List<PricingModel> pricingModels = pricingModelRepository.findByOrganizationIdAndProjectId(organizationId,
+        List<FinAssumption> assumptions = assumptionRepository.findByOrganizationIdAndProjectId(organizationId, projectId);
+        List<FinSalesPlan> salesPlans = salesPlanRepository.findByOrganizationIdAndProjectId(organizationId, projectId);
+        List<FinPricingModel> pricingModels = pricingModelRepository.findByOrganizationIdAndProjectId(organizationId,
                 projectId);
-        List<Budget> budgets = budgetRepository.findByOrganizationIdAndProjectId(organizationId, projectId);
+        List<FinBudget> budgets = budgetRepository.findByOrganizationIdAndProjectId(organizationId, projectId);
 
         computeAndSave(organizationId, projectId, assumptions, salesPlans, pricingModels, budgets);
         log.info("Completed financial computation for org: {}, project: {}", organizationId, projectId);
     }
 
-    public List<FinancialSnapshot> computeOnly(List<Assumption> assumptions, List<SalesPlan> salesPlans, 
-                                             List<PricingModel> pricingModels, List<Budget> budgets) {
-        List<FinancialSnapshot> snapshots = new ArrayList<>();
+    public List<FinFinancialSnapshot> computeOnly(List<FinAssumption> assumptions, List<FinSalesPlan> salesPlans, 
+                                             List<FinPricingModel> pricingModels, List<FinBudget> budgets) {
+        List<FinFinancialSnapshot> snapshots = new ArrayList<>();
         if (salesPlans.isEmpty() || pricingModels.isEmpty()) return snapshots;
 
-        for (SalesPlan plan : salesPlans) {
+        for (FinSalesPlan plan : salesPlans) {
             String month = plan.getMonth();
             double totalRevenue = computeRevenue(plan, pricingModels);
             Map<String, Double> costBreakdown = computeCosts(month, plan, pricingModels, budgets, assumptions);
             double totalCost = costBreakdown.values().stream().mapToDouble(Double::doubleValue).sum();
             double profit = totalRevenue - totalCost;
 
-            FinancialSnapshot snapshot = new FinancialSnapshot();
+            FinFinancialSnapshot snapshot = new FinFinancialSnapshot();
             snapshot.setMonth(month);
             snapshot.setRevenue(totalRevenue);
             snapshot.setCost(totalCost);
@@ -69,15 +69,15 @@ public class FinancialComputationService {
         return snapshots;
     }
 
-    private void computeAndSave(String orgId, String projId, List<Assumption> assumptions, 
-                               List<SalesPlan> salesPlans, List<PricingModel> pricingModels, List<Budget> budgets) {
-        List<FinancialSnapshot> snapshots = computeOnly(assumptions, salesPlans, pricingModels, budgets);
-        for (FinancialSnapshot s : snapshots) {
+    private void computeAndSave(String orgId, String projId, List<FinAssumption> assumptions, 
+                               List<FinSalesPlan> salesPlans, List<FinPricingModel> pricingModels, List<FinBudget> budgets) {
+        List<FinFinancialSnapshot> snapshots = computeOnly(assumptions, salesPlans, pricingModels, budgets);
+        for (FinFinancialSnapshot s : snapshots) {
             saveSnapshot(orgId, projId, s.getMonth(), s.getRevenue(), s.getCost(), s.getProfit(), s.getBreakdown());
         }
     }
 
-    private double computeRevenue(SalesPlan plan, List<PricingModel> pricingModels) {
+    private double computeRevenue(FinSalesPlan plan, List<FinPricingModel> pricingModels) {
         double revenue = 0.0;
         if (plan.getUserCounts() == null)
             return revenue;
@@ -86,7 +86,7 @@ public class FinancialComputationService {
             String tier = entry.getKey();
             int count = entry.getValue();
 
-            Optional<PricingModel> pricing = pricingModels.stream()
+            Optional<FinPricingModel> pricing = pricingModels.stream()
                     .filter(p -> p.getTier().equalsIgnoreCase(tier))
                     .findFirst();
 
@@ -97,8 +97,8 @@ public class FinancialComputationService {
         return revenue;
     }
 
-    private Map<String, Double> computeCosts(String month, SalesPlan plan, List<PricingModel> pricingModels,
-            List<Budget> budgets, List<Assumption> assumptions) {
+    private Map<String, Double> computeCosts(String month, FinSalesPlan plan, List<FinPricingModel> pricingModels,
+            List<FinBudget> budgets, List<FinAssumption> assumptions) {
         Map<String, Double> breakdown = new HashMap<>();
         double baseCost = 0.0;
         double marketingCost = 0.0;
@@ -120,7 +120,7 @@ public class FinancialComputationService {
         }
 
         // Variable/Fixed costs from Budget
-        for (Budget budget : budgets) {
+        for (FinBudget budget : budgets) {
             if (budget.getMonthlyAllocations() != null) {
                 double amount = budget.getMonthlyAllocations().getOrDefault(month, 0.0);
                 if (budget.getCategory() != null) {
@@ -152,9 +152,9 @@ public class FinancialComputationService {
 
     private void saveSnapshot(String organizationId, String projectId, String month, double revenue, double cost,
             double profit, Map<String, Double> breakdown) {
-        FinancialSnapshot snapshot = financialSnapshotRepository
+        FinFinancialSnapshot snapshot = financialSnapshotRepository
                 .findByOrganizationIdAndProjectIdAndMonth(organizationId, projectId, month)
-                .orElse(new FinancialSnapshot());
+                .orElse(new FinFinancialSnapshot());
 
         snapshot.setOrganizationId(organizationId);
         snapshot.setProjectId(projectId);

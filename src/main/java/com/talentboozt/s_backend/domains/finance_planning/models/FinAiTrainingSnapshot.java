@@ -8,7 +8,7 @@ import java.util.List;
 
 @Data
 @Document(collection = "ai_training_collection")
-public class AiTrainingSnapshot {
+public class FinAiTrainingSnapshot {
     @Id
     private String id;
     private String organizationId;

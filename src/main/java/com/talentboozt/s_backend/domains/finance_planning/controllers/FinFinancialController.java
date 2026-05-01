@@ -1,8 +1,8 @@
 package com.talentboozt.s_backend.domains.finance_planning.controllers;
 
-import com.talentboozt.s_backend.domains.finance_planning.models.FinancialSnapshot;
-import com.talentboozt.s_backend.domains.finance_planning.repository.mongodb.FinancialSnapshotRepository;
-import com.talentboozt.s_backend.domains.finance_planning.services.FinancialComputationService;
+import com.talentboozt.s_backend.domains.finance_planning.models.FinFinancialSnapshot;
+import com.talentboozt.s_backend.domains.finance_planning.repository.mongodb.FinFinancialSnapshotRepository;
+import com.talentboozt.s_backend.domains.finance_planning.services.FinFinancialComputationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,10 +13,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/financials")
 @RequiredArgsConstructor
-public class FinancialController {
+public class FinFinancialController {
 
-    private final FinancialSnapshotRepository repository;
-    private final FinancialComputationService computationService;
+    private final FinFinancialSnapshotRepository repository;
+    private final FinFinancialComputationService computationService;
 
     @GetMapping
     public ResponseEntity<?> getFinancials(@RequestParam String organizationId, @RequestParam String projectId,

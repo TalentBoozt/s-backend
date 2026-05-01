@@ -4,17 +4,18 @@ import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
-import java.util.Map;
 
 @Data
-@Document(collection = "budget_collection")
-public class Budget {
+@Document(collection = "assumptions_collection")
+public class FinAssumption {
     @Id
     private String id;
     private String organizationId;
     private String projectId;
+    private String key;
+    private String value;
+    private String unit;
     private String category;
-    private String type; // fixed/variable
-    private Map<String, Double> monthlyAllocations; // month -> amount
+    private Integer version;
     private Instant createdAt;
 }

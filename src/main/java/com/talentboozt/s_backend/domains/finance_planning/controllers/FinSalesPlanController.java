@@ -1,8 +1,8 @@
 package com.talentboozt.s_backend.domains.finance_planning.controllers;
 
-import com.talentboozt.s_backend.domains.finance_planning.models.SalesPlan;
-import com.talentboozt.s_backend.domains.finance_planning.repository.mongodb.SalesPlanRepository;
-import com.talentboozt.s_backend.domains.finance_planning.services.FinancialComputationService;
+import com.talentboozt.s_backend.domains.finance_planning.models.FinSalesPlan;
+import com.talentboozt.s_backend.domains.finance_planning.repository.mongodb.FinSalesPlanRepository;
+import com.talentboozt.s_backend.domains.finance_planning.services.FinFinancialComputationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,21 +12,21 @@ import java.util.List;
 @RestController
 @RequestMapping("/sales")
 @RequiredArgsConstructor
-public class SalesPlanController {
+public class FinSalesPlanController {
 
-    private final SalesPlanRepository repository;
-    private final FinancialComputationService computationService;
+    private final FinSalesPlanRepository repository;
+    private final FinFinancialComputationService computationService;
 
     @PostMapping
-    public ResponseEntity<SalesPlan> create(@RequestBody SalesPlan entity) {
-        SalesPlan saved = repository.save(entity);
+    public ResponseEntity<FinSalesPlan> create(@RequestBody FinSalesPlan entity) {
+        FinSalesPlan saved = repository.save(entity);
         // Trigger recomputation async or via event
         computationService.recomputeFinancials(saved.getOrganizationId(), saved.getProjectId());
         return ResponseEntity.ok(saved);
     }
 
     @GetMapping
-    public ResponseEntity<List<SalesPlan>> getByProject(@RequestParam String projectId,
+    public ResponseEntity<List<FinSalesPlan>> getByProject(@RequestParam String projectId,
             @RequestParam String organizationId) {
         return ResponseEntity.ok(repository.findByOrganizationIdAndProjectId(organizationId, projectId));
     }

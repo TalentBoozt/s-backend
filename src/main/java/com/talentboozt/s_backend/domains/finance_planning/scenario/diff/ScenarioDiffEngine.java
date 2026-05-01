@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.finance_planning.scenario.diff;
 
-import com.talentboozt.s_backend.domains.finance_planning.models.Assumption;
-import com.talentboozt.s_backend.domains.finance_planning.models.SalesPlan;
+import com.talentboozt.s_backend.domains.finance_planning.models.FinAssumption;
+import com.talentboozt.s_backend.domains.finance_planning.models.FinSalesPlan;
 import com.talentboozt.s_backend.domains.finance_planning.scenario.resolver.ScenarioResolver.EffectiveProjectState;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ public class ScenarioDiffEngine {
         List<DiffResult> results = new ArrayList<>();
 
         // 1. Compare Assumptions
-        for (Assumption bA : base.getAssumptions()) {
+        for (FinAssumption bA : base.getAssumptions()) {
             scenario.getAssumptions().stream()
                 .filter(sA -> sA.getKey().equals(bA.getKey()))
                 .findFirst()
@@ -38,7 +38,7 @@ public class ScenarioDiffEngine {
         }
 
         // 2. Compare Sales Plans
-        for (SalesPlan bS : base.getSalesPlans()) {
+        for (FinSalesPlan bS : base.getSalesPlans()) {
             scenario.getSalesPlans().stream()
                 .filter(sS -> sS.getMonth().equals(bS.getMonth()))
                 .findFirst()
