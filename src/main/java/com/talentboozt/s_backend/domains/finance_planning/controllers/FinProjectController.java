@@ -30,6 +30,16 @@ public class FinProjectController {
     public ResponseEntity<ApiResponse<List<FinProject>>> getProjects(
             @RequestHeader("X-Organization-Id") String organizationId) {
         List<FinProject> projects = projectService.getProjectsByOrganization(organizationId);
+        
+        if (projects.isEmpty()) {
+            FinProject defaultProject = new FinProject();
+            defaultProject.setName("Default Sales Plan");
+            defaultProject.setDescription("Automatically created default project.");
+            defaultProject.setOrganizationId(organizationId);
+            defaultProject.setType("SAAS");
+            projects.add(projectService.createProject(defaultProject));
+        }
+        
         return ResponseEntity.ok(ApiResponse.success(projects));
     }
 

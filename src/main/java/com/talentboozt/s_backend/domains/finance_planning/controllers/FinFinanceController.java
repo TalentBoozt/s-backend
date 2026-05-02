@@ -61,4 +61,14 @@ public class FinFinanceController {
         bulkUpdateService.processBulkUpdate(organizationId, projectId, request);
         return ResponseEntity.ok(ApiResponse.success(null));
     }
+
+    @PostMapping("/projects/{projectId}/draft")
+    @RequiresFinPermission(value = FinPermission.EDIT_FINANCIALS, orgIdSource = "header", projectIdSource = "path")
+    public ResponseEntity<ApiResponse<Void>> saveDraft(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @PathVariable String projectId,
+            @RequestBody FinanceStateDto state) {
+        financeStateService.saveFullState(organizationId, projectId, state);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
 }

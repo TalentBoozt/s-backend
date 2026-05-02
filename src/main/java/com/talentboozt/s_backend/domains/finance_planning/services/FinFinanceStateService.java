@@ -31,6 +31,38 @@ public class FinFinanceStateService {
                 .build();
     }
 
+    public void saveFullState(String organizationId, String projectId, FinanceStateDto state) {
+        if (state.getAssumptions() != null) {
+            state.getAssumptions().forEach(a -> {
+                a.setOrganizationId(organizationId);
+                a.setProjectId(projectId);
+            });
+            assumptionRepository.saveAll(state.getAssumptions());
+        }
+        if (state.getSales() != null) {
+            state.getSales().forEach(s -> {
+                s.setOrganizationId(organizationId);
+                s.setProjectId(projectId);
+            });
+            salesPlanRepository.saveAll(state.getSales());
+        }
+        if (state.getPricing() != null) {
+            state.getPricing().forEach(p -> {
+                p.setOrganizationId(organizationId);
+                p.setProjectId(projectId);
+            });
+            pricingModelRepository.saveAll(state.getPricing());
+        }
+        if (state.getBudget() != null) {
+            state.getBudget().forEach(b -> {
+                b.setOrganizationId(organizationId);
+                b.setProjectId(projectId);
+            });
+            budgetRepository.saveAll(state.getBudget());
+        }
+        // Snapshots and scenarios are usually managed separately, but we could save them here too if needed
+    }
+
     public Page<FinSalesPlan> getPaginatedSales(String organizationId, String projectId, int page, int size) {
         return salesPlanRepository.findByOrganizationIdAndProjectId(organizationId, projectId, PageRequest.of(page, size));
     }
