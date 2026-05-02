@@ -34,7 +34,7 @@ public class FinBulkUpdateService {
     private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
     private final SimpMessagingTemplate messagingTemplate;
     private final io.micrometer.core.instrument.MeterRegistry meterRegistry;
-    private final FinAuditLogRepository auditLogRepository;
+    private final FinAuditService auditService;
 
     @Transactional
     public void processBulkUpdate(String organizationId, String projectId, BulkUpdateDto request) {
@@ -55,22 +55,21 @@ public class FinBulkUpdateService {
         try {
             for (BulkUpdateDto.BulkOperation op : request.getOperations()) {
                 try {
-                    // Record audit log - need to fetch current state first for 'previousValue'
-                    // For brevity, we'll record the operation details. handleOperation can return details.
-                    
+                    // Capture old state for audit
+                    Object oldState = getOldState(organizationId, projectId, op);
                     Object result = handleOperation(organizationId, projectId, op);
                     
-                    // Audit logging
-                    auditLogRepository.save(FinAuditLog.builder()
-                            .organizationId(organizationId)
-                            .projectId(projectId)
-                            .userId(userId)
-                            .action(op.getAction().toUpperCase())
-                            .entityType(op.getType().toUpperCase())
-                            .entityId(op.getId())
-                            .newValue(op.getPayload())
-                            .timestamp(Instant.now())
-                            .build());
+                    // Audit logging using Service
+                    auditService.log(
+                        organizationId, 
+                        projectId, 
+                        userId, 
+                        op.getAction().toUpperCase(), 
+                        op.getType().toUpperCase(), 
+                        op.getId(), 
+                        oldState, 
+                        op.getPayload()
+                    );
 
                     Integer newVersion = (result instanceof UpdateDetails) ? ((UpdateDetails) result).getVersion() : (Integer) result;
                     if (result instanceof UpdateDetails details && details.getMonth() != null) {
@@ -310,6 +309,20 @@ public class FinBulkUpdateService {
             log.warn("Version conflict for {}: current={}, expected={}", entity.getClass().getSimpleName(),
                     entity.getVersion(), expectedVersion);
             throw new FinVersionConflictException("VERSION_CONFLICT");
+        }
+    }
+
+    private Object getOldState(String organizationId, String projectId, BulkUpdateDto.BulkOperation op) {
+        if ("create".equalsIgnoreCase(op.getAction())) return null;
+        
+        String id = op.getId();
+        switch (op.getType().toLowerCase()) {
+            case "assumption": return assumptionRepository.findById(id).orElse(null);
+            case "sales": return salesPlanRepository.findById(id).orElse(null);
+            case "pricing": return pricingModelRepository.findById(id).orElse(null);
+            case "budget": return budgetRepository.findById(id).orElse(null);
+            case "scenario": return scenarioRepository.findById(id).orElse(null);
+            default: return null;
         }
     }
 

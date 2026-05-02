@@ -21,7 +21,7 @@ public class FinFinancialController {
     private final FinFinancialComputationService computationService;
 
     @GetMapping
-    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header")
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
     public ResponseEntity<?> getFinancials(
             @RequestHeader("X-Organization-Id") String organizationId, 
             @RequestParam String projectId,
@@ -34,7 +34,7 @@ public class FinFinancialController {
     }
 
     @PostMapping("/recompute")
-    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header")
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
     public ResponseEntity<Void> recompute(
             @RequestHeader("X-Organization-Id") String organizationId,
             @RequestBody Map<String, String> payload) {

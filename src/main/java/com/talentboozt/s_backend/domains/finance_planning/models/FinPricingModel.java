@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 @Data
-@Document(collection = "pricing_model_collection")
+@Document(collection = "fin_pricing_models")
 public class FinPricingModel implements VersionedEntity {
     @Id
     private String id;

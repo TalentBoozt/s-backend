@@ -1,4 +1,4 @@
-package com.talentboozt.s_backend.domains.analytics.service;
+package com.talentboozt.s_backend.domains.finance_planning.analytics.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.expression.MapAccessor;

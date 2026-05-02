@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Data
-@Document(collection = "ai_training_collection")
+@Document(collection = "fin_ai_training_snapshots")
 public class FinAiTrainingSnapshot {
     @Id
     private String id;

@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 
 @Data
-@Document(collection = "assumptions_collection")
+@Document(collection = "fin_assumptions")
 public class FinAssumption implements VersionedEntity {
     @Id
     private String id;

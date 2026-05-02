@@ -8,6 +8,8 @@ import java.util.Optional;
 
 @Repository
 public interface FinFinancialSnapshotRepository extends MongoRepository<FinFinancialSnapshot, String> {
+    List<FinFinancialSnapshot> findByOrganizationId(String organizationId);
+
     List<FinFinancialSnapshot> findByOrganizationIdAndProjectId(String organizationId, String projectId);
 
     List<FinFinancialSnapshot> findByOrganizationIdAndProjectIdAndScenarioId(String organizationId, String projectId,

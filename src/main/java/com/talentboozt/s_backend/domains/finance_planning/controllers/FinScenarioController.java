@@ -18,7 +18,7 @@ public class FinScenarioController {
     private final FinScenarioRepository repository;
 
     @GetMapping
-    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header")
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
     public ResponseEntity<?> getScenarios(
             @RequestHeader("X-Organization-Id") String organizationId,
             @RequestParam String projectId) {
@@ -26,7 +26,7 @@ public class FinScenarioController {
     }
 
     @PostMapping
-    @RequiresFinPermission(value = FinPermission.MANAGE_SCENARIOS, orgIdSource = "header")
+    @RequiresFinPermission(value = FinPermission.MANAGE_SCENARIOS, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
     public ResponseEntity<FinScenario> create(
             @RequestHeader("X-Organization-Id") String organizationId,
             @RequestBody FinScenario scenario) {
@@ -36,7 +36,7 @@ public class FinScenarioController {
     }
 
     @PostMapping("/{id}/apply")
-    @RequiresFinPermission(value = FinPermission.MANAGE_SCENARIOS, orgIdSource = "header")
+    @RequiresFinPermission(value = FinPermission.MANAGE_SCENARIOS, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
     public ResponseEntity<Void> applyScenario(
             @RequestHeader("X-Organization-Id") String organizationId,
             @PathVariable String id) {

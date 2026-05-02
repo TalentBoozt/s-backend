@@ -27,7 +27,7 @@ public class ScenarioResolver {
     private final FinPricingModelRepository pricingModelRepository;
 
     public EffectiveProjectState resolveState(String scenarioId, String organizationId, String projectId) {
-        if (scenarioId == null) {
+        if (scenarioId == null || "base".equalsIgnoreCase(scenarioId)) {
             return loadBaseState(organizationId, projectId);
         }
 
@@ -58,19 +58,19 @@ public class ScenarioResolver {
         return state;
     }
 
-    private EffectiveProjectState loadBaseState(String orgId, String projectId) {
+    private EffectiveProjectState loadBaseState(String organizationId, String projectId) {
         EffectiveProjectState state = new EffectiveProjectState();
         
-        state.setAssumptions(assumptionRepository.findByOrganizationIdAndProjectId(orgId, projectId)
+        state.setAssumptions(assumptionRepository.findByOrganizationIdAndProjectId(organizationId, projectId)
                 .stream().map(this::copyAssumption).toList());
         
-        state.setSalesPlans(salesPlanRepository.findByOrganizationIdAndProjectId(orgId, projectId)
+        state.setSalesPlans(salesPlanRepository.findByOrganizationIdAndProjectId(organizationId, projectId)
                 .stream().map(this::copySalesPlan).toList());
         
-        state.setBudgets(budgetRepository.findByOrganizationIdAndProjectId(orgId, projectId)
+        state.setBudgets(budgetRepository.findByOrganizationIdAndProjectId(organizationId, projectId)
                 .stream().map(this::copyBudget).toList());
         
-        state.setPricingModels(pricingModelRepository.findByOrganizationIdAndProjectId(orgId, projectId));
+        state.setPricingModels(pricingModelRepository.findByOrganizationIdAndProjectId(organizationId, projectId));
         return state;
     }
 

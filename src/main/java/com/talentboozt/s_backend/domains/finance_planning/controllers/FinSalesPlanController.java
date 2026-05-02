@@ -20,7 +20,7 @@ public class FinSalesPlanController {
     private final FinFinancialComputationService computationService;
 
     @PostMapping
-    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header")
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
     public ResponseEntity<FinSalesPlan> create(
             @RequestHeader("X-Organization-Id") String organizationId,
             @RequestBody FinSalesPlan entity) {

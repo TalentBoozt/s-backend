@@ -1,6 +1,6 @@
-package com.talentboozt.s_backend.domains.analytics.controller;
+package com.talentboozt.s_backend.domains.finance_planning.analytics.controller;
 
-import com.talentboozt.s_backend.domains.analytics.service.FormulaEngine;
+import com.talentboozt.s_backend.domains.finance_planning.analytics.service.FormulaEngine;
 import com.talentboozt.s_backend.shared.dto.ApiResponse;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
