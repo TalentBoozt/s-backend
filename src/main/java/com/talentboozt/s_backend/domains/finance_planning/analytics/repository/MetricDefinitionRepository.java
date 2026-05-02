@@ -1,8 +1,9 @@
-package com.talentboozt.s_backend.domains.analytics.repository;
+package com.talentboozt.s_backend.domains.finance_planning.analytics.repository;
 
-import com.talentboozt.s_backend.domains.analytics.models.MetricDefinition;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
+
+import com.talentboozt.s_backend.domains.finance_planning.analytics.models.MetricDefinition;
 
 import java.util.List;
 import java.util.Optional;

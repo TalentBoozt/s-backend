@@ -1,7 +1,7 @@
-package com.talentboozt.s_backend.domains.analytics.service;
+package com.talentboozt.s_backend.domains.finance_planning.analytics.service;
 
-import com.talentboozt.s_backend.domains.analytics.models.AnalyticsData;
-import com.talentboozt.s_backend.domains.analytics.repository.AnalyticsRepository;
+import com.talentboozt.s_backend.domains.finance_planning.analytics.models.AnalyticsData;
+import com.talentboozt.s_backend.domains.finance_planning.analytics.repository.AnalyticsRepository;
 import com.talentboozt.s_backend.domains.finance_planning.models.FinFinancialSnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;

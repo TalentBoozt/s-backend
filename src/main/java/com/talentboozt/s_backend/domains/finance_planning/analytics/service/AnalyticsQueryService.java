@@ -1,12 +1,13 @@
-package com.talentboozt.s_backend.domains.analytics.service;
+package com.talentboozt.s_backend.domains.finance_planning.analytics.service;
 
-import com.talentboozt.s_backend.domains.analytics.models.AnalyticsData;
-import com.talentboozt.s_backend.domains.analytics.models.MetricDefinition;
-import com.talentboozt.s_backend.domains.analytics.repository.AnalyticsRepository;
-import com.talentboozt.s_backend.domains.analytics.repository.MetricDefinitionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import com.talentboozt.s_backend.domains.finance_planning.analytics.models.AnalyticsData;
+import com.talentboozt.s_backend.domains.finance_planning.analytics.models.MetricDefinition;
+import com.talentboozt.s_backend.domains.finance_planning.analytics.repository.AnalyticsRepository;
+import com.talentboozt.s_backend.domains.finance_planning.analytics.repository.MetricDefinitionRepository;
 
 import java.util.*;
 import java.util.stream.Collectors;

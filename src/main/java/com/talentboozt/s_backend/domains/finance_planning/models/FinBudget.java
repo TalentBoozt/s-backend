@@ -8,7 +8,7 @@ import java.time.Instant;
 import java.util.Map;
 
 @Data
-@Document(collection = "budget_collection")
+@Document(collection = "fin_budgets")
 public class FinBudget implements VersionedEntity {
     @Id
     private String id;

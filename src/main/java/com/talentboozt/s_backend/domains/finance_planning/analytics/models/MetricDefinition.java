@@ -1,4 +1,4 @@
-package com.talentboozt.s_backend.domains.analytics.models;
+package com.talentboozt.s_backend.domains.finance_planning.analytics.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "metric_definitions")
+@Document(collection = "fin_metric_definitions")
 public class MetricDefinition {
     @Id
     private String id;

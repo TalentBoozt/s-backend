@@ -20,7 +20,7 @@ public class FinPricingModelController {
     private final FinFinancialComputationService computationService;
 
     @PostMapping
-    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header")
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
     public ResponseEntity<FinPricingModel> create(
             @RequestHeader("X-Organization-Id") String organizationId,
             @RequestBody FinPricingModel entity) {
@@ -32,7 +32,7 @@ public class FinPricingModelController {
     }
     
     @GetMapping
-    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header")
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
     public ResponseEntity<List<FinPricingModel>> getByProject(@RequestParam String projectId,
             @RequestHeader("X-Organization-Id") String organizationId) {
         return ResponseEntity.ok(repository.findByOrganizationIdAndProjectId(organizationId, projectId));

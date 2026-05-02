@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.Map;
 
 @Data
-@Document(collection = "financial_snapshot_collection")
+@Document(collection = "fin_financial_snapshots")
 public class FinFinancialSnapshot {
     @Id
     private String id;

@@ -1,7 +1,7 @@
-package com.talentboozt.s_backend.domains.analytics.controller;
+package com.talentboozt.s_backend.domains.finance_planning.analytics.controller;
 
-import com.talentboozt.s_backend.domains.analytics.service.AnalyticsPrecomputationService;
-import com.talentboozt.s_backend.domains.analytics.service.AnalyticsQueryService;
+import com.talentboozt.s_backend.domains.finance_planning.analytics.service.AnalyticsPrecomputationService;
+import com.talentboozt.s_backend.domains.finance_planning.analytics.service.AnalyticsQueryService;
 import com.talentboozt.s_backend.domains.finance_planning.security.annotations.RequiresFinPermission;
 import com.talentboozt.s_backend.domains.finance_planning.security.rbac.FinPermission;
 import com.talentboozt.s_backend.shared.dto.ApiResponse;

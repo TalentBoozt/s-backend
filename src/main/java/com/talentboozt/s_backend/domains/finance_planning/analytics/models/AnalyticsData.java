@@ -1,4 +1,4 @@
-package com.talentboozt.s_backend.domains.analytics.models;
+package com.talentboozt.s_backend.domains.finance_planning.analytics.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +15,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "analytics_collection")
+@Document(collection = "fin_analytics_data")
 @CompoundIndexes({
     @CompoundIndex(name = "analytics_lookup_idx", def = "{'organizationId': 1, 'projectId': 1, 'scenarioId': 1, 'metric': 1, 'granularity': 1, 'period': 1}")
 })

@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Data
-@Document(collection = "scenario_collection")
+@Document(collection = "fin_scenarios")
 public class FinScenario {
     @Id
     private String id;

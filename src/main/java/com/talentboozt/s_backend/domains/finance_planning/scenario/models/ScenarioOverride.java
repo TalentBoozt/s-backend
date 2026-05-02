@@ -13,7 +13,7 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "scenario_overrides")
+@Document(collection = "fin_scenario_overrides")
 public class ScenarioOverride {
     @Id
     private String id;

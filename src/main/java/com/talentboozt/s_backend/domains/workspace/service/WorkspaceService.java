@@ -34,6 +34,10 @@ public class WorkspaceService {
         return workspaceRepository.findByMemberIdsContaining(userId);
     }
 
+    public List<WorkspaceModel> getAllWorkspaces() {
+        return workspaceRepository.findAll();
+    }
+
     public Optional<WorkspaceModel> getWorkspaceById(String id) {
         return workspaceRepository.findById(id);
     }

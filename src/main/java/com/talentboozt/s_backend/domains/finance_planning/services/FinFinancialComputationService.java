@@ -26,7 +26,7 @@ public class FinFinancialComputationService {
     private final FinFinancialSnapshotRepository financialSnapshotRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final com.talentboozt.s_backend.domains.finance_planning.scenario.resolver.ScenarioResolver scenarioResolver;
-    private final com.talentboozt.s_backend.domains.analytics.service.FormulaEngine formulaEngine;
+    private final com.talentboozt.s_backend.domains.finance_planning.analytics.service.FormulaEngine formulaEngine;
     private final io.micrometer.core.instrument.MeterRegistry meterRegistry;
 
     /**
@@ -38,7 +38,7 @@ public class FinFinancialComputationService {
         long startTime = System.currentTimeMillis();
         String effectiveScenarioId = (scenarioId == null || "base".equalsIgnoreCase(scenarioId)) ? "base" : scenarioId;
         
-        log.info("EVENT=COMPUTE_START orgId={} projId={} scenarioId={} changes={}", 
+        log.info("EVENT=COMPUTE_START organizationId={} projId={} scenarioId={} changes={}", 
                 organizationId, projectId, effectiveScenarioId, changedFields);
 
         try {
@@ -77,7 +77,7 @@ public class FinFinancialComputationService {
         }
     }
 
-    private void computeAndSaveIncremental(String orgId, String projId, String scenarioId, 
+    private void computeAndSaveIncremental(String organizationId, String projId, String scenarioId, 
                                           com.talentboozt.s_backend.domains.finance_planning.scenario.resolver.ScenarioResolver.EffectiveProjectState state,
                                           List<String> affectedMonths) {
         if (state.getSalesPlans().isEmpty()) return;
@@ -96,7 +96,7 @@ public class FinFinancialComputationService {
             double totalCost = costBreakdown.values().stream().mapToDouble(Double::doubleValue).sum();
             double profit = totalRevenue - totalCost;
 
-            saveSnapshot(orgId, projId, scenarioId, month, totalRevenue, totalCost, profit, costBreakdown);
+            saveSnapshot(organizationId, projId, scenarioId, month, totalRevenue, totalCost, profit, costBreakdown);
         }
     }
 
@@ -145,7 +145,7 @@ public class FinFinancialComputationService {
                         // Use price from pricing model
                     });
             
-            // Wait, let's fix the logic to actually use the price
+            // Logic to actually use the price
             Optional<FinPricingModel> pricing = pricingModels.stream()
                     .filter(p -> p.getTier().equalsIgnoreCase(tier))
                     .findFirst();

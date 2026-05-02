@@ -9,4 +9,5 @@ import java.util.List;
 public interface FinAuditLogRepository extends MongoRepository<FinAuditLog, String> {
     List<FinAuditLog> findByProjectIdOrderByTimestampDesc(String projectId);
     List<FinAuditLog> findByOrganizationIdOrderByTimestampDesc(String organizationId);
+    List<FinAuditLog> findByOrganizationIdAndProjectId(String organizationId, String projectId);
 }
