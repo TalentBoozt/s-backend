@@ -77,7 +77,7 @@ public class EmployeeService {
 
     public Page<EmployeeModel> searchEmployees(String query, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return employeeRepository.findByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCase(query, query,
+        return employeeRepository.findByFirstnameContainingIgnoreCaseOrLastnameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query, query,
                 pageable);
     }
 

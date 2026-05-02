@@ -291,6 +291,10 @@ public class CredentialsService {
         }
     }
 
+    public List<CredentialsModel> getCredentialsByOrganizationId(String organizationId) {
+        return credentialsRepository.findByOrganizationId(organizationId);
+    }
+
     private boolean isSystemOwner(String companyId) {
         if (companyId == null)
             return false;

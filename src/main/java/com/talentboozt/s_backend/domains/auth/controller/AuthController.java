@@ -93,7 +93,8 @@ public class AuthController {
                 String refreshToken = jwtService.generateRefreshToken(userPayload);
 
                 return ResponseEntity.ok(new AuthResponse(token, refreshToken, user.getEmployeeId(), user.getEmail(),
-                        user.getUserLevel(), emp.getPlatformRole(), user.getOrganizations(), user.getPermissions(),
+                        user.getUserLevel(), emp.getPlatformRole(), user.getOrganizations(), user.getActiveWorkspaceId(),
+                        user.getPermissions(),
                         user.getRoles(), user.isActive(), user.getFirstname(), user.getLastname()));
 
             } catch (Exception e) {
@@ -132,7 +133,7 @@ public class AuthController {
 
                 return ResponseEntity.ok(new AuthResponse(token, refreshToken, newUser.getEmployeeId(),
                         newUser.getEmail(), newUser.getUserLevel(), PlatformRole.USER,
-                        newUser.getOrganizations(), newUser.getPermissions(), newUser.getRoles(), newUser.isActive(),
+                        newUser.getOrganizations(), newUser.getActiveWorkspaceId(), newUser.getPermissions(), newUser.getRoles(), newUser.isActive(),
                         newUser.getFirstname(), newUser.getLastname()));
 
             } catch (Exception e) {
@@ -169,6 +170,7 @@ public class AuthController {
             // Return new access token
             return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken, user.getEmployeeId(),
                     user.getEmail(), user.getUserLevel(), emp.getPlatformRole(), user.getOrganizations(),
+                    user.getActiveWorkspaceId(),
                     user.getPermissions(), user.getRoles(), user.isActive(), user.getFirstname(), user.getLastname()));
         }
 
@@ -316,6 +318,7 @@ class AuthResponse {
     private String employeeId;
     private String email;
     private List<Map<String, String>> organizations;
+    private String activeWorkspaceId;
     private List<String> permissions;
     private List<String> roles;
     private String userLevel;
@@ -325,7 +328,8 @@ class AuthResponse {
     private String lastname;
 
     public AuthResponse(String token, String refreshToken, String employeeId, String email, String userLevel,
-            PlatformRole platformRole, List<Map<String, String>> organizations, List<String> permissions,
+            PlatformRole platformRole, List<Map<String, String>> organizations, String activeWorkspaceId,
+            List<String> permissions,
             List<String> roles,
             boolean active, String firstname, String lastname) {
         this.token = token;
@@ -335,6 +339,7 @@ class AuthResponse {
         this.userLevel = userLevel;
         this.platformRole = platformRole;
         this.organizations = organizations;
+        this.activeWorkspaceId = activeWorkspaceId;
         this.permissions = permissions;
         this.roles = roles;
         this.active = active;

@@ -71,8 +71,12 @@ public class OperationProcessor {
                 plan.setMonth(op.getMonth());
             }
             
-            // Simple LWW check
-            // In a real app, we'd have a version field on SalesPlan
+            // Real app: Versioned Optimistic Locking (LWW)
+            if (plan.getVersion() != null && op.getVersion() != null && op.getVersion() < plan.getVersion()) {
+                log.warn("Stale operation rejected: op version {} < entity version {}", op.getVersion(), plan.getVersion());
+                return false;
+            }
+            
             plan.getUserCounts().put(tier, ((Number) op.getValue()).intValue());
             salesPlanRepository.save(plan);
             return true;
@@ -86,6 +90,12 @@ public class OperationProcessor {
                 budget.setOrganizationId(op.getOrganizationId());
                 budget.setProjectId(op.getProjectId());
                 budget.setCategory(category);
+            }
+            
+            // Real app: Versioned Optimistic Locking (LWW)
+            if (budget.getVersion() != null && op.getVersion() != null && op.getVersion() < budget.getVersion()) {
+                log.warn("Stale budget operation rejected: op version {} < entity version {}", op.getVersion(), budget.getVersion());
+                return false;
             }
             
             budget.getMonthlyAllocations().put(op.getMonth(), ((Number) op.getValue()).doubleValue());
@@ -104,6 +114,12 @@ public class OperationProcessor {
                 model.setOrganizationId(op.getOrganizationId());
                 model.setProjectId(op.getProjectId());
                 model.setTier(tier);
+            }
+            
+            // Real app: Versioned Optimistic Locking (LWW)
+            if (model.getVersion() != null && op.getVersion() != null && op.getVersion() < model.getVersion()) {
+                log.warn("Stale pricing operation rejected: op version {} < entity version {}", op.getVersion(), model.getVersion());
+                return false;
             }
             
             if ("price".equals(field)) {

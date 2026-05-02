@@ -36,17 +36,17 @@ public class CacheWarmingService {
     }
 
     private void warmUpUserCredentialsCache() {
-        // Example: Warm up a few critical user credentials (e.g., admin users)
-        // In a real application, this might involve querying for frequently accessed users
-        List<String> userIdsToWarm = List.of("admin1", "support_user"); // Replace with actual user IDs
-
-        for (String userId : userIdsToWarm) {
-            try {
-                tenantService.getUserCredentials(userId);
-                logger.debug("Warmed up userCredentials for userId: {}", userId);
-            } catch (Exception e) {
-                logger.warn("Failed to warm up userCredentials for userId: {}. Error: {}", userId, e.getMessage());
-            }
+        // Real application: Warm up platform admins and frequently active users
+        try {
+            credentialsRepository.findAll().stream()
+                .filter(c -> "PLATFORM_ADMIN".equals(c.getPlatformRole()))
+                .limit(100) // Don't overwhelm on startup
+                .forEach(c -> {
+                    tenantService.getUserCredentials(c.getEmployeeId());
+                    logger.debug("Warmed up userCredentials for admin: {}", c.getEmployeeId());
+                });
+        } catch (Exception e) {
+            logger.warn("Failed to warm up admin credentials. Error: {}", e.getMessage());
         }
     }
 

@@ -48,7 +48,8 @@ public class PlatformAdminController {
     public ResponseEntity<ApiResponse<Page<FinAiTrainingSnapshot>>> getAiTrainingData(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
-        Page<FinAiTrainingSnapshot> data = aiTrainingRepository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+        Page<FinAiTrainingSnapshot> data = aiTrainingRepository
+                .findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
         return ResponseEntity.ok(ApiResponse.success(data));
     }
 
@@ -61,7 +62,8 @@ public class PlatformAdminController {
     public ResponseEntity<ApiResponse<Page<FinAuditLog>>> getGlobalAuditLogs(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
-        Page<FinAuditLog> logs = auditLogRepository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "timestamp")));
+        Page<FinAuditLog> logs = auditLogRepository
+                .findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "timestamp")));
         return ResponseEntity.ok(ApiResponse.success(logs));
     }
 
@@ -70,5 +72,17 @@ public class PlatformAdminController {
         String name = payload.get("name");
         String ownerId = payload.get("ownerId");
         return ResponseEntity.ok(ApiResponse.success(finWorkspaceService.createWorkspace(name, ownerId)));
+    }
+
+    @DeleteMapping("/organizations/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteOrganization(@PathVariable String id) {
+        finWorkspaceService.deleteWorkspace(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+
+    @DeleteMapping("/ai-training/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteAiSnapshot(@PathVariable String id) {
+        aiTrainingRepository.deleteById(id);
+        return ResponseEntity.ok(ApiResponse.success(null));
     }
 }
