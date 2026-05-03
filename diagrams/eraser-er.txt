@@ -1,0 +1,2609 @@
+AIQuota {
+  id String PK
+  userId String
+  monthlyLimit Integer
+  used Integer
+  resetDate Instant
+}
+
+AIUsage {
+  id String PK
+  userId String
+  type AIUsageType
+  creditsUsed Integer
+  createdAt Instant
+}
+
+CreditRecord {
+  id String PK
+  creditsRemaining int
+  lastReset LocalDate
+}
+
+AmbassadorLeaderboardModel {
+  id String PK
+  type String
+  ambassadorId String
+  name String
+  email String
+  level String
+  score int
+  rank int
+  generatedAt Instant
+  expireAt Instant
+}
+
+AmbassadorPointAudit {
+  id String PK
+  ambassadorId String
+  reason String
+  points int
+  createdAt Instant
+  metadata String
+}
+
+AmbassadorProfileModel {
+  id String PK
+  firstName String
+  lastName String
+  name String
+  email String
+  motivation String
+  profileLink String
+  consentGiven boolean
+  appliedAt Instant
+  lifecycle AmbassadorLifecycle
+  applicationStatus String
+  employeeId String
+  level String
+  totalReferrals int
+  coursePurchasesByReferrals int
+  hostedSessions int
+  trainingSessionsAttended int
+  active boolean
+  joinedAt Instant
+  lastActivity Instant
+  badges List<String>
+  referralCode String
+  status String
+  interviewNote String
+  badgeHistory List<String>
+  perks Map<String, Object>
+  lastPointEarnedAt Instant
+  lastLoginDate Instant
+}
+
+AmbassadorRewardModel {
+  id String PK
+  ambassadorId String
+  taskId String
+  rewardType String
+  status String
+  issuedAt Instant
+  redeemedAt Instant
+}
+
+AmbassadorSessionModel {
+  id String PK
+  ambassadorId String
+  type String
+  topic String
+  sessionLink String
+  date Instant
+  attendeeCount int
+  completed boolean
+}
+
+AmbReferralModel {
+  id String PK
+  referralCode String
+  ambassadorId String
+  referredUserId String
+  referredAt Instant
+  courseId String
+  referredPlatform String
+  courseEnrolled boolean
+  enrolledAt Instant
+}
+
+BadgeModel {
+  id String PK
+  ambassadorId String
+  taskId String
+  badgeId String
+  title String
+  description String
+  earnedAt Instant
+}
+
+SwagModel {
+  id String PK
+  ambassadorId String
+  taskId String
+  swagType String
+  status String
+  requestedAt Instant
+  shippedAt Instant
+  deliveredAt Instant
+  shippingAddress String
+  trackingCode String
+}
+
+Announcement {
+  id String PK
+  title String
+  slug String
+  summary String
+  content String
+  coverImage String
+  status AnnouncementStatus
+  type AnnouncementType
+  visibility AnnouncementVisibility
+  priority AnnouncementPriority
+  publishedAt LocalDateTime
+  expiresAt LocalDateTime
+  createdBy String
+  pinned boolean
+  generateSummary boolean
+  createdAt LocalDateTime
+  updatedAt LocalDateTime
+  aiSummary String
+  aiHighlights List<String>
+  aiSnippet String
+  aiSeoDescription String
+}
+
+Article {
+  id String PK
+  title String
+  slug String
+  content String
+  excerpt String
+  authorId String
+  coverImage String
+  tagIds List<String>
+  status ArticleStatus
+  readTime int
+  featured boolean
+  createdAt LocalDateTime
+  updatedAt LocalDateTime
+  aiSummary String
+  aiHighlights List<String>
+  aiSnippet String
+  aiSeoDescription String
+  markAsHighValue boolean
+  markAsInformative boolean
+  manualReviewRequired boolean
+}
+
+ArticleEvaluationLog {
+  id String PK
+  articleId String
+  validationVersion String
+  aiProvider String
+  promptVersion String
+  responseHash String
+  rawApiResponse String
+  evaluationResult ArticleEvaluationDTO
+  evaluatedAt LocalDateTime
+}
+
+Tag {
+  id String PK
+  name String
+  slug String
+}
+
+AsyncUpdateAuditLog {
+  id String PK
+  courseId String
+  batchId String
+  employeeId String
+  operation String
+  status String
+  retryCount int
+  errorMessage String
+  createdAt LocalDateTime
+  updatedAt LocalDateTime
+  expiresAt Instant
+}
+
+ClientActAuditLog {
+  userId String PK
+  ipAddress String
+  sessionId String
+  action String
+  source String
+  details Map<String, Object>
+  timestamp LocalDateTime
+  expiresAt Instant
+}
+
+CourseReminderAuditLog {
+  id String PK
+  employeeId String
+  employeeName String
+  email String
+  courseId String
+  courseName String
+  moduleId String
+  moduleName String
+  reminderType String
+  status String
+  timezone String
+  scheduledStartTime String
+  message String
+  timestamp Instant
+  expiresAt Instant
+}
+
+LeadOSAuditLog {
+  id String PK
+  workspaceId String
+  userId String
+  action String
+  entityId String
+  entityType String
+  details Map<String, Object>
+  ipAddress String
+}
+
+SchedulerLogModel {
+  id String PK
+  jobName String
+  runAt Instant
+  status String
+  message String
+  expireAt Instant
+}
+
+StripeAuditLog {
+  id String PK
+  eventId String
+  eventType String
+  sessionId String
+  customerId String
+  subscriptionId String
+  paymentIntentId String
+  status String
+  errorMessage String
+  rawPayload String
+  expiresAt Instant
+}
+
+TaskRewardAuditModel {
+  id String PK
+  ambassadorId String
+  taskId String
+  rewardType String
+  rewardId String
+  rewardTitle String
+  status String
+  note String
+  issuedAt Instant
+  expiresAt Instant
+}
+
+CredentialsModel {
+  id String PK
+  employeeId String
+  companyId String
+  firstname String
+  lastname String
+  email String
+  password String
+  role String
+  roles List<String>
+  permissions List<String>
+  organizations List<Map<String, String>>
+  userLevel String
+  platformRole String
+  registeredFrom String
+  promotion String
+  referrerId String
+  accessedPlatforms List<String>
+  active boolean
+  disabled boolean
+  ambassador boolean
+  ambassadorId String
+  activeWorkspaceId String
+}
+
+PasswordResetTokenModel {
+  id String PK
+  token String
+  userId String
+  expirationDate LocalDateTime
+}
+
+PermissionModel {
+  id String PK
+  name String
+  description String
+  category String
+  createdAt Instant
+  updatedAt Instant
+}
+
+RoleModel {
+  id String PK
+  name String
+  permissions List<String>
+  inheritsFrom List<String>
+  description String
+}
+
+FeatureModel {
+  id String PK
+  featureType String
+  description String
+  attachment String
+}
+
+IssueModel {
+  id String PK
+  issueType String
+  description String
+  attachment String
+}
+
+Login {
+  id String PK
+  userId String
+  loginDates List<String>
+  metaData List<LoginMetaDTO>
+}
+
+SystemNotificationsModel {
+  id String PK
+  message String
+  startTime Date
+  endTime Date
+  url String
+  active boolean
+}
+
+Activity {
+  id String PK
+  userId String
+  action String
+  targetId String
+  timestamp LocalDateTime
+}
+
+Comment {
+  id String PK
+  postId String
+  parentId String
+  authorId String
+  mentionIds List<String>
+  text String
+  upvotes int
+  downvotes int
+  reactions List<Post.Reaction>
+  timestamp LocalDateTime
+  updatedAt LocalDateTime
+  replies List<Comment>
+}
+
+Community {
+  id String PK
+  name String
+  description String
+  icon String
+  bannerImage String
+  creatorId String
+  adminIds List<String>
+  moderatorIds List<String>
+  privacy CommunityPrivacy
+  createdAt LocalDateTime
+  updatedAt LocalDateTime
+  rules String
+  category String
+  tags List<String>
+  isVerified boolean
+}
+
+CommunityMember {
+  id String PK
+  communityId String
+  userId String
+  role MemberRole
+  joinedAt LocalDateTime
+  isBanned boolean
+  bannedAt LocalDateTime
+  bannedReason String
+}
+
+Notification {
+  id String PK
+  recipientId String
+  senderId String
+  type NotificationType
+  targetId String
+  isRead boolean
+  timestamp LocalDateTime
+}
+
+Post {
+  id String PK
+  authorId String
+  communityId String
+  mentionIds List<String>
+  quotedPostId String
+  type String
+  content PostContent
+  metrics PostMetrics
+  reactions List<Reaction>
+  timestamp LocalDateTime
+  updatedAt LocalDateTime
+  title String
+  text String
+  url String
+  linkPreview LinkPreview
+  media List<String>
+  tags List<String>
+  title String
+  description String
+  image String
+  siteName String
+  upvotes int
+  downvotes int
+  comments int
+  shares int
+  emoji String
+  count int
+  userIds List<String>
+}
+
+Report {
+  id String PK
+  reporterId String
+  targetId String
+  targetType ReportTargetType
+  reason String
+  status ReportStatus
+  timestamp LocalDateTime
+}
+
+CourseBatchModel {
+  id String PK
+  courseId String
+  batchName String
+  startDate String
+  fromTime String
+  toTime String
+  utcStart String
+  utcEnd String
+  trainerTimezone String
+  courseStatus String
+  publicity boolean
+  currency String
+  price String
+  onetimePayment boolean
+  paymentMethod String
+  duration String
+  language String
+  platform String
+  location String
+  image String
+  lecturer String
+  installment List<InstallmentDTO>
+  modules List<ModuleDTO>
+  materials List<MaterialsDTO>
+  quizzes List<QuizDTO>
+  enrolledUserIds List<String>
+}
+
+CourseModel {
+  id String PK
+  companyId String
+  trainerId String
+  name String
+  description String
+  overview String
+  category String
+  organizer String
+  level String
+  currency String
+  price String
+  onetimePayment boolean
+  installment List<InstallmentDTO>
+  duration String
+  modules List<ModuleDTO>
+  rating String
+  language String
+  lecturer String
+  image String
+  skills List<String>
+  requirements List<String>
+  certificate boolean
+  platform String
+  location String
+  startDate String
+  fromTime String
+  toTime String
+  utcStart String
+  utcEnd String
+  trainerTimezone String
+  courseStatus String
+  paymentMethod String
+  publicity boolean
+  materials List<MaterialsDTO>
+  quizzes List<QuizDTO>
+  notifiers List<CourseMissedNotify>
+}
+
+RecordedCourseModel {
+  id String PK
+  title String
+  subtitle String
+  description String
+  price BigDecimal
+  published boolean
+  approved boolean
+  createdAt String
+  updatedAt String
+  modules List<RecModuleDTO>
+  image String
+  skills List<String>
+  requirements List<String>
+  level String
+  lecturer String
+  lecturerNameTag String
+  lecturerEmail String
+  category String
+  reviews List<RecordedCourseReviewDTO>
+  certificate boolean
+  companyId String
+  trainerId String
+  trainerShare BigDecimal
+  platformShare BigDecimal
+  installment InstallmentDTO
+}
+
+TrainCompanyModel {
+  id String PK
+  name String
+  email String
+  address String
+  phone String
+  teamMembers List<TeamMemberDTO>
+}
+
+TrainersModel {
+  id String PK
+  trainerName String
+  trainerEmail String
+  trainerPhone String
+  trainerImage String
+  trainerDescription String
+  trainerExperience String
+  trainerQualification String
+  trainerStatus String
+  trainerDateJoined String
+  trainerDateUpdated String
+  trainerRole String
+}
+
+CmpPostedJobsModel {
+  id String PK
+  companyId String
+  companyName String
+  companyLogo String
+  companyLevel String
+  postedJobs List<PostedJobsDTO>
+}
+
+CmpSocialModel {
+  id String PK
+  companyId String
+  socialLinks List<SocialLinksDTO>
+}
+
+CompanyModel {
+  id String PK
+  name String
+  shortDescription String
+  companyStory String
+  companyLevel String
+  logo String
+  location String
+  profileBanner String
+  image1 String
+  image2 String
+  image3 String
+  foundedDate String
+  founderName String
+  headquarters String
+  numberOfEmployees String
+  website String
+  socialLinks String
+  contactEmail String
+  contactNumber String
+  postedJobs String
+  joinedDate String
+  isVerified String
+  followers String
+  following String
+  accountNotifications Object
+  marketingNotifications Object
+  profileCompleted Object
+  profileStatus String
+  companyType String
+  subscription_id String
+  payment_method_id String
+  billing_address_id String
+}
+
+StandaloneFileModel {
+  id String PK
+  name String
+  contentType String
+  size long
+  path String
+  ownerId String
+  parentId String
+  isDirectory boolean
+  createdAt Instant
+  updatedAt Instant
+  storageType String
+  isPublic boolean
+}
+
+EAffiliateCommissions {
+  id String PK
+  affiliateId String
+  transactionId String
+  courseId String
+  amount Double
+  currency String
+  createdAt Instant
+}
+
+EAffiliateLinks {
+  id String PK
+  affiliateId String
+  courseId String
+  trackingCode String
+  createdAt Instant
+}
+
+EAffiliates {
+  id String PK
+  userId String
+  referralCode String
+  commissionRate Double
+  totalEarnings Double
+  status EAffiliateStatus
+  createdAt Instant
+  updatedAt Instant
+}
+
+EAiCredits {
+  id String PK
+  userId String
+  balance Integer
+  monthlyLimit Integer
+  lifetimePurchased Integer
+  lifetimeUsed Integer
+  expiresAt Instant
+  lastResetDate Instant
+  version Long
+  createdAt Instant
+  updatedAt Instant
+}
+
+EAiUsage {
+  id String PK
+  userId String
+  courseId String
+  prompt String
+  response String
+  type EAIUsageType
+  usedCredits Integer
+  createdBy String
+  createdAt Instant
+}
+
+EAnalyticsEvents {
+  id String PK
+  type EAnalyticsEvent
+  userId String
+  courseId String
+  metadata Map<String, Object>
+  timestamp Instant
+}
+
+EApiKey {
+  id String PK
+  apiKey String
+  apiKeyHint String
+  ownerId String
+  name String
+  isActive boolean
+  allowedIps List<String>
+  scopes List<String>
+  expiresAt Instant
+  lastUsedAt Instant
+  createdAt Instant
+}
+
+EAssignments {
+  id String PK
+  courseId String
+  sectionId String
+  lessonId String
+  title String
+  description String
+  instructions String
+  maxScore Double
+  weightage Double
+  dueDate Instant
+  isPublished Boolean
+  createdBy String
+  createdAt Instant
+  updatedAt Instant
+}
+
+EAssignmentSubmissions {
+  id String PK
+  userId String
+  assignmentId String
+  content String
+  status EGradingStatus
+  score Double
+  feedback String
+  gradedBy String
+  gradedAt Instant
+  submittedAt Instant
+}
+
+EAuditLog {
+  id String PK
+  actorId String
+  action String
+  targetId String
+  targetType String
+  previousState String
+  newState String
+  ipAddress String
+  userAgent String
+  createdAt Instant
+}
+
+EBundles {
+  id String PK
+  creatorId String
+  name String
+  bundlePrice Double
+  originalTotalPrice Double
+  savingsPercent Double
+  createdAt Instant
+}
+
+ECertificates {
+  id String PK
+  courseId String
+  userId String
+  creatorId String
+  courseName String
+  recipientName String
+  certificateId String
+  url String
+  templateId String
+  shareableLink String
+  issuedAt Instant
+}
+
+ECouponRedemption {
+  id String PK
+  couponId String
+  userId String
+  transactionId String
+  redeemedAt Instant
+}
+
+ECoupons {
+  id String PK
+  creatorId String
+  code String
+  discountType String
+  discountValue Double
+  maxRedemptions Integer
+  expiresAt Instant
+  createdAt Instant
+}
+
+ECourses {
+  id String PK
+  workspaceId String
+  creatorId String
+  title String
+  description String
+  shortDescription String
+  thumbnail String
+  previewVideoUrl String
+  type ECourseType
+  contentType ECourseContentType
+  price Double
+  compareAtPrice Double
+  currency String
+  published Boolean
+  isPrivate Boolean
+  level ECourseLevel
+  language String
+  slug String
+  rating Double
+  totalEnrollments Integer
+  totalReviews Integer
+  totalHours Integer
+  totalLessons Integer
+  isFeatured Boolean
+  isTrending Boolean
+  searchRank Integer
+  status ECourseStatus
+  aiGenerated Boolean
+  validationStatus ECourseValidationStatus
+  aiScore Double
+  plagiarismScore Double
+  overallQualityScore Double
+  validationFindings String
+  talnovaVerified Boolean
+  moderationRejectionReason String
+  trustDisclaimer String
+  creatorTier String
+  trustWarning String
+  instructorName String
+  publishedAt Instant
+  createdBy String
+  updatedBy String
+  createdAt Instant
+  updatedAt Instant
+}
+
+ECourseSections {
+  id String PK
+  courseId String
+  order Integer
+  title String
+  description String
+  lessonDetails List<ELessons>
+  createdBy String
+  updatedBy String
+  createdAt Instant
+  updatedAt Instant
+}
+
+ECreatorFinanceSettings {
+  id String PK
+  userId String
+  stripeAccountId String
+  payoutMethods List<PayoutMethod>
+  taxVerificationStatus String
+  profileVerificationStatus String
+  taxForms List<TaxForm>
+  createdAt Instant
+  updatedAt Instant
+  id String PK
+  type String
+  identifier String
+  accountHolderName String
+  bankName String
+  swiftBic String
+  routingNumber String
+  iban String
+  countryCode String
+  currency String
+  isDefault boolean
+  isVerified boolean
+  id String PK
+  label String
+  status String
+  url String
+  uploadedAt Instant
+}
+
+ECreditLedger {
+  id String PK
+  userId String
+  actionType ECreditLedgerActionType
+  amount Integer
+  balanceBefore Integer
+  balanceAfter Integer
+  newBalance Integer
+  metadata String
+  referenceId String
+  referenceType String
+  createdAt Instant
+}
+
+EduCourseReviewLog {
+  id String PK
+  courseId String
+  reviewerId String
+  action String
+  reason String
+  createdAt Instant
+}
+
+EEnrollments {
+  id String PK
+  courseId String
+  userId String
+  workspaceId String
+  lastAccessedLessonId String
+  lastAccessedAt Instant
+  completedAt Instant
+  enrolledAt Instant
+  lastStreakDate Instant
+  source String
+  createdBy String
+  updatedBy String
+  createdAt Instant
+  updatedAt Instant
+  course ECourses
+  name String
+  email String
+  avatar String
+  coursesCount Integer
+}
+
+EFraudFlag {
+  id String PK
+  targetUserId String
+  flagType String
+  severity String
+  evidenceBlob String
+  status String
+  reviewerId String
+  resolutionNotes String
+  createdAt Instant
+  resolvedAt Instant
+}
+
+EGifts {
+  id String PK
+  senderId String
+  recipientEmail String
+  courseId String
+  redeemCode String
+  status EGiftStatus
+  personalMessage String
+  createdAt Instant
+  updatedAt Instant
+  redeemedAt Instant
+  expiresAt Instant
+}
+
+EHoldingLedger {
+  id String PK
+  beneficiaryId String
+  beneficiaryType EBeneficiaryType
+  transactionId String
+  courseId String
+  amount Double
+  currency String
+  status EHoldingStatus
+  clearanceDate Instant
+  version Long
+  createdAt Instant
+  updatedAt Instant
+}
+
+ELearningPaths {
+  id String PK
+  workspaceId String
+  title String
+  description String
+  createdBy String
+  createdAt Instant
+  updatedAt Instant
+}
+
+ELedgerEntry {
+  id String PK
+  eventReference String
+  eventType EventType
+  entryType EntryType
+  accountType AccountType
+  accountId String
+  amount Double
+  currency String
+  courseId String
+  bundleId String
+  description String
+  createdAt Instant
+}
+
+ELessons {
+  id String PK
+  courseId String
+  sectionId String
+  order Integer
+  title String
+  description String
+  contentUrl String
+  textContent String
+  markdownContent String
+  type ELessonType
+  duration Integer
+  videoThumbnail String
+  plagiarismScore Double
+  aiScore Double
+  qualityScore Double
+  validationFindings String
+  createdBy String
+  updatedBy String
+  createdAt Instant
+  updatedAt Instant
+}
+
+ENotifications {
+  id String PK
+  userId String
+  workspaceId String
+  type ENotificationType
+  title String
+  message String
+  url String
+  icon String
+  actionType String
+  relatedEntityId String
+  entityType String
+  readAt Instant
+  createdAt Instant
+  expiresAt Instant
+}
+
+EPayouts {
+  id String PK
+  creatorId String
+  amount Double
+  method EPayoutMethod
+  status EPayoutStatus
+  transactionReference String
+  bankDetails String
+  paypalEmail String
+  platformFee Double
+  createdAt Instant
+  paidAt Instant
+  requestedAt Instant
+}
+
+EPayoutSchedule {
+  id String PK
+  creatorId String
+  frequency String
+  dayTarget String
+  active Boolean
+  lastProcessedAt Instant
+  nextScheduledAt Instant
+  createdAt Instant
+}
+
+EProfiles {
+  id String PK
+  userId String
+  firstName String
+  lastName String
+  publicEmail String
+  publicPhone String
+  avatarUrl String
+  bio String
+  socialLinks ESocialLinksDTO
+  industry String
+  company String
+  jobTitle String
+  privacySettings EPrivacySettingsDTO
+  notificationSettings ENotificationSettingsDTO
+  createdAt Instant
+  updatedAt Instant
+  totalStudents Integer
+  totalCourses Integer
+  rating Double
+}
+
+EQuizAttempts {
+  id String PK
+  userId String
+  quizId String
+  score Double
+  percentage Double
+  status EGradingStatus
+  isLatest Boolean
+  startedAt Instant
+  completedAt Instant
+  createdAt Instant
+}
+
+EQuizzes {
+  id String PK
+  courseId String
+  sectionId String
+  lessonId String
+  title String
+  description String
+  type EQuizType
+  durationLimit Integer
+  passingScore Double
+  questions List<EQuestionDTO>
+  isPublished Boolean
+  allowRetakes Integer
+  createdBy String
+  createdAt Instant
+  updatedAt Instant
+}
+
+ERefund {
+  id String PK
+  transactionId String
+  stripeCheckoutSessionId String
+  stripeChargeId String
+  stripeRefundId String
+  buyerId String
+  sellerId String
+  courseId String
+  refundAmount Double
+  originalAmount Double
+  currency String
+  type RefundType
+  status RefundStatus
+  reason String
+  initiatedBy String
+  createdAt Instant
+  updatedAt Instant
+}
+
+EReports {
+  id String PK
+  reporterId String
+  targetEntityId String
+  entityType String
+  reason EReportReason
+  description String
+  status EReportStatus
+  resolutionNotes String
+  resolvedBy String
+  createdAt Instant
+  updatedAt Instant
+}
+
+EReviews {
+  id String PK
+  courseId String
+  userId String
+  rating Double
+  title String
+  content String
+  createdBy String
+  updatedBy String
+  createdAt Instant
+  updatedAt Instant
+}
+
+ESubscriptions {
+  id String PK
+  userId String
+  plan ESubscriptionPlan
+  status ESubscriptionStatus
+  remainingCredits Integer
+  totalCredits Integer
+  price Double
+  billingCycle String
+  paymentGatewayId String
+  stripeCustomerId String
+  stripeSubscriptionId String
+  stripePriceId String
+  commissionRate Double
+  maxCourses Integer
+  startDate Instant
+  endDate Instant
+  trialEndDate Instant
+  cancelledAt Instant
+  lastPaymentAt Instant
+  lastCreditResetAt Instant
+  createdAt Instant
+  updatedAt Instant
+}
+
+ESystemSettings {
+  id String PK
+  category String
+  settings Map<String, Object>
+  updatedAt Instant
+  updatedBy String
+}
+
+ETransactions {
+  id String PK
+  courseId String
+  buyerId String
+  sellerId String
+  amount Double
+  currency String
+  platformFee Double
+  commissionRate Double
+  creatorPlanAtPurchase String
+  creatorEarning Double
+  affiliateId String
+  affiliateEarning Double
+  paymentMethod EPaymentMethod
+  paymentStatus EPaymentStatus
+  transactionId String
+  stripeCheckoutSessionId String
+  paymentGateway String
+  paymentGatewayResponse String
+  idempotencyKey String
+  expiresAt Instant
+  appliedCouponCode String
+  discountAmount Double
+  originalAmount Double
+  bundleId String
+  taxAmount Double
+  taxRate Double
+  referrerId String
+  referralCommission Double
+  version Long
+  createdBy String
+  updatedBy String
+  createdAt Instant
+  updatedAt Instant
+}
+
+ETrustScores {
+  id String PK
+  creatorId String
+  currentScore Double
+  previousScore Double
+  averageRating Double
+  totalReviews Integer
+  completionRate Double
+  refundRate Double
+  currentTier String
+  previousTier String
+  lastCalculatedAt Instant
+  tierChangedAt Instant
+  validationScore Double
+  ratingScore Double
+  completionScore Double
+  refundHealthScore Double
+  reportHealthScore Double
+  activityScore Double
+  createdAt Instant
+  updatedAt Instant
+}
+
+EUser {
+  id String PK
+  email String
+  phone String
+  passwordHash String
+  ssoProvider String
+  ssoProviderId String
+  displayName String
+  avatarUrl String
+  banReason String
+  lastLoginAt Instant
+  emailVerificationToken String
+  passwordResetToken String
+  passwordResetExpiry Instant
+  createdAt Instant
+  updatedAt Instant
+}
+
+EUserPreferences {
+  id String PK
+  userId String
+  interests List<String>
+  preferredLanguage String
+  dailyLearningGoalMinutes Integer
+  isNotificationsEnabled Boolean
+  preferredDifficulty String
+  careerGoal String
+  createdAt Instant
+  updatedAt Instant
+}
+
+EValidationReports {
+  id String PK
+  courseId String
+  userId String
+  reviewerId String
+  aiScore Double
+  status String
+  breakdown EValidationBreackdownDTO
+  feedback String
+  createdBy String
+  createdAt Instant
+}
+
+EWallet {
+  id String PK
+  userId String
+  availableBalance Double
+  pendingBalance Double
+  currency String
+  version Long
+  updatedAt Instant
+}
+
+EWalletTransaction {
+  id String PK
+  userId String
+  type TransactionType
+  amount Double
+  currency String
+  status TransactionStatus
+  referenceId String
+  description String
+  createdAt Instant
+}
+
+EWebhookEvent {
+  id String PK
+  stripeEventId String
+  eventType String
+  status EventStatus
+  payload String
+  signatureHeader String
+  errorMessage String
+  errorStackTrace String
+  nextRetryAt Instant
+  processedAt Instant
+}
+
+EWorkspaceMembers {
+  id String PK
+  workspaceId String
+  userId String
+  role ERoles
+  status String
+  department String
+  invitedBy String
+  createdBy String
+  joinedAt Instant
+  lastActiveAt Instant
+}
+
+EWorkspaces {
+  id String PK
+  ownerId String
+  type EWorkspaceType
+  domain String
+  plan ESubscriptionPlan
+  name String
+  description String
+  logoUrl String
+  maxMembers Integer
+  settings EWSettingsDTO
+  profile EWProfileDTO
+  createdAt Instant
+  updatedAt Instant
+}
+
+AnalyticsData {
+  id String PK
+  organizationId String
+  projectId String
+  scenarioId String
+  metric String
+  granularity String
+  period String
+  value Double
+  metadata Map<String, Object>
+  computedAt Instant
+}
+
+MetricDefinition {
+  id String PK
+  organizationId String
+  name String
+  key String
+  formula String
+  isCustom boolean
+  unit String
+}
+
+FinAiTrainingSnapshot {
+  id String PK
+  organizationId String
+  projectId String
+  scenarioId String
+  userId String
+  inputSnapshot String
+  outputSnapshot String
+  changedFields List<String>
+  tags List<String>
+  createdAt Instant
+}
+
+FinAssumption {
+  id String PK
+  organizationId String
+  projectId String
+  key String
+  value String
+  unit String
+  category String
+  version Integer
+  createdAt Instant
+}
+
+FinAuditLog {
+  id String PK
+  organizationId String
+  projectId String
+  userId String
+  action String
+  entityType String
+  entityId String
+  previousValue Object
+  newValue Object
+  timestamp Instant
+  ipAddress String
+}
+
+FinBudget {
+  id String PK
+  organizationId String
+  projectId String
+  category String
+  type String
+  monthlyAllocations Map<String, Double>
+  formula String
+  version Integer
+  createdAt Instant
+}
+
+FinFinancialSnapshot {
+  id String PK
+  organizationId String
+  projectId String
+  scenarioId String
+  month String
+  revenue Double
+  cost Double
+  profit Double
+  breakdown Map<String, Double>
+  computedAt Instant
+}
+
+FinPricingModel {
+  id String PK
+  organizationId String
+  projectId String
+  tier String
+  price Double
+  costPerUser Double
+  commissionPercent Double
+  margin Double
+  version Integer
+  effectiveDate Instant
+}
+
+FinProject {
+  id String PK
+  organizationId String
+  name String
+  description String
+  type String
+  status String
+  ownerId String
+  teamMemberIds List<String>
+  createdAt Instant
+  updatedAt Instant
+}
+
+FinProjectMember {
+  id String PK
+  projectId String
+  userId String
+  role ProjectRole
+  joinedAt Instant
+}
+
+FinSalesPlan {
+  id String PK
+  organizationId String
+  projectId String
+  month String
+  userCounts Map<String, Integer>
+  growthRate Double
+  version Integer
+  createdAt Instant
+}
+
+FinScenario {
+  id String PK
+  organizationId String
+  projectId String
+  name String
+  baseVersion Integer
+  overrides List<AssumptionOverride>
+  createdAt Instant
+  key String
+  value String
+}
+
+FinWorkspace {
+  id String PK
+  name String
+  slug String
+  ownerId String
+  memberIds List<String>
+  subscriptionType String
+  isActive Boolean
+  createdAt Instant
+  updatedAt Instant
+}
+
+Scenario {
+  id String PK
+  organizationId String
+  projectId String
+  name String
+  parentScenarioId String
+  baseVersionId String
+  createdBy String
+  createdAt Instant
+  tags List<String>
+  notes String
+}
+
+ScenarioOverride {
+  id String PK
+  scenarioId String
+  path String
+  month String
+  value Object
+  type OverrideOperation
+  versionId String
+  createdBy String
+  createdAt Instant
+}
+
+ApplicantModel {
+  id String PK
+  jobId String
+  companyId String
+  candidateId String
+  candidateName String
+  candidateEmail String
+  candidatePhone String
+  status String
+  appliedAt Instant
+  updatedAt Instant
+  resumeUrl String
+  coverLetter String
+  interviewNotes String
+  rejectionReason String
+}
+
+JobPostModel {
+  id String PK
+  companyId String
+  companyName String
+  companyLogo String
+  title String
+  description String
+  responsibilities String
+  requirements String
+  skills List<String>
+  location String
+  type String
+  experienceLevel String
+  minSalary Double
+  maxSalary Double
+  currency String
+  status String
+  createdAt Instant
+  updatedAt Instant
+  expiryDate Instant
+}
+
+LAutomation {
+  id String PK
+  workspaceId String
+  name String
+  triggerType String
+  triggerScoreThreshold int
+  triggerKeywords List<String>
+  actionType String
+  actionTemplateId String
+}
+
+LLeadAutomation {
+  id String PK
+  workspaceId String
+  name String
+  triggerType String
+  triggerScoreThreshold Double
+  triggerKeywords List<String>
+  triggerStatus String
+  actionType String
+  actionWebhookUrl String
+}
+
+LCampaign {
+  id String PK
+  workspaceId String
+  name String
+  platform String
+  template String
+  sourceId String
+}
+
+LLead {
+  id String PK
+  workspaceId String
+  name String
+  platform String
+  score Double
+  sourceSignalId String
+  notes String
+}
+
+LLeadCandidate {
+  id String PK
+  name String
+  workspaceId String
+  sourceId String
+  rawSignalId String
+  summary String
+  intent String
+  leadScore Double
+  tags List<String>
+}
+
+LLeadSource {
+  id String PK
+  workspaceId String
+  platform String
+  name String
+  config Map<String, Object>
+}
+
+LLeadWorkspace {
+  id String PK
+  name String
+  ownerId String
+  memberIds List<String>
+}
+
+LNotification {
+  id String PK
+  workspaceId String
+  userId String
+  title String
+  message String
+  type String
+  link String
+}
+
+LRawSignal {
+  id String PK
+  sourceId String
+  workspaceId String
+  platformId String
+  content String
+  author String
+  url String
+  metadata Map<String, Object>
+  intent String
+  score Double
+  tags List<String>
+}
+
+LTask {
+  id String PK
+  workspaceId String
+  userId String
+  type String
+  resultUrl String
+  errorMessage String
+  metadata Map<String, Object>
+}
+
+LTemplate {
+  id String PK
+  workspaceId String
+  name String
+  content String
+  platform String
+  category String
+}
+
+AICacheEntry {
+  id String PK
+  cacheKey String
+  responseJson String
+  provider String
+  promptHash String
+  createdAt Instant
+}
+
+UserCredits {
+  id String PK
+  userId String
+  tier SubscriptionTier
+  creditsAvailable int
+  lastRefreshedAt Instant
+}
+
+Goal {
+  goalId String PK
+  userId String
+  title String
+  description String
+  deadline Instant
+  difficulty String
+  status String
+  type GoalType
+  timeline GoalTimeline
+  createdAt Instant
+  updatedAt Instant
+}
+
+JournalEntry {
+  id String PK
+  userId String
+  date LocalDate
+  reflection String
+  aiInsight String
+  createdAt Instant
+}
+
+MoodEntry {
+  id String PK
+  userId String
+  date LocalDate
+  score int
+  label String
+  createdAt Instant
+}
+
+WeeklyMoodSummary {
+  id String PK
+  userId String
+  weekStartDate LocalDate
+  weekEndDate LocalDate
+  averageScore double
+  entryCount int
+  dominantMood String
+  trendDirection String
+  computedAt Instant
+}
+
+LPNotification {
+  id String PK
+  userId String
+  title String
+  message String
+  type String
+  isRead boolean
+  createdAt Instant
+}
+
+DailySchedule {
+  scheduleId String PK
+  planId String
+  userId String
+  scheduleDate LocalDate
+  tasks List<ScheduleTask>
+  isCompleted boolean
+  taskId String
+  title String
+  estimatedTime String
+  category String
+  startTime String
+  endTime String
+  isCompleted boolean
+  completedAt String
+  priority String
+  notes String
+}
+
+StudyPlan {
+  planId String PK
+  goalId String
+  userId String
+  status String
+  roadmap List<PlanResponse.RoadmapItem>
+  weeklyPlans List<PlanResponse.WeeklyPlan>
+  createdAt Instant
+  updatedAt Instant
+  progressPercentage double
+}
+
+User {
+  id String PK
+  email String
+  passwordHash String
+  name String
+  createdAt Instant
+  updatedAt Instant
+}
+
+UserPreferences {
+  id String PK
+  userId String
+  notificationsEnabled boolean
+  theme String
+  colorPalette String
+  fontFamily String
+  uiDensity String
+  journalingStyle String
+  plannerLayoutStyle String
+  workHoursStart String
+  workHoursEnd String
+  preferredStudyTime String
+  productivityCycle String
+  breakFrequency int
+  studySessionLength int
+  careerType String
+  personalityProfile Map<String, Object>
+}
+
+UserProfile {
+  id String PK
+  userId String
+  lifestyleData String
+  studyPreferences List<String>
+  focusTime String
+  hobbies List<String>
+  stressLevel String
+  age Integer
+  gender String
+  educationLevel String
+  careerType String
+  personalityQuizResults Map<String, Object>
+  createdAt Instant
+  updatedAt Instant
+}
+
+ChatRoom {
+  id String PK
+  type RoomType
+  name String
+  participants List<String>
+  communityId String
+  createdAt LocalDateTime
+  pinnedBy List<String>
+  archivedBy List<String>
+  favoritedBy List<String>
+}
+
+Message {
+  id String PK
+  roomId String
+  senderId String
+  content String
+  messageType MessageType
+  createdAt LocalDateTime
+  readByUsers Map<String, LocalDateTime>
+  isEdited boolean
+  updatedAt LocalDateTime
+  isDeleted boolean
+  deletedForUsers List<String>
+  reactions Map<String, List<String>>
+  metadata Map<String, Object>
+  isForwarded boolean
+  forwardedFromId String
+  isPinned boolean
+  expiresAt Instant
+  isEncrypted boolean
+  replyToId String
+}
+
+UserPresence {
+  userId String PK
+  status PresenceStatus
+  lastSeen LocalDateTime
+}
+
+BillingAddressModel {
+  id String PK
+  companyId String
+  street String
+  city String
+  state String
+  postal_code String
+  country String
+}
+
+BillingHistoryModel {
+  id String PK
+  companyId String
+  userId String
+  amount String
+  date String
+  invoice_id String
+  sessionId String
+  status String
+}
+
+InvoicesModel {
+  id String PK
+  companyId String
+  invoiceId String
+  subscriptionId String
+  amountDue String
+  billingDate Date
+  dueDate Date
+  periodStart Date
+  periodEnd Date
+  invoice_pdf String
+  hosted_invoice_url String
+  status String
+  sessionId String
+}
+
+PaymentMethodsModel {
+  id String PK
+  companyId String
+  userId String
+  type String
+  last_four String
+  expiry_date String
+  sessionId String
+  is_default String
+}
+
+PaymentSubscriptionsModel {
+  id String PK
+  companyId String
+  subscriptionId String
+  plan_name String
+  start_date String
+  end_date String
+  cost String
+  billing_cycle String
+  is_active boolean
+}
+
+PrePaymentModel {
+  id String PK
+  companyId String
+  firstname String
+  lastname String
+  country String
+  address String
+  phone String
+  subscriptionId String
+  paymentMethodId String
+  billingAddressId String
+  invoiceId String
+  slipUrl String
+  payType String
+  status String
+}
+
+RecordedCoursePayment {
+  id String PK
+  courseId String
+  courseName String
+  learnerId String
+  trainerId String
+  companyId String
+  grossAmount BigDecimal
+  netAmount BigDecimal
+  currency String
+  trainerAmount BigDecimal
+  platformAmount BigDecimal
+  splitType String
+  paymentMethod String
+  paymentStatus String
+  transactionId String
+  createdAt String
+  updatedAt String
+}
+
+UsageDataModel {
+  id String PK
+  companyId String
+  job_posts_allowed String
+  job_posts_used String
+  applicant_views_allowed String
+  applicant_views_used String
+  overage_charges String
+  users Integer
+  storage Integer
+  bandwidth Integer
+}
+
+AmbassadorTaskProgressModel {
+  id String PK
+  ambassadorId String
+  taskId String
+  taskType String
+  progressValue int
+  completed boolean
+  startedAt Instant
+  completedAt Instant
+  lastResetAt Instant
+  rewardedAt Instant
+}
+
+BadgeDefinition {
+  id String PK
+  title String
+  description String
+  level String
+  svgUrl String
+  createdAt Instant
+  tags List<String>
+}
+
+CourseCertificateModel {
+  id String PK
+  employeeId String
+  courseId String
+  certificateId String
+  type String
+  url String
+  issuedBy String
+  issuedDate String
+  delivered boolean
+  fileName String
+  description String
+}
+
+CourseCouponsModel {
+  id String PK
+  stripeCouponId String
+  userId String
+  publicity boolean
+  unlockedBy private String
+  redeemedBy String
+  code String
+  token String
+  discount String
+  discountType String
+  validityInMillis long
+  createdAt Instant
+  earnedAt Instant
+  unlockedAt Instant
+  redeemedAt Instant
+  expiresAt Instant
+  status Status
+  level String
+  applicableCourseIds List<String>
+  applicableForInstallment boolean
+  redeemedForCourseId String
+  redeemedForInstallmentId String
+  createdBy String
+  taskId String
+  campaignId String
+  tag String
+  type String
+  activationType String
+  expiredAt Instant
+  maxRedemptions int
+  currentRedemptions int
+}
+
+CourseReminderLog {
+  id String PK
+  employeeId String
+  moduleId String
+  courseId String
+  reminderType String
+  sentTime Instant
+}
+
+EmpCoursesModel {
+  id String PK
+  employeeId String
+  employeeName String
+  email String
+  phone String
+  timezone String
+  courses List<CourseEnrollment>
+  recordedCourses List<RecordedCourseEnrollment>
+}
+
+GamificationTaskModel {
+  id String PK
+  title String
+  description String
+  type String
+  level String
+  targetValue int
+  rewardType String
+  rewardId String
+  rewardMetadata Map<String, Object>
+  recurring boolean
+  frequencyInDays int
+  createdAt Instant
+  groupKey String
+}
+
+QuizAttempt {
+  id String PK
+  employeeId String
+  courseId String
+  moduleId String
+  quizId String
+  attemptNumber int
+  answers List<QuestionAnswer>
+  score double
+  correctCount int
+  totalQuestions int
+  submittedAt String
+}
+
+SwagItem {
+  id String PK
+  title String
+  description String
+  imageUrl String
+  inventory int
+  sizeOptions List<String>
+  enabled boolean
+  createdAt Instant
+}
+
+InterviewQuestionModel {
+  id String PK
+  category String
+  questions List<Question>
+  id String PK
+  question String
+  overview String
+  viewCount int
+  answers List<Answer>
+  id String PK
+  by String
+  position String
+  date String
+  answer String
+  video String
+  viewCount int
+}
+
+JobApplyModel {
+  id String PK
+  companyId String
+  jobId String
+}
+
+PreOrderModel {
+  id String PK
+  name String
+  email String
+  product String
+  date String
+}
+
+Referral {
+  id String PK
+  referrerId String
+  referredUserId String
+  type ReferralType
+  status ReferralStatus
+  rewardIssued boolean
+  createdAt Instant
+  completedAt Instant
+}
+
+ReferralCode {
+  id String PK
+  code String
+  userId String
+  createdAt Instant
+}
+
+ReferralCommission {
+  id String PK
+  referrerId String
+  referredCreatorId String
+  percentage double
+  expiryDate Instant
+  createdAt Instant
+}
+
+ReputationEvent {
+  id String PK
+  userId String
+  sourceType ReputationSourceType
+  sourceId String
+  delta int
+  createdAt LocalDateTime
+}
+
+UserBadge {
+  id String PK
+  userId String
+  badgeType BadgeType
+  awardedAt LocalDateTime
+}
+
+UserReputation {
+  id String PK
+  userId String
+  totalScore long
+  articleScore long
+  communityScore long
+  announcementScore long
+  lastUpdated LocalDateTime
+}
+
+ResumeModel {
+  id String PK
+  employeeId String
+  title String
+  templateId String
+  personalInfo PersonalInfo
+  workExperience List<WorkExperience>
+  education List<Education>
+  skills List<Skill>
+  projects List<Project>
+  certificates List<Certificate>
+  customSections List<CustomSection>
+  sectionOrder List<String>
+  settings ResumeSettings
+  completionScore int
+  atsScore int
+  aiUsageCount int
+  deleted boolean
+  platform String
+  createdAt Instant
+  updatedAt Instant
+  fullName String
+  title String
+  phone String
+  email String
+  location String
+  linkedin String
+  portfolio String
+  summary String
+  id String PK
+  jobTitle String
+  company String
+  location String
+  startDate String
+  endDate String
+  current boolean
+  responsibilities List<String>
+  achievements List<String>
+  id String PK
+  degree String
+  institution String
+  location String
+  graduationDate String
+  gpa String
+  description String
+  id String PK
+  name String
+  level String
+  category String
+  id String PK
+  title String
+  description String
+  technologies List<String>
+  githubLink String
+  liveLink String
+  achievements List<String>
+  id String PK
+  name String
+  organization String
+  issueDate String
+  credentialLink String
+  id String PK
+  title String
+  items List<CustomSectionItem>
+  id String PK
+  content String
+  primaryColor String
+  fontFamily String
+  fontSize String
+  spacing String
+  showPhoto boolean
+  showIcons boolean
+  showSkillLevels boolean
+}
+
+SoftwareAppModel {
+  id String PK
+  name String
+  description String
+  icon String
+  category String
+  developer String
+  version String
+  status String
+  purchaseDate Instant
+  expiryDate Instant
+  companyId String
+  planName String
+  cost Double
+  billingCycle String
+  permissions List<String>
+  accessUrl String
+  isGlobal boolean
+}
+
+FeatureFlag {
+  id String PK
+  plan ESubscriptionPlan
+  featureKey String
+  enabled boolean
+}
+
+Subscription {
+  id String PK
+  userId String
+  plan ESubscriptionPlan
+  status ESubscriptionStatus
+  startDate Instant
+  endDate Instant
+  stripeCustomerId String
+  stripeSubscriptionId String
+  stripePriceId String
+  billingCycle String
+  trialEndDate Instant
+  cancelledAt Instant
+  lastPaymentAt Instant
+  lastCreditResetAt Instant
+  createdAt Instant
+  updatedAt Instant
+}
+
+SupportRequestModel {
+  id String PK
+  name String
+  email String
+  service String
+  message String
+  status String
+  createdAt Instant
+}
+
+TrackingEvent {
+  id String PK
+  trackingId String
+  eventType String
+  url String
+  referrer String
+  sessionId String
+  userId String
+  timestamp Instant
+  screenResolution String
+  browser String
+  language String
+  viewportWidth Integer
+  viewportHeight Integer
+  ip String
+  country String
+  region String
+  city String
+  countryCode String
+  isp String
+  proxy Boolean
+  suspectedVpn Boolean
+  suspectedBot Boolean
+  pageTitle String
+  pagePath String
+  elementId String
+  elementText String
+  elementType String
+  elementClass String
+  elementAriaLabel String
+  elementRouterLink String
+  clickX Integer
+  clickY Integer
+  scrollPercent Integer
+  scrollDepth Integer
+  durationMs Long
+  activeTimeMs Long
+  domLoadTime Long
+  fullLoadTime Long
+  ttfb Long
+  dnsTime Long
+  tcpTime Long
+  downloadTime Long
+  lcpValue Long
+  fidValue Long
+  downlink Integer
+  effectiveType String
+  rtt Integer
+  saveData Boolean
+  errorMessage String
+  errorSource String
+  errorLine Integer
+  errorColumn Integer
+  errorStack String
+  rejectionReason String
+  experimentId String
+  variant String
+  conversionType String
+  conversionValue Double
+  funnelId String
+  stepName String
+  stepIndex Integer
+  totalSteps Integer
+  formId String
+  fieldName String
+  fieldType String
+  fieldsInteracted Integer
+  totalFields Integer
+  timeSpentMs Long
+  validationMessage String
+  clickCount Integer
+  areaX Integer
+  areaY Integer
+  heatmapPath String
+  attentionDurationMs Long
+  viewportPercentage Integer
+  timezone String
+  timezoneOffset Integer
+  customData Map<String, Object>
+  expiresAt Instant
+}
+
+EmpCertificatesModel {
+  id String PK
+  employeeId String
+  certificates List<EmpCertificatesDTO>
+}
+
+EmpContactModel {
+  id String PK
+  employeeId String
+  contact List<EmpContactDTO>
+  socialLinks List<SocialLinksDTO>
+  publicity boolean
+}
+
+EmpEducationModel {
+  id String PK
+  employeeId String
+  education List<EmpEducationDTO>
+}
+
+EmpExperiencesModel {
+  id String PK
+  employeeId String
+  experiences List<EmpExperiencesDTO>
+}
+
+EmpFollowersModel {
+  id String PK
+  employeeId String
+  followers List<EmpFollowersDTO>
+}
+
+EmpFollowingModel {
+  id String PK
+  employeeId String
+  followings List<EmpFollowingDTO>
+}
+
+EmployeeModel {
+  id String PK
+  firstname String
+  lastname String
+  occupation String
+  image String
+  coverImage String
+  dob String
+  email String
+  resume String
+  intro String
+  skills String
+  experiences String
+  education String
+  projects String
+  certificates String
+  contactInfo String
+  courses String
+  followings String
+  followers String
+  savedJobs List<FavJobDTO>
+  savedPosts List<String>
+  accountNotifications Object
+  marketingNotifications Object
+  profileCompleted Object
+  profileStatus String
+  companyId String
+  expectedSalaryRange String
+  currentExperience String
+  keywords String
+  messagingPublicKey String
+}
+
+EmpProjectsModel {
+  id String PK
+  employeeId String
+  projects List<EmpProjectsDTO>
+}
+
+EmpSkillsModel {
+  id String PK
+  employeeId String
+  skills List<EmpSkillsDTO>
+}
+
+TrainerProfile {
+  id String PK
+  employeeId String
+  headline String
+  bio String
+  specialties List<String>
+  languages List<String>
+  hourlyRate String
+  availability String
+  certifications List<String>
+  rating Double
+  totalReviews Integer
+  trainerVideoIntro String
+  website String
+  linkedIn String
+  youtube String
+}
+
+WorkspaceModel {
+  id String PK
+  name String
+  slug String
+  ownerId String
+  memberIds List<String>
+  createdAt LocalDateTime
+  updatedAt LocalDateTime
+  subscriptionType String
+}
+
+UserActivity {
+  id String PK
+  userId String
+  encryptedIpAddress String
+  timestamp LocalDateTime
+  endpointAccessed String
+  lastActive LocalDateTime
+  sessionStart LocalDateTime
+  sessionEnd LocalDateTime
+  country String
+  suspectedVpn boolean
+  suspectedBot boolean
+  expiresAt Instant
+}
+
+WhitelistDomains {
+  id String PK
+  domain String
+  active boolean
+  requestBy String
+}
+
+ContactSubmission {
+  id String PK
+  name String
+  email String
+  subject String
+  message String
+}
+
+CtaLeadSubmission {
+  id String PK
+  name String
+  email String
+  serviceType String
+  ctaType String
+  focusArea String
+  message String
+}
+
+NewsLatterModel {
+  id String PK
+  email String
+}
+
+TokenModel {
+  id String PK
+  token String
+  username String
+  expiration Date
+  used boolean
+}
+
