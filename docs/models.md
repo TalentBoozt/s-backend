@@ -2,189 +2,189 @@
 
 | Model Name | Collection | Fields Count | Relationships |
 |------------|------------|--------------|---------------|
-| AIQuota | ai_quotas | 5 | UNKNOWN(user), EMBEDDED(Instant) |
-| AIUsage | ai_usage_logs | 5 | UNKNOWN(user), EMBEDDED(AIUsageType), EMBEDDED(Instant) |
-| CreditRecord | course_ai_credit_record | 3 | EMBEDDED(LocalDate) |
-| AmbassadorLeaderboardModel | ambassador_leaderboard | 10 | UNKNOWN(ambassador), EMBEDDED(Instant), EMBEDDED(Instant) |
-| AmbassadorPointAudit | ambassador_point_audit | 6 | UNKNOWN(ambassador), EMBEDDED(Instant) |
-| AmbassadorProfileModel | ambassador_profiles | 28 | EMBEDDED(Instant), EMBEDDED(AmbassadorLifecycle), UNKNOWN(employee), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| AmbassadorRewardModel | ambassador_rewards | 7 | UNKNOWN(ambassador), UNKNOWN(task), EMBEDDED(Instant), EMBEDDED(Instant) |
-| AmbassadorSessionModel | ambassador_sessions | 8 | UNKNOWN(ambassador), EMBEDDED(Instant) |
-| AmbReferralModel | ambassador_referrals | 9 | UNKNOWN(ambassador), UNKNOWN(referredUser), EMBEDDED(Instant), UNKNOWN(course), EMBEDDED(Instant) |
-| BadgeModel | ambassador_badges | 7 | UNKNOWN(ambassador), UNKNOWN(task), UNKNOWN(badge), EMBEDDED(Instant) |
-| SwagModel |  | 10 | UNKNOWN(ambassador), UNKNOWN(task), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
+| AIQuota | ai_quotas | 5 | UNKNOWN(User) |
+| AIUsage | ai_usage_logs | 5 | UNKNOWN(User), EMBEDDED(AIUsageType) |
+| CreditRecord | course_ai_credit_record | 3 |  |
+| AmbassadorLeaderboardModel | ambassador_leaderboard | 10 | UNKNOWN(Ambassador) |
+| AmbassadorPointAudit | ambassador_point_audit | 6 | UNKNOWN(Ambassador) |
+| AmbassadorProfileModel | ambassador_profiles | 31 | EMBEDDED(AmbassadorLifecycle), UNKNOWN(Employee), EMBEDDED(Map<String, Object>) |
+| AmbassadorRewardModel | ambassador_rewards | 7 | UNKNOWN(Ambassador), UNKNOWN(Task) |
+| AmbassadorSessionModel | ambassador_sessions | 8 | UNKNOWN(Ambassador) |
+| AmbReferralModel | ambassador_referrals | 9 | UNKNOWN(Ambassador), UNKNOWN(ReferredUser), UNKNOWN(Course) |
+| BadgeModel | ambassador_badges | 7 | UNKNOWN(Ambassador), UNKNOWN(Task), UNKNOWN(Badge) |
+| SwagModel |  | 10 | UNKNOWN(Ambassador), UNKNOWN(Task) |
 | Announcement | announcements | 21 | EMBEDDED(AnnouncementStatus), EMBEDDED(AnnouncementType), EMBEDDED(AnnouncementVisibility), EMBEDDED(AnnouncementPriority) |
-| Article | articles | 20 | UNKNOWN(author), EMBEDDED(ArticleStatus) |
-| ArticleEvaluationLog | article_evaluations | 9 | UNKNOWN(article), EMBEDDED(ArticleEvaluationDTO) |
+| Article | articles | 22 | UNKNOWN(Author), EMBEDDED(ArticleStatus) |
+| ArticleEvaluationLog | article_evaluations | 9 | UNKNOWN(Article), EMBEDDED(ArticleEvaluationDTO) |
 | Tag | article_tags | 3 |  |
-| AsyncUpdateAuditLog | async_update_audit_log | 11 | UNKNOWN(course), UNKNOWN(batch), UNKNOWN(employee), EMBEDDED(Instant) |
-| ClientActAuditLog | client_act_audit_log | 8 | UNKNOWN(user), UNKNOWN(session), EMBEDDED(Instant) |
-| CourseReminderAuditLog | course_reminder_audit_logs | 15 | UNKNOWN(employee), UNKNOWN(course), UNKNOWN(module), EMBEDDED(Instant), EMBEDDED(Instant) |
-| LeadOSAuditLog | leados_audit_logs | 8 | UNKNOWN(workspace), UNKNOWN(user), UNKNOWN(entity) |
-| SchedulerLogModel |  | 6 | EMBEDDED(Instant), EMBEDDED(Instant) |
-| StripeAuditLog | stripe_audit_logs | 11 | UNKNOWN(event), UNKNOWN(session), UNKNOWN(customer), UNKNOWN(subscription), UNKNOWN(paymentIntent), EMBEDDED(Instant) |
-| TaskRewardAuditModel |  | 10 | UNKNOWN(ambassador), UNKNOWN(task), UNKNOWN(reward), EMBEDDED(Instant), EMBEDDED(Instant) |
-| CredentialsModel | portal_credentials | 22 | UNKNOWN(employee), UNKNOWN(company), UNKNOWN(referrer), UNKNOWN(ambassador), UNKNOWN(activeWorkspace) |
-| PasswordResetTokenModel | portal_password_reset_tokens | 4 | UNKNOWN(user) |
-| PermissionModel | permissions | 6 | EMBEDDED(Instant), EMBEDDED(Instant) |
+| AsyncUpdateAuditLog | async_update_audit_log | 11 | UNKNOWN(Course), UNKNOWN(Batch), UNKNOWN(Employee) |
+| ClientActAuditLog | client_act_audit_log | 8 | UNKNOWN(User), UNKNOWN(Session), EMBEDDED(Map<String, Object>) |
+| CourseReminderAuditLog | course_reminder_audit_logs | 15 | UNKNOWN(Employee), UNKNOWN(Course), UNKNOWN(Module) |
+| LeadOSAuditLog | leados_audit_logs | 9 | UNKNOWN(Workspace), UNKNOWN(User), UNKNOWN(Entity), EMBEDDED(Map<String, Object>) |
+| SchedulerLogModel |  | 6 |  |
+| StripeAuditLog | stripe_audit_logs | 14 | UNKNOWN(Event), UNKNOWN(Session), UNKNOWN(Customer), UNKNOWN(Subscription), UNKNOWN(PaymentIntent) |
+| TaskRewardAuditModel |  | 10 | UNKNOWN(Ambassador), UNKNOWN(Task), UNKNOWN(Reward) |
+| CredentialsModel | portal_credentials | 22 | UNKNOWN(Employee), UNKNOWN(Company), EMBEDDED(List<Map<String, String>>), UNKNOWN(Referrer), UNKNOWN(Ambassador), UNKNOWN(ActiveWorkspace) |
+| PasswordResetTokenModel | portal_password_reset_tokens | 4 | UNKNOWN(User) |
+| PermissionModel | permissions | 6 |  |
 | RoleModel | roles | 5 |  |
 | FeatureModel | portal_feature-requests | 4 |  |
 | IssueModel | portal_report-issues | 4 |  |
-| Login | portal_logins | 4 | UNKNOWN(user), EMBEDDED(LoginMetaDTO) |
+| Login | portal_logins | 5 | UNKNOWN(User), EMBEDDED(LoginMetaDTO), EMBEDDED(LoginEventDTO) |
 | SystemNotificationsModel | portal_systemNotifications | 6 |  |
-| Activity | community_activities | 5 | UNKNOWN(user), UNKNOWN(target) |
-| Comment | comments | 12 | UNKNOWN(post), UNKNOWN(parent), UNKNOWN(author), EMBEDDED(Reaction), EMBEDDED(Comment) |
-| Community | communities | 15 | UNKNOWN(creator), EMBEDDED(CommunityPrivacy) |
-| CommunityMember | community_members | 8 | UNKNOWN(community), UNKNOWN(user), EMBEDDED(MemberRole) |
-| Notification | community_notifications | 7 | UNKNOWN(recipient), UNKNOWN(sender), EMBEDDED(NotificationType), UNKNOWN(target) |
-| Post | posts | 28 | UNKNOWN(author), UNKNOWN(community), UNKNOWN(quotedPost), EMBEDDED(PostContent), EMBEDDED(PostMetrics), EMBEDDED(Reaction), EMBEDDED(LinkPreview) |
-| Report | community_reports | 7 | UNKNOWN(reporter), UNKNOWN(target), EMBEDDED(ReportTargetType), EMBEDDED(ReportStatus) |
-| CourseBatchModel | course_batches | 26 | UNKNOWN(course), EMBEDDED(InstallmentDTO), EMBEDDED(ModuleDTO), EMBEDDED(MaterialsDTO), EMBEDDED(QuizDTO) |
-| CourseModel | job_hunter_courses | 36 | UNKNOWN(company), UNKNOWN(trainer), EMBEDDED(InstallmentDTO), EMBEDDED(ModuleDTO), EMBEDDED(MaterialsDTO), EMBEDDED(QuizDTO), EMBEDDED(CourseMissedNotify) |
-| RecordedCourseModel | recorded_courses | 25 | EMBEDDED(BigDecimal), EMBEDDED(RecModuleDTO), EMBEDDED(RecordedCourseReviewDTO), UNKNOWN(company), UNKNOWN(trainer), EMBEDDED(BigDecimal), EMBEDDED(BigDecimal), EMBEDDED(InstallmentDTO) |
+| Activity | community_activities | 5 | UNKNOWN(User), UNKNOWN(Target) |
+| Comment | comments | 12 | UNKNOWN(Post), UNKNOWN(Parent), UNKNOWN(Author), EMBEDDED(Reaction), EMBEDDED(Comment) |
+| Community | communities | 15 | UNKNOWN(Creator), EMBEDDED(CommunityPrivacy) |
+| CommunityMember | community_members | 8 | UNKNOWN(Community), UNKNOWN(User), EMBEDDED(MemberRole) |
+| Notification | community_notifications | 7 | UNKNOWN(Recipient), UNKNOWN(Sender), EMBEDDED(NotificationType), UNKNOWN(Target) |
+| Post | posts | 29 | UNKNOWN(Author), UNKNOWN(Community), UNKNOWN(QuotedPost), EMBEDDED(PostContent), EMBEDDED(PostMetrics), EMBEDDED(Reaction), EMBEDDED(LinkPreview) |
+| Report | community_reports | 7 | UNKNOWN(Reporter), UNKNOWN(Target), EMBEDDED(ReportTargetType), EMBEDDED(ReportStatus) |
+| CourseBatchModel | course_batches | 26 | UNKNOWN(Course), EMBEDDED(InstallmentDTO), EMBEDDED(ModuleDTO), EMBEDDED(MaterialsDTO), EMBEDDED(QuizDTO) |
+| CourseModel | job_hunter_courses | 36 | UNKNOWN(Company), UNKNOWN(Trainer), EMBEDDED(InstallmentDTO), EMBEDDED(ModuleDTO), EMBEDDED(MaterialsDTO), EMBEDDED(QuizDTO), EMBEDDED(CourseMissedNotify) |
+| RecordedCourseModel | recorded_courses | 30 | EMBEDDED(RecModuleDTO), EMBEDDED(RecordedCourseReviewDTO), UNKNOWN(Company), UNKNOWN(Trainer), EMBEDDED(InstallmentDTO) |
 | TrainCompanyModel | train_company | 6 | EMBEDDED(TeamMemberDTO) |
 | TrainersModel | trainers | 12 |  |
-| CmpPostedJobsModel | portal_cmp_posted_jobs | 6 | UNKNOWN(company), EMBEDDED(PostedJobsDTO) |
-| CmpSocialModel | portal_cmp_socials | 3 | UNKNOWN(company), EMBEDDED(SocialLinksDTO) |
-| CompanyModel | portal_companies | 32 |  |
-| StandaloneFileModel | standalone_files | 12 | UNKNOWN(owner), UNKNOWN(parent), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EAffiliateCommissions | edu_affiliate_commissions | 7 | UNKNOWN(affiliate), UNKNOWN(transaction), UNKNOWN(course), EMBEDDED(Instant) |
-| EAffiliateLinks | edu_affiliate_links | 5 | UNKNOWN(affiliate), UNKNOWN(course), EMBEDDED(Instant) |
-| EAffiliates | edu_affiliates | 8 | UNKNOWN(user), EMBEDDED(EAffiliateStatus), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EAiCredits | edu_ai_credits | 11 | UNKNOWN(user), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EAiUsage | edu_ai_usage | 9 | UNKNOWN(user), UNKNOWN(course), EMBEDDED(EAIUsageType), EMBEDDED(Instant) |
-| EAnalyticsEvents | edu_analytics_events | 6 | EMBEDDED(EAnalyticsEvent), UNKNOWN(user), UNKNOWN(course), EMBEDDED(Instant) |
-| EApiKey | edu_api_keys | 11 | UNKNOWN(owner), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EAssignments | edu_assignments | 14 | UNKNOWN(course), UNKNOWN(section), UNKNOWN(lesson), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EAssignmentSubmissions | edu_assignment_submissions | 10 | UNKNOWN(user), UNKNOWN(assignment), EMBEDDED(EGradingStatus), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EAuditLog | edu_audit_log | 10 | UNKNOWN(actor), UNKNOWN(target), EMBEDDED(Instant) |
-| EBundles | edu_bundles | 7 | UNKNOWN(creator), EMBEDDED(Instant) |
-| ECertificates | edu_certificates | 11 | UNKNOWN(course), UNKNOWN(user), UNKNOWN(creator), UNKNOWN(certificate), UNKNOWN(template), EMBEDDED(Instant) |
-| ECouponRedemption | edu_coupon_redemptions | 5 | UNKNOWN(coupon), UNKNOWN(user), UNKNOWN(transaction), EMBEDDED(Instant) |
-| ECoupons | edu_coupons | 8 | UNKNOWN(creator), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ECourses | edu_courses | 44 | UNKNOWN(workspace), UNKNOWN(creator), EMBEDDED(ECourseType), EMBEDDED(ECourseContentType), EMBEDDED(ECourseLevel), EMBEDDED(ECourseStatus), EMBEDDED(ECourseValidationStatus), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ECourseSections | edu_course_sections | 10 | UNKNOWN(course), EMBEDDED(ELessons), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ECreatorFinanceSettings | edu_creator_finance_settings | 26 | UNKNOWN(user), UNKNOWN(stripeAccount), EMBEDDED(PayoutMethod), EMBEDDED(TaxForm), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ECreditLedger | edu_credit_ledger | 11 | UNKNOWN(user), EMBEDDED(ECreditLedgerActionType), UNKNOWN(reference), EMBEDDED(Instant) |
-| EduCourseReviewLog | edu_course_review_logs | 6 | UNKNOWN(course), UNKNOWN(reviewer), EMBEDDED(Instant) |
-| EEnrollments | edu_enrollments | 19 | UNKNOWN(course), UNKNOWN(user), UNKNOWN(workspace), UNKNOWN(lastAccessedLesson), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(ECourses) |
-| EFraudFlag | edu_fraud_flags | 10 | UNKNOWN(targetUser), UNKNOWN(reviewer), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EGifts | edu_gifts | 11 | UNKNOWN(sender), UNKNOWN(course), EMBEDDED(EGiftStatus), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EHoldingLedger | edu_holding_ledger | 12 | UNKNOWN(beneficiary), EMBEDDED(EBeneficiaryType), UNKNOWN(transaction), UNKNOWN(course), EMBEDDED(EHoldingStatus), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ELearningPaths | edu_learning_paths | 7 | UNKNOWN(workspace), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ELedgerEntry | edu_ledger_entries | 12 | EMBEDDED(EventType), EMBEDDED(EntryType), EMBEDDED(AccountType), UNKNOWN(account), UNKNOWN(course), UNKNOWN(bundle), EMBEDDED(Instant) |
-| ELessons | edu_lessons | 20 | UNKNOWN(course), UNKNOWN(section), EMBEDDED(ELessonType), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ENotifications | edu_notifications | 14 | UNKNOWN(user), UNKNOWN(workspace), EMBEDDED(ENotificationType), UNKNOWN(relatedEntity), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EPayouts | edu_payouts | 12 | UNKNOWN(creator), EMBEDDED(EPayoutMethod), EMBEDDED(EPayoutStatus), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EPayoutSchedule | edu_payout_schedules | 8 | UNKNOWN(creator), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EProfiles | edu_profiles | 19 | UNKNOWN(user), EMBEDDED(ESocialLinksDTO), EMBEDDED(EPrivacySettingsDTO), EMBEDDED(ENotificationSettingsDTO), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EQuizAttempts | edu_quiz_attempts | 10 | UNKNOWN(user), UNKNOWN(quiz), EMBEDDED(EGradingStatus), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EQuizzes | edu_quizzes | 15 | UNKNOWN(course), UNKNOWN(section), UNKNOWN(lesson), EMBEDDED(EQuizType), EMBEDDED(EQuestionDTO), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ERefund | edu_refunds | 17 | UNKNOWN(transaction), UNKNOWN(stripeCheckoutSession), UNKNOWN(stripeCharge), UNKNOWN(stripeRefund), UNKNOWN(buyer), UNKNOWN(seller), UNKNOWN(course), EMBEDDED(RefundType), EMBEDDED(RefundStatus), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EReports | edu_reports | 11 | UNKNOWN(reporter), UNKNOWN(targetEntity), EMBEDDED(EReportReason), EMBEDDED(EReportStatus), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EReviews | edu_reviews | 10 | UNKNOWN(course), UNKNOWN(user), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ESubscriptions | edu_subscriptions | 22 | UNKNOWN(user), EMBEDDED(ESubscriptionPlan), EMBEDDED(ESubscriptionStatus), UNKNOWN(paymentGateway), UNKNOWN(stripeCustomer), UNKNOWN(stripeSubscription), UNKNOWN(stripePrice), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ESystemSettings | edu_system_settings | 5 | EMBEDDED(Instant) |
-| ETransactions | edu_transactions | 33 | UNKNOWN(course), UNKNOWN(buyer), UNKNOWN(seller), UNKNOWN(affiliate), EMBEDDED(EPaymentMethod), EMBEDDED(EPaymentStatus), UNKNOWN(transaction), UNKNOWN(stripeCheckoutSession), EMBEDDED(Instant), UNKNOWN(bundle), UNKNOWN(referrer), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ETrustScores | edu_trust_scores | 20 | UNKNOWN(creator), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EUser | edu_user | 15 | UNKNOWN(ssoProvider), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EUserPreferences | edu_user_preferences | 10 | UNKNOWN(user), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EValidationReports | edu_validation_reports | 10 | UNKNOWN(course), UNKNOWN(user), UNKNOWN(reviewer), EMBEDDED(EValidationBreackdownDTO), EMBEDDED(Instant) |
-| EWallet | edu_wallets | 7 | UNKNOWN(user), EMBEDDED(Instant) |
-| EWalletTransaction | edu_wallet_transactions | 9 | UNKNOWN(user), EMBEDDED(TransactionType), EMBEDDED(TransactionStatus), UNKNOWN(reference), EMBEDDED(Instant) |
-| EWebhookEvent | edu_webhook_events | 10 | UNKNOWN(stripeEvent), EMBEDDED(EventStatus), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EWorkspaceMembers | edu_workspace_members | 10 | UNKNOWN(workspace), UNKNOWN(user), EMBEDDED(ERoles), EMBEDDED(Instant), EMBEDDED(Instant) |
-| EWorkspaces | edu_workspaces | 13 | UNKNOWN(owner), EMBEDDED(EWorkspaceType), EMBEDDED(ESubscriptionPlan), EMBEDDED(EWSettingsDTO), EMBEDDED(EWProfileDTO), EMBEDDED(Instant), EMBEDDED(Instant) |
-| AnalyticsData | fin_analytics_data | 10 | UNKNOWN(organization), UNKNOWN(project), UNKNOWN(scenario), EMBEDDED(Instant) |
-| MetricDefinition | fin_metric_definitions | 7 | UNKNOWN(organization) |
-| FinAiTrainingSnapshot | fin_ai_training_snapshots | 10 | UNKNOWN(organization), UNKNOWN(project), UNKNOWN(scenario), UNKNOWN(user), EMBEDDED(Instant) |
-| FinAssumption | fin_assumptions | 9 | UNKNOWN(organization), UNKNOWN(project), EMBEDDED(Instant) |
-| FinAuditLog | fin_audit_logs | 11 | UNKNOWN(organization), UNKNOWN(project), UNKNOWN(user), UNKNOWN(entity), EMBEDDED(Instant) |
-| FinBudget | fin_budgets | 9 | UNKNOWN(organization), UNKNOWN(project), EMBEDDED(Instant) |
-| FinFinancialSnapshot | fin_financial_snapshots | 10 | UNKNOWN(organization), UNKNOWN(project), UNKNOWN(scenario), EMBEDDED(Instant) |
-| FinPricingModel | fin_pricing_models | 10 | UNKNOWN(organization), UNKNOWN(project), EMBEDDED(Instant) |
-| FinProject | fin_projects | 10 | UNKNOWN(organization), UNKNOWN(owner), EMBEDDED(Instant), EMBEDDED(Instant) |
-| FinProjectMember | fin_project_members | 5 | UNKNOWN(project), UNKNOWN(user), EMBEDDED(ProjectRole), EMBEDDED(Instant) |
-| FinSalesPlan | fin_sales_plans | 8 | UNKNOWN(organization), UNKNOWN(project), EMBEDDED(Instant) |
-| FinScenario | fin_scenarios | 9 | UNKNOWN(organization), UNKNOWN(project), EMBEDDED(AssumptionOverride), EMBEDDED(Instant) |
-| FinWorkspace | fin_workspaces | 9 | UNKNOWN(owner), EMBEDDED(Instant), EMBEDDED(Instant) |
-| Scenario | scenarios | 10 | UNKNOWN(organization), UNKNOWN(project), UNKNOWN(parentScenario), UNKNOWN(baseVersion), EMBEDDED(Instant) |
-| ScenarioOverride | fin_scenario_overrides | 9 | UNKNOWN(scenario), EMBEDDED(OverrideOperation), UNKNOWN(version), EMBEDDED(Instant) |
-| ApplicantModel | applicants | 14 | UNKNOWN(job), UNKNOWN(company), UNKNOWN(candidate), EMBEDDED(Instant), EMBEDDED(Instant) |
-| JobPostModel | job_posts | 19 | UNKNOWN(company), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| LAutomation | lead_automations | 8 | UNKNOWN(workspace), UNKNOWN(actionTemplate) |
-| LLeadAutomation | leads_automations | 9 | UNKNOWN(workspace) |
-| LCampaign | leads_campaigns | 6 | UNKNOWN(workspace), UNKNOWN(source) |
-| LLead | leads_leads | 7 | UNKNOWN(workspace), UNKNOWN(sourceSignal) |
-| LLeadCandidate | leads_candidates | 9 | UNKNOWN(workspace), UNKNOWN(source), UNKNOWN(rawSignal) |
-| LLeadSource | leads_sources | 5 | UNKNOWN(workspace) |
-| LLeadWorkspace | leads_workspaces | 4 | UNKNOWN(owner) |
-| LNotification | lead_notifications | 7 | UNKNOWN(workspace), UNKNOWN(user) |
-| LRawSignal | leads_raw_signals | 11 | UNKNOWN(source), UNKNOWN(workspace), UNKNOWN(platform) |
-| LTask | lead_background_tasks | 7 | UNKNOWN(workspace), UNKNOWN(user) |
-| LTemplate | lead_templates | 6 | UNKNOWN(workspace) |
-| AICacheEntry | lp_ai_cache | 6 | EMBEDDED(Instant) |
-| UserCredits | lp_user_credits | 5 | UNKNOWN(user), EMBEDDED(SubscriptionTier), EMBEDDED(Instant) |
-| Goal | lp_goals | 11 | UNKNOWN(goal), UNKNOWN(user), EMBEDDED(Instant), EMBEDDED(GoalType), EMBEDDED(GoalTimeline), EMBEDDED(Instant), EMBEDDED(Instant) |
-| JournalEntry | lp_journal_entries | 6 | UNKNOWN(user), EMBEDDED(LocalDate), EMBEDDED(Instant) |
-| MoodEntry | lp_mood_entries | 6 | UNKNOWN(user), EMBEDDED(LocalDate), EMBEDDED(Instant) |
-| WeeklyMoodSummary | lp_weekly_mood_summaries | 9 | UNKNOWN(user), EMBEDDED(LocalDate), EMBEDDED(LocalDate), EMBEDDED(Instant) |
-| LPNotification | lp_notifications | 7 | UNKNOWN(user), EMBEDDED(Instant) |
-| DailySchedule | lp_daily_schedules | 16 | UNKNOWN(schedule), UNKNOWN(plan), UNKNOWN(user), EMBEDDED(LocalDate), EMBEDDED(ScheduleTask), UNKNOWN(task) |
-| StudyPlan | lp_study_plans | 9 | UNKNOWN(plan), UNKNOWN(goal), UNKNOWN(user), EMBEDDED(RoadmapItem), EMBEDDED(WeeklyPlan), EMBEDDED(Instant), EMBEDDED(Instant) |
-| User | lp_users | 6 | EMBEDDED(Instant), EMBEDDED(Instant) |
-| UserPreferences | lp_preferences | 17 | UNKNOWN(user) |
-| UserProfile | lp_profiles | 14 | UNKNOWN(user), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ChatRoom | chat_rooms | 9 | EMBEDDED(RoomType), UNKNOWN(community) |
-| Message | messages | 19 | UNKNOWN(room), UNKNOWN(sender), EMBEDDED(MessageType), UNKNOWN(forwardedFrom), EMBEDDED(Instant), UNKNOWN(replyTo) |
-| UserPresence |  | 3 | UNKNOWN(user), EMBEDDED(PresenceStatus) |
-| BillingAddressModel | portal_billing_address | 7 | UNKNOWN(company) |
-| BillingHistoryModel | portal_billing_history | 8 | UNKNOWN(company), UNKNOWN(user), UNKNOWN(session) |
-| InvoicesModel | portal_invoices | 13 | UNKNOWN(company), UNKNOWN(invoice), UNKNOWN(subscription), UNKNOWN(session) |
-| PaymentMethodsModel | portal_payment_methods | 8 | UNKNOWN(company), UNKNOWN(user), UNKNOWN(session) |
-| PaymentSubscriptionsModel | portal_subscriptions | 9 | UNKNOWN(company), UNKNOWN(subscription) |
-| PrePaymentModel | portal_pre_payment_data | 14 | UNKNOWN(company), UNKNOWN(subscription), UNKNOWN(paymentMethod), UNKNOWN(billingAddress), UNKNOWN(invoice) |
-| RecordedCoursePayment | recorded_course_payments | 17 | UNKNOWN(course), UNKNOWN(learner), UNKNOWN(trainer), UNKNOWN(company), EMBEDDED(BigDecimal), EMBEDDED(BigDecimal), EMBEDDED(BigDecimal), EMBEDDED(BigDecimal), UNKNOWN(transaction) |
-| UsageDataModel | portal_usage_data | 10 | UNKNOWN(company) |
-| AmbassadorTaskProgressModel | ambassador_task_progress | 10 | UNKNOWN(ambassador), UNKNOWN(task), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| BadgeDefinition |  | 7 | EMBEDDED(Instant) |
-| CourseCertificateModel | course_certificates | 11 | UNKNOWN(employee), UNKNOWN(course), UNKNOWN(certificate) |
-| CourseCouponsModel | course_coupons | 31 | UNKNOWN(stripeCoupon), UNKNOWN(user), EMBEDDED(private String), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Status), UNKNOWN(redeemedForCourse), UNKNOWN(redeemedForInstallment), UNKNOWN(task), UNKNOWN(campaign), EMBEDDED(Instant) |
-| CourseReminderLog | course_reminder_logs | 6 | UNKNOWN(employee), UNKNOWN(module), UNKNOWN(course), EMBEDDED(Instant) |
-| EmpCoursesModel | portal_emp_courses | 8 | UNKNOWN(employee), EMBEDDED(CourseEnrollment), EMBEDDED(RecordedCourseEnrollment) |
-| GamificationTaskModel | gamification_tasks | 13 | UNKNOWN(reward), EMBEDDED(Instant) |
-| QuizAttempt | quiz_attempts | 11 | UNKNOWN(employee), UNKNOWN(course), UNKNOWN(module), UNKNOWN(quiz), EMBEDDED(QuestionAnswer) |
-| SwagItem |  | 8 | EMBEDDED(Instant) |
+| CmpPostedJobsModel | portal_cmp_posted_jobs | 6 | UNKNOWN(Company), EMBEDDED(PostedJobsDTO) |
+| CmpSocialModel | portal_cmp_socials | 3 | UNKNOWN(Company), EMBEDDED(SocialLinksDTO) |
+| CompanyModel | portal_companies | 33 |  |
+| StandaloneFileModel | standalone_files | 12 | UNKNOWN(Owner), UNKNOWN(Parent) |
+| EAffiliateCommissions | edu_affiliate_commissions | 7 | UNKNOWN(Affiliate), UNKNOWN(Transaction), UNKNOWN(Course) |
+| EAffiliateLinks | edu_affiliate_links | 6 | UNKNOWN(Affiliate), UNKNOWN(Course) |
+| EAffiliates | edu_affiliates | 8 | UNKNOWN(User), EMBEDDED(EAffiliateStatus) |
+| EAiCredits | edu_ai_credits | 11 | UNKNOWN(User) |
+| EAiUsage | edu_ai_usage | 9 | UNKNOWN(User), UNKNOWN(Course), EMBEDDED(EAIUsageType) |
+| EAnalyticsEvents | edu_analytics_events | 6 | EMBEDDED(EAnalyticsEvent), UNKNOWN(User), UNKNOWN(Course), EMBEDDED(Map<String, Object>) |
+| EApiKey | edu_api_keys | 11 | UNKNOWN(Owner) |
+| EAssignments | edu_assignments | 14 | UNKNOWN(Course), UNKNOWN(Section), UNKNOWN(Lesson) |
+| EAssignmentSubmissions | edu_assignment_submissions | 10 | UNKNOWN(User), UNKNOWN(Assignment), EMBEDDED(EGradingStatus) |
+| EAuditLog | edu_audit_log | 10 | UNKNOWN(Actor), UNKNOWN(Target) |
+| EBundles | edu_bundles | 9 | UNKNOWN(Creator) |
+| ECertificates | edu_certificates | 12 | UNKNOWN(Course), UNKNOWN(User), UNKNOWN(Creator), UNKNOWN(Certificate), UNKNOWN(Template) |
+| ECouponRedemption | edu_coupon_redemptions | 5 | UNKNOWN(Coupon), UNKNOWN(User), UNKNOWN(Transaction) |
+| ECoupons | edu_coupons | 10 | UNKNOWN(Creator) |
+| ECourses | edu_courses | 44 | UNKNOWN(Workspace), UNKNOWN(Creator), EMBEDDED(ECourseType), EMBEDDED(ECourseContentType), EMBEDDED(ECourseLevel), EMBEDDED(ECourseStatus), EMBEDDED(ECourseValidationStatus) |
+| ECourseSections | edu_course_sections | 10 | UNKNOWN(Course), EMBEDDED(ELessons) |
+| ECreatorFinanceSettings | edu_creator_finance_settings | 26 | UNKNOWN(User), UNKNOWN(StripeAccount), EMBEDDED(PayoutMethod), EMBEDDED(TaxForm) |
+| ECreditLedger | edu_credit_ledger | 11 | UNKNOWN(User), EMBEDDED(ECreditLedgerActionType), UNKNOWN(Reference) |
+| EduCourseReviewLog | edu_course_review_logs | 6 | UNKNOWN(Course), UNKNOWN(Reviewer) |
+| EEnrollments | edu_enrollments | 34 | UNKNOWN(Course), UNKNOWN(User), UNKNOWN(Workspace), UNKNOWN(LastAccessedLesson), EMBEDDED(ECourses) |
+| EFraudFlag | edu_fraud_flags | 10 | UNKNOWN(TargetUser), UNKNOWN(Reviewer) |
+| EGifts | edu_gifts | 11 | UNKNOWN(Sender), UNKNOWN(Course), EMBEDDED(EGiftStatus) |
+| EHoldingLedger | edu_holding_ledger | 12 | UNKNOWN(Beneficiary), EMBEDDED(EBeneficiaryType), UNKNOWN(Transaction), UNKNOWN(Course), EMBEDDED(EHoldingStatus) |
+| ELearningPaths | edu_learning_paths | 7 | UNKNOWN(Workspace) |
+| ELedgerEntry | edu_ledger_entries | 12 | EMBEDDED(EventType), EMBEDDED(EntryType), EMBEDDED(AccountType), UNKNOWN(Account), UNKNOWN(Course), UNKNOWN(Bundle) |
+| ELessons | edu_lessons | 23 | UNKNOWN(Course), UNKNOWN(Section), EMBEDDED(ELessonType) |
+| ENotifications | edu_notifications | 16 | UNKNOWN(User), UNKNOWN(Workspace), EMBEDDED(ENotificationType), UNKNOWN(RelatedEntity) |
+| EPayouts | edu_payouts | 13 | UNKNOWN(Creator), EMBEDDED(EPayoutMethod), EMBEDDED(EPayoutStatus) |
+| EPayoutSchedule | edu_payout_schedules | 8 | UNKNOWN(Creator) |
+| EProfiles | edu_profiles | 19 | UNKNOWN(User), EMBEDDED(ESocialLinksDTO), EMBEDDED(EPrivacySettingsDTO), EMBEDDED(ENotificationSettingsDTO) |
+| EQuizAttempts | edu_quiz_attempts | 10 | UNKNOWN(User), UNKNOWN(Quiz), EMBEDDED(EGradingStatus) |
+| EQuizzes | edu_quizzes | 15 | UNKNOWN(Course), UNKNOWN(Section), UNKNOWN(Lesson), EMBEDDED(EQuizType), EMBEDDED(EQuestionDTO) |
+| ERefund | edu_refunds | 19 | UNKNOWN(Transaction), UNKNOWN(StripeCheckoutSession), UNKNOWN(StripeCharge), UNKNOWN(StripeRefund), UNKNOWN(Buyer), UNKNOWN(Seller), UNKNOWN(Course), EMBEDDED(RefundType), EMBEDDED(RefundStatus) |
+| EReports | edu_reports | 11 | UNKNOWN(Reporter), UNKNOWN(TargetEntity), EMBEDDED(EReportReason), EMBEDDED(EReportStatus) |
+| EReviews | edu_reviews | 14 | UNKNOWN(Course), UNKNOWN(User) |
+| ESubscriptions | edu_subscriptions | 25 | UNKNOWN(User), EMBEDDED(ESubscriptionPlan), EMBEDDED(ESubscriptionStatus), UNKNOWN(PaymentGateway), UNKNOWN(StripeCustomer), UNKNOWN(StripeSubscription), UNKNOWN(StripePrice) |
+| ESystemSettings | edu_system_settings | 5 | EMBEDDED(Map<String, Object>) |
+| ETransactions | edu_transactions | 33 | UNKNOWN(Course), UNKNOWN(Buyer), UNKNOWN(Seller), UNKNOWN(Affiliate), EMBEDDED(EPaymentMethod), EMBEDDED(EPaymentStatus), UNKNOWN(Transaction), UNKNOWN(StripeCheckoutSession), UNKNOWN(Bundle), UNKNOWN(Referrer) |
+| ETrustScores | edu_trust_scores | 20 | UNKNOWN(Creator) |
+| EUser | edu_user | 22 | UNKNOWN(SsoProvider), EMBEDDED(ESubscriptionPlan), EMBEDDED(ESubscriptionStatus) |
+| EUserPreferences | edu_user_preferences | 10 | UNKNOWN(User) |
+| EValidationReports | edu_validation_reports | 10 | UNKNOWN(Course), UNKNOWN(User), UNKNOWN(Reviewer), EMBEDDED(EValidationBreackdownDTO) |
+| EWallet | edu_wallets | 7 | UNKNOWN(User) |
+| EWalletTransaction | edu_wallet_transactions | 9 | UNKNOWN(User), EMBEDDED(TransactionType), EMBEDDED(TransactionStatus), UNKNOWN(Reference) |
+| EWebhookEvent | edu_webhook_events | 13 | EMBEDDED(Failed events are stored with), UNKNOWN(StripeEvent), EMBEDDED(EventStatus) |
+| EWorkspaceMembers | edu_workspace_members | 10 | UNKNOWN(Workspace), UNKNOWN(User), EMBEDDED(ERoles) |
+| EWorkspaces | edu_workspaces | 17 | UNKNOWN(Owner), EMBEDDED(EWorkspaceType), EMBEDDED(ESubscriptionPlan), EMBEDDED(EWSettingsDTO), EMBEDDED(EWProfileDTO) |
+| AnalyticsData | fin_analytics_data | 10 | UNKNOWN(Organization), UNKNOWN(Project), UNKNOWN(Scenario), EMBEDDED(Map<String, Object>) |
+| MetricDefinition | fin_metric_definitions | 7 | UNKNOWN(Organization) |
+| FinAiTrainingSnapshot | fin_ai_training_snapshots | 10 | UNKNOWN(Organization), UNKNOWN(Project), UNKNOWN(Scenario), UNKNOWN(User) |
+| FinAssumption | fin_assumptions | 9 | UNKNOWN(Organization), UNKNOWN(Project) |
+| FinAuditLog | fin_audit_logs | 11 | UNKNOWN(Organization), UNKNOWN(Project), UNKNOWN(User), UNKNOWN(Entity) |
+| FinBudget | fin_budgets | 9 | UNKNOWN(Organization), UNKNOWN(Project), EMBEDDED(Map<String, Double>) |
+| FinFinancialSnapshot | fin_financial_snapshots | 10 | UNKNOWN(Organization), UNKNOWN(Project), UNKNOWN(Scenario), EMBEDDED(Map<String, Double>) |
+| FinPricingModel | fin_pricing_models | 10 | UNKNOWN(Organization), UNKNOWN(Project) |
+| FinProject | fin_projects | 10 | UNKNOWN(Organization), UNKNOWN(Owner) |
+| FinProjectMember | fin_project_members | 5 | UNKNOWN(Project), UNKNOWN(User), EMBEDDED(ProjectRole) |
+| FinSalesPlan | fin_sales_plans | 8 | UNKNOWN(Organization), UNKNOWN(Project), EMBEDDED(Map<String, Integer>) |
+| FinScenario | fin_scenarios | 9 | UNKNOWN(Organization), UNKNOWN(Project), EMBEDDED(AssumptionOverride) |
+| FinWorkspace | fin_workspaces | 9 | UNKNOWN(Owner) |
+| Scenario | scenarios | 10 | UNKNOWN(Organization), UNKNOWN(Project), UNKNOWN(ParentScenario), UNKNOWN(BaseVersion) |
+| ScenarioOverride | fin_scenario_overrides | 9 | UNKNOWN(Scenario), EMBEDDED(OverrideOperation), UNKNOWN(Version) |
+| ApplicantModel | applicants | 14 | UNKNOWN(Job), UNKNOWN(Company), UNKNOWN(Candidate) |
+| JobPostModel | job_posts | 21 | UNKNOWN(Company) |
+| LAutomation | lead_automations | 12 | UNKNOWN(Workspace), UNKNOWN(ActionTemplate) |
+| LLeadAutomation | leads_automations | 13 | UNKNOWN(Workspace) |
+| LCampaign | leads_campaigns | 10 | UNKNOWN(Workspace), UNKNOWN(Source), EMBEDDED(Map<String, Integer>) |
+| LLead | leads_leads | 12 | UNKNOWN(Workspace), UNKNOWN(SourceSignal), EMBEDDED(LTimelineEvent) |
+| LLeadCandidate | leads_candidates | 12 | UNKNOWN(Workspace), UNKNOWN(Source), UNKNOWN(RawSignal) |
+| LLeadSource | leads_sources | 8 | UNKNOWN(Workspace), EMBEDDED(Map<String, Object>) |
+| LLeadWorkspace | leads_workspaces | 6 | UNKNOWN(Owner) |
+| LNotification | lead_notifications | 9 | UNKNOWN(Workspace), UNKNOWN(User) |
+| LRawSignal | leads_raw_signals | 13 | UNKNOWN(Source), UNKNOWN(Workspace), UNKNOWN(Platform), EMBEDDED(Map<String, Object>) |
+| LTask | lead_background_tasks | 11 | UNKNOWN(Workspace), UNKNOWN(User), EMBEDDED(Map<String, Object>) |
+| LTemplate | lead_templates | 9 | UNKNOWN(Workspace) |
+| AICacheEntry | lp_ai_cache | 6 |  |
+| UserCredits | lp_user_credits | 5 | UNKNOWN(User), EMBEDDED(SubscriptionTier) |
+| Goal | lp_goals | 11 | UNKNOWN(Goal), UNKNOWN(User), EMBEDDED(GoalType), EMBEDDED(GoalTimeline) |
+| JournalEntry | lp_journal_entries | 6 | UNKNOWN(User) |
+| MoodEntry | lp_mood_entries | 6 | UNKNOWN(User) |
+| WeeklyMoodSummary | lp_weekly_mood_summaries | 9 | UNKNOWN(User) |
+| LPNotification | lp_notifications | 7 | UNKNOWN(User) |
+| DailySchedule | lp_daily_schedules | 16 | UNKNOWN(Schedule), UNKNOWN(Plan), UNKNOWN(User), EMBEDDED(ScheduleTask), UNKNOWN(Task) |
+| StudyPlan | lp_study_plans | 10 | UNKNOWN(Plan), UNKNOWN(Goal), UNKNOWN(User), EMBEDDED(RoadmapItem), EMBEDDED(WeeklyPlan) |
+| User | lp_users | 6 |  |
+| UserPreferences | lp_preferences | 17 | UNKNOWN(User), EMBEDDED(Map<String, Object>) |
+| UserProfile | lp_profiles | 14 | UNKNOWN(User), EMBEDDED(Map<String, Object>) |
+| ChatRoom | chat_rooms | 9 | EMBEDDED(RoomType), UNKNOWN(Community) |
+| Message | messages | 19 | UNKNOWN(Room), UNKNOWN(Sender), EMBEDDED(MessageType), EMBEDDED(Map<String, LocalDateTime>), EMBEDDED(Map<String, Object>), UNKNOWN(ForwardedFrom), UNKNOWN(ReplyTo) |
+| UserPresence |  | 3 | UNKNOWN(User), EMBEDDED(PresenceStatus) |
+| BillingAddressModel | portal_billing_address | 7 | UNKNOWN(Company) |
+| BillingHistoryModel | portal_billing_history | 8 | UNKNOWN(Company), UNKNOWN(User), UNKNOWN(Session) |
+| InvoicesModel | portal_invoices | 13 | UNKNOWN(Company), UNKNOWN(Invoice), UNKNOWN(Subscription), UNKNOWN(Session) |
+| PaymentMethodsModel | portal_payment_methods | 8 | UNKNOWN(Company), UNKNOWN(User), UNKNOWN(Session) |
+| PaymentSubscriptionsModel | portal_subscriptions | 9 | UNKNOWN(Company), UNKNOWN(Subscription) |
+| PrePaymentModel | portal_pre_payment_data | 14 | UNKNOWN(Company), UNKNOWN(Subscription), UNKNOWN(PaymentMethod), UNKNOWN(BillingAddress), UNKNOWN(Invoice) |
+| RecordedCoursePayment | recorded_course_payments | 17 | UNKNOWN(Course), UNKNOWN(Learner), UNKNOWN(Trainer), UNKNOWN(Company), UNKNOWN(Transaction) |
+| UsageDataModel | portal_usage_data | 10 | UNKNOWN(Company) |
+| AmbassadorTaskProgressModel | ambassador_task_progress | 12 | UNKNOWN(Ambassador), UNKNOWN(Task) |
+| BadgeDefinition |  | 8 |  |
+| CourseCertificateModel | course_certificates | 11 | UNKNOWN(Employee), UNKNOWN(Course), UNKNOWN(Certificate) |
+| CourseCouponsModel | course_coupons | 33 | UNKNOWN(StripeCoupon), UNKNOWN(User), EMBEDDED(public,), EMBEDDED(private String), EMBEDDED(Null or), UNKNOWN(RedeemedForCourse), UNKNOWN(RedeemedForInstallment), UNKNOWN(Task), UNKNOWN(Campaign) |
+| CourseReminderLog | course_reminder_logs | 6 | UNKNOWN(Employee), UNKNOWN(Module), UNKNOWN(Course) |
+| EmpCoursesModel | portal_emp_courses | 8 | UNKNOWN(Employee), EMBEDDED(CourseEnrollment), EMBEDDED(RecordedCourseEnrollment) |
+| GamificationTaskModel | gamification_tasks | 17 | EMBEDDED(BRONZE, GOLD, PLATINUM, or), UNKNOWN(Reward), EMBEDDED(Map<String, Object>), EMBEDDED(lowest,) |
+| QuizAttempt | quiz_attempts | 11 | UNKNOWN(Employee), UNKNOWN(Course), UNKNOWN(Module), UNKNOWN(Quiz), EMBEDDED(QuestionAnswer) |
+| SwagItem |  | 8 |  |
 | InterviewQuestionModel | portal_interviewQuestion | 15 | EMBEDDED(Question), EMBEDDED(Answer) |
-| JobApplyModel | portal_job_applicants | 3 | UNKNOWN(company), UNKNOWN(job) |
+| JobApplyModel | portal_job_applicants | 5 | UNKNOWN(Company), UNKNOWN(Job), EMBEDDED(JobApplicantDTO), EMBEDDED(JobViewerDTO) |
 | PreOrderModel | portal_preorder | 5 |  |
-| Referral | referrals | 8 | UNKNOWN(referrer), UNKNOWN(referredUser), EMBEDDED(ReferralType), EMBEDDED(ReferralStatus), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ReferralCode | referral_codes | 4 | UNKNOWN(user), EMBEDDED(Instant) |
-| ReferralCommission | referral_commissions | 6 | UNKNOWN(referrer), UNKNOWN(referredCreator), EMBEDDED(Instant), EMBEDDED(Instant) |
-| ReputationEvent | reputation_events | 6 | UNKNOWN(user), EMBEDDED(ReputationSourceType), UNKNOWN(source) |
-| UserBadge | user_badges | 4 | UNKNOWN(user), EMBEDDED(BadgeType) |
-| UserReputation | user_reputation | 7 | UNKNOWN(user) |
-| ResumeModel | resumes | 72 | UNKNOWN(employee), UNKNOWN(template), EMBEDDED(PersonalInfo), EMBEDDED(WorkExperience), EMBEDDED(Education), EMBEDDED(Skill), EMBEDDED(Project), EMBEDDED(Certificate), EMBEDDED(CustomSection), EMBEDDED(ResumeSettings), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(CustomSectionItem) |
-| SoftwareAppModel | portal_software_apps | 17 | EMBEDDED(Instant), EMBEDDED(Instant), UNKNOWN(company) |
+| Referral | referrals | 8 | UNKNOWN(Referrer), UNKNOWN(ReferredUser), EMBEDDED(ReferralType), EMBEDDED(ReferralStatus) |
+| ReferralCode | referral_codes | 4 | UNKNOWN(User) |
+| ReferralCommission | referral_commissions | 6 | UNKNOWN(Referrer), UNKNOWN(ReferredCreator) |
+| ReputationEvent | reputation_events | 6 | UNKNOWN(User), EMBEDDED(ReputationSourceType), UNKNOWN(Source) |
+| UserBadge | user_badges | 4 | UNKNOWN(User), EMBEDDED(BadgeType) |
+| UserReputation | user_reputation | 7 | UNKNOWN(User) |
+| ResumeModel | resumes | 72 | UNKNOWN(Employee), UNKNOWN(Template), EMBEDDED(PersonalInfo), EMBEDDED(WorkExperience), EMBEDDED(Education), EMBEDDED(Skill), EMBEDDED(Project), EMBEDDED(Certificate), EMBEDDED(CustomSection), EMBEDDED(ResumeSettings), EMBEDDED(CustomSectionItem) |
+| SoftwareAppModel | portal_software_apps | 17 | UNKNOWN(Company) |
 | FeatureFlag | feature_flags | 4 | EMBEDDED(ESubscriptionPlan) |
-| Subscription | subscriptions | 16 | UNKNOWN(user), EMBEDDED(ESubscriptionPlan), EMBEDDED(ESubscriptionStatus), EMBEDDED(Instant), EMBEDDED(Instant), UNKNOWN(stripeCustomer), UNKNOWN(stripeSubscription), UNKNOWN(stripePrice), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant), EMBEDDED(Instant) |
-| SupportRequestModel | support_requests | 7 | EMBEDDED(Instant) |
-| TrackingEvent | events | 79 | UNKNOWN(tracking), UNKNOWN(session), UNKNOWN(user), EMBEDDED(Instant), UNKNOWN(element), UNKNOWN(experiment), UNKNOWN(funnel), UNKNOWN(form), EMBEDDED(Instant) |
-| EmpCertificatesModel | portal_emp_certificates | 3 | UNKNOWN(employee), EMBEDDED(EmpCertificatesDTO) |
-| EmpContactModel | portal_emp_contact | 5 | UNKNOWN(employee), EMBEDDED(EmpContactDTO), EMBEDDED(SocialLinksDTO) |
-| EmpEducationModel | portal_emp_education | 3 | UNKNOWN(employee), EMBEDDED(EmpEducationDTO) |
-| EmpExperiencesModel | portal_emp_experiences | 3 | UNKNOWN(employee), EMBEDDED(EmpExperiencesDTO) |
-| EmpFollowersModel | portal_emp_followers | 3 | UNKNOWN(employee), EMBEDDED(EmpFollowersDTO) |
-| EmpFollowingModel | portal_emp_following | 3 | UNKNOWN(employee), EMBEDDED(EmpFollowingDTO) |
-| EmployeeModel | portal_employees | 30 | EMBEDDED(FavJobDTO), UNKNOWN(company) |
-| EmpProjectsModel | portal_emp_projects | 3 | UNKNOWN(employee), EMBEDDED(EmpProjectsDTO) |
-| EmpSkillsModel | portal_emp_skills | 3 | UNKNOWN(employee), EMBEDDED(EmpSkillsDTO) |
-| TrainerProfile | trainer_profiles | 15 | UNKNOWN(employee) |
-| WorkspaceModel | workspaces | 8 | UNKNOWN(owner) |
-| UserActivity | portal_user_activity | 12 | UNKNOWN(user), EMBEDDED(Instant) |
+| Subscription | subscriptions | 18 | UNKNOWN(User), EMBEDDED(ESubscriptionPlan), EMBEDDED(ESubscriptionStatus), UNKNOWN(StripeCustomer), UNKNOWN(StripeSubscription), UNKNOWN(StripePrice) |
+| SupportRequestModel | support_requests | 7 |  |
+| TrackingEvent | events | 80 | UNKNOWN(Tracking), UNKNOWN(Session), UNKNOWN(User), UNKNOWN(Element), EMBEDDED(0), UNKNOWN(Experiment), UNKNOWN(Funnel), UNKNOWN(Form), EMBEDDED(Map<String, Object>) |
+| EmpCertificatesModel | portal_emp_certificates | 3 | UNKNOWN(Employee), EMBEDDED(EmpCertificatesDTO) |
+| EmpContactModel | portal_emp_contact | 5 | UNKNOWN(Employee), EMBEDDED(EmpContactDTO), EMBEDDED(SocialLinksDTO) |
+| EmpEducationModel | portal_emp_education | 3 | UNKNOWN(Employee), EMBEDDED(EmpEducationDTO) |
+| EmpExperiencesModel | portal_emp_experiences | 3 | UNKNOWN(Employee), EMBEDDED(EmpExperiencesDTO) |
+| EmpFollowersModel | portal_emp_followers | 3 | UNKNOWN(Employee), EMBEDDED(EmpFollowersDTO) |
+| EmpFollowingModel | portal_emp_following | 3 | UNKNOWN(Employee), EMBEDDED(EmpFollowingDTO) |
+| EmployeeModel | portal_employees | 31 | EMBEDDED(FavJobDTO), EMBEDDED(PlatformRole), UNKNOWN(Company) |
+| EmpProjectsModel | portal_emp_projects | 3 | UNKNOWN(Employee), EMBEDDED(EmpProjectsDTO) |
+| EmpSkillsModel | portal_emp_skills | 3 | UNKNOWN(Employee), EMBEDDED(EmpSkillsDTO) |
+| TrainerProfile | trainer_profiles | 16 | UNKNOWN(Employee) |
+| WorkspaceModel | workspaces | 8 | UNKNOWN(Owner) |
+| UserActivity | portal_user_activity | 12 | UNKNOWN(User) |
 | WhitelistDomains | portal_whitelist_domains | 4 |  |
-| ContactSubmission | contact_form_submissions | 5 |  |
-| CtaLeadSubmission | cta_lead_submissions | 7 |  |
+| ContactSubmission | contact_form_submissions | 6 |  |
+| CtaLeadSubmission | cta_lead_submissions | 8 |  |
 | NewsLatterModel | portal_news_letter | 2 |  |
 | TokenModel | portal_tokens | 5 |  |
 
@@ -194,8 +194,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| userId | String | Indexed(unique = true)
+    private |
 | monthlyLimit | Integer |  |
 | used | Integer |  |
 | resetDate | Instant |  |
@@ -205,18 +207,22 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
 | type | AIUsageType |  |
 | creditsUsed | Integer |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### CreditRecord
 **Collection:** course_ai_credit_record
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | creditsRemaining | int |  |
 | lastReset | LocalDate |  |
 
@@ -225,7 +231,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | type | String |  |
 | ambassadorId | String |  |
 | name | String |  |
@@ -234,14 +241,16 @@
 | score | int |  |
 | rank | int |  |
 | generatedAt | Instant |  |
-| expireAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s") |
+| expireAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private |
 
 ### AmbassadorPointAudit
 **Collection:** ambassador_point_audit
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | ambassadorId | String |  |
 | reason | String |  |
 | points | int |  |
@@ -253,7 +262,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | firstName | String |  |
 | lastName | String |  |
 | name | String |  |
@@ -264,7 +274,8 @@
 | appliedAt | Instant |  |
 | lifecycle | AmbassadorLifecycle |  |
 | applicationStatus | String |  |
-| employeeId | String | Indexed(unique = true, sparse = true) |
+| employeeId | String | Indexed(unique = true, sparse = true)
+    private |
 | level | String |  |
 | totalReferrals | int |  |
 | coursePurchasesByReferrals | int |  |
@@ -279,7 +290,10 @@
 | interviewNote | String |  |
 | badgeHistory | List<String> |  |
 | perks | Map<String, Object> |  |
+| points | int |  |
 | lastPointEarnedAt | Instant |  |
+| totalLogins | int |  |
+| consecutiveLoginDays | int |  |
 | lastLoginDate | Instant |  |
 
 ### AmbassadorRewardModel
@@ -287,7 +301,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | ambassadorId | String |  |
 | taskId | String |  |
 | rewardType | String |  |
@@ -300,8 +315,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| ambassadorId | String | Indexed |
+| id | String | Id
+    private |
+| ambassadorId | String | Indexed
+    private |
 | type | String |  |
 | topic | String |  |
 | sessionLink | String |  |
@@ -314,9 +331,12 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| referralCode | String | Indexed |
-| ambassadorId | String | Indexed |
+| id | String | Id
+    private |
+| referralCode | String | Indexed
+    private |
+| ambassadorId | String | Indexed
+    private |
 | referredUserId | String |  |
 | referredAt | Instant |  |
 | courseId | String |  |
@@ -329,7 +349,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | ambassadorId | String |  |
 | taskId | String |  |
 | badgeId | String |  |
@@ -342,7 +363,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | ambassadorId | String |  |
 | taskId | String |  |
 | swagType | String |  |
@@ -358,9 +380,11 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | title | String |  |
-| slug | String | Indexed(unique = true) |
+| slug | String | Indexed(unique = true)
+    private |
 | summary | String |  |
 | content | String |  |
 | coverImage | String |  |
@@ -385,16 +409,23 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| title | String | TextIndexed |
-| slug | String | Indexed(unique = true) |
-| content | String | TextIndexed |
-| excerpt | String | TextIndexed |
+| id | String | Id
+    private |
+| title | String | TextIndexed
+    private |
+| slug | String | Indexed(unique = true)
+    private |
+| content | String | TextIndexed
+    private |
+| excerpt | String | TextIndexed
+    private |
 | authorId | String |  |
 | coverImage | String |  |
 | tagIds | List<String> |  |
 | status | ArticleStatus |  |
 | readTime | int |  |
+| views | long |  |
+| likes | long |  |
 | featured | boolean |  |
 | createdAt | LocalDateTime |  |
 | updatedAt | LocalDateTime |  |
@@ -411,7 +442,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | articleId | String |  |
 | validationVersion | String |  |
 | aiProvider | String |  |
@@ -426,16 +458,20 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| name | String | Indexed(unique = true) |
-| slug | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| name | String | Indexed(unique = true)
+    private |
+| slug | String | Indexed(unique = true)
+    private |
 
 ### AsyncUpdateAuditLog
 **Collection:** async_update_audit_log
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | courseId | String |  |
 | batchId | String |  |
 | employeeId | String |  |
@@ -445,28 +481,32 @@
 | errorMessage | String |  |
 | createdAt | LocalDateTime |  |
 | updatedAt | LocalDateTime |  |
-| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s") |
+| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private |
 
 ### ClientActAuditLog
 **Collection:** client_act_audit_log
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| userId | String | Id |
+| userId | String | Id
+    private |
 | ipAddress | String |  |
 | sessionId | String |  |
 | action | String |  |
 | source | String |  |
 | details | Map<String, Object> |  |
 | timestamp | LocalDateTime |  |
-| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s") |
+| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private |
 
 ### CourseReminderAuditLog
 **Collection:** course_reminder_audit_logs
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
 | employeeName | String |  |
 | email | String |  |
@@ -480,14 +520,16 @@
 | scheduledStartTime | String |  |
 | message | String |  |
 | timestamp | Instant |  |
-| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s") |
+| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private |
 
 ### LeadOSAuditLog
 **Collection:** leados_audit_logs
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | workspaceId | String |  |
 | userId | String |  |
 | action | String |  |
@@ -495,25 +537,29 @@
 | entityType | String |  |
 | details | Map<String, Object> |  |
 | ipAddress | String |  |
+| timestamp | LocalDateTime |  |
 
 ### SchedulerLogModel
 **Collection:** 
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | jobName | String |  |
 | runAt | Instant |  |
 | status | String |  |
 | message | String |  |
-| expireAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s") |
+| expireAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private |
 
 ### StripeAuditLog
 **Collection:** stripe_audit_logs
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | eventId | String |  |
 | eventType | String |  |
 | sessionId | String |  |
@@ -522,15 +568,21 @@
 | paymentIntentId | String |  |
 | status | String |  |
 | errorMessage | String |  |
-| rawPayload | String | Lob |
-| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s") |
+| rawPayload | String | Lob
+    private |
+| retryCount | int |  |
+| createdAt | Date |  |
+| updatedAt | Date |  |
+| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private |
 
 ### TaskRewardAuditModel
 **Collection:** 
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | ambassadorId | String |  |
 | taskId | String |  |
 | rewardType | String |  |
@@ -539,14 +591,16 @@
 | status | String |  |
 | note | String |  |
 | issuedAt | Instant |  |
-| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s") |
+| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private |
 
 ### CredentialsModel
 **Collection:** portal_credentials
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
 | companyId | String |  |
 | firstname | String |  |
@@ -574,7 +628,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | token | String |  |
 | userId | String |  |
 | expirationDate | LocalDateTime |  |
@@ -584,7 +639,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | description | String |  |
 | category | String |  |
@@ -596,8 +652,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| name | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| name | String | Indexed(unique = true)
+    private |
 | permissions | List<String> |  |
 | inheritsFrom | List<String> |  |
 | description | String |  |
@@ -607,7 +665,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | featureType | String |  |
 | description | String |  |
 | attachment | String |  |
@@ -617,7 +676,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | issueType | String |  |
 | description | String |  |
 | attachment | String |  |
@@ -627,17 +687,20 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | userId | String |  |
 | loginDates | List<String> |  |
 | metaData | List<LoginMetaDTO> |  |
+| events | List<LoginEventDTO> |  |
 
 ### SystemNotificationsModel
 **Collection:** portal_systemNotifications
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | message | String |  |
 | startTime | Date |  |
 | endTime | Date |  |
@@ -649,7 +712,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | userId | String |  |
 | action | String |  |
 | targetId | String |  |
@@ -660,7 +724,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | postId | String |  |
 | parentId | String |  |
 | authorId | String |  |
@@ -678,7 +743,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | description | String |  |
 | icon | String |  |
@@ -699,7 +765,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | communityId | String |  |
 | userId | String |  |
 | role | MemberRole |  |
@@ -713,7 +780,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | recipientId | String |  |
 | senderId | String |  |
 | type | NotificationType |  |
@@ -726,7 +794,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | authorId | String |  |
 | communityId | String |  |
 | mentionIds | List<String> |  |
@@ -737,6 +806,7 @@
 | reactions | List<Reaction> |  |
 | timestamp | LocalDateTime |  |
 | updatedAt | LocalDateTime |  |
+| trendingScore | double |  |
 | title | String |  |
 | text | String |  |
 | url | String |  |
@@ -760,7 +830,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | reporterId | String |  |
 | targetId | String |  |
 | targetType | ReportTargetType |  |
@@ -773,7 +844,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | courseId | String |  |
 | batchName | String |  |
 | startDate | String |  |
@@ -805,7 +877,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
 | trainerId | String |  |
 | name | String |  |
@@ -817,9 +890,11 @@
 | currency | String |  |
 | price | String |  |
 | onetimePayment | boolean |  |
-| installment | List<InstallmentDTO> | Field("installment") |
+| installment | List<InstallmentDTO> | Field("installment")
+    private |
 | duration | String |  |
-| modules | List<ModuleDTO> | Field("modules") |
+| modules | List<ModuleDTO> | Field("modules")
+    private |
 | rating | String |  |
 | language | String |  |
 | lecturer | String |  |
@@ -838,25 +913,31 @@
 | courseStatus | String |  |
 | paymentMethod | String |  |
 | publicity | boolean |  |
-| materials | List<MaterialsDTO> | Field("materials") |
-| quizzes | List<QuizDTO> | Field("quizzes") |
-| notifiers | List<CourseMissedNotify> | Field("notifiers") |
+| materials | List<MaterialsDTO> | Field("materials")
+    private |
+| quizzes | List<QuizDTO> | Field("quizzes")
+    private |
+| notifiers | List<CourseMissedNotify> | Field("notifiers")
+    private |
 
 ### RecordedCourseModel
 **Collection:** recorded_courses
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | title | String |  |
 | subtitle | String |  |
 | description | String |  |
+| courseType | String |  |
 | price | BigDecimal |  |
 | published | boolean |  |
 | approved | boolean |  |
 | createdAt | String |  |
 | updatedAt | String |  |
-| modules | List<RecModuleDTO> | Field("modules") |
+| modules | List<RecModuleDTO> | Field("modules")
+    private |
 | image | String |  |
 | skills | List<String> |  |
 | requirements | List<String> |  |
@@ -864,9 +945,14 @@
 | lecturer | String |  |
 | lecturerNameTag | String |  |
 | lecturerEmail | String |  |
+| language | String |  |
 | category | String |  |
-| reviews | List<RecordedCourseReviewDTO> | Field("reviews") |
+| reviews | List<RecordedCourseReviewDTO> | Field("reviews")
+    private |
+| rating | double |  |
+| reviewCount | int |  |
 | certificate | boolean |  |
+| currency | String |  |
 | companyId | String |  |
 | trainerId | String |  |
 | trainerShare | BigDecimal |  |
@@ -878,7 +964,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | email | String |  |
 | address | String |  |
@@ -890,7 +977,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | trainerName | String |  |
 | trainerEmail | String |  |
 | trainerPhone | String |  |
@@ -908,28 +996,33 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
 | companyName | String |  |
 | companyLogo | String |  |
 | companyLevel | String |  |
-| postedJobs | List<PostedJobsDTO> | Field("postedJobs") |
+| postedJobs | List<PostedJobsDTO> | Field("postedJobs")
+    private |
 
 ### CmpSocialModel
 **Collection:** portal_cmp_socials
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
-| socialLinks | List<SocialLinksDTO> | Field("socialLinks") |
+| socialLinks | List<SocialLinksDTO> | Field("socialLinks")
+    private |
 
 ### CompanyModel
 **Collection:** portal_companies
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | shortDescription | String |  |
 | companyStory | String |  |
@@ -961,13 +1054,15 @@
 | subscription_id | String |  |
 | payment_method_id | String |  |
 | billing_address_id | String |  |
+| systemOwner | boolean |  |
 
 ### StandaloneFileModel
 **Collection:** standalone_files
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | contentType | String |  |
 | size | long |  |
@@ -985,80 +1080,111 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| affiliateId | String | Indexed |
-| transactionId | String | Indexed |
+| id | String | Id
+    private |
+| affiliateId | String | Indexed
+    private |
+| transactionId | String | Indexed
+    private |
 | courseId | String |  |
 | amount | Double |  |
 | currency | String |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### EAffiliateLinks
 **Collection:** edu_affiliate_links
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| affiliateId | String | Indexed |
-| courseId | String | Indexed |
-| trackingCode | String | Indexed(unique = true) |
-| createdAt | Instant | CreatedDate |
+| id | String | Id
+    private |
+| affiliateId | String | Indexed
+    private |
+| courseId | String | Indexed
+    private |
+| trackingCode | String | Indexed(unique = true)
+    private |
+| clicks | Long |  |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### EAffiliates
 **Collection:** edu_affiliates
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed(unique = true) |
-| referralCode | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| userId | String | Indexed(unique = true)
+    private |
+| referralCode | String | Indexed(unique = true)
+    private |
 | commissionRate | Double |  |
 | totalEarnings | Double |  |
-| status | EAffiliateStatus | Indexed |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| status | EAffiliateStatus | Indexed
+    private |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### EAiCredits
 **Collection:** edu_ai_credits
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| userId | String | Indexed(unique = true)
+    private |
 | balance | Integer |  |
 | monthlyLimit | Integer |  |
 | lifetimePurchased | Integer |  |
 | lifetimeUsed | Integer |  |
-| expiresAt | Instant | Indexed |
-| lastResetDate | Instant | Indexed |
-| version | Long | Version |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| expiresAt | Instant | Indexed
+    private |
+| lastResetDate | Instant | Indexed
+    private |
+| version | Long | Version
+    private |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### EAiUsage
 **Collection:** edu_ai_usage
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
-| courseId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
+| courseId | String | Indexed
+    private |
 | prompt | String |  |
 | response | String |  |
 | type | EAIUsageType |  |
 | usedCredits | Integer |  |
 | createdBy | String |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### EAnalyticsEvents
 **Collection:** edu_analytics_events
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| type | EAnalyticsEvent | Indexed |
-| userId | String | Indexed |
-| courseId | String | Indexed |
+| id | String | Id
+    private |
+| type | EAnalyticsEvent | Indexed
+    private |
+| userId | String | Indexed
+    private |
+| courseId | String | Indexed
+    private |
 | metadata | Map<String, Object> |  |
 | timestamp | Instant |  |
 
@@ -1067,10 +1193,13 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| apiKey | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| apiKey | String | Indexed(unique = true)
+    private |
 | apiKeyHint | String |  |
-| ownerId | String | Indexed |
+| ownerId | String | Indexed
+    private |
 | name | String |  |
 | isActive | boolean |  |
 | allowedIps | List<String> |  |
@@ -1084,10 +1213,14 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| courseId | String | Indexed |
-| sectionId | String | Indexed |
-| lessonId | String | Indexed |
+| id | String | Id
+    private |
+| courseId | String | Indexed
+    private |
+| sectionId | String | Indexed
+    private |
+| lessonId | String | Indexed
+    private |
 | title | String |  |
 | description | String |  |
 | instructions | String |  |
@@ -1096,128 +1229,173 @@
 | dueDate | Instant |  |
 | isPublished | Boolean |  |
 | createdBy | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### EAssignmentSubmissions
 **Collection:** edu_assignment_submissions
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
-| assignmentId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
+| assignmentId | String | Indexed
+    private |
 | content | String |  |
 | status | EGradingStatus |  |
 | score | Double |  |
 | feedback | String |  |
 | gradedBy | String |  |
 | gradedAt | Instant |  |
-| submittedAt | Instant | CreatedDate |
+| submittedAt | Instant | CreatedDate
+    private |
 
 ### EAuditLog
 **Collection:** edu_audit_log
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| actorId | String | Indexed |
-| action | String | Indexed |
+| id | String | Id
+    private |
+| actorId | String | Indexed
+    private |
+| action | String | Indexed
+    private |
 | targetId | String |  |
 | targetType | String |  |
 | previousState | String |  |
 | newState | String |  |
 | ipAddress | String |  |
 | userAgent | String |  |
-| createdAt | Instant | Indexed |
+| createdAt | Instant | Indexed
+    private |
 
 ### EBundles
 **Collection:** edu_bundles
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| creatorId | String | Indexed |
+| id | String | Id
+    private |
+| creatorId | String | Indexed
+    private |
 | name | String |  |
 | bundlePrice | Double |  |
 | originalTotalPrice | Double |  |
 | savingsPercent | Double |  |
-| createdAt | Instant | CreatedDate |
+| status | String |  |
+| totalSales | Integer |  |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### ECertificates
 **Collection:** edu_certificates
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| courseId | String | Indexed |
-| userId | String | Indexed |
-| creatorId | String | Indexed |
+| id | String | Id
+    private |
+| courseId | String | Indexed
+    private |
+| userId | String | Indexed
+    private |
+| creatorId | String | Indexed
+    private |
 | courseName | String |  |
 | recipientName | String |  |
-| certificateId | String | Indexed(unique = true) |
+| certificateId | String | Indexed(unique = true)
+    private |
 | url | String |  |
 | templateId | String |  |
+| isVerified | Boolean |  |
 | shareableLink | String |  |
-| issuedAt | Instant | CreatedDate |
+| issuedAt | Instant | CreatedDate
+    private |
 
 ### ECouponRedemption
 **Collection:** edu_coupon_redemptions
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| couponId | String | Indexed |
-| userId | String | Indexed |
+| id | String | Id
+    private |
+| couponId | String | Indexed
+    private |
+| userId | String | Indexed
+    private |
 | transactionId | String |  |
-| redeemedAt | Instant | CreatedDate |
+| redeemedAt | Instant | CreatedDate
+    private |
 
 ### ECoupons
 **Collection:** edu_coupons
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| creatorId | String | Indexed |
-| code | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| creatorId | String | Indexed
+    private |
+| code | String | Indexed(unique = true)
+    private |
 | discountType | String |  |
 | discountValue | Double |  |
 | maxRedemptions | Integer |  |
+| currentRedemptions | Integer |  |
+| isActive | Boolean |  |
 | expiresAt | Instant |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### ECourses
 **Collection:** edu_courses
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| workspaceId | String | Indexed |
-| creatorId | String | Indexed |
-| title | String | TextIndexed |
-| description | String | TextIndexed |
+| id | String | Id
+    private |
+| workspaceId | String | Indexed
+    private |
+| creatorId | String | Indexed
+    private |
+| title | String | TextIndexed
+    private |
+| description | String | TextIndexed
+    private |
 | shortDescription | String |  |
 | thumbnail | String |  |
 | previewVideoUrl | String |  |
-| type | ECourseType | Indexed |
-| contentType | ECourseContentType | Indexed |
+| type | ECourseType | Indexed
+    private |
+| contentType | ECourseContentType | Indexed
+    private |
 | price | Double |  |
 | compareAtPrice | Double |  |
 | currency | String |  |
 | published | Boolean |  |
 | isPrivate | Boolean |  |
-| level | ECourseLevel | Indexed |
+| level | ECourseLevel | Indexed
+    private |
 | language | String |  |
-| slug | String | Indexed(unique = true) |
-| rating | Double | Indexed |
-| totalEnrollments | Integer | Indexed |
+| slug | String | Indexed(unique = true)
+    private |
+| rating | Double | Indexed
+    private |
+| totalEnrollments | Integer | Indexed
+    private |
 | totalReviews | Integer |  |
 | totalHours | Integer |  |
 | totalLessons | Integer |  |
 | isFeatured | Boolean |  |
 | isTrending | Boolean |  |
-| searchRank | Integer | Indexed |
-| status | ECourseStatus | Indexed |
+| searchRank | Integer | Indexed
+    private |
+| status | ECourseStatus | Indexed
+    private |
 | aiGenerated | Boolean |  |
 | validationStatus | ECourseValidationStatus |  |
 | aiScore | Double |  |
@@ -1226,46 +1404,61 @@
 | validationFindings | String |  |
 | talnovaVerified | Boolean |  |
 | moderationRejectionReason | String |  |
-| trustDisclaimer | String | Transient |
-| creatorTier | String | Transient |
-| trustWarning | String | Transient |
-| instructorName | String | Transient |
+| trustDisclaimer | String | Transient
+    private |
+| creatorTier | String | Transient
+    private |
+| trustWarning | String | Transient
+    private |
+| instructorName | String | Transient
+    private |
 | publishedAt | Instant |  |
 | createdBy | String |  |
 | updatedBy | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### ECourseSections
 **Collection:** edu_course_sections
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| courseId | String | Indexed |
+| id | String | Id
+    private |
+| courseId | String | Indexed
+    private |
 | order | Integer |  |
 | title | String |  |
 | description | String |  |
-| lessonDetails | List<ELessons> | Transient |
+| lessonDetails | List<ELessons> | Transient
+    private |
 | createdBy | String |  |
 | updatedBy | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### ECreatorFinanceSettings
 **Collection:** edu_creator_finance_settings
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| userId | String | Indexed(unique = true)
+    private |
 | stripeAccountId | String |  |
 | payoutMethods | List<PayoutMethod> |  |
 | taxVerificationStatus | String |  |
 | profileVerificationStatus | String |  |
 | taxForms | List<TaxForm> |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 | id | String |  |
 | type | String |  |
 | identifier | String |  |
@@ -1289,8 +1482,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
 | actionType | ECreditLedgerActionType |  |
 | amount | Integer |  |
 | balanceBefore | Integer |  |
@@ -1299,39 +1494,67 @@
 | metadata | String |  |
 | referenceId | String |  |
 | referenceType | String |  |
-| createdAt | Instant | Indexed |
+| createdAt | Instant | Indexed
+    private |
 
 ### EduCourseReviewLog
 **Collection:** edu_course_review_logs
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| courseId | String | Indexed |
-| reviewerId | String | Indexed |
+| id | String | Id
+    private |
+| courseId | String | Indexed
+    private |
+| reviewerId | String | Indexed
+    private |
 | action | String |  |
 | reason | String |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### EEnrollments
 **Collection:** edu_enrollments
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| courseId | String | Indexed |
-| userId | String | Indexed |
-| workspaceId | String | Indexed |
+| id | String | Id
+    private |
+| courseId | String | Indexed
+    private |
+| userId | String | Indexed
+    private |
+| workspaceId | String | Indexed
+    private |
+| progress | Integer |  |
+| completedLessons | Integer |  |
+| totalLessons | Integer |  |
+| completedSections | Integer |  |
+| totalSections | Integer |  |
+| completedQuizzes | Integer |  |
+| totalQuizzes | Integer |  |
+| completedAssignments | Integer |  |
+| totalAssignments | Integer |  |
+| completedProjects | Integer |  |
+| totalProjects | Integer |  |
+| completed | Boolean |  |
 | lastAccessedLessonId | String |  |
 | lastAccessedAt | Instant |  |
+| totalWatchTime | Long |  |
 | completedAt | Instant |  |
-| enrolledAt | Instant | Indexed |
+| enrolledAt | Instant | Indexed
+    private |
+| currentStreak | Integer |  |
+| longestStreak | Integer |  |
 | lastStreakDate | Instant |  |
-| source | String | Indexed |
+| source | String | Indexed
+    private |
 | createdBy | String |  |
 | updatedBy | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 | course | ECourses |  |
 | name | String |  |
 | email | String |  |
@@ -1343,15 +1566,19 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| targetUserId | String | Indexed |
+| id | String | Id
+    private |
+| targetUserId | String | Indexed
+    private |
 | flagType | String |  |
 | severity | String |  |
 | evidenceBlob | String |  |
-| status | String | Indexed |
+| status | String | Indexed
+    private |
 | reviewerId | String |  |
 | resolutionNotes | String |  |
-| createdAt | Instant | Indexed |
+| createdAt | Instant | Indexed
+    private |
 | resolvedAt | Instant |  |
 
 ### EGifts
@@ -1359,83 +1586,118 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| senderId | String | Indexed |
-| recipientEmail | String | Indexed |
-| courseId | String | Indexed |
-| redeemCode | String | Indexed(unique = true) |
-| status | EGiftStatus | Indexed |
+| id | String | Id
+    private |
+| senderId | String | Indexed
+    private |
+| recipientEmail | String | Indexed
+    private |
+| courseId | String | Indexed
+    private |
+| redeemCode | String | Indexed(unique = true)
+    private |
+| status | EGiftStatus | Indexed
+    private |
 | personalMessage | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 | redeemedAt | Instant |  |
-| expiresAt | Instant | Indexed(name = "gifts_expireAt_idx", expireAfter = "0s") |
+| expiresAt | Instant | Indexed(name = "gifts_expireAt_idx", expireAfter = "0s")
+    private |
 
 ### EHoldingLedger
 **Collection:** edu_holding_ledger
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| beneficiaryId | String | Indexed |
-| beneficiaryType | EBeneficiaryType | Indexed |
-| transactionId | String | Indexed |
+| id | String | Id
+    private |
+| beneficiaryId | String | Indexed
+    private |
+| beneficiaryType | EBeneficiaryType | Indexed
+    private |
+| transactionId | String | Indexed
+    private |
 | courseId | String |  |
 | amount | Double |  |
 | currency | String |  |
-| status | EHoldingStatus | Indexed |
-| clearanceDate | Instant | Indexed |
-| version | Long | Version |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| status | EHoldingStatus | Indexed
+    private |
+| clearanceDate | Instant | Indexed
+    private |
+| version | Long | Version
+    private |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### ELearningPaths
 **Collection:** edu_learning_paths
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| workspaceId | String | Indexed |
+| id | String | Id
+    private |
+| workspaceId | String | Indexed
+    private |
 | title | String |  |
 | description | String |  |
 | createdBy | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### ELedgerEntry
 **Collection:** edu_ledger_entries
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| eventReference | String | Indexed |
-| eventType | EventType | Indexed |
+| id | String | Id
+    private |
+| eventReference | String | Indexed
+    private |
+| eventType | EventType | Indexed
+    private |
 | entryType | EntryType |  |
-| accountType | AccountType | Indexed |
-| accountId | String | Indexed |
+| accountType | AccountType | Indexed
+    private |
+| accountId | String | Indexed
+    private |
 | amount | Double |  |
 | currency | String |  |
 | courseId | String |  |
 | bundleId | String |  |
 | description | String |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### ELessons
 **Collection:** edu_lessons
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| courseId | String | Indexed |
-| sectionId | String | Indexed |
+| id | String | Id
+    private |
+| courseId | String | Indexed
+    private |
+| sectionId | String | Indexed
+    private |
 | order | Integer |  |
 | title | String |  |
 | description | String |  |
 | contentUrl | String |  |
 | textContent | String |  |
 | markdownContent | String |  |
-| type | ELessonType | Indexed |
+| type | ELessonType | Indexed
+    private |
 | duration | Integer |  |
+| isFreePreview | Boolean |  |
+| isPublished | Boolean |  |
+| isDrmProtected | Boolean |  |
 | videoThumbnail | String |  |
 | plagiarismScore | Double |  |
 | aiScore | Double |  |
@@ -1443,18 +1705,24 @@
 | validationFindings | String |  |
 | createdBy | String |  |
 | updatedBy | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### ENotifications
 **Collection:** edu_notifications
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
-| workspaceId | String | Indexed |
-| type | ENotificationType | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
+| workspaceId | String | Indexed
+    private |
+| type | ENotificationType | Indexed
+    private |
 | title | String |  |
 | message | String |  |
 | url | String |  |
@@ -1462,25 +1730,35 @@
 | actionType | String |  |
 | relatedEntityId | String |  |
 | entityType | String |  |
+| isRead | Boolean |  |
+| isArchived | Boolean |  |
 | readAt | Instant |  |
-| createdAt | Instant | CreatedDate |
-| expiresAt | Instant | Indexed(name = "notifications_expireAt_idx", expireAfter = "0s") |
+| createdAt | Instant | CreatedDate
+    private |
+| expiresAt | Instant | Indexed(name = "notifications_expireAt_idx", expireAfter = "0s")
+    private |
 
 ### EPayouts
 **Collection:** edu_payouts
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| creatorId | String | Indexed |
+| id | String | Id
+    private |
+| creatorId | String | Indexed
+    private |
 | amount | Double |  |
-| method | EPayoutMethod | Indexed |
-| status | EPayoutStatus | Indexed |
+| currency | String |  |
+| method | EPayoutMethod | Indexed
+    private |
+| status | EPayoutStatus | Indexed
+    private |
 | transactionReference | String |  |
 | bankDetails | String |  |
 | paypalEmail | String |  |
 | platformFee | Double |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 | paidAt | Instant |  |
 | requestedAt | Instant |  |
 
@@ -1489,22 +1767,27 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| creatorId | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| creatorId | String | Indexed(unique = true)
+    private |
 | frequency | String |  |
 | dayTarget | String |  |
 | active | Boolean |  |
 | lastProcessedAt | Instant |  |
 | nextScheduledAt | Instant |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### EProfiles
 **Collection:** edu_profiles
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| userId | String | Indexed(unique = true)
+    private |
 | firstName | String |  |
 | lastName | String |  |
 | publicEmail | String |  |
@@ -1512,13 +1795,16 @@
 | avatarUrl | String |  |
 | bio | String |  |
 | socialLinks | ESocialLinksDTO |  |
-| industry | String | Indexed |
+| industry | String | Indexed
+    private |
 | company | String |  |
 | jobTitle | String |  |
 | privacySettings | EPrivacySettingsDTO |  |
 | notificationSettings | ENotificationSettingsDTO |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 | totalStudents | Integer |  |
 | totalCourses | Integer |  |
 | rating | Double |  |
@@ -1528,26 +1814,34 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
-| quizId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
+| quizId | String | Indexed
+    private |
 | score | Double |  |
 | percentage | Double |  |
 | status | EGradingStatus |  |
 | isLatest | Boolean |  |
 | startedAt | Instant |  |
 | completedAt | Instant |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### EQuizzes
 **Collection:** edu_quizzes
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| courseId | String | Indexed |
-| sectionId | String | Indexed |
-| lessonId | String | Indexed |
+| id | String | Id
+    private |
+| courseId | String | Indexed
+    private |
+| sectionId | String | Indexed
+    private |
+| lessonId | String | Indexed
+    private |
 | title | String |  |
 | description | String |  |
 | type | EQuizType |  |
@@ -1557,78 +1851,116 @@
 | isPublished | Boolean |  |
 | allowRetakes | Integer |  |
 | createdBy | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### ERefund
 **Collection:** edu_refunds
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| transactionId | String | Indexed |
-| stripeCheckoutSessionId | String | Indexed |
-| stripeChargeId | String | Indexed |
-| stripeRefundId | String | Indexed(unique = true, sparse = true) |
-| buyerId | String | Indexed |
-| sellerId | String | Indexed |
-| courseId | String | Indexed |
+| id | String | Id
+    private |
+| transactionId | String | Indexed
+    private |
+| stripeCheckoutSessionId | String | Indexed
+    private |
+| stripeChargeId | String | Indexed
+    private |
+| stripeRefundId | String | Indexed(unique = true, sparse = true)
+    private |
+| buyerId | String | Indexed
+    private |
+| sellerId | String | Indexed
+    private |
+| courseId | String | Indexed
+    private |
 | refundAmount | Double |  |
 | originalAmount | Double |  |
 | currency | String |  |
 | type | RefundType |  |
-| status | RefundStatus | Indexed |
+| status | RefundStatus | Indexed
+    private |
 | reason | String |  |
+| enrollmentRevoked | Boolean |  |
+| holdingReversed | Boolean |  |
 | initiatedBy | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### EReports
 **Collection:** edu_reports
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| reporterId | String | Indexed |
-| targetEntityId | String | Indexed |
+| id | String | Id
+    private |
+| reporterId | String | Indexed
+    private |
+| targetEntityId | String | Indexed
+    private |
 | entityType | String |  |
-| reason | EReportReason | Indexed |
+| reason | EReportReason | Indexed
+    private |
 | description | String |  |
-| status | EReportStatus | Indexed |
+| status | EReportStatus | Indexed
+    private |
 | resolutionNotes | String |  |
 | resolvedBy | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### EReviews
 **Collection:** edu_reviews
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| courseId | String | Indexed |
-| userId | String | Indexed |
-| rating | Double | Indexed |
+| id | String | Id
+    private |
+| courseId | String | Indexed
+    private |
+| userId | String | Indexed
+    private |
+| rating | Double | Indexed
+    private |
 | title | String |  |
 | content | String |  |
+| isVerifiedPurchase | Boolean |  |
+| helpfulVotes | Integer |  |
+| isReported | Boolean |  |
+| isVisible | Boolean |  |
 | createdBy | String |  |
 | updatedBy | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### ESubscriptions
 **Collection:** edu_subscriptions
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
-| plan | ESubscriptionPlan | Indexed |
-| status | ESubscriptionStatus | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
+| plan | ESubscriptionPlan | Indexed
+    private |
+| status | ESubscriptionStatus | Indexed
+    private |
 | remainingCredits | Integer |  |
 | totalCredits | Integer |  |
 | price | Double |  |
+| currency | String |  |
 | billingCycle | String |  |
+| autoRenew | Boolean |  |
 | paymentGatewayId | String |  |
 | stripeCustomerId | String |  |
 | stripeSubscriptionId | String |  |
@@ -1640,17 +1972,22 @@
 | trialEndDate | Instant |  |
 | cancelledAt | Instant |  |
 | lastPaymentAt | Instant |  |
+| cancelAtPeriodEnd | Boolean |  |
 | lastCreditResetAt | Instant |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### ESystemSettings
 **Collection:** edu_system_settings
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| category | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| category | String | Indexed(unique = true)
+    private |
 | settings | Map<String, Object> |  |
 | updatedAt | Instant |  |
 | updatedBy | String |  |
@@ -1660,47 +1997,64 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| courseId | String | Indexed |
-| buyerId | String | Indexed |
-| sellerId | String | Indexed |
+| id | String | Id
+    private |
+| courseId | String | Indexed
+    private |
+| buyerId | String | Indexed
+    private |
+| sellerId | String | Indexed
+    private |
 | amount | Double |  |
 | currency | String |  |
 | platformFee | Double |  |
 | commissionRate | Double |  |
 | creatorPlanAtPurchase | String |  |
 | creatorEarning | Double |  |
-| affiliateId | String | Indexed |
+| affiliateId | String | Indexed
+    private |
 | affiliateEarning | Double |  |
-| paymentMethod | EPaymentMethod | Indexed |
-| paymentStatus | EPaymentStatus | Indexed |
-| transactionId | String | Indexed(unique = true) |
-| stripeCheckoutSessionId | String | Indexed |
+| paymentMethod | EPaymentMethod | Indexed
+    private |
+| paymentStatus | EPaymentStatus | Indexed
+    private |
+| transactionId | String | Indexed(unique = true)
+    private |
+| stripeCheckoutSessionId | String | Indexed
+    private |
 | paymentGateway | String |  |
 | paymentGatewayResponse | String |  |
 | idempotencyKey | String |  |
-| expiresAt | Instant | Indexed |
+| expiresAt | Instant | Indexed
+    private |
 | appliedCouponCode | String |  |
 | discountAmount | Double |  |
 | originalAmount | Double |  |
-| bundleId | String | Indexed |
+| bundleId | String | Indexed
+    private |
 | taxAmount | Double |  |
 | taxRate | Double |  |
-| referrerId | String | Indexed |
+| referrerId | String | Indexed
+    private |
 | referralCommission | Double |  |
-| version | Long | Version |
+| version | Long | Version
+    private |
 | createdBy | String |  |
 | updatedBy | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### ETrustScores
 **Collection:** edu_trust_scores
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| creatorId | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| creatorId | String | Indexed(unique = true)
+    private |
 | currentScore | Double |  |
 | previousScore | Double |  |
 | averageRating | Double |  |
@@ -1717,37 +2071,54 @@
 | refundHealthScore | Double |  |
 | reportHealthScore | Double |  |
 | activityScore | Double |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### EUser
 **Collection:** edu_user
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| email | String | Indexed(unique = true) |
-| phone | String | Indexed(sparse = true) |
-| passwordHash | String | JsonIgnore |
+| id | String | Id
+    private |
+| email | String | Indexed(unique = true)
+    private |
+| phone | String | Indexed(sparse = true)
+    private |
+| passwordHash | String | JsonIgnore
+    private |
 | ssoProvider | String |  |
 | ssoProviderId | String |  |
+| isEmailVerified | Boolean |  |
+| isPhoneVerified | Boolean |  |
 | displayName | String |  |
 | avatarUrl | String |  |
+| isActive | Boolean |  |
+| isBanned | Boolean |  |
 | banReason | String |  |
 | lastLoginAt | Instant |  |
+| plan | ESubscriptionPlan |  |
+| subscriptionStatus | ESubscriptionStatus |  |
 | emailVerificationToken | String |  |
 | passwordResetToken | String |  |
 | passwordResetExpiry | Instant |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
+| isMfaEnabled | Boolean |  |
 
 ### EUserPreferences
 **Collection:** edu_user_preferences
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| userId | String | Indexed(unique = true)
+    private |
 | interests | List<String> |  |
 | preferredLanguage | String |  |
 | dailyLearningGoalMinutes | Integer |  |
@@ -1762,28 +2133,37 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| courseId | String | Indexed |
-| userId | String | Indexed |
-| reviewerId | String | Indexed |
+| id | String | Id
+    private |
+| courseId | String | Indexed
+    private |
+| userId | String | Indexed
+    private |
+| reviewerId | String | Indexed
+    private |
 | aiScore | Double |  |
-| status | String | Indexed |
+| status | String | Indexed
+    private |
 | breakdown | EValidationBreackdownDTO |  |
 | feedback | String |  |
 | createdBy | String |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### EWallet
 **Collection:** edu_wallets
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| userId | String | Indexed(unique = true)
+    private |
 | availableBalance | Double |  |
 | pendingBalance | Double |  |
 | currency | String |  |
-| version | Long | Version |
+| version | Long | Version
+    private |
 | updatedAt | Instant |  |
 
 ### EWalletTransaction
@@ -1791,46 +2171,62 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
 | type | TransactionType |  |
 | amount | Double |  |
 | currency | String |  |
 | status | TransactionStatus |  |
 | referenceId | String |  |
 | description | String |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### EWebhookEvent
 **Collection:** edu_webhook_events
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| stripeEventId | String | Indexed(unique = true) |
-| eventType | String | Indexed |
-| status | EventStatus | Indexed |
+| status | Failed events are stored with |  |
+| id | String | Id
+    private |
+| stripeEventId | String | Indexed(unique = true)
+    private |
+| eventType | String | Indexed
+    private |
+| status | EventStatus | Indexed
+    private |
 | payload | String |  |
 | signatureHeader | String |  |
 | errorMessage | String |  |
 | errorStackTrace | String |  |
+| retryCount | Integer |  |
+| maxRetries | Integer |  |
 | nextRetryAt | Instant |  |
-| processedAt | Instant | CreatedDate |
+| processedAt | Instant | CreatedDate
+    private |
 
 ### EWorkspaceMembers
 **Collection:** edu_workspace_members
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| workspaceId | String | Indexed |
-| userId | String | Indexed |
-| role | ERoles | Indexed |
+| id | String | Id
+    private |
+| workspaceId | String | Indexed
+    private |
+| userId | String | Indexed
+    private |
+| role | ERoles | Indexed
+    private |
 | status | String |  |
 | department | String |  |
 | invitedBy | String |  |
 | createdBy | String |  |
-| joinedAt | Instant | CreatedDate |
+| joinedAt | Instant | CreatedDate
+    private |
 | lastActiveAt | Instant |  |
 
 ### EWorkspaces
@@ -1838,26 +2234,37 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| ownerId | String | Indexed |
-| type | EWorkspaceType | Indexed |
-| domain | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| ownerId | String | Indexed
+    private |
+| type | EWorkspaceType | Indexed
+    private |
+| domain | String | Indexed(unique = true)
+    private |
 | plan | ESubscriptionPlan |  |
 | name | String |  |
 | description | String |  |
 | logoUrl | String |  |
+| isActive | Boolean |  |
 | maxMembers | Integer |  |
+| totalMembers | Integer |  |
+| totalCourses | Integer |  |
+| totalLearningPaths | Integer |  |
 | settings | EWSettingsDTO |  |
 | profile | EWProfileDTO |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### AnalyticsData
 **Collection:** fin_analytics_data
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | projectId | String |  |
 | scenarioId | String |  |
@@ -1873,7 +2280,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | name | String |  |
 | key | String |  |
@@ -1886,7 +2294,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | projectId | String |  |
 | scenarioId | String |  |
@@ -1902,14 +2311,16 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | projectId | String |  |
 | key | String |  |
 | value | String |  |
 | unit | String |  |
 | category | String |  |
-| version | Integer | Version |
+| version | Integer | Version
+    private |
 | createdAt | Instant |  |
 
 ### FinAuditLog
@@ -1917,7 +2328,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | projectId | String |  |
 | userId | String |  |
@@ -1934,14 +2346,16 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | projectId | String |  |
 | category | String |  |
 | type | String |  |
 | monthlyAllocations | Map<String, Double> |  |
 | formula | String |  |
-| version | Integer | Version |
+| version | Integer | Version
+    private |
 | createdAt | Instant |  |
 
 ### FinFinancialSnapshot
@@ -1949,7 +2363,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | projectId | String |  |
 | scenarioId | String |  |
@@ -1965,7 +2380,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | projectId | String |  |
 | tier | String |  |
@@ -1973,7 +2389,8 @@
 | costPerUser | Double |  |
 | commissionPercent | Double |  |
 | margin | Double |  |
-| version | Integer | Version |
+| version | Integer | Version
+    private |
 | effectiveDate | Instant |  |
 
 ### FinProject
@@ -1981,7 +2398,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | name | String |  |
 | description | String |  |
@@ -1997,7 +2415,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | projectId | String |  |
 | userId | String |  |
 | role | ProjectRole |  |
@@ -2008,13 +2427,15 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | projectId | String |  |
 | month | String |  |
 | userCounts | Map<String, Integer> |  |
 | growthRate | Double |  |
-| version | Integer | Version |
+| version | Integer | Version
+    private |
 | createdAt | Instant |  |
 
 ### FinScenario
@@ -2022,7 +2443,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | projectId | String |  |
 | name | String |  |
@@ -2037,7 +2459,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | slug | String |  |
 | ownerId | String |  |
@@ -2052,7 +2475,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | organizationId | String |  |
 | projectId | String |  |
 | name | String |  |
@@ -2068,7 +2492,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | scenarioId | String |  |
 | path | String |  |
 | month | String |  |
@@ -2083,7 +2508,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | jobId | String |  |
 | companyId | String |  |
 | candidateId | String |  |
@@ -2103,7 +2529,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
 | companyName | String |  |
 | companyLogo | String |  |
@@ -2122,67 +2549,91 @@
 | createdAt | Instant |  |
 | updatedAt | Instant |  |
 | expiryDate | Instant |  |
+| applicationsCount | int |  |
+| viewsCount | int |  |
 
 ### LAutomation
 **Collection:** lead_automations
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | workspaceId | String |  |
 | name | String |  |
+| active | boolean |  |
 | triggerType | String |  |
 | triggerScoreThreshold | int |  |
 | triggerKeywords | List<String> |  |
 | actionType | String |  |
 | actionTemplateId | String |  |
+| requiresHumanApproval | boolean |  |
+| createdAt | LocalDateTime |  |
+| updatedAt | LocalDateTime |  |
 
 ### LLeadAutomation
 **Collection:** leads_automations
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | workspaceId | String |  |
 | name | String |  |
+| active | boolean |  |
 | triggerType | String |  |
 | triggerScoreThreshold | Double |  |
 | triggerKeywords | List<String> |  |
 | triggerStatus | String |  |
 | actionType | String |  |
 | actionWebhookUrl | String |  |
+| requiresHumanApproval | boolean |  |
+| createdAt | Instant |  |
+| updatedAt | Instant |  |
 
 ### LCampaign
 **Collection:** leads_campaigns
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | workspaceId | String |  |
 | name | String |  |
 | platform | String |  |
+| status | String |  |
 | template | String |  |
 | sourceId | String |  |
+| metrics | Map<String, Integer> |  |
+| createdAt | Instant |  |
+| updatedAt | Instant |  |
 
 ### LLead
 **Collection:** leads_leads
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | workspaceId | String |  |
 | name | String |  |
 | platform | String |  |
+| status | String |  |
+| tags | List<String> |  |
 | score | Double |  |
 | sourceSignalId | String |  |
 | notes | String |  |
+| timeline | List<LTimelineEvent> |  |
+| createdAt | Instant |  |
+| updatedAt | Instant |  |
 
 ### LLeadCandidate
 **Collection:** leads_candidates
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | workspaceId | String |  |
 | sourceId | String |  |
@@ -2191,39 +2642,52 @@
 | intent | String |  |
 | leadScore | Double |  |
 | tags | List<String> |  |
+| pipelineStage | String |  |
+| createdAt | Instant |  |
+| updatedAt | Instant |  |
 
 ### LLeadSource
 **Collection:** leads_sources
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | workspaceId | String |  |
 | platform | String |  |
 | name | String |  |
 | config | Map<String, Object> |  |
+| active | boolean |  |
+| createdAt | Instant |  |
+| updatedAt | Instant |  |
 
 ### LLeadWorkspace
 **Collection:** leads_workspaces
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | ownerId | String |  |
 | memberIds | List<String> |  |
+| createdAt | Instant |  |
+| updatedAt | Instant |  |
 
 ### LNotification
 **Collection:** lead_notifications
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | workspaceId | String |  |
 | userId | String |  |
 | title | String |  |
 | message | String |  |
 | type | String |  |
+| read | boolean |  |
+| createdAt | LocalDateTime |  |
 | link | String |  |
 
 ### LRawSignal
@@ -2231,7 +2695,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | sourceId | String |  |
 | workspaceId | String |  |
 | platformId | String |  |
@@ -2239,54 +2704,70 @@
 | author | String |  |
 | url | String |  |
 | metadata | Map<String, Object> |  |
+| status | String |  |
 | intent | String |  |
 | score | Double |  |
 | tags | List<String> |  |
+| capturedAt | Instant |  |
 
 ### LTask
 **Collection:** lead_background_tasks
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | workspaceId | String |  |
 | userId | String |  |
 | type | String |  |
+| status | String |  |
+| progress | int |  |
 | resultUrl | String |  |
 | errorMessage | String |  |
 | metadata | Map<String, Object> |  |
+| createdAt | LocalDateTime |  |
+| updatedAt | LocalDateTime |  |
 
 ### LTemplate
 **Collection:** lead_templates
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | workspaceId | String |  |
 | name | String |  |
 | content | String |  |
 | platform | String |  |
 | category | String |  |
+| usageCount | int |  |
+| createdAt | LocalDateTime |  |
+| updatedAt | LocalDateTime |  |
 
 ### AICacheEntry
 **Collection:** lp_ai_cache
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| cacheKey | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| cacheKey | String | Indexed(unique = true)
+    private |
 | responseJson | String |  |
 | provider | String |  |
 | promptHash | String |  |
-| createdAt | Instant | Indexed(expireAfter = "24h") |
+| createdAt | Instant | Indexed(expireAfter = "24h")
+    private |
 
 ### UserCredits
 **Collection:** lp_user_credits
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| userId | String | Indexed(unique = true)
+    private |
 | tier | SubscriptionTier |  |
 | creditsAvailable | int |  |
 | lastRefreshedAt | Instant |  |
@@ -2296,8 +2777,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| goalId | String | Id |
-| userId | String | Indexed |
+| goalId | String | Id
+    private |
+| userId | String | Indexed
+    private |
 | title | String |  |
 | description | String |  |
 | deadline | Instant |  |
@@ -2313,8 +2796,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
 | date | LocalDate |  |
 | reflection | String |  |
 | aiInsight | String |  |
@@ -2325,8 +2810,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
 | date | LocalDate |  |
 | score | int |  |
 | label | String |  |
@@ -2337,7 +2824,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | userId | String |  |
 | weekStartDate | LocalDate |  |
 | weekEndDate | LocalDate |  |
@@ -2352,8 +2840,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
 | title | String |  |
 | message | String |  |
 | type | String |  |
@@ -2365,19 +2855,24 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| scheduleId | String | Id |
-| planId | String | Indexed |
-| userId | String | Indexed |
+| scheduleId | String | Id
+    private |
+| planId | String | Indexed
+    private |
+| userId | String | Indexed
+    private |
 | scheduleDate | LocalDate |  |
 | tasks | List<ScheduleTask> |  |
-| isCompleted | boolean | JsonProperty("isCompleted") |
+| isCompleted | boolean | JsonProperty("isCompleted")
+    private |
 | taskId | String |  |
 | title | String |  |
 | estimatedTime | String |  |
 | category | String |  |
 | startTime | String |  |
 | endTime | String |  |
-| isCompleted | boolean | JsonProperty("isCompleted") |
+| isCompleted | boolean | JsonProperty("isCompleted")
+        private |
 | completedAt | String |  |
 | priority | String |  |
 | notes | String |  |
@@ -2387,22 +2882,28 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| planId | String | Id |
-| goalId | String | Indexed |
-| userId | String | Indexed |
-| status | String | Indexed |
+| planId | String | Id
+    private |
+| goalId | String | Indexed
+    private |
+| userId | String | Indexed
+    private |
+| status | String | Indexed
+    private |
 | roadmap | List<PlanResponse.RoadmapItem> |  |
 | weeklyPlans | List<PlanResponse.WeeklyPlan> |  |
 | createdAt | Instant |  |
 | updatedAt | Instant |  |
 | progressPercentage | double |  |
+| reachedMilestones | List<Integer> |  |
 
 ### User
 **Collection:** lp_users
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | email | String |  |
 | passwordHash | String |  |
 | name | String |  |
@@ -2414,7 +2915,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | userId | String |  |
 | notificationsEnabled | boolean |  |
 | theme | String |  |
@@ -2437,8 +2939,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
 | lifestyleData | String |  |
 | studyPreferences | List<String> |  |
 | focusTime | String |  |
@@ -2457,7 +2961,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | type | RoomType |  |
 | name | String |  |
 | participants | List<String> |  |
@@ -2472,8 +2977,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| roomId | String | Indexed |
+| id | String | Id
+    private |
+| roomId | String | Indexed
+    private |
 | senderId | String |  |
 | content | String |  |
 | messageType | MessageType |  |
@@ -2488,7 +2995,8 @@
 | isForwarded | boolean |  |
 | forwardedFromId | String |  |
 | isPinned | boolean |  |
-| expiresAt | Instant | Indexed(expireAfter = "PT0S") |
+| expiresAt | Instant | Indexed(expireAfter = "PT0S")
+    private |
 | isEncrypted | boolean |  |
 | replyToId | String |  |
 
@@ -2497,7 +3005,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| userId | String | Id |
+| userId | String | Id
+    private |
 | status | PresenceStatus |  |
 | lastSeen | LocalDateTime |  |
 
@@ -2506,7 +3015,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
 | street | String |  |
 | city | String |  |
@@ -2519,7 +3029,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
 | userId | String |  |
 | amount | String |  |
@@ -2533,7 +3044,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
 | invoiceId | String |  |
 | subscriptionId | String |  |
@@ -2552,7 +3064,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
 | userId | String |  |
 | type | String |  |
@@ -2566,7 +3079,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
 | subscriptionId | String |  |
 | plan_name | String |  |
@@ -2581,7 +3095,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
 | firstname | String |  |
 | lastname | String |  |
@@ -2601,7 +3116,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | courseId | String |  |
 | courseName | String |  |
 | learnerId | String |  |
@@ -2624,7 +3140,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
 | job_posts_allowed | String |  |
 | job_posts_used | String |  |
@@ -2640,8 +3157,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| ambassadorId | String | Indexed |
+| id | String | Id
+    private |
+| ambassadorId | String | Indexed
+    private |
 | taskId | String |  |
 | taskType | String |  |
 | progressValue | int |  |
@@ -2649,6 +3168,8 @@
 | startedAt | Instant |  |
 | completedAt | Instant |  |
 | lastResetAt | Instant |  |
+| rewardStatus | String |  |
+| rewarded | boolean |  |
 | rewardedAt | Instant |  |
 
 ### BadgeDefinition
@@ -2656,11 +3177,13 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | title | String |  |
 | description | String |  |
 | level | String |  |
 | svgUrl | String |  |
+| visible | boolean |  |
 | createdAt | Instant |  |
 | tags | List<String> |  |
 
@@ -2669,7 +3192,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
 | courseId | String |  |
 | certificateId | String |  |
@@ -2686,10 +3210,12 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | stripeCouponId | String |  |
 | userId | String |  |
 | publicity | boolean |  |
+| false | public, |  |
 | unlockedBy | private String |  |
 | redeemedBy | String |  |
 | code | String |  |
@@ -2705,6 +3231,7 @@
 | status | Status |  |
 | level | String |  |
 | applicableCourseIds | List<String> |  |
+| empty | Null or |  |
 | applicableForInstallment | boolean |  |
 | redeemedForCourseId | String |  |
 | redeemedForInstallmentId | String |  |
@@ -2723,7 +3250,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
 | moduleId | String |  |
 | courseId | String |  |
@@ -2735,25 +3263,30 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
 | employeeName | String |  |
 | email | String |  |
 | phone | String |  |
 | timezone | String |  |
-| courses | List<CourseEnrollment> | Field("courses") |
-| recordedCourses | List<RecordedCourseEnrollment> | Field("recordedCourses") |
+| courses | List<CourseEnrollment> | Field("courses")
+    private |
+| recordedCourses | List<RecordedCourseEnrollment> | Field("recordedCourses")
+    private |
 
 ### GamificationTaskModel
 **Collection:** gamification_tasks
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | title | String |  |
 | description | String |  |
 | type | String |  |
 | level | String |  |
+| null | BRONZE, GOLD, PLATINUM, or |  |
 | targetValue | int |  |
 | rewardType | String |  |
 | rewardId | String |  |
@@ -2761,14 +3294,18 @@
 | recurring | boolean |  |
 | frequencyInDays | int |  |
 | createdAt | Instant |  |
+| priority | int |  |
+| higher | lowest, |  |
 | groupKey | String |  |
+| points | int |  |
 
 ### QuizAttempt
 **Collection:** quiz_attempts
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
 | courseId | String |  |
 | moduleId | String |  |
@@ -2785,7 +3322,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | title | String |  |
 | description | String |  |
 | imageUrl | String |  |
@@ -2799,7 +3337,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | category | String |  |
 | questions | List<Question> |  |
 | id | String |  |
@@ -2820,16 +3359,20 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | companyId | String |  |
 | jobId | String |  |
+| applicants | List<JobApplicantDTO> | Field("applicants") |
+| viewers | List<JobViewerDTO> | Field("viewers") |
 
 ### PreOrderModel
 **Collection:** portal_preorder
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | email | String |  |
 | product | String |  |
@@ -2840,9 +3383,12 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| referrerId | String | Indexed |
-| referredUserId | String | Indexed |
+| id | String | Id
+    private |
+| referrerId | String | Indexed
+    private |
+| referredUserId | String | Indexed
+    private |
 | type | ReferralType |  |
 | status | ReferralStatus |  |
 | rewardIssued | boolean |  |
@@ -2854,9 +3400,12 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| code | String | Indexed(unique = true) |
-| userId | String | Indexed |
+| id | String | Id
+    private |
+| code | String | Indexed(unique = true)
+    private |
+| userId | String | Indexed
+    private |
 | createdAt | Instant |  |
 
 ### ReferralCommission
@@ -2864,9 +3413,12 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| referrerId | String | Indexed |
-| referredCreatorId | String | Indexed |
+| id | String | Id
+    private |
+| referrerId | String | Indexed
+    private |
+| referredCreatorId | String | Indexed
+    private |
 | percentage | double |  |
 | expiryDate | Instant |  |
 | createdAt | Instant |  |
@@ -2876,8 +3428,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
 | sourceType | ReputationSourceType |  |
 | sourceId | String |  |
 | delta | int |  |
@@ -2888,8 +3442,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed
+    private |
 | badgeType | BadgeType |  |
 | awardedAt | LocalDateTime |  |
 
@@ -2898,8 +3454,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| userId | String | Indexed(unique = true)
+    private |
 | totalScore | long |  |
 | articleScore | long |  |
 | communityScore | long |  |
@@ -2911,8 +3469,10 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| employeeId | String | Indexed |
+| id | String | Id
+    private |
+| employeeId | String | Indexed
+    private |
 | title | String |  |
 | templateId | String |  |
 | personalInfo | PersonalInfo |  |
@@ -2929,8 +3489,10 @@
 | aiUsageCount | int |  |
 | deleted | boolean |  |
 | platform | String |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 | fullName | String |  |
 | title | String |  |
 | phone | String |  |
@@ -2989,7 +3551,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | description | String |  |
 | icon | String |  |
@@ -3012,9 +3575,12 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| plan | ESubscriptionPlan | Indexed |
-| featureKey | String | Indexed |
+| id | String | Id
+    private |
+| plan | ESubscriptionPlan | Indexed
+    private |
+| featureKey | String | Indexed
+    private |
 | enabled | boolean |  |
 
 ### Subscription
@@ -3022,49 +3588,64 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| userId | String | Indexed(unique = true) |
-| plan | ESubscriptionPlan | Indexed |
-| status | ESubscriptionStatus | Indexed |
+| id | String | Id
+    private |
+| userId | String | Indexed(unique = true)
+    private |
+| plan | ESubscriptionPlan | Indexed
+    private |
+| status | ESubscriptionStatus | Indexed
+    private |
 | startDate | Instant |  |
 | endDate | Instant |  |
-| stripeCustomerId | String | Indexed(sparse = true) |
-| stripeSubscriptionId | String | Indexed(sparse = true) |
+| stripeCustomerId | String | Indexed(sparse = true)
+    private |
+| stripeSubscriptionId | String | Indexed(sparse = true)
+    private |
 | stripePriceId | String |  |
 | billingCycle | String |  |
+| autoRenew | Boolean |  |
+| cancelAtPeriodEnd | Boolean |  |
 | trialEndDate | Instant |  |
 | cancelledAt | Instant |  |
 | lastPaymentAt | Instant |  |
 | lastCreditResetAt | Instant |  |
-| createdAt | Instant | CreatedDate |
-| updatedAt | Instant | LastModifiedDate |
+| createdAt | Instant | CreatedDate
+    private |
+| updatedAt | Instant | LastModifiedDate
+    private |
 
 ### SupportRequestModel
 **Collection:** support_requests
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | email | String |  |
 | service | String |  |
 | message | String |  |
 | status | String |  |
-| createdAt | Instant | CreatedDate |
+| createdAt | Instant | CreatedDate
+    private |
 
 ### TrackingEvent
 **Collection:** events
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | trackingId | String |  |
 | eventType | String |  |
 | url | String |  |
 | referrer | String |  |
-| sessionId | String | Indexed |
+| sessionId | String | Indexed
+    private |
 | userId | String |  |
-| timestamp | Instant | Indexed |
+| timestamp | Instant | Indexed
+    private |
 | screenResolution | String |  |
 | browser | String |  |
 | language | String |  |
@@ -3111,6 +3692,7 @@
 | errorColumn | Integer |  |
 | errorStack | String |  |
 | rejectionReason | String |  |
+| FEATURES | NEW v2.0 |  |
 | experimentId | String |  |
 | variant | String |  |
 | conversionType | String |  |
@@ -3135,26 +3717,32 @@
 | timezone | String |  |
 | timezoneOffset | Integer |  |
 | customData | Map<String, Object> |  |
-| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s") |
+| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private |
 
 ### EmpCertificatesModel
 **Collection:** portal_emp_certificates
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
-| certificates | List<EmpCertificatesDTO> | Field("certificates") |
+| certificates | List<EmpCertificatesDTO> | Field("certificates")
+    private |
 
 ### EmpContactModel
 **Collection:** portal_emp_contact
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
-| contact | List<EmpContactDTO> | Field("contact") |
-| socialLinks | List<SocialLinksDTO> | Field("social_links") |
+| contact | List<EmpContactDTO> | Field("contact")
+    private |
+| socialLinks | List<SocialLinksDTO> | Field("social_links")
+    private |
 | publicity | boolean |  |
 
 ### EmpEducationModel
@@ -3162,50 +3750,61 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
-| education | List<EmpEducationDTO> | Field("education") |
+| education | List<EmpEducationDTO> | Field("education")
+    private |
 
 ### EmpExperiencesModel
 **Collection:** portal_emp_experiences
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
-| experiences | List<EmpExperiencesDTO> | Field("experiences") |
+| experiences | List<EmpExperiencesDTO> | Field("experiences")
+    private |
 
 ### EmpFollowersModel
 **Collection:** portal_emp_followers
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
-| followers | List<EmpFollowersDTO> | Field("followers") |
+| followers | List<EmpFollowersDTO> | Field("followers")
+    private |
 
 ### EmpFollowingModel
 **Collection:** portal_emp_following
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
-| followings | List<EmpFollowingDTO> | Field("followings") |
+| followings | List<EmpFollowingDTO> | Field("followings")
+    private |
 
 ### EmployeeModel
 **Collection:** portal_employees
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | firstname | String |  |
 | lastname | String |  |
-| occupation | String | Indexed(name = "occupation_1") |
+| occupation | String | Indexed(name = "occupation_1")
+    private |
 | image | String |  |
 | coverImage | String |  |
 | dob | String |  |
-| email | String | Indexed(unique = true, name = "email_1") |
+| email | String | Indexed(unique = true, name = "email_1")
+    private |
 | resume | String |  |
 | intro | String |  |
 | skills | String |  |
@@ -3217,12 +3816,14 @@
 | courses | String |  |
 | followings | String |  |
 | followers | String |  |
-| savedJobs | List<FavJobDTO> | Field("savedJobs") |
+| savedJobs | List<FavJobDTO> | Field("savedJobs")
+    private |
 | savedPosts | List<String> |  |
 | accountNotifications | Object |  |
 | marketingNotifications | Object |  |
 | profileCompleted | Object |  |
 | profileStatus | String |  |
+| platformRole | PlatformRole |  |
 | companyId | String |  |
 | expectedSalaryRange | String |  |
 | currentExperience | String |  |
@@ -3234,26 +3835,32 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
-| projects | List<EmpProjectsDTO> | Field("projects") |
+| projects | List<EmpProjectsDTO> | Field("projects")
+    private |
 
 ### EmpSkillsModel
 **Collection:** portal_emp_skills
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | employeeId | String |  |
-| skills | List<EmpSkillsDTO> | Field("skills") |
+| skills | List<EmpSkillsDTO> | Field("skills")
+    private |
 
 ### TrainerProfile
 **Collection:** trainer_profiles
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
-| employeeId | String | Indexed(unique = true) |
+| id | String | Id
+    private |
+| employeeId | String | Indexed(unique = true)
+    private |
 | headline | String |  |
 | bio | String |  |
 | specialties | List<String> |  |
@@ -3267,13 +3874,15 @@
 | website | String |  |
 | linkedIn | String |  |
 | youtube | String |  |
+| publicProfile | boolean |  |
 
 ### WorkspaceModel
 **Collection:** workspaces
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | slug | String |  |
 | ownerId | String |  |
@@ -3287,7 +3896,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | userId | String |  |
 | encryptedIpAddress | String |  |
 | timestamp | LocalDateTime |  |
@@ -3298,14 +3908,16 @@
 | country | String |  |
 | suspectedVpn | boolean |  |
 | suspectedBot | boolean |  |
-| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s") |
+| expiresAt | Instant | Indexed(name = "expireAtIndex", expireAfter = "0s")
+    private |
 
 ### WhitelistDomains
 **Collection:** portal_whitelist_domains
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | domain | String |  |
 | active | boolean |  |
 | requestBy | String |  |
@@ -3315,31 +3927,36 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | email | String |  |
 | subject | String |  |
 | message | String |  |
+| createdAt | LocalDateTime |  |
 
 ### CtaLeadSubmission
 **Collection:** cta_lead_submissions
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | name | String |  |
 | email | String |  |
 | serviceType | String |  |
 | ctaType | String |  |
 | focusArea | String |  |
 | message | String |  |
+| createdAt | LocalDateTime |  |
 
 ### NewsLatterModel
 **Collection:** portal_news_letter
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | email | String |  |
 
 ### TokenModel
@@ -3347,7 +3964,8 @@
 
 | Field | Type | Annotations |
 |-------|------|-------------|
-| id | String | Id |
+| id | String | Id
+    private |
 | token | String |  |
 | username | String |  |
 | expiration | Date |  |

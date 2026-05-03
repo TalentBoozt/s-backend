@@ -1,24 +1,24 @@
 classDiagram
-    class AIQuota {
+    class "AIQuota" {
         String id
         String userId
         Integer monthlyLimit
         Integer used
         Instant resetDate
     }
-    class AIUsage {
+    class "AIUsage" {
         String id
         String userId
         AIUsageType type
         Integer creditsUsed
         Instant createdAt
     }
-    class CreditRecord {
+    class "CreditRecord" {
         String id
         int creditsRemaining
         LocalDate lastReset
     }
-    class AmbassadorLeaderboardModel {
+    class "AmbassadorLeaderboardModel" {
         String id
         String type
         String ambassadorId
@@ -30,7 +30,7 @@ classDiagram
         Instant generatedAt
         Instant expireAt
     }
-    class AmbassadorPointAudit {
+    class "AmbassadorPointAudit" {
         String id
         String ambassadorId
         String reason
@@ -38,7 +38,7 @@ classDiagram
         Instant createdAt
         String metadata
     }
-    class AmbassadorProfileModel {
+    class "AmbassadorProfileModel" {
         String id
         String firstName
         String lastName
@@ -50,7 +50,7 @@ classDiagram
         Instant appliedAt
         AmbassadorLifecycle lifecycle
     }
-    class AmbassadorRewardModel {
+    class "AmbassadorRewardModel" {
         String id
         String ambassadorId
         String taskId
@@ -59,7 +59,7 @@ classDiagram
         Instant issuedAt
         Instant redeemedAt
     }
-    class AmbassadorSessionModel {
+    class "AmbassadorSessionModel" {
         String id
         String ambassadorId
         String type
@@ -69,7 +69,7 @@ classDiagram
         int attendeeCount
         boolean completed
     }
-    class AmbReferralModel {
+    class "AmbReferralModel" {
         String id
         String referralCode
         String ambassadorId
@@ -80,7 +80,7 @@ classDiagram
         boolean courseEnrolled
         Instant enrolledAt
     }
-    class BadgeModel {
+    class "BadgeModel" {
         String id
         String ambassadorId
         String taskId
@@ -89,7 +89,7 @@ classDiagram
         String description
         Instant earnedAt
     }
-    class SwagModel {
+    class "SwagModel" {
         String id
         String ambassadorId
         String taskId
@@ -101,7 +101,7 @@ classDiagram
         String shippingAddress
         String trackingCode
     }
-    class Announcement {
+    class "Announcement" {
         String id
         String title
         String slug
@@ -113,7 +113,7 @@ classDiagram
         AnnouncementVisibility visibility
         AnnouncementPriority priority
     }
-    class Article {
+    class "Article" {
         String id
         String title
         String slug
@@ -121,11 +121,11 @@ classDiagram
         String excerpt
         String authorId
         String coverImage
-        List<String> tagIds
+        List_String_ tagIds
         ArticleStatus status
         int readTime
     }
-    class ArticleEvaluationLog {
+    class "ArticleEvaluationLog" {
         String id
         String articleId
         String validationVersion
@@ -136,12 +136,12 @@ classDiagram
         ArticleEvaluationDTO evaluationResult
         LocalDateTime evaluatedAt
     }
-    class Tag {
+    class "Tag" {
         String id
         String name
         String slug
     }
-    class AsyncUpdateAuditLog {
+    class "AsyncUpdateAuditLog" {
         String id
         String courseId
         String batchId
@@ -153,17 +153,17 @@ classDiagram
         LocalDateTime createdAt
         LocalDateTime updatedAt
     }
-    class ClientActAuditLog {
+    class "ClientActAuditLog" {
         String userId
         String ipAddress
         String sessionId
         String action
         String source
-        Map<String, Object> details
+        Map_String,_Object_ details
         LocalDateTime timestamp
         Instant expiresAt
     }
-    class CourseReminderAuditLog {
+    class "CourseReminderAuditLog" {
         String id
         String employeeId
         String employeeName
@@ -175,17 +175,18 @@ classDiagram
         String reminderType
         String status
     }
-    class LeadOSAuditLog {
+    class "LeadOSAuditLog" {
         String id
         String workspaceId
         String userId
         String action
         String entityId
         String entityType
-        Map<String, Object> details
+        Map_String,_Object_ details
         String ipAddress
+        LocalDateTime timestamp
     }
-    class SchedulerLogModel {
+    class "SchedulerLogModel" {
         String id
         String jobName
         Instant runAt
@@ -193,7 +194,7 @@ classDiagram
         String message
         Instant expireAt
     }
-    class StripeAuditLog {
+    class "StripeAuditLog" {
         String id
         String eventId
         String eventType
@@ -205,7 +206,7 @@ classDiagram
         String errorMessage
         String rawPayload
     }
-    class TaskRewardAuditModel {
+    class "TaskRewardAuditModel" {
         String id
         String ambassadorId
         String taskId
@@ -217,7 +218,7 @@ classDiagram
         Instant issuedAt
         Instant expiresAt
     }
-    class CredentialsModel {
+    class "CredentialsModel" {
         String id
         String employeeId
         String companyId
@@ -226,16 +227,16 @@ classDiagram
         String email
         String password
         String role
-        List<String> roles
-        List<String> permissions
+        List_String_ roles
+        List_String_ permissions
     }
-    class PasswordResetTokenModel {
+    class "PasswordResetTokenModel" {
         String id
         String token
         String userId
         LocalDateTime expirationDate
     }
-    class PermissionModel {
+    class "PermissionModel" {
         String id
         String name
         String description
@@ -243,32 +244,33 @@ classDiagram
         Instant createdAt
         Instant updatedAt
     }
-    class RoleModel {
+    class "RoleModel" {
         String id
         String name
-        List<String> permissions
-        List<String> inheritsFrom
+        List_String_ permissions
+        List_String_ inheritsFrom
         String description
     }
-    class FeatureModel {
+    class "FeatureModel" {
         String id
         String featureType
         String description
         String attachment
     }
-    class IssueModel {
+    class "IssueModel" {
         String id
         String issueType
         String description
         String attachment
     }
-    class Login {
+    class "Login" {
         String id
         String userId
-        List<String> loginDates
-        List<LoginMetaDTO> metaData
+        List_String_ loginDates
+        List_LoginMetaDTO_ metaData
+        List_LoginEventDTO_ events
     }
-    class SystemNotificationsModel {
+    class "SystemNotificationsModel" {
         String id
         String message
         Date startTime
@@ -276,38 +278,38 @@ classDiagram
         String url
         boolean active
     }
-    class Activity {
+    class "Activity" {
         String id
         String userId
         String action
         String targetId
         LocalDateTime timestamp
     }
-    class Comment {
+    class "Comment" {
         String id
         String postId
         String parentId
         String authorId
-        List<String> mentionIds
+        List_String_ mentionIds
         String text
         int upvotes
         int downvotes
-        List<Post.Reaction> reactions
+        List_Post.Reaction_ reactions
         LocalDateTime timestamp
     }
-    class Community {
+    class "Community" {
         String id
         String name
         String description
         String icon
         String bannerImage
         String creatorId
-        List<String> adminIds
-        List<String> moderatorIds
+        List_String_ adminIds
+        List_String_ moderatorIds
         CommunityPrivacy privacy
         LocalDateTime createdAt
     }
-    class CommunityMember {
+    class "CommunityMember" {
         String id
         String communityId
         String userId
@@ -317,7 +319,7 @@ classDiagram
         LocalDateTime bannedAt
         String bannedReason
     }
-    class Notification {
+    class "Notification" {
         String id
         String recipientId
         String senderId
@@ -326,19 +328,19 @@ classDiagram
         boolean isRead
         LocalDateTime timestamp
     }
-    class Post {
+    class "Post" {
         String id
         String authorId
         String communityId
-        List<String> mentionIds
+        List_String_ mentionIds
         String quotedPostId
         String type
         PostContent content
         PostMetrics metrics
-        List<Reaction> reactions
+        List_Reaction_ reactions
         LocalDateTime timestamp
     }
-    class Report {
+    class "Report" {
         String id
         String reporterId
         String targetId
@@ -347,7 +349,7 @@ classDiagram
         ReportStatus status
         LocalDateTime timestamp
     }
-    class CourseBatchModel {
+    class "CourseBatchModel" {
         String id
         String courseId
         String batchName
@@ -359,7 +361,7 @@ classDiagram
         String trainerTimezone
         String courseStatus
     }
-    class CourseModel {
+    class "CourseModel" {
         String id
         String companyId
         String trainerId
@@ -371,27 +373,27 @@ classDiagram
         String level
         String currency
     }
-    class RecordedCourseModel {
+    class "RecordedCourseModel" {
         String id
         String title
         String subtitle
         String description
+        String courseType
         BigDecimal price
         boolean published
         boolean approved
         String createdAt
         String updatedAt
-        List<RecModuleDTO> modules
     }
-    class TrainCompanyModel {
+    class "TrainCompanyModel" {
         String id
         String name
         String email
         String address
         String phone
-        List<TeamMemberDTO> teamMembers
+        List_TeamMemberDTO_ teamMembers
     }
-    class TrainersModel {
+    class "TrainersModel" {
         String id
         String trainerName
         String trainerEmail
@@ -403,20 +405,20 @@ classDiagram
         String trainerStatus
         String trainerDateJoined
     }
-    class CmpPostedJobsModel {
+    class "CmpPostedJobsModel" {
         String id
         String companyId
         String companyName
         String companyLogo
         String companyLevel
-        List<PostedJobsDTO> postedJobs
+        List_PostedJobsDTO_ postedJobs
     }
-    class CmpSocialModel {
+    class "CmpSocialModel" {
         String id
         String companyId
-        List<SocialLinksDTO> socialLinks
+        List_SocialLinksDTO_ socialLinks
     }
-    class CompanyModel {
+    class "CompanyModel" {
         String id
         String name
         String shortDescription
@@ -428,7 +430,7 @@ classDiagram
         String image1
         String image2
     }
-    class StandaloneFileModel {
+    class "StandaloneFileModel" {
         String id
         String name
         String contentType
@@ -440,7 +442,7 @@ classDiagram
         Instant createdAt
         Instant updatedAt
     }
-    class EAffiliateCommissions {
+    class "EAffiliateCommissions" {
         String id
         String affiliateId
         String transactionId
@@ -449,14 +451,15 @@ classDiagram
         String currency
         Instant createdAt
     }
-    class EAffiliateLinks {
+    class "EAffiliateLinks" {
         String id
         String affiliateId
         String courseId
         String trackingCode
+        Long clicks
         Instant createdAt
     }
-    class EAffiliates {
+    class "EAffiliates" {
         String id
         String userId
         String referralCode
@@ -466,7 +469,7 @@ classDiagram
         Instant createdAt
         Instant updatedAt
     }
-    class EAiCredits {
+    class "EAiCredits" {
         String id
         String userId
         Integer balance
@@ -478,7 +481,7 @@ classDiagram
         Long version
         Instant createdAt
     }
-    class EAiUsage {
+    class "EAiUsage" {
         String id
         String userId
         String courseId
@@ -489,27 +492,27 @@ classDiagram
         String createdBy
         Instant createdAt
     }
-    class EAnalyticsEvents {
+    class "EAnalyticsEvents" {
         String id
         EAnalyticsEvent type
         String userId
         String courseId
-        Map<String, Object> metadata
+        Map_String,_Object_ metadata
         Instant timestamp
     }
-    class EApiKey {
+    class "EApiKey" {
         String id
         String apiKey
         String apiKeyHint
         String ownerId
         String name
         boolean isActive
-        List<String> allowedIps
-        List<String> scopes
+        List_String_ allowedIps
+        List_String_ scopes
         Instant expiresAt
         Instant lastUsedAt
     }
-    class EAssignments {
+    class "EAssignments" {
         String id
         String courseId
         String sectionId
@@ -521,7 +524,7 @@ classDiagram
         Double weightage
         Instant dueDate
     }
-    class EAssignmentSubmissions {
+    class "EAssignmentSubmissions" {
         String id
         String userId
         String assignmentId
@@ -533,7 +536,7 @@ classDiagram
         Instant gradedAt
         Instant submittedAt
     }
-    class EAuditLog {
+    class "EAuditLog" {
         String id
         String actorId
         String action
@@ -545,16 +548,18 @@ classDiagram
         String userAgent
         Instant createdAt
     }
-    class EBundles {
+    class "EBundles" {
         String id
         String creatorId
         String name
         Double bundlePrice
         Double originalTotalPrice
         Double savingsPercent
+        String status
+        Integer totalSales
         Instant createdAt
     }
-    class ECertificates {
+    class "ECertificates" {
         String id
         String courseId
         String userId
@@ -564,26 +569,28 @@ classDiagram
         String certificateId
         String url
         String templateId
-        String shareableLink
+        Boolean isVerified
     }
-    class ECouponRedemption {
+    class "ECouponRedemption" {
         String id
         String couponId
         String userId
         String transactionId
         Instant redeemedAt
     }
-    class ECoupons {
+    class "ECoupons" {
         String id
         String creatorId
         String code
         String discountType
         Double discountValue
         Integer maxRedemptions
+        Integer currentRedemptions
+        Boolean isActive
         Instant expiresAt
         Instant createdAt
     }
-    class ECourses {
+    class "ECourses" {
         String id
         String workspaceId
         String creatorId
@@ -595,31 +602,31 @@ classDiagram
         ECourseType type
         ECourseContentType contentType
     }
-    class ECourseSections {
+    class "ECourseSections" {
         String id
         String courseId
         Integer order
         String title
         String description
-        List<ELessons> lessonDetails
+        List_ELessons_ lessonDetails
         String createdBy
         String updatedBy
         Instant createdAt
         Instant updatedAt
     }
-    class ECreatorFinanceSettings {
+    class "ECreatorFinanceSettings" {
         String id
         String userId
         String stripeAccountId
-        List<PayoutMethod> payoutMethods
+        List_PayoutMethod_ payoutMethods
         String taxVerificationStatus
         String profileVerificationStatus
-        List<TaxForm> taxForms
+        List_TaxForm_ taxForms
         Instant createdAt
         Instant updatedAt
         String id
     }
-    class ECreditLedger {
+    class "ECreditLedger" {
         String id
         String userId
         ECreditLedgerActionType actionType
@@ -631,7 +638,7 @@ classDiagram
         String referenceId
         String referenceType
     }
-    class EduCourseReviewLog {
+    class "EduCourseReviewLog" {
         String id
         String courseId
         String reviewerId
@@ -639,19 +646,19 @@ classDiagram
         String reason
         Instant createdAt
     }
-    class EEnrollments {
+    class "EEnrollments" {
         String id
         String courseId
         String userId
         String workspaceId
-        String lastAccessedLessonId
-        Instant lastAccessedAt
-        Instant completedAt
-        Instant enrolledAt
-        Instant lastStreakDate
-        String source
+        Integer progress
+        Integer completedLessons
+        Integer totalLessons
+        Integer completedSections
+        Integer totalSections
+        Integer completedQuizzes
     }
-    class EFraudFlag {
+    class "EFraudFlag" {
         String id
         String targetUserId
         String flagType
@@ -663,7 +670,7 @@ classDiagram
         Instant createdAt
         Instant resolvedAt
     }
-    class EGifts {
+    class "EGifts" {
         String id
         String senderId
         String recipientEmail
@@ -675,7 +682,7 @@ classDiagram
         Instant updatedAt
         Instant redeemedAt
     }
-    class EHoldingLedger {
+    class "EHoldingLedger" {
         String id
         String beneficiaryId
         EBeneficiaryType beneficiaryType
@@ -687,7 +694,7 @@ classDiagram
         Instant clearanceDate
         Long version
     }
-    class ELearningPaths {
+    class "ELearningPaths" {
         String id
         String workspaceId
         String title
@@ -696,7 +703,7 @@ classDiagram
         Instant createdAt
         Instant updatedAt
     }
-    class ELedgerEntry {
+    class "ELedgerEntry" {
         String id
         String eventReference
         EventType eventType
@@ -708,7 +715,7 @@ classDiagram
         String courseId
         String bundleId
     }
-    class ELessons {
+    class "ELessons" {
         String id
         String courseId
         String sectionId
@@ -720,7 +727,7 @@ classDiagram
         String markdownContent
         ELessonType type
     }
-    class ENotifications {
+    class "ENotifications" {
         String id
         String userId
         String workspaceId
@@ -732,19 +739,19 @@ classDiagram
         String actionType
         String relatedEntityId
     }
-    class EPayouts {
+    class "EPayouts" {
         String id
         String creatorId
         Double amount
+        String currency
         EPayoutMethod method
         EPayoutStatus status
         String transactionReference
         String bankDetails
         String paypalEmail
         Double platformFee
-        Instant createdAt
     }
-    class EPayoutSchedule {
+    class "EPayoutSchedule" {
         String id
         String creatorId
         String frequency
@@ -754,7 +761,7 @@ classDiagram
         Instant nextScheduledAt
         Instant createdAt
     }
-    class EProfiles {
+    class "EProfiles" {
         String id
         String userId
         String firstName
@@ -766,7 +773,7 @@ classDiagram
         ESocialLinksDTO socialLinks
         String industry
     }
-    class EQuizAttempts {
+    class "EQuizAttempts" {
         String id
         String userId
         String quizId
@@ -778,7 +785,7 @@ classDiagram
         Instant completedAt
         Instant createdAt
     }
-    class EQuizzes {
+    class "EQuizzes" {
         String id
         String courseId
         String sectionId
@@ -788,9 +795,9 @@ classDiagram
         EQuizType type
         Integer durationLimit
         Double passingScore
-        List<EQuestionDTO> questions
+        List_EQuestionDTO_ questions
     }
-    class ERefund {
+    class "ERefund" {
         String id
         String transactionId
         String stripeCheckoutSessionId
@@ -802,7 +809,7 @@ classDiagram
         Double refundAmount
         Double originalAmount
     }
-    class EReports {
+    class "EReports" {
         String id
         String reporterId
         String targetEntityId
@@ -814,19 +821,19 @@ classDiagram
         String resolvedBy
         Instant createdAt
     }
-    class EReviews {
+    class "EReviews" {
         String id
         String courseId
         String userId
         Double rating
         String title
         String content
-        String createdBy
-        String updatedBy
-        Instant createdAt
-        Instant updatedAt
+        Boolean isVerifiedPurchase
+        Integer helpfulVotes
+        Boolean isReported
+        Boolean isVisible
     }
-    class ESubscriptions {
+    class "ESubscriptions" {
         String id
         String userId
         ESubscriptionPlan plan
@@ -834,18 +841,18 @@ classDiagram
         Integer remainingCredits
         Integer totalCredits
         Double price
+        String currency
         String billingCycle
-        String paymentGatewayId
-        String stripeCustomerId
+        Boolean autoRenew
     }
-    class ESystemSettings {
+    class "ESystemSettings" {
         String id
         String category
-        Map<String, Object> settings
+        Map_String,_Object_ settings
         Instant updatedAt
         String updatedBy
     }
-    class ETransactions {
+    class "ETransactions" {
         String id
         String courseId
         String buyerId
@@ -857,7 +864,7 @@ classDiagram
         String creatorPlanAtPurchase
         Double creatorEarning
     }
-    class ETrustScores {
+    class "ETrustScores" {
         String id
         String creatorId
         Double currentScore
@@ -869,22 +876,22 @@ classDiagram
         String currentTier
         String previousTier
     }
-    class EUser {
+    class "EUser" {
         String id
         String email
         String phone
         String passwordHash
         String ssoProvider
         String ssoProviderId
+        Boolean isEmailVerified
+        Boolean isPhoneVerified
         String displayName
         String avatarUrl
-        String banReason
-        Instant lastLoginAt
     }
-    class EUserPreferences {
+    class "EUserPreferences" {
         String id
         String userId
-        List<String> interests
+        List_String_ interests
         String preferredLanguage
         Integer dailyLearningGoalMinutes
         Boolean isNotificationsEnabled
@@ -893,7 +900,7 @@ classDiagram
         Instant createdAt
         Instant updatedAt
     }
-    class EValidationReports {
+    class "EValidationReports" {
         String id
         String courseId
         String userId
@@ -905,7 +912,7 @@ classDiagram
         String createdBy
         Instant createdAt
     }
-    class EWallet {
+    class "EWallet" {
         String id
         String userId
         Double availableBalance
@@ -914,7 +921,7 @@ classDiagram
         Long version
         Instant updatedAt
     }
-    class EWalletTransaction {
+    class "EWalletTransaction" {
         String id
         String userId
         TransactionType type
@@ -925,7 +932,8 @@ classDiagram
         String description
         Instant createdAt
     }
-    class EWebhookEvent {
+    class "EWebhookEvent" {
+        Failed_events_are_stored_with status
         String id
         String stripeEventId
         String eventType
@@ -934,10 +942,9 @@ classDiagram
         String signatureHeader
         String errorMessage
         String errorStackTrace
-        Instant nextRetryAt
-        Instant processedAt
+        Integer retryCount
     }
-    class EWorkspaceMembers {
+    class "EWorkspaceMembers" {
         String id
         String workspaceId
         String userId
@@ -949,7 +956,7 @@ classDiagram
         Instant joinedAt
         Instant lastActiveAt
     }
-    class EWorkspaces {
+    class "EWorkspaces" {
         String id
         String ownerId
         EWorkspaceType type
@@ -958,10 +965,10 @@ classDiagram
         String name
         String description
         String logoUrl
+        Boolean isActive
         Integer maxMembers
-        EWSettingsDTO settings
     }
-    class AnalyticsData {
+    class "AnalyticsData" {
         String id
         String organizationId
         String projectId
@@ -970,10 +977,10 @@ classDiagram
         String granularity
         String period
         Double value
-        Map<String, Object> metadata
+        Map_String,_Object_ metadata
         Instant computedAt
     }
-    class MetricDefinition {
+    class "MetricDefinition" {
         String id
         String organizationId
         String name
@@ -982,7 +989,7 @@ classDiagram
         boolean isCustom
         String unit
     }
-    class FinAiTrainingSnapshot {
+    class "FinAiTrainingSnapshot" {
         String id
         String organizationId
         String projectId
@@ -990,11 +997,11 @@ classDiagram
         String userId
         String inputSnapshot
         String outputSnapshot
-        List<String> changedFields
-        List<String> tags
+        List_String_ changedFields
+        List_String_ tags
         Instant createdAt
     }
-    class FinAssumption {
+    class "FinAssumption" {
         String id
         String organizationId
         String projectId
@@ -1005,7 +1012,7 @@ classDiagram
         Integer version
         Instant createdAt
     }
-    class FinAuditLog {
+    class "FinAuditLog" {
         String id
         String organizationId
         String projectId
@@ -1017,18 +1024,18 @@ classDiagram
         Object newValue
         Instant timestamp
     }
-    class FinBudget {
+    class "FinBudget" {
         String id
         String organizationId
         String projectId
         String category
         String type
-        Map<String, Double> monthlyAllocations
+        Map_String,_Double_ monthlyAllocations
         String formula
         Integer version
         Instant createdAt
     }
-    class FinFinancialSnapshot {
+    class "FinFinancialSnapshot" {
         String id
         String organizationId
         String projectId
@@ -1037,10 +1044,10 @@ classDiagram
         Double revenue
         Double cost
         Double profit
-        Map<String, Double> breakdown
+        Map_String,_Double_ breakdown
         Instant computedAt
     }
-    class FinPricingModel {
+    class "FinPricingModel" {
         String id
         String organizationId
         String projectId
@@ -1052,7 +1059,7 @@ classDiagram
         Integer version
         Instant effectiveDate
     }
-    class FinProject {
+    class "FinProject" {
         String id
         String organizationId
         String name
@@ -1060,50 +1067,50 @@ classDiagram
         String type
         String status
         String ownerId
-        List<String> teamMemberIds
+        List_String_ teamMemberIds
         Instant createdAt
         Instant updatedAt
     }
-    class FinProjectMember {
+    class "FinProjectMember" {
         String id
         String projectId
         String userId
         ProjectRole role
         Instant joinedAt
     }
-    class FinSalesPlan {
+    class "FinSalesPlan" {
         String id
         String organizationId
         String projectId
         String month
-        Map<String, Integer> userCounts
+        Map_String,_Integer_ userCounts
         Double growthRate
         Integer version
         Instant createdAt
     }
-    class FinScenario {
+    class "FinScenario" {
         String id
         String organizationId
         String projectId
         String name
         Integer baseVersion
-        List<AssumptionOverride> overrides
+        List_AssumptionOverride_ overrides
         Instant createdAt
         String key
         String value
     }
-    class FinWorkspace {
+    class "FinWorkspace" {
         String id
         String name
         String slug
         String ownerId
-        List<String> memberIds
+        List_String_ memberIds
         String subscriptionType
         Boolean isActive
         Instant createdAt
         Instant updatedAt
     }
-    class Scenario {
+    class "Scenario" {
         String id
         String organizationId
         String projectId
@@ -1112,10 +1119,10 @@ classDiagram
         String baseVersionId
         String createdBy
         Instant createdAt
-        List<String> tags
+        List_String_ tags
         String notes
     }
-    class ScenarioOverride {
+    class "ScenarioOverride" {
         String id
         String scenarioId
         String path
@@ -1126,7 +1133,7 @@ classDiagram
         String createdBy
         Instant createdAt
     }
-    class ApplicantModel {
+    class "ApplicantModel" {
         String id
         String jobId
         String companyId
@@ -1138,7 +1145,7 @@ classDiagram
         Instant appliedAt
         Instant updatedAt
     }
-    class JobPostModel {
+    class "JobPostModel" {
         String id
         String companyId
         String companyName
@@ -1147,48 +1154,58 @@ classDiagram
         String description
         String responsibilities
         String requirements
-        List<String> skills
+        List_String_ skills
         String location
     }
-    class LAutomation {
+    class "LAutomation" {
         String id
         String workspaceId
         String name
+        boolean active
         String triggerType
         int triggerScoreThreshold
-        List<String> triggerKeywords
+        List_String_ triggerKeywords
         String actionType
         String actionTemplateId
+        boolean requiresHumanApproval
     }
-    class LLeadAutomation {
+    class "LLeadAutomation" {
         String id
         String workspaceId
         String name
+        boolean active
         String triggerType
         Double triggerScoreThreshold
-        List<String> triggerKeywords
+        List_String_ triggerKeywords
         String triggerStatus
         String actionType
         String actionWebhookUrl
     }
-    class LCampaign {
+    class "LCampaign" {
         String id
         String workspaceId
         String name
         String platform
+        String status
         String template
         String sourceId
+        Map_String,_Integer_ metrics
+        Instant createdAt
+        Instant updatedAt
     }
-    class LLead {
+    class "LLead" {
         String id
         String workspaceId
         String name
         String platform
+        String status
+        List_String_ tags
         Double score
         String sourceSignalId
         String notes
+        List_LTimelineEvent_ timeline
     }
-    class LLeadCandidate {
+    class "LLeadCandidate" {
         String id
         String name
         String workspaceId
@@ -1197,31 +1214,39 @@ classDiagram
         String summary
         String intent
         Double leadScore
-        List<String> tags
+        List_String_ tags
+        String pipelineStage
     }
-    class LLeadSource {
+    class "LLeadSource" {
         String id
         String workspaceId
         String platform
         String name
-        Map<String, Object> config
+        Map_String,_Object_ config
+        boolean active
+        Instant createdAt
+        Instant updatedAt
     }
-    class LLeadWorkspace {
+    class "LLeadWorkspace" {
         String id
         String name
         String ownerId
-        List<String> memberIds
+        List_String_ memberIds
+        Instant createdAt
+        Instant updatedAt
     }
-    class LNotification {
+    class "LNotification" {
         String id
         String workspaceId
         String userId
         String title
         String message
         String type
+        boolean read
+        LocalDateTime createdAt
         String link
     }
-    class LRawSignal {
+    class "LRawSignal" {
         String id
         String sourceId
         String workspaceId
@@ -1229,28 +1254,34 @@ classDiagram
         String content
         String author
         String url
-        Map<String, Object> metadata
+        Map_String,_Object_ metadata
+        String status
         String intent
-        Double score
     }
-    class LTask {
+    class "LTask" {
         String id
         String workspaceId
         String userId
         String type
+        String status
+        int progress
         String resultUrl
         String errorMessage
-        Map<String, Object> metadata
+        Map_String,_Object_ metadata
+        LocalDateTime createdAt
     }
-    class LTemplate {
+    class "LTemplate" {
         String id
         String workspaceId
         String name
         String content
         String platform
         String category
+        int usageCount
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
     }
-    class AICacheEntry {
+    class "AICacheEntry" {
         String id
         String cacheKey
         String responseJson
@@ -1258,14 +1289,14 @@ classDiagram
         String promptHash
         Instant createdAt
     }
-    class UserCredits {
+    class "UserCredits" {
         String id
         String userId
         SubscriptionTier tier
         int creditsAvailable
         Instant lastRefreshedAt
     }
-    class Goal {
+    class "Goal" {
         String goalId
         String userId
         String title
@@ -1277,7 +1308,7 @@ classDiagram
         GoalTimeline timeline
         Instant createdAt
     }
-    class JournalEntry {
+    class "JournalEntry" {
         String id
         String userId
         LocalDate date
@@ -1285,7 +1316,7 @@ classDiagram
         String aiInsight
         Instant createdAt
     }
-    class MoodEntry {
+    class "MoodEntry" {
         String id
         String userId
         LocalDate date
@@ -1293,7 +1324,7 @@ classDiagram
         String label
         Instant createdAt
     }
-    class WeeklyMoodSummary {
+    class "WeeklyMoodSummary" {
         String id
         String userId
         LocalDate weekStartDate
@@ -1304,7 +1335,7 @@ classDiagram
         String trendDirection
         Instant computedAt
     }
-    class LPNotification {
+    class "LPNotification" {
         String id
         String userId
         String title
@@ -1313,30 +1344,31 @@ classDiagram
         boolean isRead
         Instant createdAt
     }
-    class DailySchedule {
+    class "DailySchedule" {
         String scheduleId
         String planId
         String userId
         LocalDate scheduleDate
-        List<ScheduleTask> tasks
+        List_ScheduleTask_ tasks
         boolean isCompleted
         String taskId
         String title
         String estimatedTime
         String category
     }
-    class StudyPlan {
+    class "StudyPlan" {
         String planId
         String goalId
         String userId
         String status
-        List<PlanResponse.RoadmapItem> roadmap
-        List<PlanResponse.WeeklyPlan> weeklyPlans
+        List_PlanResponse.RoadmapItem_ roadmap
+        List_PlanResponse.WeeklyPlan_ weeklyPlans
         Instant createdAt
         Instant updatedAt
         double progressPercentage
+        List_Integer_ reachedMilestones
     }
-    class User {
+    class "User" {
         String id
         String email
         String passwordHash
@@ -1344,7 +1376,7 @@ classDiagram
         Instant createdAt
         Instant updatedAt
     }
-    class UserPreferences {
+    class "UserPreferences" {
         String id
         String userId
         boolean notificationsEnabled
@@ -1356,47 +1388,47 @@ classDiagram
         String plannerLayoutStyle
         String workHoursStart
     }
-    class UserProfile {
+    class "UserProfile" {
         String id
         String userId
         String lifestyleData
-        List<String> studyPreferences
+        List_String_ studyPreferences
         String focusTime
-        List<String> hobbies
+        List_String_ hobbies
         String stressLevel
         Integer age
         String gender
         String educationLevel
     }
-    class ChatRoom {
+    class "ChatRoom" {
         String id
         RoomType type
         String name
-        List<String> participants
+        List_String_ participants
         String communityId
         LocalDateTime createdAt
-        List<String> pinnedBy
-        List<String> archivedBy
-        List<String> favoritedBy
+        List_String_ pinnedBy
+        List_String_ archivedBy
+        List_String_ favoritedBy
     }
-    class Message {
+    class "Message" {
         String id
         String roomId
         String senderId
         String content
         MessageType messageType
         LocalDateTime createdAt
-        Map<String, LocalDateTime> readByUsers
+        Map_String,_LocalDateTime_ readByUsers
         boolean isEdited
         LocalDateTime updatedAt
         boolean isDeleted
     }
-    class UserPresence {
+    class "UserPresence" {
         String userId
         PresenceStatus status
         LocalDateTime lastSeen
     }
-    class BillingAddressModel {
+    class "BillingAddressModel" {
         String id
         String companyId
         String street
@@ -1405,7 +1437,7 @@ classDiagram
         String postal_code
         String country
     }
-    class BillingHistoryModel {
+    class "BillingHistoryModel" {
         String id
         String companyId
         String userId
@@ -1415,7 +1447,7 @@ classDiagram
         String sessionId
         String status
     }
-    class InvoicesModel {
+    class "InvoicesModel" {
         String id
         String companyId
         String invoiceId
@@ -1427,7 +1459,7 @@ classDiagram
         Date periodEnd
         String invoice_pdf
     }
-    class PaymentMethodsModel {
+    class "PaymentMethodsModel" {
         String id
         String companyId
         String userId
@@ -1437,7 +1469,7 @@ classDiagram
         String sessionId
         String is_default
     }
-    class PaymentSubscriptionsModel {
+    class "PaymentSubscriptionsModel" {
         String id
         String companyId
         String subscriptionId
@@ -1448,7 +1480,7 @@ classDiagram
         String billing_cycle
         boolean is_active
     }
-    class PrePaymentModel {
+    class "PrePaymentModel" {
         String id
         String companyId
         String firstname
@@ -1460,7 +1492,7 @@ classDiagram
         String paymentMethodId
         String billingAddressId
     }
-    class RecordedCoursePayment {
+    class "RecordedCoursePayment" {
         String id
         String courseId
         String courseName
@@ -1472,7 +1504,7 @@ classDiagram
         String currency
         BigDecimal trainerAmount
     }
-    class UsageDataModel {
+    class "UsageDataModel" {
         String id
         String companyId
         String job_posts_allowed
@@ -1484,7 +1516,7 @@ classDiagram
         Integer storage
         Integer bandwidth
     }
-    class AmbassadorTaskProgressModel {
+    class "AmbassadorTaskProgressModel" {
         String id
         String ambassadorId
         String taskId
@@ -1494,18 +1526,19 @@ classDiagram
         Instant startedAt
         Instant completedAt
         Instant lastResetAt
-        Instant rewardedAt
+        String rewardStatus
     }
-    class BadgeDefinition {
+    class "BadgeDefinition" {
         String id
         String title
         String description
         String level
         String svgUrl
+        boolean visible
         Instant createdAt
-        List<String> tags
+        List_String_ tags
     }
-    class CourseCertificateModel {
+    class "CourseCertificateModel" {
         String id
         String employeeId
         String courseId
@@ -1517,19 +1550,19 @@ classDiagram
         boolean delivered
         String fileName
     }
-    class CourseCouponsModel {
+    class "CourseCouponsModel" {
         String id
         String stripeCouponId
         String userId
         boolean publicity
-        private String unlockedBy
+        public, false
+        private_String unlockedBy
         String redeemedBy
         String code
         String token
         String discount
-        String discountType
     }
-    class CourseReminderLog {
+    class "CourseReminderLog" {
         String id
         String employeeId
         String moduleId
@@ -1537,75 +1570,77 @@ classDiagram
         String reminderType
         Instant sentTime
     }
-    class EmpCoursesModel {
+    class "EmpCoursesModel" {
         String id
         String employeeId
         String employeeName
         String email
         String phone
         String timezone
-        List<CourseEnrollment> courses
-        List<RecordedCourseEnrollment> recordedCourses
+        List_CourseEnrollment_ courses
+        List_RecordedCourseEnrollment_ recordedCourses
     }
-    class GamificationTaskModel {
+    class "GamificationTaskModel" {
         String id
         String title
         String description
         String type
         String level
+        BRONZE,_GOLD,_PLATINUM,_or null
         int targetValue
         String rewardType
         String rewardId
-        Map<String, Object> rewardMetadata
-        boolean recurring
+        Map_String,_Object_ rewardMetadata
     }
-    class QuizAttempt {
+    class "QuizAttempt" {
         String id
         String employeeId
         String courseId
         String moduleId
         String quizId
         int attemptNumber
-        List<QuestionAnswer> answers
+        List_QuestionAnswer_ answers
         double score
         int correctCount
         int totalQuestions
     }
-    class SwagItem {
+    class "SwagItem" {
         String id
         String title
         String description
         String imageUrl
         int inventory
-        List<String> sizeOptions
+        List_String_ sizeOptions
         boolean enabled
         Instant createdAt
     }
-    class InterviewQuestionModel {
+    class "InterviewQuestionModel" {
         String id
         String category
-        List<Question> questions
+        List_Question_ questions
         String id
         String question
         String overview
         int viewCount
-        List<Answer> answers
+        List_Answer_ answers
         String id
         String by
     }
-    class JobApplyModel {
+    class "JobApplyModel" {
         String id
         String companyId
         String jobId
+        List_JobApplicantDTO_ applicants
+        List_JobViewerDTO_ viewers
     }
-    class PreOrderModel {
+    class "PreOrderModel" {
         String id
         String name
         String email
         String product
         String date
     }
-    class Referral {
+    class "Referral" {
         String id
         String referrerId
         String referredUserId
@@ -1615,13 +1650,13 @@ classDiagram
         Instant createdAt
         Instant completedAt
     }
-    class ReferralCode {
+    class "ReferralCode" {
         String id
         String code
         String userId
         Instant createdAt
     }
-    class ReferralCommission {
+    class "ReferralCommission" {
         String id
         String referrerId
         String referredCreatorId
@@ -1629,7 +1664,7 @@ classDiagram
         Instant expiryDate
         Instant createdAt
     }
-    class ReputationEvent {
+    class "ReputationEvent" {
         String id
         String userId
         ReputationSourceType sourceType
@@ -1637,13 +1672,13 @@ classDiagram
         int delta
         LocalDateTime createdAt
     }
-    class UserBadge {
+    class "UserBadge" {
         String id
         String userId
         BadgeType badgeType
         LocalDateTime awardedAt
     }
-    class UserReputation {
+    class "UserReputation" {
         String id
         String userId
         long totalScore
@@ -1652,19 +1687,19 @@ classDiagram
         long announcementScore
         LocalDateTime lastUpdated
     }
-    class ResumeModel {
+    class "ResumeModel" {
         String id
         String employeeId
         String title
         String templateId
         PersonalInfo personalInfo
-        List<WorkExperience> workExperience
-        List<Education> education
-        List<Skill> skills
-        List<Project> projects
-        List<Certificate> certificates
+        List_WorkExperience_ workExperience
+        List_Education_ education
+        List_Skill_ skills
+        List_Project_ projects
+        List_Certificate_ certificates
     }
-    class SoftwareAppModel {
+    class "SoftwareAppModel" {
         String id
         String name
         String description
@@ -1676,13 +1711,13 @@ classDiagram
         Instant purchaseDate
         Instant expiryDate
     }
-    class FeatureFlag {
+    class "FeatureFlag" {
         String id
         ESubscriptionPlan plan
         String featureKey
         boolean enabled
     }
-    class Subscription {
+    class "Subscription" {
         String id
         String userId
         ESubscriptionPlan plan
@@ -1694,7 +1729,7 @@ classDiagram
         String stripePriceId
         String billingCycle
     }
-    class SupportRequestModel {
+    class "SupportRequestModel" {
         String id
         String name
         String email
@@ -1703,7 +1738,7 @@ classDiagram
         String status
         Instant createdAt
     }
-    class TrackingEvent {
+    class "TrackingEvent" {
         String id
         String trackingId
         String eventType
@@ -1715,39 +1750,39 @@ classDiagram
         String screenResolution
         String browser
     }
-    class EmpCertificatesModel {
+    class "EmpCertificatesModel" {
         String id
         String employeeId
-        List<EmpCertificatesDTO> certificates
+        List_EmpCertificatesDTO_ certificates
     }
-    class EmpContactModel {
+    class "EmpContactModel" {
         String id
         String employeeId
-        List<EmpContactDTO> contact
-        List<SocialLinksDTO> socialLinks
+        List_EmpContactDTO_ contact
+        List_SocialLinksDTO_ socialLinks
         boolean publicity
     }
-    class EmpEducationModel {
+    class "EmpEducationModel" {
         String id
         String employeeId
-        List<EmpEducationDTO> education
+        List_EmpEducationDTO_ education
     }
-    class EmpExperiencesModel {
+    class "EmpExperiencesModel" {
         String id
         String employeeId
-        List<EmpExperiencesDTO> experiences
+        List_EmpExperiencesDTO_ experiences
     }
-    class EmpFollowersModel {
+    class "EmpFollowersModel" {
         String id
         String employeeId
-        List<EmpFollowersDTO> followers
+        List_EmpFollowersDTO_ followers
     }
-    class EmpFollowingModel {
+    class "EmpFollowingModel" {
         String id
         String employeeId
-        List<EmpFollowingDTO> followings
+        List_EmpFollowingDTO_ followings
     }
-    class EmployeeModel {
+    class "EmployeeModel" {
         String id
         String firstname
         String lastname
@@ -1759,39 +1794,39 @@ classDiagram
         String resume
         String intro
     }
-    class EmpProjectsModel {
+    class "EmpProjectsModel" {
         String id
         String employeeId
-        List<EmpProjectsDTO> projects
+        List_EmpProjectsDTO_ projects
     }
-    class EmpSkillsModel {
+    class "EmpSkillsModel" {
         String id
         String employeeId
-        List<EmpSkillsDTO> skills
+        List_EmpSkillsDTO_ skills
     }
-    class TrainerProfile {
+    class "TrainerProfile" {
         String id
         String employeeId
         String headline
         String bio
-        List<String> specialties
-        List<String> languages
+        List_String_ specialties
+        List_String_ languages
         String hourlyRate
         String availability
-        List<String> certifications
+        List_String_ certifications
         Double rating
     }
-    class WorkspaceModel {
+    class "WorkspaceModel" {
         String id
         String name
         String slug
         String ownerId
-        List<String> memberIds
+        List_String_ memberIds
         LocalDateTime createdAt
         LocalDateTime updatedAt
         String subscriptionType
     }
-    class UserActivity {
+    class "UserActivity" {
         String id
         String userId
         String encryptedIpAddress
@@ -1803,20 +1838,21 @@ classDiagram
         String country
         boolean suspectedVpn
     }
-    class WhitelistDomains {
+    class "WhitelistDomains" {
         String id
         String domain
         boolean active
         String requestBy
     }
-    class ContactSubmission {
+    class "ContactSubmission" {
         String id
         String name
         String email
         String subject
         String message
+        LocalDateTime createdAt
     }
-    class CtaLeadSubmission {
+    class "CtaLeadSubmission" {
         String id
         String name
         String email
@@ -1824,12 +1860,13 @@ classDiagram
         String ctaType
         String focusArea
         String message
+        LocalDateTime createdAt
     }
-    class NewsLatterModel {
+    class "NewsLatterModel" {
         String id
         String email
     }
-    class TokenModel {
+    class "TokenModel" {
         String id
         String token
         String username

@@ -69,7 +69,10 @@ AmbassadorProfileModel {
   interviewNote String
   badgeHistory List<String>
   perks Map<String, Object>
+  points int
   lastPointEarnedAt Instant
+  totalLogins int
+  consecutiveLoginDays int
   lastLoginDate Instant
 }
 
@@ -164,6 +167,8 @@ Article {
   tagIds List<String>
   status ArticleStatus
   readTime int
+  views long
+  likes long
   featured boolean
   createdAt LocalDateTime
   updatedAt LocalDateTime
@@ -209,7 +214,7 @@ AsyncUpdateAuditLog {
 }
 
 ClientActAuditLog {
-  userId String PK
+  userId String
   ipAddress String
   sessionId String
   action String
@@ -246,6 +251,7 @@ LeadOSAuditLog {
   entityType String
   details Map<String, Object>
   ipAddress String
+  timestamp LocalDateTime
 }
 
 SchedulerLogModel {
@@ -268,6 +274,9 @@ StripeAuditLog {
   status String
   errorMessage String
   rawPayload String
+  retryCount int
+  createdAt Date
+  updatedAt Date
   expiresAt Instant
 }
 
@@ -352,6 +361,7 @@ Login {
   userId String
   loginDates List<String>
   metaData List<LoginMetaDTO>
+  events List<LoginEventDTO>
 }
 
 SystemNotificationsModel {
@@ -437,6 +447,7 @@ Post {
   reactions List<Reaction>
   timestamp LocalDateTime
   updatedAt LocalDateTime
+  trendingScore double
   title String
   text String
   url String
@@ -539,6 +550,7 @@ RecordedCourseModel {
   title String
   subtitle String
   description String
+  courseType String
   price BigDecimal
   published boolean
   approved boolean
@@ -552,9 +564,13 @@ RecordedCourseModel {
   lecturer String
   lecturerNameTag String
   lecturerEmail String
+  language String
   category String
   reviews List<RecordedCourseReviewDTO>
+  rating double
+  reviewCount int
   certificate boolean
+  currency String
   companyId String
   trainerId String
   trainerShare BigDecimal
@@ -634,6 +650,7 @@ CompanyModel {
   subscription_id String
   payment_method_id String
   billing_address_id String
+  systemOwner boolean
 }
 
 StandaloneFileModel {
@@ -666,6 +683,7 @@ EAffiliateLinks {
   affiliateId String
   courseId String
   trackingCode String
+  clicks Long
   createdAt Instant
 }
 
@@ -779,6 +797,8 @@ EBundles {
   bundlePrice Double
   originalTotalPrice Double
   savingsPercent Double
+  status String
+  totalSales Integer
   createdAt Instant
 }
 
@@ -792,6 +812,7 @@ ECertificates {
   certificateId String
   url String
   templateId String
+  isVerified Boolean
   shareableLink String
   issuedAt Instant
 }
@@ -811,6 +832,8 @@ ECoupons {
   discountType String
   discountValue Double
   maxRedemptions Integer
+  currentRedemptions Integer
+  isActive Boolean
   expiresAt Instant
   createdAt Instant
 }
@@ -932,10 +955,25 @@ EEnrollments {
   courseId String
   userId String
   workspaceId String
+  progress Integer
+  completedLessons Integer
+  totalLessons Integer
+  completedSections Integer
+  totalSections Integer
+  completedQuizzes Integer
+  totalQuizzes Integer
+  completedAssignments Integer
+  totalAssignments Integer
+  completedProjects Integer
+  totalProjects Integer
+  completed Boolean
   lastAccessedLessonId String
   lastAccessedAt Instant
+  totalWatchTime Long
   completedAt Instant
   enrolledAt Instant
+  currentStreak Integer
+  longestStreak Integer
   lastStreakDate Instant
   source String
   createdBy String
@@ -1028,6 +1066,9 @@ ELessons {
   markdownContent String
   type ELessonType
   duration Integer
+  isFreePreview Boolean
+  isPublished Boolean
+  isDrmProtected Boolean
   videoThumbnail String
   plagiarismScore Double
   aiScore Double
@@ -1051,6 +1092,8 @@ ENotifications {
   actionType String
   relatedEntityId String
   entityType String
+  isRead Boolean
+  isArchived Boolean
   readAt Instant
   createdAt Instant
   expiresAt Instant
@@ -1060,6 +1103,7 @@ EPayouts {
   id String PK
   creatorId String
   amount Double
+  currency String
   method EPayoutMethod
   status EPayoutStatus
   transactionReference String
@@ -1150,6 +1194,8 @@ ERefund {
   type RefundType
   status RefundStatus
   reason String
+  enrollmentRevoked Boolean
+  holdingReversed Boolean
   initiatedBy String
   createdAt Instant
   updatedAt Instant
@@ -1176,6 +1222,10 @@ EReviews {
   rating Double
   title String
   content String
+  isVerifiedPurchase Boolean
+  helpfulVotes Integer
+  isReported Boolean
+  isVisible Boolean
   createdBy String
   updatedBy String
   createdAt Instant
@@ -1190,7 +1240,9 @@ ESubscriptions {
   remainingCredits Integer
   totalCredits Integer
   price Double
+  currency String
   billingCycle String
+  autoRenew Boolean
   paymentGatewayId String
   stripeCustomerId String
   stripeSubscriptionId String
@@ -1202,6 +1254,7 @@ ESubscriptions {
   trialEndDate Instant
   cancelledAt Instant
   lastPaymentAt Instant
+  cancelAtPeriodEnd Boolean
   lastCreditResetAt Instant
   createdAt Instant
   updatedAt Instant
@@ -1281,15 +1334,22 @@ EUser {
   passwordHash String
   ssoProvider String
   ssoProviderId String
+  isEmailVerified Boolean
+  isPhoneVerified Boolean
   displayName String
   avatarUrl String
+  isActive Boolean
+  isBanned Boolean
   banReason String
   lastLoginAt Instant
+  plan ESubscriptionPlan
+  subscriptionStatus ESubscriptionStatus
   emailVerificationToken String
   passwordResetToken String
   passwordResetExpiry Instant
   createdAt Instant
   updatedAt Instant
+  isMfaEnabled Boolean
 }
 
 EUserPreferences {
@@ -1341,6 +1401,7 @@ EWalletTransaction {
 }
 
 EWebhookEvent {
+  status Failed events are stored with
   id String PK
   stripeEventId String
   eventType String
@@ -1349,6 +1410,8 @@ EWebhookEvent {
   signatureHeader String
   errorMessage String
   errorStackTrace String
+  retryCount Integer
+  maxRetries Integer
   nextRetryAt Instant
   processedAt Instant
 }
@@ -1375,7 +1438,11 @@ EWorkspaces {
   name String
   description String
   logoUrl String
+  isActive Boolean
   maxMembers Integer
+  totalMembers Integer
+  totalCourses Integer
+  totalLearningPaths Integer
   settings EWSettingsDTO
   profile EWProfileDTO
   createdAt Instant
@@ -1600,29 +1667,39 @@ JobPostModel {
   createdAt Instant
   updatedAt Instant
   expiryDate Instant
+  applicationsCount int
+  viewsCount int
 }
 
 LAutomation {
   id String PK
   workspaceId String
   name String
+  active boolean
   triggerType String
   triggerScoreThreshold int
   triggerKeywords List<String>
   actionType String
   actionTemplateId String
+  requiresHumanApproval boolean
+  createdAt LocalDateTime
+  updatedAt LocalDateTime
 }
 
 LLeadAutomation {
   id String PK
   workspaceId String
   name String
+  active boolean
   triggerType String
   triggerScoreThreshold Double
   triggerKeywords List<String>
   triggerStatus String
   actionType String
   actionWebhookUrl String
+  requiresHumanApproval boolean
+  createdAt Instant
+  updatedAt Instant
 }
 
 LCampaign {
@@ -1630,8 +1707,12 @@ LCampaign {
   workspaceId String
   name String
   platform String
+  status String
   template String
   sourceId String
+  metrics Map<String, Integer>
+  createdAt Instant
+  updatedAt Instant
 }
 
 LLead {
@@ -1639,9 +1720,14 @@ LLead {
   workspaceId String
   name String
   platform String
+  status String
+  tags List<String>
   score Double
   sourceSignalId String
   notes String
+  timeline List<LTimelineEvent>
+  createdAt Instant
+  updatedAt Instant
 }
 
 LLeadCandidate {
@@ -1654,6 +1740,9 @@ LLeadCandidate {
   intent String
   leadScore Double
   tags List<String>
+  pipelineStage String
+  createdAt Instant
+  updatedAt Instant
 }
 
 LLeadSource {
@@ -1662,6 +1751,9 @@ LLeadSource {
   platform String
   name String
   config Map<String, Object>
+  active boolean
+  createdAt Instant
+  updatedAt Instant
 }
 
 LLeadWorkspace {
@@ -1669,6 +1761,8 @@ LLeadWorkspace {
   name String
   ownerId String
   memberIds List<String>
+  createdAt Instant
+  updatedAt Instant
 }
 
 LNotification {
@@ -1678,6 +1772,8 @@ LNotification {
   title String
   message String
   type String
+  read boolean
+  createdAt LocalDateTime
   link String
 }
 
@@ -1690,9 +1786,11 @@ LRawSignal {
   author String
   url String
   metadata Map<String, Object>
+  status String
   intent String
   score Double
   tags List<String>
+  capturedAt Instant
 }
 
 LTask {
@@ -1700,9 +1798,13 @@ LTask {
   workspaceId String
   userId String
   type String
+  status String
+  progress int
   resultUrl String
   errorMessage String
   metadata Map<String, Object>
+  createdAt LocalDateTime
+  updatedAt LocalDateTime
 }
 
 LTemplate {
@@ -1712,6 +1814,9 @@ LTemplate {
   content String
   platform String
   category String
+  usageCount int
+  createdAt LocalDateTime
+  updatedAt LocalDateTime
 }
 
 AICacheEntry {
@@ -1732,7 +1837,7 @@ UserCredits {
 }
 
 Goal {
-  goalId String PK
+  goalId String
   userId String
   title String
   description String
@@ -1786,7 +1891,7 @@ LPNotification {
 }
 
 DailySchedule {
-  scheduleId String PK
+  scheduleId String
   planId String
   userId String
   scheduleDate LocalDate
@@ -1805,7 +1910,7 @@ DailySchedule {
 }
 
 StudyPlan {
-  planId String PK
+  planId String
   goalId String
   userId String
   status String
@@ -1814,6 +1919,7 @@ StudyPlan {
   createdAt Instant
   updatedAt Instant
   progressPercentage double
+  reachedMilestones List<Integer>
 }
 
 User {
@@ -1897,7 +2003,7 @@ Message {
 }
 
 UserPresence {
-  userId String PK
+  userId String
   status PresenceStatus
   lastSeen LocalDateTime
 }
@@ -2022,6 +2128,8 @@ AmbassadorTaskProgressModel {
   startedAt Instant
   completedAt Instant
   lastResetAt Instant
+  rewardStatus String
+  rewarded boolean
   rewardedAt Instant
 }
 
@@ -2031,6 +2139,7 @@ BadgeDefinition {
   description String
   level String
   svgUrl String
+  visible boolean
   createdAt Instant
   tags List<String>
 }
@@ -2054,6 +2163,7 @@ CourseCouponsModel {
   stripeCouponId String
   userId String
   publicity boolean
+  false public,
   unlockedBy private String
   redeemedBy String
   code String
@@ -2069,6 +2179,7 @@ CourseCouponsModel {
   status Status
   level String
   applicableCourseIds List<String>
+  empty Null or
   applicableForInstallment boolean
   redeemedForCourseId String
   redeemedForInstallmentId String
@@ -2109,6 +2220,7 @@ GamificationTaskModel {
   description String
   type String
   level String
+  null BRONZE, GOLD, PLATINUM, or
   targetValue int
   rewardType String
   rewardId String
@@ -2116,7 +2228,10 @@ GamificationTaskModel {
   recurring boolean
   frequencyInDays int
   createdAt Instant
+  priority int
+  higher lowest,
   groupKey String
+  points int
 }
 
 QuizAttempt {
@@ -2166,6 +2281,8 @@ JobApplyModel {
   id String PK
   companyId String
   jobId String
+  applicants List<JobApplicantDTO>
+  viewers List<JobViewerDTO>
 }
 
 PreOrderModel {
@@ -2342,6 +2459,8 @@ Subscription {
   stripeSubscriptionId String
   stripePriceId String
   billingCycle String
+  autoRenew Boolean
+  cancelAtPeriodEnd Boolean
   trialEndDate Instant
   cancelledAt Instant
   lastPaymentAt Instant
@@ -2415,6 +2534,7 @@ TrackingEvent {
   errorColumn Integer
   errorStack String
   rejectionReason String
+  FEATURES NEW v2.0
   experimentId String
   variant String
   conversionType String
@@ -2506,6 +2626,7 @@ EmployeeModel {
   marketingNotifications Object
   profileCompleted Object
   profileStatus String
+  platformRole PlatformRole
   companyId String
   expectedSalaryRange String
   currentExperience String
@@ -2541,6 +2662,7 @@ TrainerProfile {
   website String
   linkedIn String
   youtube String
+  publicProfile boolean
 }
 
 WorkspaceModel {
@@ -2582,6 +2704,7 @@ ContactSubmission {
   email String
   subject String
   message String
+  createdAt LocalDateTime
 }
 
 CtaLeadSubmission {
@@ -2592,6 +2715,7 @@ CtaLeadSubmission {
   ctaType String
   focusArea String
   message String
+  createdAt LocalDateTime
 }
 
 NewsLatterModel {
