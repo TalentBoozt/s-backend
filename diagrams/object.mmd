@@ -1,0 +1,1838 @@
+classDiagram
+    class AIQuota {
+        String id
+        String userId
+        Integer monthlyLimit
+        Integer used
+        Instant resetDate
+    }
+    class AIUsage {
+        String id
+        String userId
+        AIUsageType type
+        Integer creditsUsed
+        Instant createdAt
+    }
+    class CreditRecord {
+        String id
+        int creditsRemaining
+        LocalDate lastReset
+    }
+    class AmbassadorLeaderboardModel {
+        String id
+        String type
+        String ambassadorId
+        String name
+        String email
+        String level
+        int score
+        int rank
+        Instant generatedAt
+        Instant expireAt
+    }
+    class AmbassadorPointAudit {
+        String id
+        String ambassadorId
+        String reason
+        int points
+        Instant createdAt
+        String metadata
+    }
+    class AmbassadorProfileModel {
+        String id
+        String firstName
+        String lastName
+        String name
+        String email
+        String motivation
+        String profileLink
+        boolean consentGiven
+        Instant appliedAt
+        AmbassadorLifecycle lifecycle
+    }
+    class AmbassadorRewardModel {
+        String id
+        String ambassadorId
+        String taskId
+        String rewardType
+        String status
+        Instant issuedAt
+        Instant redeemedAt
+    }
+    class AmbassadorSessionModel {
+        String id
+        String ambassadorId
+        String type
+        String topic
+        String sessionLink
+        Instant date
+        int attendeeCount
+        boolean completed
+    }
+    class AmbReferralModel {
+        String id
+        String referralCode
+        String ambassadorId
+        String referredUserId
+        Instant referredAt
+        String courseId
+        String referredPlatform
+        boolean courseEnrolled
+        Instant enrolledAt
+    }
+    class BadgeModel {
+        String id
+        String ambassadorId
+        String taskId
+        String badgeId
+        String title
+        String description
+        Instant earnedAt
+    }
+    class SwagModel {
+        String id
+        String ambassadorId
+        String taskId
+        String swagType
+        String status
+        Instant requestedAt
+        Instant shippedAt
+        Instant deliveredAt
+        String shippingAddress
+        String trackingCode
+    }
+    class Announcement {
+        String id
+        String title
+        String slug
+        String summary
+        String content
+        String coverImage
+        AnnouncementStatus status
+        AnnouncementType type
+        AnnouncementVisibility visibility
+        AnnouncementPriority priority
+    }
+    class Article {
+        String id
+        String title
+        String slug
+        String content
+        String excerpt
+        String authorId
+        String coverImage
+        List<String> tagIds
+        ArticleStatus status
+        int readTime
+    }
+    class ArticleEvaluationLog {
+        String id
+        String articleId
+        String validationVersion
+        String aiProvider
+        String promptVersion
+        String responseHash
+        String rawApiResponse
+        ArticleEvaluationDTO evaluationResult
+        LocalDateTime evaluatedAt
+    }
+    class Tag {
+        String id
+        String name
+        String slug
+    }
+    class AsyncUpdateAuditLog {
+        String id
+        String courseId
+        String batchId
+        String employeeId
+        String operation
+        String status
+        int retryCount
+        String errorMessage
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+    }
+    class ClientActAuditLog {
+        String userId
+        String ipAddress
+        String sessionId
+        String action
+        String source
+        Map<String, Object> details
+        LocalDateTime timestamp
+        Instant expiresAt
+    }
+    class CourseReminderAuditLog {
+        String id
+        String employeeId
+        String employeeName
+        String email
+        String courseId
+        String courseName
+        String moduleId
+        String moduleName
+        String reminderType
+        String status
+    }
+    class LeadOSAuditLog {
+        String id
+        String workspaceId
+        String userId
+        String action
+        String entityId
+        String entityType
+        Map<String, Object> details
+        String ipAddress
+    }
+    class SchedulerLogModel {
+        String id
+        String jobName
+        Instant runAt
+        String status
+        String message
+        Instant expireAt
+    }
+    class StripeAuditLog {
+        String id
+        String eventId
+        String eventType
+        String sessionId
+        String customerId
+        String subscriptionId
+        String paymentIntentId
+        String status
+        String errorMessage
+        String rawPayload
+    }
+    class TaskRewardAuditModel {
+        String id
+        String ambassadorId
+        String taskId
+        String rewardType
+        String rewardId
+        String rewardTitle
+        String status
+        String note
+        Instant issuedAt
+        Instant expiresAt
+    }
+    class CredentialsModel {
+        String id
+        String employeeId
+        String companyId
+        String firstname
+        String lastname
+        String email
+        String password
+        String role
+        List<String> roles
+        List<String> permissions
+    }
+    class PasswordResetTokenModel {
+        String id
+        String token
+        String userId
+        LocalDateTime expirationDate
+    }
+    class PermissionModel {
+        String id
+        String name
+        String description
+        String category
+        Instant createdAt
+        Instant updatedAt
+    }
+    class RoleModel {
+        String id
+        String name
+        List<String> permissions
+        List<String> inheritsFrom
+        String description
+    }
+    class FeatureModel {
+        String id
+        String featureType
+        String description
+        String attachment
+    }
+    class IssueModel {
+        String id
+        String issueType
+        String description
+        String attachment
+    }
+    class Login {
+        String id
+        String userId
+        List<String> loginDates
+        List<LoginMetaDTO> metaData
+    }
+    class SystemNotificationsModel {
+        String id
+        String message
+        Date startTime
+        Date endTime
+        String url
+        boolean active
+    }
+    class Activity {
+        String id
+        String userId
+        String action
+        String targetId
+        LocalDateTime timestamp
+    }
+    class Comment {
+        String id
+        String postId
+        String parentId
+        String authorId
+        List<String> mentionIds
+        String text
+        int upvotes
+        int downvotes
+        List<Post.Reaction> reactions
+        LocalDateTime timestamp
+    }
+    class Community {
+        String id
+        String name
+        String description
+        String icon
+        String bannerImage
+        String creatorId
+        List<String> adminIds
+        List<String> moderatorIds
+        CommunityPrivacy privacy
+        LocalDateTime createdAt
+    }
+    class CommunityMember {
+        String id
+        String communityId
+        String userId
+        MemberRole role
+        LocalDateTime joinedAt
+        boolean isBanned
+        LocalDateTime bannedAt
+        String bannedReason
+    }
+    class Notification {
+        String id
+        String recipientId
+        String senderId
+        NotificationType type
+        String targetId
+        boolean isRead
+        LocalDateTime timestamp
+    }
+    class Post {
+        String id
+        String authorId
+        String communityId
+        List<String> mentionIds
+        String quotedPostId
+        String type
+        PostContent content
+        PostMetrics metrics
+        List<Reaction> reactions
+        LocalDateTime timestamp
+    }
+    class Report {
+        String id
+        String reporterId
+        String targetId
+        ReportTargetType targetType
+        String reason
+        ReportStatus status
+        LocalDateTime timestamp
+    }
+    class CourseBatchModel {
+        String id
+        String courseId
+        String batchName
+        String startDate
+        String fromTime
+        String toTime
+        String utcStart
+        String utcEnd
+        String trainerTimezone
+        String courseStatus
+    }
+    class CourseModel {
+        String id
+        String companyId
+        String trainerId
+        String name
+        String description
+        String overview
+        String category
+        String organizer
+        String level
+        String currency
+    }
+    class RecordedCourseModel {
+        String id
+        String title
+        String subtitle
+        String description
+        BigDecimal price
+        boolean published
+        boolean approved
+        String createdAt
+        String updatedAt
+        List<RecModuleDTO> modules
+    }
+    class TrainCompanyModel {
+        String id
+        String name
+        String email
+        String address
+        String phone
+        List<TeamMemberDTO> teamMembers
+    }
+    class TrainersModel {
+        String id
+        String trainerName
+        String trainerEmail
+        String trainerPhone
+        String trainerImage
+        String trainerDescription
+        String trainerExperience
+        String trainerQualification
+        String trainerStatus
+        String trainerDateJoined
+    }
+    class CmpPostedJobsModel {
+        String id
+        String companyId
+        String companyName
+        String companyLogo
+        String companyLevel
+        List<PostedJobsDTO> postedJobs
+    }
+    class CmpSocialModel {
+        String id
+        String companyId
+        List<SocialLinksDTO> socialLinks
+    }
+    class CompanyModel {
+        String id
+        String name
+        String shortDescription
+        String companyStory
+        String companyLevel
+        String logo
+        String location
+        String profileBanner
+        String image1
+        String image2
+    }
+    class StandaloneFileModel {
+        String id
+        String name
+        String contentType
+        long size
+        String path
+        String ownerId
+        String parentId
+        boolean isDirectory
+        Instant createdAt
+        Instant updatedAt
+    }
+    class EAffiliateCommissions {
+        String id
+        String affiliateId
+        String transactionId
+        String courseId
+        Double amount
+        String currency
+        Instant createdAt
+    }
+    class EAffiliateLinks {
+        String id
+        String affiliateId
+        String courseId
+        String trackingCode
+        Instant createdAt
+    }
+    class EAffiliates {
+        String id
+        String userId
+        String referralCode
+        Double commissionRate
+        Double totalEarnings
+        EAffiliateStatus status
+        Instant createdAt
+        Instant updatedAt
+    }
+    class EAiCredits {
+        String id
+        String userId
+        Integer balance
+        Integer monthlyLimit
+        Integer lifetimePurchased
+        Integer lifetimeUsed
+        Instant expiresAt
+        Instant lastResetDate
+        Long version
+        Instant createdAt
+    }
+    class EAiUsage {
+        String id
+        String userId
+        String courseId
+        String prompt
+        String response
+        EAIUsageType type
+        Integer usedCredits
+        String createdBy
+        Instant createdAt
+    }
+    class EAnalyticsEvents {
+        String id
+        EAnalyticsEvent type
+        String userId
+        String courseId
+        Map<String, Object> metadata
+        Instant timestamp
+    }
+    class EApiKey {
+        String id
+        String apiKey
+        String apiKeyHint
+        String ownerId
+        String name
+        boolean isActive
+        List<String> allowedIps
+        List<String> scopes
+        Instant expiresAt
+        Instant lastUsedAt
+    }
+    class EAssignments {
+        String id
+        String courseId
+        String sectionId
+        String lessonId
+        String title
+        String description
+        String instructions
+        Double maxScore
+        Double weightage
+        Instant dueDate
+    }
+    class EAssignmentSubmissions {
+        String id
+        String userId
+        String assignmentId
+        String content
+        EGradingStatus status
+        Double score
+        String feedback
+        String gradedBy
+        Instant gradedAt
+        Instant submittedAt
+    }
+    class EAuditLog {
+        String id
+        String actorId
+        String action
+        String targetId
+        String targetType
+        String previousState
+        String newState
+        String ipAddress
+        String userAgent
+        Instant createdAt
+    }
+    class EBundles {
+        String id
+        String creatorId
+        String name
+        Double bundlePrice
+        Double originalTotalPrice
+        Double savingsPercent
+        Instant createdAt
+    }
+    class ECertificates {
+        String id
+        String courseId
+        String userId
+        String creatorId
+        String courseName
+        String recipientName
+        String certificateId
+        String url
+        String templateId
+        String shareableLink
+    }
+    class ECouponRedemption {
+        String id
+        String couponId
+        String userId
+        String transactionId
+        Instant redeemedAt
+    }
+    class ECoupons {
+        String id
+        String creatorId
+        String code
+        String discountType
+        Double discountValue
+        Integer maxRedemptions
+        Instant expiresAt
+        Instant createdAt
+    }
+    class ECourses {
+        String id
+        String workspaceId
+        String creatorId
+        String title
+        String description
+        String shortDescription
+        String thumbnail
+        String previewVideoUrl
+        ECourseType type
+        ECourseContentType contentType
+    }
+    class ECourseSections {
+        String id
+        String courseId
+        Integer order
+        String title
+        String description
+        List<ELessons> lessonDetails
+        String createdBy
+        String updatedBy
+        Instant createdAt
+        Instant updatedAt
+    }
+    class ECreatorFinanceSettings {
+        String id
+        String userId
+        String stripeAccountId
+        List<PayoutMethod> payoutMethods
+        String taxVerificationStatus
+        String profileVerificationStatus
+        List<TaxForm> taxForms
+        Instant createdAt
+        Instant updatedAt
+        String id
+    }
+    class ECreditLedger {
+        String id
+        String userId
+        ECreditLedgerActionType actionType
+        Integer amount
+        Integer balanceBefore
+        Integer balanceAfter
+        Integer newBalance
+        String metadata
+        String referenceId
+        String referenceType
+    }
+    class EduCourseReviewLog {
+        String id
+        String courseId
+        String reviewerId
+        String action
+        String reason
+        Instant createdAt
+    }
+    class EEnrollments {
+        String id
+        String courseId
+        String userId
+        String workspaceId
+        String lastAccessedLessonId
+        Instant lastAccessedAt
+        Instant completedAt
+        Instant enrolledAt
+        Instant lastStreakDate
+        String source
+    }
+    class EFraudFlag {
+        String id
+        String targetUserId
+        String flagType
+        String severity
+        String evidenceBlob
+        String status
+        String reviewerId
+        String resolutionNotes
+        Instant createdAt
+        Instant resolvedAt
+    }
+    class EGifts {
+        String id
+        String senderId
+        String recipientEmail
+        String courseId
+        String redeemCode
+        EGiftStatus status
+        String personalMessage
+        Instant createdAt
+        Instant updatedAt
+        Instant redeemedAt
+    }
+    class EHoldingLedger {
+        String id
+        String beneficiaryId
+        EBeneficiaryType beneficiaryType
+        String transactionId
+        String courseId
+        Double amount
+        String currency
+        EHoldingStatus status
+        Instant clearanceDate
+        Long version
+    }
+    class ELearningPaths {
+        String id
+        String workspaceId
+        String title
+        String description
+        String createdBy
+        Instant createdAt
+        Instant updatedAt
+    }
+    class ELedgerEntry {
+        String id
+        String eventReference
+        EventType eventType
+        EntryType entryType
+        AccountType accountType
+        String accountId
+        Double amount
+        String currency
+        String courseId
+        String bundleId
+    }
+    class ELessons {
+        String id
+        String courseId
+        String sectionId
+        Integer order
+        String title
+        String description
+        String contentUrl
+        String textContent
+        String markdownContent
+        ELessonType type
+    }
+    class ENotifications {
+        String id
+        String userId
+        String workspaceId
+        ENotificationType type
+        String title
+        String message
+        String url
+        String icon
+        String actionType
+        String relatedEntityId
+    }
+    class EPayouts {
+        String id
+        String creatorId
+        Double amount
+        EPayoutMethod method
+        EPayoutStatus status
+        String transactionReference
+        String bankDetails
+        String paypalEmail
+        Double platformFee
+        Instant createdAt
+    }
+    class EPayoutSchedule {
+        String id
+        String creatorId
+        String frequency
+        String dayTarget
+        Boolean active
+        Instant lastProcessedAt
+        Instant nextScheduledAt
+        Instant createdAt
+    }
+    class EProfiles {
+        String id
+        String userId
+        String firstName
+        String lastName
+        String publicEmail
+        String publicPhone
+        String avatarUrl
+        String bio
+        ESocialLinksDTO socialLinks
+        String industry
+    }
+    class EQuizAttempts {
+        String id
+        String userId
+        String quizId
+        Double score
+        Double percentage
+        EGradingStatus status
+        Boolean isLatest
+        Instant startedAt
+        Instant completedAt
+        Instant createdAt
+    }
+    class EQuizzes {
+        String id
+        String courseId
+        String sectionId
+        String lessonId
+        String title
+        String description
+        EQuizType type
+        Integer durationLimit
+        Double passingScore
+        List<EQuestionDTO> questions
+    }
+    class ERefund {
+        String id
+        String transactionId
+        String stripeCheckoutSessionId
+        String stripeChargeId
+        String stripeRefundId
+        String buyerId
+        String sellerId
+        String courseId
+        Double refundAmount
+        Double originalAmount
+    }
+    class EReports {
+        String id
+        String reporterId
+        String targetEntityId
+        String entityType
+        EReportReason reason
+        String description
+        EReportStatus status
+        String resolutionNotes
+        String resolvedBy
+        Instant createdAt
+    }
+    class EReviews {
+        String id
+        String courseId
+        String userId
+        Double rating
+        String title
+        String content
+        String createdBy
+        String updatedBy
+        Instant createdAt
+        Instant updatedAt
+    }
+    class ESubscriptions {
+        String id
+        String userId
+        ESubscriptionPlan plan
+        ESubscriptionStatus status
+        Integer remainingCredits
+        Integer totalCredits
+        Double price
+        String billingCycle
+        String paymentGatewayId
+        String stripeCustomerId
+    }
+    class ESystemSettings {
+        String id
+        String category
+        Map<String, Object> settings
+        Instant updatedAt
+        String updatedBy
+    }
+    class ETransactions {
+        String id
+        String courseId
+        String buyerId
+        String sellerId
+        Double amount
+        String currency
+        Double platformFee
+        Double commissionRate
+        String creatorPlanAtPurchase
+        Double creatorEarning
+    }
+    class ETrustScores {
+        String id
+        String creatorId
+        Double currentScore
+        Double previousScore
+        Double averageRating
+        Integer totalReviews
+        Double completionRate
+        Double refundRate
+        String currentTier
+        String previousTier
+    }
+    class EUser {
+        String id
+        String email
+        String phone
+        String passwordHash
+        String ssoProvider
+        String ssoProviderId
+        String displayName
+        String avatarUrl
+        String banReason
+        Instant lastLoginAt
+    }
+    class EUserPreferences {
+        String id
+        String userId
+        List<String> interests
+        String preferredLanguage
+        Integer dailyLearningGoalMinutes
+        Boolean isNotificationsEnabled
+        String preferredDifficulty
+        String careerGoal
+        Instant createdAt
+        Instant updatedAt
+    }
+    class EValidationReports {
+        String id
+        String courseId
+        String userId
+        String reviewerId
+        Double aiScore
+        String status
+        EValidationBreackdownDTO breakdown
+        String feedback
+        String createdBy
+        Instant createdAt
+    }
+    class EWallet {
+        String id
+        String userId
+        Double availableBalance
+        Double pendingBalance
+        String currency
+        Long version
+        Instant updatedAt
+    }
+    class EWalletTransaction {
+        String id
+        String userId
+        TransactionType type
+        Double amount
+        String currency
+        TransactionStatus status
+        String referenceId
+        String description
+        Instant createdAt
+    }
+    class EWebhookEvent {
+        String id
+        String stripeEventId
+        String eventType
+        EventStatus status
+        String payload
+        String signatureHeader
+        String errorMessage
+        String errorStackTrace
+        Instant nextRetryAt
+        Instant processedAt
+    }
+    class EWorkspaceMembers {
+        String id
+        String workspaceId
+        String userId
+        ERoles role
+        String status
+        String department
+        String invitedBy
+        String createdBy
+        Instant joinedAt
+        Instant lastActiveAt
+    }
+    class EWorkspaces {
+        String id
+        String ownerId
+        EWorkspaceType type
+        String domain
+        ESubscriptionPlan plan
+        String name
+        String description
+        String logoUrl
+        Integer maxMembers
+        EWSettingsDTO settings
+    }
+    class AnalyticsData {
+        String id
+        String organizationId
+        String projectId
+        String scenarioId
+        String metric
+        String granularity
+        String period
+        Double value
+        Map<String, Object> metadata
+        Instant computedAt
+    }
+    class MetricDefinition {
+        String id
+        String organizationId
+        String name
+        String key
+        String formula
+        boolean isCustom
+        String unit
+    }
+    class FinAiTrainingSnapshot {
+        String id
+        String organizationId
+        String projectId
+        String scenarioId
+        String userId
+        String inputSnapshot
+        String outputSnapshot
+        List<String> changedFields
+        List<String> tags
+        Instant createdAt
+    }
+    class FinAssumption {
+        String id
+        String organizationId
+        String projectId
+        String key
+        String value
+        String unit
+        String category
+        Integer version
+        Instant createdAt
+    }
+    class FinAuditLog {
+        String id
+        String organizationId
+        String projectId
+        String userId
+        String action
+        String entityType
+        String entityId
+        Object previousValue
+        Object newValue
+        Instant timestamp
+    }
+    class FinBudget {
+        String id
+        String organizationId
+        String projectId
+        String category
+        String type
+        Map<String, Double> monthlyAllocations
+        String formula
+        Integer version
+        Instant createdAt
+    }
+    class FinFinancialSnapshot {
+        String id
+        String organizationId
+        String projectId
+        String scenarioId
+        String month
+        Double revenue
+        Double cost
+        Double profit
+        Map<String, Double> breakdown
+        Instant computedAt
+    }
+    class FinPricingModel {
+        String id
+        String organizationId
+        String projectId
+        String tier
+        Double price
+        Double costPerUser
+        Double commissionPercent
+        Double margin
+        Integer version
+        Instant effectiveDate
+    }
+    class FinProject {
+        String id
+        String organizationId
+        String name
+        String description
+        String type
+        String status
+        String ownerId
+        List<String> teamMemberIds
+        Instant createdAt
+        Instant updatedAt
+    }
+    class FinProjectMember {
+        String id
+        String projectId
+        String userId
+        ProjectRole role
+        Instant joinedAt
+    }
+    class FinSalesPlan {
+        String id
+        String organizationId
+        String projectId
+        String month
+        Map<String, Integer> userCounts
+        Double growthRate
+        Integer version
+        Instant createdAt
+    }
+    class FinScenario {
+        String id
+        String organizationId
+        String projectId
+        String name
+        Integer baseVersion
+        List<AssumptionOverride> overrides
+        Instant createdAt
+        String key
+        String value
+    }
+    class FinWorkspace {
+        String id
+        String name
+        String slug
+        String ownerId
+        List<String> memberIds
+        String subscriptionType
+        Boolean isActive
+        Instant createdAt
+        Instant updatedAt
+    }
+    class Scenario {
+        String id
+        String organizationId
+        String projectId
+        String name
+        String parentScenarioId
+        String baseVersionId
+        String createdBy
+        Instant createdAt
+        List<String> tags
+        String notes
+    }
+    class ScenarioOverride {
+        String id
+        String scenarioId
+        String path
+        String month
+        Object value
+        OverrideOperation type
+        String versionId
+        String createdBy
+        Instant createdAt
+    }
+    class ApplicantModel {
+        String id
+        String jobId
+        String companyId
+        String candidateId
+        String candidateName
+        String candidateEmail
+        String candidatePhone
+        String status
+        Instant appliedAt
+        Instant updatedAt
+    }
+    class JobPostModel {
+        String id
+        String companyId
+        String companyName
+        String companyLogo
+        String title
+        String description
+        String responsibilities
+        String requirements
+        List<String> skills
+        String location
+    }
+    class LAutomation {
+        String id
+        String workspaceId
+        String name
+        String triggerType
+        int triggerScoreThreshold
+        List<String> triggerKeywords
+        String actionType
+        String actionTemplateId
+    }
+    class LLeadAutomation {
+        String id
+        String workspaceId
+        String name
+        String triggerType
+        Double triggerScoreThreshold
+        List<String> triggerKeywords
+        String triggerStatus
+        String actionType
+        String actionWebhookUrl
+    }
+    class LCampaign {
+        String id
+        String workspaceId
+        String name
+        String platform
+        String template
+        String sourceId
+    }
+    class LLead {
+        String id
+        String workspaceId
+        String name
+        String platform
+        Double score
+        String sourceSignalId
+        String notes
+    }
+    class LLeadCandidate {
+        String id
+        String name
+        String workspaceId
+        String sourceId
+        String rawSignalId
+        String summary
+        String intent
+        Double leadScore
+        List<String> tags
+    }
+    class LLeadSource {
+        String id
+        String workspaceId
+        String platform
+        String name
+        Map<String, Object> config
+    }
+    class LLeadWorkspace {
+        String id
+        String name
+        String ownerId
+        List<String> memberIds
+    }
+    class LNotification {
+        String id
+        String workspaceId
+        String userId
+        String title
+        String message
+        String type
+        String link
+    }
+    class LRawSignal {
+        String id
+        String sourceId
+        String workspaceId
+        String platformId
+        String content
+        String author
+        String url
+        Map<String, Object> metadata
+        String intent
+        Double score
+    }
+    class LTask {
+        String id
+        String workspaceId
+        String userId
+        String type
+        String resultUrl
+        String errorMessage
+        Map<String, Object> metadata
+    }
+    class LTemplate {
+        String id
+        String workspaceId
+        String name
+        String content
+        String platform
+        String category
+    }
+    class AICacheEntry {
+        String id
+        String cacheKey
+        String responseJson
+        String provider
+        String promptHash
+        Instant createdAt
+    }
+    class UserCredits {
+        String id
+        String userId
+        SubscriptionTier tier
+        int creditsAvailable
+        Instant lastRefreshedAt
+    }
+    class Goal {
+        String goalId
+        String userId
+        String title
+        String description
+        Instant deadline
+        String difficulty
+        String status
+        GoalType type
+        GoalTimeline timeline
+        Instant createdAt
+    }
+    class JournalEntry {
+        String id
+        String userId
+        LocalDate date
+        String reflection
+        String aiInsight
+        Instant createdAt
+    }
+    class MoodEntry {
+        String id
+        String userId
+        LocalDate date
+        int score
+        String label
+        Instant createdAt
+    }
+    class WeeklyMoodSummary {
+        String id
+        String userId
+        LocalDate weekStartDate
+        LocalDate weekEndDate
+        double averageScore
+        int entryCount
+        String dominantMood
+        String trendDirection
+        Instant computedAt
+    }
+    class LPNotification {
+        String id
+        String userId
+        String title
+        String message
+        String type
+        boolean isRead
+        Instant createdAt
+    }
+    class DailySchedule {
+        String scheduleId
+        String planId
+        String userId
+        LocalDate scheduleDate
+        List<ScheduleTask> tasks
+        boolean isCompleted
+        String taskId
+        String title
+        String estimatedTime
+        String category
+    }
+    class StudyPlan {
+        String planId
+        String goalId
+        String userId
+        String status
+        List<PlanResponse.RoadmapItem> roadmap
+        List<PlanResponse.WeeklyPlan> weeklyPlans
+        Instant createdAt
+        Instant updatedAt
+        double progressPercentage
+    }
+    class User {
+        String id
+        String email
+        String passwordHash
+        String name
+        Instant createdAt
+        Instant updatedAt
+    }
+    class UserPreferences {
+        String id
+        String userId
+        boolean notificationsEnabled
+        String theme
+        String colorPalette
+        String fontFamily
+        String uiDensity
+        String journalingStyle
+        String plannerLayoutStyle
+        String workHoursStart
+    }
+    class UserProfile {
+        String id
+        String userId
+        String lifestyleData
+        List<String> studyPreferences
+        String focusTime
+        List<String> hobbies
+        String stressLevel
+        Integer age
+        String gender
+        String educationLevel
+    }
+    class ChatRoom {
+        String id
+        RoomType type
+        String name
+        List<String> participants
+        String communityId
+        LocalDateTime createdAt
+        List<String> pinnedBy
+        List<String> archivedBy
+        List<String> favoritedBy
+    }
+    class Message {
+        String id
+        String roomId
+        String senderId
+        String content
+        MessageType messageType
+        LocalDateTime createdAt
+        Map<String, LocalDateTime> readByUsers
+        boolean isEdited
+        LocalDateTime updatedAt
+        boolean isDeleted
+    }
+    class UserPresence {
+        String userId
+        PresenceStatus status
+        LocalDateTime lastSeen
+    }
+    class BillingAddressModel {
+        String id
+        String companyId
+        String street
+        String city
+        String state
+        String postal_code
+        String country
+    }
+    class BillingHistoryModel {
+        String id
+        String companyId
+        String userId
+        String amount
+        String date
+        String invoice_id
+        String sessionId
+        String status
+    }
+    class InvoicesModel {
+        String id
+        String companyId
+        String invoiceId
+        String subscriptionId
+        String amountDue
+        Date billingDate
+        Date dueDate
+        Date periodStart
+        Date periodEnd
+        String invoice_pdf
+    }
+    class PaymentMethodsModel {
+        String id
+        String companyId
+        String userId
+        String type
+        String last_four
+        String expiry_date
+        String sessionId
+        String is_default
+    }
+    class PaymentSubscriptionsModel {
+        String id
+        String companyId
+        String subscriptionId
+        String plan_name
+        String start_date
+        String end_date
+        String cost
+        String billing_cycle
+        boolean is_active
+    }
+    class PrePaymentModel {
+        String id
+        String companyId
+        String firstname
+        String lastname
+        String country
+        String address
+        String phone
+        String subscriptionId
+        String paymentMethodId
+        String billingAddressId
+    }
+    class RecordedCoursePayment {
+        String id
+        String courseId
+        String courseName
+        String learnerId
+        String trainerId
+        String companyId
+        BigDecimal grossAmount
+        BigDecimal netAmount
+        String currency
+        BigDecimal trainerAmount
+    }
+    class UsageDataModel {
+        String id
+        String companyId
+        String job_posts_allowed
+        String job_posts_used
+        String applicant_views_allowed
+        String applicant_views_used
+        String overage_charges
+        Integer users
+        Integer storage
+        Integer bandwidth
+    }
+    class AmbassadorTaskProgressModel {
+        String id
+        String ambassadorId
+        String taskId
+        String taskType
+        int progressValue
+        boolean completed
+        Instant startedAt
+        Instant completedAt
+        Instant lastResetAt
+        Instant rewardedAt
+    }
+    class BadgeDefinition {
+        String id
+        String title
+        String description
+        String level
+        String svgUrl
+        Instant createdAt
+        List<String> tags
+    }
+    class CourseCertificateModel {
+        String id
+        String employeeId
+        String courseId
+        String certificateId
+        String type
+        String url
+        String issuedBy
+        String issuedDate
+        boolean delivered
+        String fileName
+    }
+    class CourseCouponsModel {
+        String id
+        String stripeCouponId
+        String userId
+        boolean publicity
+        private String unlockedBy
+        String redeemedBy
+        String code
+        String token
+        String discount
+        String discountType
+    }
+    class CourseReminderLog {
+        String id
+        String employeeId
+        String moduleId
+        String courseId
+        String reminderType
+        Instant sentTime
+    }
+    class EmpCoursesModel {
+        String id
+        String employeeId
+        String employeeName
+        String email
+        String phone
+        String timezone
+        List<CourseEnrollment> courses
+        List<RecordedCourseEnrollment> recordedCourses
+    }
+    class GamificationTaskModel {
+        String id
+        String title
+        String description
+        String type
+        String level
+        int targetValue
+        String rewardType
+        String rewardId
+        Map<String, Object> rewardMetadata
+        boolean recurring
+    }
+    class QuizAttempt {
+        String id
+        String employeeId
+        String courseId
+        String moduleId
+        String quizId
+        int attemptNumber
+        List<QuestionAnswer> answers
+        double score
+        int correctCount
+        int totalQuestions
+    }
+    class SwagItem {
+        String id
+        String title
+        String description
+        String imageUrl
+        int inventory
+        List<String> sizeOptions
+        boolean enabled
+        Instant createdAt
+    }
+    class InterviewQuestionModel {
+        String id
+        String category
+        List<Question> questions
+        String id
+        String question
+        String overview
+        int viewCount
+        List<Answer> answers
+        String id
+        String by
+    }
+    class JobApplyModel {
+        String id
+        String companyId
+        String jobId
+    }
+    class PreOrderModel {
+        String id
+        String name
+        String email
+        String product
+        String date
+    }
+    class Referral {
+        String id
+        String referrerId
+        String referredUserId
+        ReferralType type
+        ReferralStatus status
+        boolean rewardIssued
+        Instant createdAt
+        Instant completedAt
+    }
+    class ReferralCode {
+        String id
+        String code
+        String userId
+        Instant createdAt
+    }
+    class ReferralCommission {
+        String id
+        String referrerId
+        String referredCreatorId
+        double percentage
+        Instant expiryDate
+        Instant createdAt
+    }
+    class ReputationEvent {
+        String id
+        String userId
+        ReputationSourceType sourceType
+        String sourceId
+        int delta
+        LocalDateTime createdAt
+    }
+    class UserBadge {
+        String id
+        String userId
+        BadgeType badgeType
+        LocalDateTime awardedAt
+    }
+    class UserReputation {
+        String id
+        String userId
+        long totalScore
+        long articleScore
+        long communityScore
+        long announcementScore
+        LocalDateTime lastUpdated
+    }
+    class ResumeModel {
+        String id
+        String employeeId
+        String title
+        String templateId
+        PersonalInfo personalInfo
+        List<WorkExperience> workExperience
+        List<Education> education
+        List<Skill> skills
+        List<Project> projects
+        List<Certificate> certificates
+    }
+    class SoftwareAppModel {
+        String id
+        String name
+        String description
+        String icon
+        String category
+        String developer
+        String version
+        String status
+        Instant purchaseDate
+        Instant expiryDate
+    }
+    class FeatureFlag {
+        String id
+        ESubscriptionPlan plan
+        String featureKey
+        boolean enabled
+    }
+    class Subscription {
+        String id
+        String userId
+        ESubscriptionPlan plan
+        ESubscriptionStatus status
+        Instant startDate
+        Instant endDate
+        String stripeCustomerId
+        String stripeSubscriptionId
+        String stripePriceId
+        String billingCycle
+    }
+    class SupportRequestModel {
+        String id
+        String name
+        String email
+        String service
+        String message
+        String status
+        Instant createdAt
+    }
+    class TrackingEvent {
+        String id
+        String trackingId
+        String eventType
+        String url
+        String referrer
+        String sessionId
+        String userId
+        Instant timestamp
+        String screenResolution
+        String browser
+    }
+    class EmpCertificatesModel {
+        String id
+        String employeeId
+        List<EmpCertificatesDTO> certificates
+    }
+    class EmpContactModel {
+        String id
+        String employeeId
+        List<EmpContactDTO> contact
+        List<SocialLinksDTO> socialLinks
+        boolean publicity
+    }
+    class EmpEducationModel {
+        String id
+        String employeeId
+        List<EmpEducationDTO> education
+    }
+    class EmpExperiencesModel {
+        String id
+        String employeeId
+        List<EmpExperiencesDTO> experiences
+    }
+    class EmpFollowersModel {
+        String id
+        String employeeId
+        List<EmpFollowersDTO> followers
+    }
+    class EmpFollowingModel {
+        String id
+        String employeeId
+        List<EmpFollowingDTO> followings
+    }
+    class EmployeeModel {
+        String id
+        String firstname
+        String lastname
+        String occupation
+        String image
+        String coverImage
+        String dob
+        String email
+        String resume
+        String intro
+    }
+    class EmpProjectsModel {
+        String id
+        String employeeId
+        List<EmpProjectsDTO> projects
+    }
+    class EmpSkillsModel {
+        String id
+        String employeeId
+        List<EmpSkillsDTO> skills
+    }
+    class TrainerProfile {
+        String id
+        String employeeId
+        String headline
+        String bio
+        List<String> specialties
+        List<String> languages
+        String hourlyRate
+        String availability
+        List<String> certifications
+        Double rating
+    }
+    class WorkspaceModel {
+        String id
+        String name
+        String slug
+        String ownerId
+        List<String> memberIds
+        LocalDateTime createdAt
+        LocalDateTime updatedAt
+        String subscriptionType
+    }
+    class UserActivity {
+        String id
+        String userId
+        String encryptedIpAddress
+        LocalDateTime timestamp
+        String endpointAccessed
+        LocalDateTime lastActive
+        LocalDateTime sessionStart
+        LocalDateTime sessionEnd
+        String country
+        boolean suspectedVpn
+    }
+    class WhitelistDomains {
+        String id
+        String domain
+        boolean active
+        String requestBy
+    }
+    class ContactSubmission {
+        String id
+        String name
+        String email
+        String subject
+        String message
+    }
+    class CtaLeadSubmission {
+        String id
+        String name
+        String email
+        String serviceType
+        String ctaType
+        String focusArea
+        String message
+    }
+    class NewsLatterModel {
+        String id
+        String email
+    }
+    class TokenModel {
+        String id
+        String token
+        String username
+        Date expiration
+        boolean used
+    }
