@@ -42,14 +42,17 @@ public class FinUserService {
                 .firstname(request.getFirstName())
                 .lastname(request.getLastName())
                 .platformRole("USER")
+                .roles(java.util.List.of("FINANCE_USER"))
                 .registeredFrom("FINANCE_PLATFORM")
                 .build();
 
+        // This will find existing user or create a new one across all domains
         globalCreds = credentialsService.addCredentials(globalCreds, "FINANCE_PLATFORM", null);
         String userIdToUse = globalCreds.getEmployeeId();
 
-        if (finUserRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Profile already exists. Please login.");
+        // Check if Finance-specific profile already exists for this unique platform ID
+        if (finUserRepository.findById(userIdToUse).isPresent() || finUserRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Profile already exists on this platform. Please login.");
         }
 
         FinUser newUser = FinUser.builder()
@@ -57,6 +60,9 @@ public class FinUserService {
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .displayName(request.getFirstName() + " " + request.getLastName())
+                .roles(globalCreds.getRoles() != null ? globalCreds.getRoles().toArray(new String[0]) : new String[]{"FINANCE_USER"})
+                .organizations(globalCreds.getOrganizations())
+                .activeWorkspaceId(globalCreds.getActiveWorkspaceId())
                 .isActive(true)
                 .build();
 
