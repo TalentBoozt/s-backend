@@ -42,16 +42,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (jwt != null) {
             try {
                 username = jwtUtil.extractUsername(jwt);
-            } catch (ExpiredJwtException e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.getWriter().write("{\"error\": \"Token has expired\"}");
-                return;
             } catch (Exception e) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json");
-                response.getWriter().write("{\"error\": \"Invalid token\"}");
-                return;
+                // Continue filter chain; SecurityConfig will block if path is protected
             }
         }
 
