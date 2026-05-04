@@ -81,10 +81,16 @@ public class AuthController {
             try {
                 // Decrypt stored password
                 ResponseEntity<Map<String, String>> decryptedPassword = keyService.decryptData(user.getPassword());
+                
+                if (!decryptedPassword.getStatusCode().is2xxSuccessful()) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ErrorResponse("Decryption failed: " + Objects.requireNonNull(decryptedPassword.getBody()).get("Decryption failed")));
+                }
+
                 String password = Objects.requireNonNull(decryptedPassword.getBody()).get("data");
 
                 // Compare decrypted password with input
-                if (!password.equals(loginRequest.getPassword())) {
+                if (password == null || !password.equals(loginRequest.getPassword())) {
                     return ResponseEntity.badRequest().body(new ErrorResponse("Invalid password"));
                 }
 
