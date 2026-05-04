@@ -18,6 +18,28 @@ public class FinAssumptionController {
 
     private final FinAssumptionRepository repository;
     private final FinFinancialComputationService computationService;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
+    @PostMapping("/bulk")
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
+    public ResponseEntity<List<FinAssumption>> bulkUpdate(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @RequestHeader("X-Project-Id") String projectId,
+            @RequestBody List<FinAssumption> entities) {
+        
+        entities.forEach(a -> {
+            a.setOrganizationId(organizationId);
+            a.setProjectId(projectId);
+        });
+        
+        List<FinAssumption> saved = repository.saveAll(entities);
+        computationService.recomputeFinancials(organizationId, projectId);
+        
+        // Broadcast refresh to all clients
+        messagingTemplate.convertAndSend("/topic/project/" + projectId + "/state_update", "REFRESH");
+        
+        return ResponseEntity.ok(saved);
+    }
 
     @PostMapping
     @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
@@ -27,6 +49,10 @@ public class FinAssumptionController {
         entity.setOrganizationId(organizationId);
         FinAssumption saved = repository.save(entity);
         computationService.recomputeFinancials(saved.getOrganizationId(), saved.getProjectId());
+        
+        // Broadcast refresh
+        messagingTemplate.convertAndSend("/topic/project/" + saved.getProjectId() + "/state_update", "REFRESH");
+        
         return ResponseEntity.ok(saved);
     }
 

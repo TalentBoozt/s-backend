@@ -18,6 +18,28 @@ public class FinSalesPlanController {
 
     private final FinSalesPlanRepository repository;
     private final FinFinancialComputationService computationService;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
+    @PostMapping("/bulk")
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
+    public ResponseEntity<List<FinSalesPlan>> bulkUpdate(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @RequestHeader("X-Project-Id") String projectId,
+            @RequestBody List<FinSalesPlan> entities) {
+        
+        entities.forEach(s -> {
+            s.setOrganizationId(organizationId);
+            s.setProjectId(projectId);
+        });
+        
+        List<FinSalesPlan> saved = repository.saveAll(entities);
+        computationService.recomputeFinancials(organizationId, projectId);
+        
+        // Broadcast refresh
+        messagingTemplate.convertAndSend("/topic/project/" + projectId + "/state_update", "REFRESH");
+        
+        return ResponseEntity.ok(saved);
+    }
 
     @PostMapping
     @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
@@ -28,6 +50,10 @@ public class FinSalesPlanController {
         FinSalesPlan saved = repository.save(entity);
         // Trigger recomputation async or via event
         computationService.recomputeFinancials(saved.getOrganizationId(), saved.getProjectId());
+        
+        // Broadcast refresh
+        messagingTemplate.convertAndSend("/topic/project/" + saved.getProjectId() + "/state_update", "REFRESH");
+        
         return ResponseEntity.ok(saved);
     }
 
