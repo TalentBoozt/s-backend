@@ -55,11 +55,15 @@ public class FinUserService {
             throw new RuntimeException("Profile already exists on this platform. Please login.");
         }
 
+        String displayName = (request.getFirstName() != null ? request.getFirstName() : "") + 
+                             (request.getLastName() != null ? " " + request.getLastName() : "");
+        if (displayName.trim().isEmpty()) displayName = request.getEmail();
+
         FinUser newUser = FinUser.builder()
                 .id(userIdToUse)
                 .email(request.getEmail())
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .displayName(request.getFirstName() + " " + request.getLastName())
+                .displayName(displayName.trim())
                 .roles(globalCreds.getRoles() != null ? globalCreds.getRoles().toArray(new String[0]) : new String[]{"FINANCE_USER"})
                 .organizations(globalCreds.getOrganizations())
                 .activeWorkspaceId(globalCreds.getActiveWorkspaceId())
@@ -88,11 +92,15 @@ public class FinUserService {
         if (globalCreds != null) {
             if (passwordEncoder.matches(request.getPassword(), globalCreds.getPassword())) {
                 // Auto-provision
+                String displayName = (globalCreds.getFirstname() != null ? globalCreds.getFirstname() : "") + 
+                                     (globalCreds.getLastname() != null ? " " + globalCreds.getLastname() : "");
+                if (displayName.trim().isEmpty()) displayName = globalCreds.getEmail();
+
                 FinUser provisionedUser = FinUser.builder()
                         .id(globalCreds.getEmployeeId())
                         .email(globalCreds.getEmail())
                         .passwordHash(globalCreds.getPassword())
-                        .displayName(globalCreds.getFirstname() + " " + globalCreds.getLastname())
+                        .displayName(displayName.trim())
                         .roles(globalCreds.getRoles() != null ? globalCreds.getRoles().toArray(new String[0]) : null)
                         .organizations(globalCreds.getOrganizations())
                         .activeWorkspaceId(globalCreds.getActiveWorkspaceId())
