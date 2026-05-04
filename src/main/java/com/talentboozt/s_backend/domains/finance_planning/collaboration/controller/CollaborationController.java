@@ -54,11 +54,11 @@ public class CollaborationController {
     }
     
     @MessageMapping("/project/{projectId}/connect")
-    public void handleConnect(@DestinationVariable String projectId) {
-        log.info("User connecting to project: {}", projectId);
+    public void handleConnect(@DestinationVariable String projectId, @Payload PresenceUpdate presence) {
+        log.info("User {} connecting to project: {}", presence.getUserName(), projectId);
         
-        // Initial connection check could be done via a handshake or here
-        // Note: For handleConnect, we might need a way to get the orgId if it's not in the path
+        presence.setProjectId(projectId);
+        // We could also call presenceManager.updatePresence(presence) here if we want to track them immediately
         
         List<PresenceUpdate> activeUsers = presenceManager.getActiveUsers(projectId);
         messagingTemplate.convertAndSend("/topic/project/" + projectId + "/presence_update", activeUsers);
