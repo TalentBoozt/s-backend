@@ -226,7 +226,7 @@ public class SecurityConfig {
             configuration.setAllowedOriginPatterns(List.of(origins.split(",")));
         } else {
             // Fallback for development if .env is missing
-            configuration.setAllowedOriginPatterns(List.of("http://localhost:4200", "http://localhost:3000"));
+            configuration.setAllowedOriginPatterns(List.of("http://localhost:4200", "http://localhost:3000", "http://localhost:3269"));
         }
 
         // Dynamic Methods Loading

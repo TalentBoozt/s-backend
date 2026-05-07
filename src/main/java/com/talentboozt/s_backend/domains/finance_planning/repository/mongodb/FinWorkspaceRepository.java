@@ -11,4 +11,6 @@ import java.util.Optional;
 public interface FinWorkspaceRepository extends MongoRepository<FinWorkspace, String> {
     List<FinWorkspace> findByMemberIdsContaining(String userId);
     Optional<FinWorkspace> findBySlug(String slug);
+    boolean existsByName(String name);
+    boolean existsBySlug(String slug);
 }

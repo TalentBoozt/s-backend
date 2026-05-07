@@ -101,6 +101,17 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<ApiErrorResponse> handleSecurityException(SecurityException ex, WebRequest request) {
+        logger.warn("Security exception for request {}: {}", getRequestPath(request), ex.getMessage());
+        return buildErrorResponse(
+                HttpStatus.FORBIDDEN,
+                ex.getMessage(),
+                "SECURITY_VIOLATION",
+                request
+        );
+    }
+
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ApiErrorResponse> handleDataAccessException(DataAccessException ex, WebRequest request) {
         logger.error("Database access error for request {}", getRequestPath(request), ex);

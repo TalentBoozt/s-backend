@@ -7,6 +7,10 @@ import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
 import com.talentboozt.s_backend.domains.auth.model.RoleModel;
 import com.talentboozt.s_backend.domains.auth.repository.mongodb.CredentialsRepository;
 import com.talentboozt.s_backend.domains.user.repository.mongodb.EmployeeRepository;
+import com.talentboozt.s_backend.domains.workspace.model.WorkspaceModel;
+import com.talentboozt.s_backend.domains.workspace.repository.WorkspaceRepository;
+import com.talentboozt.s_backend.domains.finance_planning.models.FinWorkspace;
+import com.talentboozt.s_backend.domains.finance_planning.repository.mongodb.FinWorkspaceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -26,6 +30,12 @@ public class CredentialsService {
 
     @Autowired
     private CompanyRepository companyRepository;
+
+    @Autowired
+    private WorkspaceRepository workspaceRepository;
+
+    @Autowired
+    private FinWorkspaceRepository finWorkspaceRepository;
 
     @Autowired
     private RoleService roleService;
@@ -187,6 +197,7 @@ public class CredentialsService {
         Optional<CredentialsModel> credentials = credentialsRepository.findByEmployeeId(employeeId);
         if (credentials.isPresent()) {
             credentials.get().setPassword(null);
+            syncWorkspaces(credentials.get());
             boolean isOwner = isSystemOwner(credentials.get().getCompanyId());
             credentials.get().setPermissions(
                     userPermissionsService.resolvePermissionsWithSystemBypass(credentials.get().getRoles(), isOwner));
@@ -198,6 +209,7 @@ public class CredentialsService {
     public CredentialsModel getCredentialsByEmail(String email) {
         CredentialsModel credentials = credentialsRepository.findByEmail(email);
         if (credentials != null) {
+            syncWorkspaces(credentials);
             boolean isOwner = isSystemOwner(credentials.getCompanyId());
             credentials.setPermissions(
                     userPermissionsService.resolvePermissionsWithSystemBypass(credentials.getRoles(), isOwner));
@@ -209,12 +221,64 @@ public class CredentialsService {
         Optional<CredentialsModel> credentials = credentialsRepository.findByEmployeeId(employeeId);
         if (credentials.isPresent()) {
             credentials.get().setPassword(null);
+            syncWorkspaces(credentials.get());
             boolean isOwner = isSystemOwner(credentials.get().getCompanyId());
             credentials.get().setPermissions(
                     userPermissionsService.resolvePermissionsWithSystemBypass(credentials.get().getRoles(), isOwner));
             return credentials;
         }
         return Optional.empty();
+    }
+
+    public void syncWorkspaces(CredentialsModel credentials) {
+        if (credentials == null || credentials.getEmployeeId() == null) return;
+        
+        List<Map<String, String>> orgs = credentials.getOrganizations();
+        if (orgs == null) orgs = new ArrayList<>();
+        boolean updated = false;
+
+        // Sync Global Workspaces
+        List<WorkspaceModel> workspaces = workspaceRepository.findByMemberIdsContaining(credentials.getEmployeeId());
+        if (workspaces != null) {
+            for (WorkspaceModel ws : workspaces) {
+                boolean exists = orgs.stream()
+                    .filter(Objects::nonNull)
+                    .anyMatch(o -> ws.getId().equals(o.get("id")));
+                if (!exists) {
+                    Map<String, String> orgMap = new HashMap<>();
+                    orgMap.put("id", ws.getId());
+                    orgMap.put("name", ws.getName());
+                    orgs.add(orgMap);
+                    updated = true;
+                }
+            }
+        }
+
+        // Sync Finance Workspaces
+        List<FinWorkspace> finWorkspaces = finWorkspaceRepository.findByMemberIdsContaining(credentials.getEmployeeId());
+        if (finWorkspaces != null) {
+            for (FinWorkspace fws : finWorkspaces) {
+                boolean exists = orgs.stream()
+                    .filter(Objects::nonNull)
+                    .anyMatch(o -> fws.getId().equals(o.get("id")));
+                if (!exists) {
+                    Map<String, String> orgMap = new HashMap<>();
+                    orgMap.put("id", fws.getId());
+                    orgMap.put("name", fws.getName());
+                    orgs.add(orgMap);
+                    updated = true;
+                }
+            }
+        }
+        
+        if (updated) {
+            credentials.setOrganizations(orgs);
+            if (credentials.getActiveWorkspaceId() == null) {
+                if (!workspaces.isEmpty()) credentials.setActiveWorkspaceId(workspaces.get(0).getId());
+                else if (!finWorkspaces.isEmpty()) credentials.setActiveWorkspaceId(finWorkspaces.get(0).getId());
+            }
+            credentialsRepository.save(credentials);
+        }
     }
 
     @CacheEvict(value = "userCredentials", key = "#employeeId")
@@ -283,6 +347,43 @@ public class CredentialsService {
             credentials.setActiveWorkspaceId(workspaceId);
             credentialsRepository.save(credentials);
             if (employeeId != null) {
+                Cache userCredentialsCache = cacheManager.getCache("userCredentials");
+                if (userCredentialsCache != null) {
+                    userCredentialsCache.evict(employeeId);
+                }
+            }
+        }
+    }
+    
+    public void addOrganizationToUser(String employeeId, String organizationId, String organizationName) {
+        Optional<CredentialsModel> optionalCredentials = credentialsRepository.findByEmployeeId(employeeId);
+        if (optionalCredentials.isPresent()) {
+            CredentialsModel credentials = optionalCredentials.get();
+            List<Map<String, String>> organizations = credentials.getOrganizations();
+            if (organizations == null) {
+                organizations = new ArrayList<>();
+            }
+            
+            // Avoid duplicates
+            boolean exists = organizations.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(org -> organizationId.equals(org.get("id")));
+                
+            if (!exists) {
+                Map<String, String> orgMap = new HashMap<>();
+                orgMap.put("id", organizationId);
+                orgMap.put("name", organizationName);
+                organizations.add(orgMap);
+                credentials.setOrganizations(organizations);
+                
+                // If it's the first organization, set it as active
+                if (credentials.getActiveWorkspaceId() == null) {
+                    credentials.setActiveWorkspaceId(organizationId);
+                }
+                
+                credentialsRepository.save(credentials);
+                
+                // Evict cache
                 Cache userCredentialsCache = cacheManager.getCache("userCredentials");
                 if (userCredentialsCache != null) {
                     userCredentialsCache.evict(employeeId);
