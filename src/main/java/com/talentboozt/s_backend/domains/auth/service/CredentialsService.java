@@ -271,13 +271,32 @@ public class CredentialsService {
             }
         }
         
+        // Ensure activeWorkspaceId is valid and set if possible
+        String activeId = credentials.getActiveWorkspaceId();
+        if (activeId != null) {
+            boolean stillValid = orgs.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(o -> activeId.equals(o.get("id")));
+            if (!stillValid) {
+                credentials.setActiveWorkspaceId(null);
+                updated = true;
+            }
+        }
+
+        if (credentials.getActiveWorkspaceId() == null && !orgs.isEmpty()) {
+            // Pick the first available organization as active
+            credentials.setActiveWorkspaceId(orgs.get(0).get("id"));
+            updated = true;
+        }
+        
         if (updated) {
             credentials.setOrganizations(orgs);
-            if (credentials.getActiveWorkspaceId() == null) {
-                if (!workspaces.isEmpty()) credentials.setActiveWorkspaceId(workspaces.get(0).getId());
-                else if (!finWorkspaces.isEmpty()) credentials.setActiveWorkspaceId(finWorkspaces.get(0).getId());
-            }
             credentialsRepository.save(credentials);
+            // Evict cache
+            Cache userCredentialsCache = cacheManager.getCache("userCredentials");
+            if (userCredentialsCache != null) {
+                userCredentialsCache.evict(credentials.getEmployeeId());
+            }
         }
     }
 
