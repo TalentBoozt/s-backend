@@ -21,15 +21,17 @@ public class FinPricingModelController {
     private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     @PostMapping("/bulk")
-    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header", projectIdSource = "param", projectIdKey = "projectId")
     public ResponseEntity<List<FinPricingModel>> bulkUpdate(
             @RequestHeader("X-Organization-Id") String organizationId,
-            @RequestHeader("X-Project-Id") String projectId,
+            @RequestParam String projectId,
             @RequestBody List<FinPricingModel> entities) {
         
         entities.forEach(p -> {
             p.setOrganizationId(organizationId);
             p.setProjectId(projectId);
+            if (p.getPrice() == null) p.setPrice(0.0);
+            if (p.getCostPerUser() == null) p.setCostPerUser(0.0);
         });
         
         List<FinPricingModel> saved = repository.saveAll(entities);
