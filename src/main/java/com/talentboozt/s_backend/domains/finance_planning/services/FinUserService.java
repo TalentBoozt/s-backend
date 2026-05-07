@@ -82,6 +82,10 @@ public class FinUserService {
             if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
                 throw new RuntimeException("Invalid credentials");
             }
+            
+            // Sync with global credentials to get latest organizations
+            syncWithGlobal(user);
+            
             user.setLastLoginAt(Instant.now());
             finUserRepository.save(user);
             return buildAuthResponse(user);
@@ -90,6 +94,7 @@ public class FinUserService {
         // Fallback: SSO check
         CredentialsModel globalCreds = credentialsService.getCredentialsByEmail(request.getEmail());
         if (globalCreds != null) {
+            // Note: credentialsService.getCredentialsByEmail already calls syncWorkspaces
             if (passwordEncoder.matches(request.getPassword(), globalCreds.getPassword())) {
                 // Auto-provision
                 String displayName = (globalCreds.getFirstname() != null ? globalCreds.getFirstname() : "") + 
@@ -116,6 +121,20 @@ public class FinUserService {
         throw new RuntimeException("Invalid credentials");
     }
 
+    private void syncWithGlobal(FinUser user) {
+        CredentialsModel globalCreds = credentialsService.getCredentialsByEmail(user.getEmail());
+        if (globalCreds != null) {
+            user.setOrganizations(globalCreds.getOrganizations());
+            user.setActiveWorkspaceId(globalCreds.getActiveWorkspaceId());
+            String displayName = (globalCreds.getFirstname() != null ? globalCreds.getFirstname() : "") + 
+                                 (globalCreds.getLastname() != null ? " " + globalCreds.getLastname() : "");
+            if (!displayName.trim().isEmpty()) {
+                user.setDisplayName(displayName.trim());
+            }
+            finUserRepository.save(user);
+        }
+    }
+
     private FinAuthResponse buildAuthResponse(FinUser user) {
         return FinAuthResponse.builder()
                 .accessToken(jwtService.generateToken(user))
@@ -128,6 +147,9 @@ public class FinUserService {
         String userId = jwtService.extractUserId(token);
         FinUser user = finUserRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        syncWithGlobal(user);
+        
         return buildAuthResponse(user);
     }
 }
