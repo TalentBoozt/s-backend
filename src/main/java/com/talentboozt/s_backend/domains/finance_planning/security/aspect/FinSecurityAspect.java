@@ -7,7 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -23,18 +24,28 @@ public class FinSecurityAspect {
 
     @Before("@annotation(requiresPermission)")
     public void checkPermission(JoinPoint joinPoint, RequiresFinPermission requiresPermission) {
-        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
+        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes == null) {
+            return; // Not in a request context, skip check (e.g. internal calls or tests)
+        }
+        
+        HttpServletRequest request = attributes.getRequest();
         
         String orgId = extractValue(request, requiresPermission.orgIdSource(), requiresPermission.orgIdKey());
         String projectId = extractValue(request, requiresPermission.projectIdSource(), requiresPermission.projectIdKey());
 
         if (orgId == null || orgId.isEmpty()) {
-            throw new SecurityException("Organization ID is required for this operation");
+            throw new AccessDeniedException("Organization ID is required for this operation");
+        }
+
+        // Check authentication first
+        if (!finSecurity.isAuthenticated()) {
+            throw new AuthenticationCredentialsNotFoundException("Authentication is required to access this resource");
         }
 
         boolean hasPermission = finSecurity.hasPermission(requiresPermission.value().name(), orgId, projectId);
         if (!hasPermission) {
-            throw new SecurityException("Access Denied: Insufficient permissions for " + requiresPermission.value());
+            throw new AccessDeniedException("Access Denied: Insufficient permissions for " + requiresPermission.value());
         }
     }
 

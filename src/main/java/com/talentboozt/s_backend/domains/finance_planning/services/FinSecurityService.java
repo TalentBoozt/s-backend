@@ -2,6 +2,8 @@ package com.talentboozt.s_backend.domains.finance_planning.services;
 
 import com.talentboozt.s_backend.domains.finance_planning.security.rbac.FinPermission;
 import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
+import com.talentboozt.s_backend.shared.security.utils.SecurityUtils;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -11,6 +13,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class FinSecurityService {
     private final FinPermissionService permissionService;
+    private final SecurityUtils securityUtils;
+
+    public boolean isAuthenticated() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.isAuthenticated()
+                && !(auth.getPrincipal() instanceof String principal && principal.equals("anonymousUser"));
+    }
 
     public boolean hasPermission(String permissionName, String organizationId) {
         return hasPermission(permissionName, organizationId, null);

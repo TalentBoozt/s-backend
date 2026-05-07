@@ -10,4 +10,6 @@ import java.util.List;
 public interface WorkspaceRepository extends MongoRepository<WorkspaceModel, String> {
     List<WorkspaceModel> findByOwnerId(String ownerId);
     List<WorkspaceModel> findByMemberIdsContaining(String memberId);
+    boolean existsByName(String name);
+    boolean existsBySlug(String slug);
 }
