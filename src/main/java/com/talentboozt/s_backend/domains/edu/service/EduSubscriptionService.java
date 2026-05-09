@@ -83,9 +83,24 @@ public class EduSubscriptionService {
     private void applyPlanLimits(ESubscriptions sub, ESubscriptionPlan plan) {
         LimitConfig limits = planConfigService.getPlanLimits(plan);
         sub.setPlan(plan);
-        sub.setCommissionRate(limits.getCommissionRate());
-        sub.setMaxCourses(limits.getMaxCourses());
+        
+        // ENTERPRISE plans can have manual overrides for commission and course limits
+        if (plan != ESubscriptionPlan.ENTERPRISE || sub.getCommissionRate() == null) {
+            sub.setCommissionRate(limits.getCommissionRate());
+        }
+        if (plan != ESubscriptionPlan.ENTERPRISE || sub.getMaxCourses() == null) {
+            sub.setMaxCourses(limits.getMaxCourses());
+        }
+        
         sub.setFeatures(limits.getFeatures().toArray(new String[0]));
+        
+        // Ensure remaining credits are at least 0
+        if (sub.getRemainingCredits() == null) {
+            sub.setRemainingCredits(0);
+        }
+        if (sub.getTotalCredits() == null) {
+            sub.setTotalCredits(0);
+        }
     }
 
     /**
@@ -174,7 +189,6 @@ public class EduSubscriptionService {
             if (status != null) {
                 switch (status.toLowerCase()) {
                     case "active":
-                        // If previously cancel_pending, Stripe reactivated
                         sub.setStatus(ESubscriptionStatus.ACTIVE);
                         sub.setCancelAtPeriodEnd(false);
                         break;
@@ -194,7 +208,7 @@ public class EduSubscriptionService {
                         if (sub.getCancelledAt() == null) {
                             sub.setCancelledAt(Instant.now());
                         }
-                        // Re-apply FREE limits
+                        // Re-apply FREE limits (immediately resets commission to 7%)
                         applyPlanLimits(sub, ESubscriptionPlan.FREE);
                         break;
                     case "incomplete":
@@ -202,13 +216,15 @@ public class EduSubscriptionService {
                         sub.setStatus(ESubscriptionStatus.INACTIVE);
                         break;
                     default:
-                        log.warn("Unknown Stripe subscription status: {}", status);
+                        log.warn("Unknown Stripe subscription status for customer {}: {}", stripeCustomerId, status);
                         break;
                 }
             }
 
-            subscriptionsRepository.save(sub);
-            syncUserRoles(sub.getUserId(), sub.getPlan());
+            ESubscriptions saved = subscriptionsRepository.save(sub);
+            syncUserRoles(saved.getUserId(), saved.getPlan());
+            log.info("Synced subscription status for user {}: plan={}, status={}", 
+                    saved.getUserId(), saved.getPlan(), saved.getStatus());
         });
     }
 
@@ -298,31 +314,66 @@ public class EduSubscriptionService {
 
     private void syncUserRoles(String userId, ESubscriptionPlan newPlan) {
         userRepository.findById(userId).ifPresent(user -> {
-            boolean isSeller = false;
             java.util.Set<ERoles> roles = new java.util.HashSet<>();
+            boolean wasSeller = false;
+
             if (user.getRoles() != null) {
                 for (ERoles r : user.getRoles()) {
-                    if (r.name().startsWith("SELLER_")) {
-                        isSeller = true;
+                    // Preserves all roles EXCEPT subscription-based seller/enterprise roles
+                    if (r == ERoles.SELLER_FREE || r == ERoles.SELLER_PRO || 
+                        r == ERoles.SELLER_PREMIUM || r == ERoles.ENTERPRISE_INSTRUCTOR) {
+                        wasSeller = true;
                     } else {
                         roles.add(r);
                     }
                 }
             }
             
-            if (newPlan == ESubscriptionPlan.PRO) {
-                roles.add(ERoles.SELLER_PRO);
-            } else if (newPlan == ESubscriptionPlan.PREMIUM) {
-                roles.add(ERoles.SELLER_PREMIUM);
-            } else if (newPlan == ESubscriptionPlan.ENTERPRISE) {
-                roles.add(ERoles.ENTERPRISE_INSTRUCTOR);
-            } else if (newPlan == ESubscriptionPlan.FREE && isSeller) {
-                roles.add(ERoles.SELLER_FREE);
+            // Add the new authoritative role based on the current plan
+            switch (newPlan) {
+                case PRO:
+                    roles.add(ERoles.SELLER_PRO);
+                    break;
+                case PREMIUM:
+                    roles.add(ERoles.SELLER_PREMIUM);
+                    break;
+                case ENTERPRISE:
+                    roles.add(ERoles.ENTERPRISE_INSTRUCTOR);
+                    break;
+                case FREE:
+                default:
+                    // Only add SELLER_FREE if they were already a creator/seller
+                    if (wasSeller) {
+                        roles.add(ERoles.SELLER_FREE);
+                    }
+                    break;
             }
 
             user.setPlan(newPlan);
             user.setRoles(roles.toArray(new ERoles[0]));
             userRepository.save(user);
+            log.info("Synced user roles for {}: plan={}, roles={}", userId, newPlan, roles);
         });
+    }
+
+    public void provisionManualEnterprise(String userId, Double commissionRate, Integer maxCourses, Integer maxMembers, String notes) {
+        log.info("Provisioning manual Enterprise subscription for user: {}", userId);
+        
+        ESubscriptions sub = subscriptionsRepository.findByUserId(userId)
+            .orElse(ESubscriptions.builder().userId(userId).build());
+
+        sub.setPlan(ESubscriptionPlan.ENTERPRISE);
+        sub.setStatus(ESubscriptionStatus.ACTIVE);
+        sub.setCommissionRate(commissionRate);
+        sub.setMaxCourses(maxCourses);
+        sub.setBillingCycle("MANUAL");
+        sub.setAutoRenew(false);
+        sub.setStartDate(Instant.now());
+        sub.setEndDate(Instant.now().plus(java.time.Duration.ofDays(365))); // Default 1 year
+        
+        subscriptionsRepository.save(sub);
+        syncUserRoles(userId, ESubscriptionPlan.ENTERPRISE);
+        
+        log.info("Manual Enterprise provisioning complete for user: {}", userId);
     }
 }

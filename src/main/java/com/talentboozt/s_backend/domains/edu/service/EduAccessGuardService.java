@@ -5,6 +5,7 @@ import com.talentboozt.s_backend.domains.edu.model.EUser;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.ECoursesRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EAiUsageRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository;
+import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -51,12 +52,23 @@ public class EduAccessGuardService {
     public void enforceCourseCreationLimit(String userId) {
         EUser user = getUser(userId);
         int maxCourses = planConfigService.getPlanLimits(user.getPlan()).getMaxCourses();
-        long currentCount = courseRepository.findByCreatorId(userId).size();
+        
+        // Count all courses except ARCHIVED ones
+        long currentCount = courseRepository.countByCreatorIdAndStatusIn(userId, 
+            java.util.List.of(
+                ECourseStatus.DRAFT, 
+                ECourseStatus.SUBMITTED, 
+                ECourseStatus.UNDER_REVIEW, 
+                ECourseStatus.APPROVED, 
+                ECourseStatus.REJECTED, 
+                ECourseStatus.PUBLISHED
+            )
+        );
 
         if (currentCount >= maxCourses) {
             log.warn("Course creation limit reached for user: {} (count: {}, max: {})", userId, currentCount, maxCourses);
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "Course creation limit reached for your plan. Please upgrade.");
+                    "Course creation limit reached for your plan (" + maxCourses + "). Please upgrade.");
         }
     }
 

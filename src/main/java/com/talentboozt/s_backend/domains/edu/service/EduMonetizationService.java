@@ -60,9 +60,9 @@ public class EduMonetizationService {
         subscription.setStripePriceId(priceId);
         subscriptionsRepository.save(subscription);
 
-        // Generate idempotency key to prevent duplicate subscriptions on network
+        // Generate stable idempotency key to prevent duplicate subscriptions on network
         // retries
-        String idempotencyKey = UUID.randomUUID().toString();
+        String idempotencyKey = String.format("checkout-%s-%s-%s", request.getUserId(), request.getPlanName(), request.getBillingCycle());
 
         SessionCreateParams params = SessionCreateParams.builder()
                 .addPaymentMethodType(SessionCreateParams.PaymentMethodType.CARD)
