@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.subscription.controller;
 
-import com.talentboozt.s_backend.domains.subscription.model.Subscription;
-import com.talentboozt.s_backend.domains.subscription.service.SubscriptionService;
+import com.talentboozt.s_backend.domains.edu.model.ESubscriptions;
+import com.talentboozt.s_backend.domains.edu.service.EduSubscriptionService;
 import com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser;
 import com.talentboozt.s_backend.domains.subscription.dto.SubscriptionResponseDTO;
 import com.talentboozt.s_backend.domains.edu.service.PlanConfigService;
@@ -18,21 +18,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class SubscriptionController {
 
-    private final SubscriptionService subscriptionService;
+    private final EduSubscriptionService subscriptionService;
     private final PlanConfigService planConfigService;
 
     @GetMapping("/me")
     public ResponseEntity<SubscriptionResponseDTO> getMySubscription(@AuthenticatedUser String userId) {
-        Subscription subscription = subscriptionService.getActiveSubscription(userId);
+        ESubscriptions sub = subscriptionService.getUserSubscription(userId);
         
-        ESubscriptionPlan plan = subscription != null ? subscription.getPlan() : ESubscriptionPlan.FREE;
+        ESubscriptionPlan plan = sub != null ? sub.getPlan() : ESubscriptionPlan.FREE;
         var limits = planConfigService.getPlanLimits(plan);
 
         SubscriptionResponseDTO response = SubscriptionResponseDTO.builder()
-                .id(subscription != null ? subscription.getId() : "default-free")
+                .id(sub != null ? sub.getId() : "default-free")
                 .plan(plan)
-                .status(subscription != null ? subscription.getStatus() : ESubscriptionStatus.ACTIVE)
-                .expiresAt(subscription != null ? subscription.getEndDate() : null)
+                .status(sub != null ? sub.getStatus() : ESubscriptionStatus.ACTIVE)
+                .expiresAt(sub != null ? sub.getEndDate() : null)
                 .features(limits.getFeatures())
                 .limits(limits)
                 .build();
