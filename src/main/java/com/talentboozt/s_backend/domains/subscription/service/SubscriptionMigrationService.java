@@ -1,8 +1,8 @@
 package com.talentboozt.s_backend.domains.subscription.service;
 
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionStatus;
-import com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository;
+import com.talentboozt.s_backend.domains.subscription.application.port.UserSubscriptionPort;
+import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode;
+import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionStatus;
 import com.talentboozt.s_backend.domains.subscription.model.Subscription;
 import com.talentboozt.s_backend.domains.subscription.repository.mongodb.SubscriptionRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +17,11 @@ import java.time.Instant;
 @RequiredArgsConstructor
 public class SubscriptionMigrationService implements CommandLineRunner {
 
-    private final EUserRepository userRepository;
+    private final UserSubscriptionPort userSubscriptionPort;
     private final SubscriptionRepository subscriptionRepository;
 
     @Override
     public void run(String... args) {
-        // Run migration only if no subscriptions exist or specifically requested
         if (subscriptionRepository.count() == 0) {
             log.info("Starting subscription migration for existing users...");
             migrateUsers();
@@ -30,18 +29,20 @@ public class SubscriptionMigrationService implements CommandLineRunner {
     }
 
     private void migrateUsers() {
-        userRepository.findAll().forEach(user -> {
-            if (subscriptionRepository.findByUserId(user.getId()).isEmpty()) {
+        userSubscriptionPort.forEachUserForPortalSubscriptionMigration(row -> {
+            if (subscriptionRepository.findByUserId(row.userId()).isEmpty()) {
+                SubscriptionPlanCode plan = row.plan() != null ? row.plan() : SubscriptionPlanCode.FREE;
+                SubscriptionStatus status = row.status() != null ? row.status() : SubscriptionStatus.ACTIVE;
                 Subscription sub = Subscription.builder()
-                        .userId(user.getId())
-                        .plan(user.getPlan() != null ? user.getPlan() : ESubscriptionPlan.FREE)
-                        .status(user.getSubscriptionStatus() != null ? user.getSubscriptionStatus() : ESubscriptionStatus.ACTIVE)
-                        .startDate(user.getCreatedAt())
+                        .userId(row.userId())
+                        .plan(plan)
+                        .status(status)
+                        .startDate(row.accountCreatedAt())
                         .createdAt(Instant.now())
                         .updatedAt(Instant.now())
                         .build();
                 subscriptionRepository.save(sub);
-                log.info("Migrated subscription for user: {}", user.getEmail());
+                log.info("Migrated subscription for user: {}", row.userId());
             }
         });
         log.info("Subscription migration completed.");

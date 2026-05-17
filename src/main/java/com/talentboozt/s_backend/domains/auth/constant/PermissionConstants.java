@@ -37,10 +37,20 @@ public class PermissionConstants {
     public static final String RESUME_VIEW = "resume:view";
     public static final String APPLICANT_MANAGE = "applicant:manage";
 
+    // Organization Level
+    public static final String ORG_MANAGE = "org:manage";
+    public static final String ORG_VIEW = "org:view";
+    public static final String ORG_INVITE = "org:invite";
+    public static final String ORG_SETTINGS = "org:settings";
+
     // Role Names
     public static final String ROLE_MEMBER = "MEMBER";
-    public static final String ROLE_AMBASSADOR = "AMBASSADOR";
+    public static final String ROLE_APPLICANT = "APPLICANT";
     public static final String ROLE_RECRUITER = "RECRUITER";
-    public static final String ROLE_OWNER = "OWNER";
+    public static final String ROLE_RECRUITER_MEMBER = "RECRUITER_MEMBER";
+    public static final String ROLE_ENTERPRISE_ADMIN = "ENTERPRISE_ADMIN";
     public static final String ROLE_SYSTEM_ADMIN = "SYSTEM_ADMIN";
+    public static final String ROLE_PLATFORM_ADMIN = "PLATFORM_ADMIN";
+    public static final String ROLE_AMBASSADOR = "AMBASSADOR";
+    public static final String ROLE_OWNER = "OWNER";
 }

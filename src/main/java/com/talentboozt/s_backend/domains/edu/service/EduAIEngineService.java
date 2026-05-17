@@ -18,10 +18,10 @@ public class EduAIEngineService {
     private final EduAICreditService creditService;
     private final LLMRouter llmRouter;
     private final EduAccessGuardService accessGuard;
-    private final com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService;
+    private final com.talentboozt.s_backend.domains.subscription.service.SubscriptionFeatureFlagService featureFlagService;
     private final EduAnalyticsEventService analyticsEventService;
 
-    public EduAIEngineService(EduAICreditService creditService, LLMRouter llmRouter, EduAccessGuardService accessGuard, com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService, EduAnalyticsEventService analyticsEventService) {
+    public EduAIEngineService(EduAICreditService creditService, LLMRouter llmRouter, EduAccessGuardService accessGuard, com.talentboozt.s_backend.domains.subscription.service.SubscriptionFeatureFlagService featureFlagService, EduAnalyticsEventService analyticsEventService) {
         this.creditService = creditService;
         this.llmRouter = llmRouter;
         this.accessGuard = accessGuard;

@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.subscription.model;
 
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionStatus;
+import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode;
+import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,7 +18,7 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "subscriptions")
+@Document(collection = "job_portal_subscriptions")
 public class Subscription {
     @Id
     private String id;
@@ -27,10 +27,10 @@ public class Subscription {
     private String userId;
 
     @Indexed
-    private ESubscriptionPlan plan;
+    private SubscriptionPlanCode plan;
 
     @Indexed
-    private ESubscriptionStatus status;
+    private SubscriptionStatus status;
 
     private Instant startDate;
     private Instant endDate;

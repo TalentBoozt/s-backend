@@ -12,7 +12,7 @@ import com.talentboozt.s_backend.domains.community.dto.PostDTO;
 import com.talentboozt.s_backend.domains.community.event.ContentCreatedEvent;
 import com.talentboozt.s_backend.domains.community.model.Comment;
 import com.talentboozt.s_backend.domains.community.model.Post;
-import com.talentboozt.s_backend.domains.community.model.Notification;
+import com.talentboozt.s_backend.domains.community.model.CommunityNotification;
 import com.talentboozt.s_backend.domains.community.repository.mongodb.CommentRepository;
 import com.talentboozt.s_backend.domains.community.repository.mongodb.PostRepository;
 import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
@@ -39,7 +39,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final EmployeeRepository employeeRepository;
-    private final NotificationService notificationService;
+    private final CommunityNotificationService notificationService;
     private final ActivityService activityService;
     private final MentionService mentionService;
     private final ApplicationEventPublisher eventPublisher;
@@ -132,14 +132,14 @@ public class PostServiceImpl implements PostService {
         // Notify Mentioned Users
         for (String mentionId : mentionIds) {
             notificationService.createNotification(mentionId, post.getAuthorId(),
-                    Notification.NotificationType.MENTION, savedPost.getId());
+                    CommunityNotification.NotificationType.MENTION, savedPost.getId());
         }
 
         // Notify Quoted Post Author
         if (post.getQuotedPostId() != null) {
             postRepository.findById(post.getQuotedPostId()).ifPresent(originalPost -> {
                 notificationService.createNotification(originalPost.getAuthorId(), post.getAuthorId(),
-                        Notification.NotificationType.QUOTE, savedPost.getId());
+                        CommunityNotification.NotificationType.QUOTE, savedPost.getId());
             });
         }
 
@@ -265,7 +265,7 @@ public class PostServiceImpl implements PostService {
             notificationService.createNotification(
                     post.getAuthorId(),
                     userId,
-                    Notification.NotificationType.POST_REACTION,
+                    CommunityNotification.NotificationType.POST_REACTION,
                     post.getId());
         }
 
@@ -339,14 +339,14 @@ public class PostServiceImpl implements PostService {
 
             // Notify Post Author
             notificationService.createNotification(post.getAuthorId(), comment.getAuthorId(),
-                    Notification.NotificationType.COMMENT, post.getId());
+                    CommunityNotification.NotificationType.COMMENT, post.getId());
         }
 
         // Notify Parent Comment Author (if reply)
         if (comment.getParentId() != null) {
             commentRepository.findById(comment.getParentId()).ifPresent(parent -> {
                 notificationService.createNotification(parent.getAuthorId(), comment.getAuthorId(),
-                        Notification.NotificationType.COMMENT,
+                        CommunityNotification.NotificationType.COMMENT,
                         post != null ? post.getId() : savedComment.getId());
             });
         }
@@ -355,7 +355,7 @@ public class PostServiceImpl implements PostService {
         if (comment.getMentionIds() != null) {
             for (String mentionId : comment.getMentionIds()) {
                 notificationService.createNotification(mentionId, comment.getAuthorId(),
-                        Notification.NotificationType.MENTION,
+                        CommunityNotification.NotificationType.MENTION,
                         post != null ? post.getId() : savedComment.getId());
             }
         }
@@ -456,7 +456,7 @@ public class PostServiceImpl implements PostService {
             notificationService.createNotification(
                     comment.getAuthorId(),
                     userId,
-                    Notification.NotificationType.COMMENT_REACTION,
+                    CommunityNotification.NotificationType.COMMENT_REACTION,
                     comment.getId());
         }
 

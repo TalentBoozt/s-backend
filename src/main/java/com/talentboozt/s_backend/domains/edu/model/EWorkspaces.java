@@ -29,6 +29,9 @@ public class EWorkspaces {
     
     @Indexed
     private String ownerId;
+
+    @Indexed(unique = true)
+    private String slug;
     
     @Indexed
     private EWorkspaceType type;

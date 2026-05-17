@@ -36,7 +36,7 @@ public class CommunityServiceImpl implements CommunityService {
     private final CommunityMemberRepository communityMemberRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
-    private final NotificationService notificationService;
+    private final CommunityNotificationService notificationService;
 
     @Override
     public Page<CommunityDTO> getPaginatedCommunities(
@@ -257,7 +257,7 @@ public class CommunityServiceImpl implements CommunityService {
                 if (!adminId.equals(userId)) {
                     notificationService.createNotification(
                             adminId, userId,
-                            com.talentboozt.s_backend.domains.community.model.Notification.NotificationType.FOLLOW,
+                            com.talentboozt.s_backend.domains.community.model.CommunityNotification.NotificationType.FOLLOW,
                             id);
                 }
             }
@@ -321,7 +321,7 @@ public class CommunityServiceImpl implements CommunityService {
         // Notify the banned user
         notificationService.createNotification(
                 userId, communityId,
-                com.talentboozt.s_backend.domains.community.model.Notification.NotificationType.BAN,
+                com.talentboozt.s_backend.domains.community.model.CommunityNotification.NotificationType.BAN,
                 reason);
     }
 
@@ -348,7 +348,7 @@ public class CommunityServiceImpl implements CommunityService {
         // Notify the unbanned user
         notificationService.createNotification(
                 userId, communityId,
-                com.talentboozt.s_backend.domains.community.model.Notification.NotificationType.UNBAN,
+                com.talentboozt.s_backend.domains.community.model.CommunityNotification.NotificationType.UNBAN,
                 null);
     }
 

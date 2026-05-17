@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Instant;
 import java.util.*;
 
 /**
@@ -21,6 +22,7 @@ import java.util.*;
 public class ResumeService {
 
     private final ResumeRepository resumeRepository;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
 
     // ─── READ ────────────────────────────────────────────────────────────────
 
@@ -62,7 +64,33 @@ public class ResumeService {
         resume.setDeleted(false);
         resume.setCompletionScore(0);
         resume.setAtsScore(0);
+        resume.setParsingStatus("UPLOADED");
         return resumeRepository.save(resume);
+    }
+
+    /** Triggered when a physical file is uploaded */
+    public ResumeModel uploadFile(String employeeId, String fileName, String fileUrl, String fileType) {
+        ResumeModel resume = create(employeeId, fileName, "PORTAL");
+
+        ResumeModel.ResumeVersion version = new ResumeModel.ResumeVersion();
+        version.setId(UUID.randomUUID().toString());
+        version.setFileName(fileName);
+        version.setFileUrl(fileUrl);
+        version.setFileType(fileType);
+        version.setUploadedAt(Instant.now());
+        version.setStatus("ORIGINAL");
+
+        resume.setVersions(List.of(version));
+        resume.setActiveVersionId(version.getId());
+        resume.setParsingStatus("UPLOADED");
+
+        ResumeModel saved = resumeRepository.save(resume);
+
+        // Trigger async parsing
+        eventPublisher.publishEvent(new com.talentboozt.s_backend.domains.resume.event.ResumeUploadedEvent(this,
+                saved.getId(), employeeId, fileUrl));
+
+        return saved;
     }
 
     /** Full update — replaces the resume content with the payload */

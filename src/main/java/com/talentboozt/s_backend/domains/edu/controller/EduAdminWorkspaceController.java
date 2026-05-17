@@ -60,6 +60,12 @@ public class EduAdminWorkspaceController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping
+    @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
+    public ResponseEntity<EWorkspaces> registerWorkspace(@RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(adminService.registerWorkspace(body));
+    }
+
     @GetMapping("/{workspaceId}/compliance")
     @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<Map<String, Object>> getWorkspaceCompliance(@PathVariable String workspaceId) {

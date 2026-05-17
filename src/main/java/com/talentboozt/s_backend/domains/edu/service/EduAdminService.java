@@ -128,8 +128,8 @@ public class EduAdminService {
         if (search == null || search.trim().isEmpty()) {
             return workspacesRepository.findAll(pageable);
         }
-        return workspacesRepository.findAllByNameContainingIgnoreCaseOrDomainContainingIgnoreCase(
-                search, search, pageable);
+        return workspacesRepository.findAllByNameContainingIgnoreCaseOrDomainContainingIgnoreCaseOrSlugContainingIgnoreCase(
+                search, search, search, pageable);
     }
 
     public void updateWorkspaceStatus(String workspaceId, Boolean active) {
@@ -182,20 +182,53 @@ public class EduAdminService {
         return report;
     }
 
+    public com.talentboozt.s_backend.domains.edu.model.EWorkspaces registerWorkspace(Map<String, Object> data) {
+        String name = (String) data.get("name");
+        String domain = (String) data.get("domain");
+        String slug = (String) data.get("slug");
+        String email = (String) data.get("email");
+        String planStr = (String) data.get("plan");
+        Integer maxMembers = (Integer) data.get("maxMembers");
+
+        // 1. Find or create the owner
+        EUser owner = userRepository.findByEmail(email).orElseGet(() -> {
+            return inviteUser(email, name, "Admin", new com.talentboozt.s_backend.domains.edu.enums.ERoles[] {
+                    com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_ADMIN
+            });
+        });
+
+        // 2. Create the workspace
+        com.talentboozt.s_backend.domains.edu.model.EWorkspaces workspace = com.talentboozt.s_backend.domains.edu.model.EWorkspaces
+                .builder()
+                .name(name)
+                .domain(domain)
+                .slug(slug)
+                .ownerId(owner.getId())
+                .plan(com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.valueOf(planStr))
+                .maxMembers(maxMembers != null ? maxMembers : 100)
+                .isActive(true)
+                .type(com.talentboozt.s_backend.domains.edu.enums.EWorkspaceType.ORGANIZATION)
+                .build();
+
+        return workspacesRepository.save(workspace);
+    }
+
     public String generateImpersonationToken(String adminId, String userId) {
         EUser admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Admin not found"));
         EUser target = userRepository.findById(userId)
                 .orElseThrow(() -> new EduResourceNotFoundException("Target user not found"));
 
-        // In a real implementation, you would use a JwtProvider to sign a token with special claims
+        // In a real implementation, you would use a JwtProvider to sign a token with
+        // special claims
         // such as "impersonator": adminId and "sub": userId.
-        // For now, we return a secure random string that the frontend uses to signal the proxy session.
+        // For now, we return a secure random string that the frontend uses to signal
+        // the proxy session.
         String proxyToken = "staff_proxy_" + java.util.UUID.randomUUID().toString();
-        
+
         // Log the security event
         System.out.println("ALERT: Admin " + adminId + " is impersonating user " + userId);
-        
+
         return proxyToken;
     }
 }

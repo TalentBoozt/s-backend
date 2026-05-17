@@ -253,12 +253,13 @@ public class StripeWebhookController {
         if (userId != null) {
             // User subscription
             try {
-                com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan plan = 
-                    com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.valueOf(planName.toUpperCase());
-                
+                com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode plan =
+                        com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode
+                                .fromStripeMetadataLabel(planName);
+
                 com.stripe.model.Subscription stripeSub = com.stripe.model.Subscription.retrieve(session.getSubscription());
                 java.time.Instant endDate = java.time.Instant.ofEpochSecond(stripeSub.getCurrentPeriodEnd());
-                
+
                 userSubscriptionService.handleSubscriptionCreated(userId, plan, stripeSub.getId(), endDate);
                 auditLogService.markProcessed(event.getId());
                 return;

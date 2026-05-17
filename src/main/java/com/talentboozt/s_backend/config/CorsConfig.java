@@ -21,10 +21,10 @@ public class CorsConfig implements WebMvcConfigurer {
         String exposedHeaders = configUtility.getProperty("EXPOSED_HEADERS");
 
         registry.addMapping("/**")
-                .allowedOrigins(origins != null ? origins.split(",") : new String[]{"*"})
+                .allowedOriginPatterns(origins != null ? origins.split(",") : new String[]{"*"})
                 .allowedMethods(methods != null ? methods.split(",") : new String[]{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"})
                 .allowedHeaders(headers != null ? headers.split(",") : new String[]{"*"})
-                .exposedHeaders(exposedHeaders != null ? exposedHeaders.split(",") : new String[]{"X-XSRF-TOKEN", "x-user-id"})
+                .exposedHeaders(exposedHeaders != null ? exposedHeaders.split(",") : new String[]{"X-XSRF-TOKEN", "x-user-id", "userid"})
                 .allowCredentials(true);
     }
 }

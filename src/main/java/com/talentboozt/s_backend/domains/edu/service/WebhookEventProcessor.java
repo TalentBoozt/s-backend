@@ -107,7 +107,9 @@ public class WebhookEventProcessor {
                     subscription.getCustomer(),
                     subscription.getId(),
                     subscription.getStatus(),
-                    priceId);
+                    priceId,
+                    subscription.getCurrentPeriodStart(),
+                    subscription.getCurrentPeriodEnd());
             log.info("Handled {} for subscription {}", event.getType(), subscription.getId());
         }
     }

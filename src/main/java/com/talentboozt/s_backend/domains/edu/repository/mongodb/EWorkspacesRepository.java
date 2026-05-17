@@ -11,5 +11,6 @@ import java.util.List;
 @Repository
 public interface EWorkspacesRepository extends MongoRepository<EWorkspaces, String> {
     List<EWorkspaces> findByOwnerId(String ownerId);
-    Page<EWorkspaces> findAllByNameContainingIgnoreCaseOrDomainContainingIgnoreCase(String name, String domain, Pageable pageable);
+    java.util.Optional<EWorkspaces> findBySlug(String slug);
+    Page<EWorkspaces> findAllByNameContainingIgnoreCaseOrDomainContainingIgnoreCaseOrSlugContainingIgnoreCase(String name, String domain, String slug, Pageable pageable);
 }
