@@ -13,12 +13,12 @@ import org.springframework.web.bind.annotation.*;
 public class EduAnalyticsController {
 
     private final EduAnalyticsDataService analyticsDataService;
-    private final com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService;
+    private final com.talentboozt.s_backend.domains.subscription.service.SubscriptionFeatureFlagService featureFlagService;
     private final com.talentboozt.s_backend.domains.edu.service.EduAnalyticsEventService eventService;
     private final com.talentboozt.s_backend.domains.edu.service.EduAnalyticsAggregationService aggregationService;
 
     public EduAnalyticsController(EduAnalyticsDataService analyticsDataService, 
-                                com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService,
+                                com.talentboozt.s_backend.domains.subscription.service.SubscriptionFeatureFlagService featureFlagService,
                                 com.talentboozt.s_backend.domains.edu.service.EduAnalyticsEventService eventService,
                                 com.talentboozt.s_backend.domains.edu.service.EduAnalyticsAggregationService aggregationService) {
         this.analyticsDataService = analyticsDataService;

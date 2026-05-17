@@ -1,9 +1,9 @@
 package com.talentboozt.s_backend.domains.subscription.controller;
 
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
+import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode;
 import com.talentboozt.s_backend.domains.subscription.model.FeatureFlag;
-import com.talentboozt.s_backend.domains.subscription.repository.mongodb.FeatureFlagRepository;
-import com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService;
+import com.talentboozt.s_backend.domains.subscription.repository.mongodb.SubscriptionFeatureFlagRepository;
+import com.talentboozt.s_backend.domains.subscription.service.SubscriptionFeatureFlagService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,11 +16,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FeatureFlagController {
 
-    private final FeatureFlagService featureFlagService;
-    private final FeatureFlagRepository featureFlagRepository;
+    private final SubscriptionFeatureFlagService featureFlagService;
+    private final SubscriptionFeatureFlagRepository featureFlagRepository;
 
     @GetMapping("/plan/{plan}")
-    public ResponseEntity<List<String>> getFeaturesForPlan(@PathVariable ESubscriptionPlan plan) {
+    public ResponseEntity<List<String>> getFeaturesForPlan(@PathVariable SubscriptionPlanCode plan) {
         return ResponseEntity.ok(featureFlagService.getFeaturesForPlan(plan));
     }
 

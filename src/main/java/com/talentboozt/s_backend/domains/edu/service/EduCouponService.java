@@ -22,12 +22,12 @@ public class EduCouponService {
 
     private final ECouponsRepository couponsRepository;
     private final ECouponRedemptionRepository redemptionRepository;
-    private final com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService;
+    private final com.talentboozt.s_backend.domains.subscription.service.SubscriptionFeatureFlagService featureFlagService;
     private final EduFraudDetectionService fraudDetectionService;
 
     public EduCouponService(ECouponsRepository couponsRepository, 
                           ECouponRedemptionRepository redemptionRepository,
-                          com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService,
+                          com.talentboozt.s_backend.domains.subscription.service.SubscriptionFeatureFlagService featureFlagService,
                           EduFraudDetectionService fraudDetectionService) {
         this.couponsRepository = couponsRepository;
         this.redemptionRepository = redemptionRepository;

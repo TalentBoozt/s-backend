@@ -76,4 +76,9 @@ public class EduWorkspaceService {
     public List<EWorkspaces> getWorkspacesByOwner(String ownerId) {
         return workspaceRepository.findByOwnerId(ownerId);
     }
+
+    public EWorkspaces getWorkspaceBySlug(String slug) {
+        return workspaceRepository.findBySlug(slug)
+                .orElseThrow(() -> new EduResourceNotFoundException("Workspace not found with slug: " + slug));
+    }
 }

@@ -194,7 +194,8 @@ public class EduAICreditService {
     public EAiCredits grantMonthlyCredits(String userId, int tokens, int validityDays, String referenceId) {
         log.info("Granting monthly credits: userId={}, tokens={}, refId={}", userId, tokens, referenceId);
         EAiCredits credits = getUserCredits(userId);
-        credits.setBalance(credits.getBalance() + tokens);
+        credits.setBalance(tokens);
+        credits.setLastResetDate(Instant.now());
         credits.setLifetimePurchased(credits.getLifetimePurchased() + tokens);
         credits.setExpiresAt(Instant.now().plus(validityDays, ChronoUnit.DAYS));
         credits.setUpdatedAt(Instant.now());

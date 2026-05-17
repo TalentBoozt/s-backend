@@ -63,16 +63,37 @@ public class RoleSeedService {
                         PermissionConstants.COMPANY_USERS),
                 Arrays.asList(PermissionConstants.ROLE_RECRUITER));
 
-        // 5. SYSTEM_ADMIN (Root Access)
-        createRole(PermissionConstants.ROLE_SYSTEM_ADMIN, "System Administrator",
+        // 5. APPLICANT (Inherits from MEMBER)
+        createRole(PermissionConstants.ROLE_APPLICANT, "Job Applicant",
+                Arrays.asList(
+                        PermissionConstants.MEMBER_READ,
+                        PermissionConstants.CONTENT_CREATE),
+                Arrays.asList(PermissionConstants.ROLE_MEMBER));
+
+        // 6. RECRUITER_MEMBER (Inherits from MEMBER)
+        createRole(PermissionConstants.ROLE_RECRUITER_MEMBER, "Organization Recruiter Team Member",
+                Arrays.asList(
+                        PermissionConstants.JOB_POST,
+                        PermissionConstants.JOB_MANAGE,
+                        PermissionConstants.RESUME_VIEW,
+                        PermissionConstants.APPLICANT_MANAGE,
+                        PermissionConstants.ORG_VIEW),
+                Arrays.asList(PermissionConstants.ROLE_MEMBER));
+
+        // 7. ENTERPRISE_ADMIN (Inherits from OWNER)
+        createRole(PermissionConstants.ROLE_ENTERPRISE_ADMIN, "Enterprise Organization Administrator",
+                Arrays.asList(
+                        PermissionConstants.ORG_MANAGE,
+                        PermissionConstants.ORG_SETTINGS,
+                        PermissionConstants.ORG_INVITE),
+                Arrays.asList(PermissionConstants.ROLE_OWNER));
+
+        // 8. PLATFORM_ADMIN (Inherits from SYSTEM_ADMIN)
+        createRole(PermissionConstants.ROLE_PLATFORM_ADMIN, "Platform Administrator",
                 Arrays.asList(
                         PermissionConstants.SYSTEM_MANAGE,
-                        PermissionConstants.SYSTEM_VIEW_AUDIT,
-                        PermissionConstants.SYSTEM_BYPASS_BILLING,
-                        PermissionConstants.AMBASSADOR_MANAGE,
-                        PermissionConstants.CONTENT_MODERATE,
-                        PermissionConstants.TRAINING_MANAGE),
-                Arrays.asList(PermissionConstants.ROLE_OWNER));
+                        PermissionConstants.SYSTEM_VIEW_AUDIT),
+                Arrays.asList(PermissionConstants.ROLE_SYSTEM_ADMIN));
 
         log.info("Role seeding complete.");
     }

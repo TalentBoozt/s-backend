@@ -1,10 +1,9 @@
 package com.talentboozt.s_backend.domains.subscription.service;
 
-import com.talentboozt.s_backend.domains.edu.enums.ERoles;
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionStatus;
-import com.talentboozt.s_backend.domains.edu.model.EUser;
-import com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository;
+import com.talentboozt.s_backend.domains.subscription.application.port.PlanCatalogPort;
+import com.talentboozt.s_backend.domains.subscription.application.port.UserSubscriptionPort;
+import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode;
+import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionStatus;
 import com.talentboozt.s_backend.domains.subscription.event.UserPlanChangedEvent;
 import com.talentboozt.s_backend.domains.subscription.exception.SubscriptionException;
 import com.talentboozt.s_backend.domains.subscription.exception.SubscriptionNotFoundException;
@@ -17,11 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -29,10 +23,10 @@ import java.util.Set;
 public class SubscriptionService {
 
     private final SubscriptionRepository subscriptionRepository;
-    private final EUserRepository userRepository;
+    private final UserSubscriptionPort userSubscriptionPort;
     private final ApplicationEventPublisher eventPublisher;
     private final com.talentboozt.s_backend.domains.edu.service.EduAICreditService creditService;
-    private final com.talentboozt.s_backend.domains.edu.service.PlanConfigService planConfigService;
+    private final PlanCatalogPort planCatalogPort;
 
     @org.springframework.beans.factory.annotation.Value("${stripe.edu.price.pro.monthly:}")
     private String stripePriceProMonthly;
@@ -45,39 +39,41 @@ public class SubscriptionService {
 
     public Subscription getActiveSubscription(String userId) {
         return subscriptionRepository.findByUserId(userId)
-                .filter(s -> s.getStatus() == ESubscriptionStatus.ACTIVE)
+                .filter(s -> s.getStatus() == SubscriptionStatus.ACTIVE)
                 .orElse(null);
     }
 
-    public boolean validateUserPlan(String userId, ESubscriptionPlan requiredPlan) {
+    public boolean validateUserPlan(String userId, SubscriptionPlanCode requiredPlan) {
         Subscription subscription = getActiveSubscription(userId);
         if (subscription == null) {
-            return requiredPlan == ESubscriptionPlan.FREE;
+            return requiredPlan == SubscriptionPlanCode.FREE;
         }
 
-        return subscription.getPlan().ordinal() >= requiredPlan.ordinal();
+        SubscriptionPlanCode current = subscription.getPlan() != null ? subscription.getPlan() : SubscriptionPlanCode.FREE;
+        return current.ordinal() >= requiredPlan.ordinal();
     }
 
     @Transactional
-    public Subscription handleSubscriptionCreated(String userId, ESubscriptionPlan plan, String stripeSubscriptionId,
+    public Subscription handleSubscriptionCreated(String userId, SubscriptionPlanCode plan, String stripeSubscriptionId,
             Instant endDate) {
         log.info("Handling subscription creation for user: {}, plan: {}", userId, plan);
 
-        if (!userRepository.existsById(userId)) {
+        if (!userSubscriptionPort.userExists(userId)) {
             throw new SubscriptionException("User not found during subscription creation: " + userId);
         }
 
         Subscription subscription = subscriptionRepository.findByUserId(userId)
                 .orElse(Subscription.builder().userId(userId).build());
 
-        subscription.setPlan(plan);
-        subscription.setStatus(ESubscriptionStatus.ACTIVE);
+        SubscriptionPlanCode effectivePlan = plan != null ? plan : SubscriptionPlanCode.FREE;
+        subscription.setPlan(effectivePlan);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
         subscription.setStripeSubscriptionId(stripeSubscriptionId);
         subscription.setStartDate(Instant.now());
         subscription.setEndDate(endDate);
 
         Subscription saved = subscriptionRepository.save(subscription);
-        syncUserRoles(userId, plan);
+        syncUserRolesAndPublish(userId, effectivePlan);
 
         return saved;
     }
@@ -87,7 +83,7 @@ public class SubscriptionService {
         log.info("Handling subscription expiry for stripeId: {}", stripeSubscriptionId);
 
         subscriptionRepository.findByStripeSubscriptionId(stripeSubscriptionId).ifPresent(sub -> {
-            sub.setStatus(ESubscriptionStatus.EXPIRED);
+            sub.setStatus(SubscriptionStatus.EXPIRED);
             subscriptionRepository.save(sub);
             downgradeToFree(sub.getUserId());
         });
@@ -100,13 +96,13 @@ public class SubscriptionService {
         Subscription subscription = subscriptionRepository.findByUserId(userId)
                 .orElseThrow(() -> new SubscriptionNotFoundException(userId));
 
-        subscription.setPlan(ESubscriptionPlan.FREE);
-        subscription.setStatus(ESubscriptionStatus.ACTIVE);
+        subscription.setPlan(SubscriptionPlanCode.FREE);
+        subscription.setStatus(SubscriptionStatus.ACTIVE);
         subscription.setStripeSubscriptionId(null);
         subscription.setEndDate(null);
 
         subscriptionRepository.save(subscription);
-        syncUserRoles(userId, ESubscriptionPlan.FREE);
+        syncUserRolesAndPublish(userId, SubscriptionPlanCode.FREE);
     }
 
     @Transactional
@@ -114,7 +110,7 @@ public class SubscriptionService {
         log.info("Handling subscription deletion for stripeId: {}", stripeSubscriptionId);
 
         subscriptionRepository.findByStripeSubscriptionId(stripeSubscriptionId).ifPresent(sub -> {
-            sub.setStatus(ESubscriptionStatus.CANCELLED);
+            sub.setStatus(SubscriptionStatus.CANCELLED);
             subscriptionRepository.save(sub);
             downgradeToFree(sub.getUserId());
         });
@@ -129,7 +125,7 @@ public class SubscriptionService {
             sub.setStripeCustomerId(stripeCustomerId);
             if (priceId != null) {
                 sub.setStripePriceId(priceId);
-                ESubscriptionPlan resolvedPlan = resolvePlanFromPriceId(priceId);
+                SubscriptionPlanCode resolvedPlan = resolvePlanFromPriceId(priceId);
                 if (resolvedPlan != null) {
                     sub.setPlan(resolvedPlan);
                     sub.setBillingCycle(resolveBillingCycle(priceId));
@@ -139,24 +135,25 @@ public class SubscriptionService {
             if (status != null) {
                 switch (status.toLowerCase()) {
                     case "active":
-                        sub.setStatus(ESubscriptionStatus.ACTIVE);
+                        sub.setStatus(SubscriptionStatus.ACTIVE);
                         sub.setCancelAtPeriodEnd(false);
                         break;
                     case "trialing":
-                        sub.setStatus(ESubscriptionStatus.TRIAL);
+                        sub.setStatus(SubscriptionStatus.TRIAL);
                         break;
                     case "past_due":
                     case "unpaid":
-                        sub.setStatus(ESubscriptionStatus.PAST_DUE);
+                        sub.setStatus(SubscriptionStatus.PAST_DUE);
                         break;
                     case "canceled":
-                        sub.setStatus(ESubscriptionStatus.CANCELLED);
+                        sub.setStatus(SubscriptionStatus.CANCELLED);
                         downgradeToFree(sub.getUserId());
                         return;
                 }
             }
             subscriptionRepository.save(sub);
-            syncUserRoles(sub.getUserId(), sub.getPlan());
+            SubscriptionPlanCode planForRoles = sub.getPlan() != null ? sub.getPlan() : SubscriptionPlanCode.FREE;
+            syncUserRolesAndPublish(sub.getUserId(), planForRoles);
         });
     }
 
@@ -164,11 +161,12 @@ public class SubscriptionService {
     public void updatePaymentSucceeded(String stripeCustomerId) {
         subscriptionRepository.findByStripeCustomerId(stripeCustomerId).ifPresent(sub -> {
             sub.setLastPaymentAt(Instant.now());
-            sub.setStatus(ESubscriptionStatus.ACTIVE);
+            sub.setStatus(SubscriptionStatus.ACTIVE);
             sub.setCancelAtPeriodEnd(false);
 
-            if (sub.getPlan() == ESubscriptionPlan.PRO || sub.getPlan() == ESubscriptionPlan.PREMIUM
-                    || sub.getPlan() == ESubscriptionPlan.ENTERPRISE) {
+            SubscriptionPlanCode p = sub.getPlan() != null ? sub.getPlan() : SubscriptionPlanCode.FREE;
+            if (p == SubscriptionPlanCode.PRO || p == SubscriptionPlanCode.PREMIUM
+                    || p == SubscriptionPlanCode.ENTERPRISE) {
                 grantCreditsIfEligible(sub, "STRIPE_RENEWAL");
             }
 
@@ -184,8 +182,9 @@ public class SubscriptionService {
             return;
         }
 
-        var limits = planConfigService.getPlanLimits(sub.getPlan());
-        int creditsToGrant = limits.getAiCreditsPerMonth();
+        SubscriptionPlanCode planCode = sub.getPlan() != null ? sub.getPlan() : SubscriptionPlanCode.FREE;
+        var limits = planCatalogPort.getPlanLimits(planCode);
+        int creditsToGrant = limits.aiCreditsPerMonth();
 
         if (creditsToGrant > 0) {
             creditService.grantMonthlyCredits(sub.getUserId(), creditsToGrant, 30, referenceId);
@@ -193,66 +192,43 @@ public class SubscriptionService {
         }
     }
 
-    private ESubscriptionPlan resolvePlanFromPriceId(String priceId) {
-        if (priceId == null)
+    private SubscriptionPlanCode resolvePlanFromPriceId(String priceId) {
+        if (priceId == null) {
             return null;
-        if (priceId.equals(stripePriceProMonthly) || priceId.equals(stripePriceProYearly))
-            return ESubscriptionPlan.PRO;
-        if (priceId.equals(stripePricePremiumMonthly) || priceId.equals(stripePricePremiumYearly))
-            return ESubscriptionPlan.PREMIUM;
+        }
+        if (priceId.equals(stripePriceProMonthly) || priceId.equals(stripePriceProYearly)) {
+            return SubscriptionPlanCode.PRO;
+        }
+        if (priceId.equals(stripePricePremiumMonthly) || priceId.equals(stripePricePremiumYearly)) {
+            return SubscriptionPlanCode.PREMIUM;
+        }
         return null;
     }
 
     private String resolveBillingCycle(String priceId) {
-        if (priceId == null)
+        if (priceId == null) {
             return null;
-        if (priceId.equals(stripePriceProMonthly) || priceId.equals(stripePricePremiumMonthly))
+        }
+        if (priceId.equals(stripePriceProMonthly) || priceId.equals(stripePricePremiumMonthly)) {
             return "monthly";
-        if (priceId.equals(stripePriceProYearly) || priceId.equals(stripePricePremiumYearly))
+        }
+        if (priceId.equals(stripePriceProYearly) || priceId.equals(stripePricePremiumYearly)) {
             return "yearly";
+        }
         return null;
     }
 
-    private void syncUserRoles(String userId, ESubscriptionPlan newPlan) {
-        userRepository.findById(userId).ifPresent(user -> {
-            Set<ERoles> roles = new HashSet<>(Arrays.asList(user.getRoles() != null ? user.getRoles() : new ERoles[0]));
-
-            // Remove existing subscription-based roles
-            roles.remove(ERoles.SELLER_PRO);
-            roles.remove(ERoles.SELLER_PREMIUM);
-            roles.remove(ERoles.ENTERPRISE_INSTRUCTOR);
-            roles.remove(ERoles.SELLER_FREE);
-
-            // Add new role based on plan
-            switch (newPlan) {
-                case PRO:
-                    roles.add(ERoles.SELLER_PRO);
-                    break;
-                case PREMIUM:
-                    roles.add(ERoles.SELLER_PREMIUM);
-                    break;
-                case ENTERPRISE:
-                    roles.add(ERoles.ENTERPRISE_INSTRUCTOR);
-                    break;
-                case FREE:
-                default:
-                    roles.add(ERoles.SELLER_FREE);
-                    break;
-            }
-
-            user.setRoles(roles.toArray(new ERoles[0]));
-            user.setPlan(newPlan);
-            userRepository.save(user);
-
-            // Notify other domains about the plan change
-            eventPublisher.publishEvent(new UserPlanChangedEvent(this, userId, newPlan));
-        });
+    private void syncUserRolesAndPublish(String userId, SubscriptionPlanCode newPlan) {
+        SubscriptionPlanCode effective = newPlan != null ? newPlan : SubscriptionPlanCode.FREE;
+        if (userSubscriptionPort.applyUserPlanAndSellerRoles(userId, effective)) {
+            eventPublisher.publishEvent(new UserPlanChangedEvent(this, userId, effective));
+        }
     }
 
     @Transactional
     public void updatePaymentFailed(String stripeCustomerId) {
         subscriptionRepository.findByStripeCustomerId(stripeCustomerId).ifPresent(sub -> {
-            sub.setStatus(ESubscriptionStatus.PAST_DUE);
+            sub.setStatus(SubscriptionStatus.PAST_DUE);
             subscriptionRepository.save(sub);
         });
     }

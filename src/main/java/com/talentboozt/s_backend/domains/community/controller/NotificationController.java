@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.community.controller;
 
-import com.talentboozt.s_backend.domains.community.model.Notification;
-import com.talentboozt.s_backend.domains.community.service.NotificationService;
+import com.talentboozt.s_backend.domains.community.model.CommunityNotification;
+import com.talentboozt.s_backend.domains.community.service.CommunityNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -10,10 +10,10 @@ import java.util.List;
 @RequestMapping("/api/v2/notifications")
 @RequiredArgsConstructor
 public class NotificationController {
-    private final NotificationService notificationService;
+    private final CommunityNotificationService notificationService;
 
     @GetMapping("/{userId}")
-    public List<Notification> getNotifications(@PathVariable String userId) {
+    public List<CommunityNotification> getNotifications(@PathVariable String userId) {
         return notificationService.getNotifications(userId);
     }
 

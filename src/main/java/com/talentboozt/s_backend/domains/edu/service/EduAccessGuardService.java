@@ -26,12 +26,12 @@ public class EduAccessGuardService {
     private final ECoursesRepository courseRepository;
     private final EAiUsageRepository aiUsageRepository;
     private final StringRedisTemplate redisTemplate;
-    private final com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService;
+    private final com.talentboozt.s_backend.domains.subscription.service.SubscriptionFeatureFlagService featureFlagService;
 
     public EduAccessGuardService(PlanConfigService planConfigService, EUserRepository userRepository,
             ECoursesRepository courseRepository, EAiUsageRepository aiUsageRepository,
             StringRedisTemplate redisTemplate,
-            com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService) {
+            com.talentboozt.s_backend.domains.subscription.service.SubscriptionFeatureFlagService featureFlagService) {
         this.planConfigService = planConfigService;
         this.userRepository = userRepository;
         this.courseRepository = courseRepository;

@@ -60,6 +60,11 @@ public class EduWorkspaceController {
         return ResponseEntity.ok(workspaceService.getWorkspacesByOwner(ownerId));
     }
 
+    @GetMapping("/resolve/{slug}")
+    public ResponseEntity<EWorkspaces> resolveWorkspace(@PathVariable String slug) {
+        return ResponseEntity.ok(workspaceService.getWorkspaceBySlug(slug));
+    }
+
     // Members
 
     @PostMapping("/{workspaceId}/members/{userId}")

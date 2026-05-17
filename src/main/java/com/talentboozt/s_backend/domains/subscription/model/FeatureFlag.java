@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.domains.subscription.model;
 
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
+import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,7 +19,7 @@ public class FeatureFlag {
     private String id;
 
     @Indexed
-    private ESubscriptionPlan plan;
+    private SubscriptionPlanCode plan;
 
     @Indexed
     private String featureKey;

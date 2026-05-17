@@ -1,7 +1,6 @@
 package com.talentboozt.s_backend.shared.security.cfg;
 
-import com.talentboozt.s_backend.domains.edu.model.EApiKey;
-import com.talentboozt.s_backend.domains.edu.service.EduApiKeyService;
+import com.talentboozt.s_backend.shared.security.port.ApiKeyAuthenticationPort;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,30 +19,28 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
-    private final EduApiKeyService apiKeyService;
+    private final ApiKeyAuthenticationPort apiKeyAuthenticationPort;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        
+
         String apiKey = request.getHeader("X-API-KEY");
-        
+
         if (apiKey != null && !apiKey.isEmpty()) {
-            EApiKey keyRecord = apiKeyService.validateKey(apiKey);
-            
-            if (keyRecord != null && keyRecord.isActive()) {
+            apiKeyAuthenticationPort.validateActiveKey(apiKey).ifPresent(keyRecord -> {
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        keyRecord.getOwnerId(),
+                        keyRecord.ownerId(),
                         null,
-                        keyRecord.getScopes().stream()
+                        keyRecord.scopes().stream()
                                 .map(s -> new SimpleGrantedAuthority("SCOPE_" + s))
                                 .collect(Collectors.toList())
                 );
-                
+
                 SecurityContextHolder.getContext().setAuthentication(auth);
-            }
+            });
         }
-        
+
         filterChain.doFilter(request, response);
     }
 }

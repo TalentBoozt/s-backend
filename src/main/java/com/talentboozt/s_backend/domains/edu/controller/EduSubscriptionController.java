@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
+import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode;
 import com.talentboozt.s_backend.domains.subscription.model.Subscription;
 import com.talentboozt.s_backend.domains.subscription.service.SubscriptionService;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +25,21 @@ public class EduSubscriptionController {
     @PutMapping("/{userId}/upgrade")
     @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE')")
     public ResponseEntity<Subscription> upgradePlan(@PathVariable String userId,
-            @RequestParam ESubscriptionPlan plan) {
-        return ResponseEntity.ok(subscriptionService.handleSubscriptionCreated(userId, plan, null, null));
+            @RequestParam com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan plan) {
+        SubscriptionPlanCode code = toSubscriptionPlanCode(plan);
+        return ResponseEntity.ok(subscriptionService.handleSubscriptionCreated(userId, code, null, null));
+    }
+
+    private static SubscriptionPlanCode toSubscriptionPlanCode(com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan plan) {
+        if (plan == null) {
+            return SubscriptionPlanCode.FREE;
+        }
+        return switch (plan) {
+            case FREE -> SubscriptionPlanCode.FREE;
+            case PRO -> SubscriptionPlanCode.PRO;
+            case PREMIUM -> SubscriptionPlanCode.PREMIUM;
+            case ENTERPRISE -> SubscriptionPlanCode.ENTERPRISE;
+        };
     }
 
     @PutMapping("/{userId}/cancel")

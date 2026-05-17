@@ -12,8 +12,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.RedisConnectionFailureException;
-import com.talentboozt.s_backend.domains.community.model.Notification;
-import com.talentboozt.s_backend.domains.community.service.NotificationService;
+import com.talentboozt.s_backend.domains.community.model.CommunityNotification;
+import com.talentboozt.s_backend.domains.community.service.CommunityNotificationService;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +30,7 @@ public class MessagingService {
     private final SimpMessagingTemplate messagingTemplate;
     private final EmployeeRepository employeeRepository;
     private final PresenceService presenceService;
-    private final NotificationService notificationService;
+    private final CommunityNotificationService notificationService;
 
     public ChatRoom getOrCreateDirectRoom(String user1, String user2) {
         List<String> participants = List.of(user1, user2);
@@ -73,7 +73,7 @@ public class MessagingService {
                         notificationService.createNotification(
                                 participantId,
                                 senderId,
-                                Notification.NotificationType.MESSAGE,
+                                CommunityNotification.NotificationType.MESSAGE,
                                 request.getRoomId());
                     });
         });

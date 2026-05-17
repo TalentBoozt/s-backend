@@ -1,8 +1,8 @@
 package com.talentboozt.s_backend.domains.subscription.dto;
 
-import com.talentboozt.s_backend.domains.edu.dto.plan.LimitConfig;
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan;
-import com.talentboozt.s_backend.domains.edu.enums.ESubscriptionStatus;
+import com.talentboozt.s_backend.domains.subscription.application.dto.PlanLimitsSnapshot;
+import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode;
+import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,9 +17,9 @@ import java.util.List;
 @AllArgsConstructor
 public class SubscriptionResponseDTO {
     private String id;
-    private ESubscriptionPlan plan;
-    private ESubscriptionStatus status;
+    private SubscriptionPlanCode plan;
+    private SubscriptionStatus status;
     private Instant expiresAt;
     private List<String> features;
-    private LimitConfig limits;
+    private PlanLimitsSnapshot limits;
 }

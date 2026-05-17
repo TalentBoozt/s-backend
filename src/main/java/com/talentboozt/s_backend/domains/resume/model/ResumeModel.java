@@ -48,6 +48,15 @@ public class ResumeModel {
 
     private ResumeSettings settings;
 
+    /** Versions of the resume (for file storage) */
+    private List<ResumeVersion> versions;
+
+    /** Currently active version */
+    private String activeVersionId;
+
+    /** Overall parsing status of the active resume */
+    private String parsingStatus; // UPLOADED, PARSING, PARSED, FAILED, OPTIMIZED
+
     /** Scores computed server-side */
     private int completionScore;
     private int atsScore;
@@ -68,6 +77,16 @@ public class ResumeModel {
     private Instant updatedAt;
 
     // ─── Nested Types ────────────────────────────────────────────────────────
+
+    @Data @AllArgsConstructor @NoArgsConstructor
+    public static class ResumeVersion {
+        private String id;
+        private String fileUrl;
+        private String fileName;
+        private String fileType; // PDF, DOCX
+        private Instant uploadedAt;
+        private String status; // ORIGINAL, PARSED, OPTIMIZED
+    }
 
     @Data @AllArgsConstructor @NoArgsConstructor
     public static class PersonalInfo {

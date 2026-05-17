@@ -39,7 +39,7 @@ public class EduAIValidationService {
     private final LLMRouter llmRouter;
     private final EduAccessGuardService accessGuard;
     private final ObjectMapper objectMapper;
-    private final com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService;
+    private final com.talentboozt.s_backend.domains.subscription.service.SubscriptionFeatureFlagService featureFlagService;
     private final EduAnalyticsEventService analyticsEventService;
 
     public EduAIValidationService(EduAICreditService creditService,
@@ -51,7 +51,7 @@ public class EduAIValidationService {
             LLMRouter llmRouter,
             EduAccessGuardService accessGuard,
             ObjectMapper objectMapper,
-            com.talentboozt.s_backend.domains.subscription.service.FeatureFlagService featureFlagService,
+            com.talentboozt.s_backend.domains.subscription.service.SubscriptionFeatureFlagService featureFlagService,
             EduAnalyticsEventService analyticsEventService) {
         this.creditService = creditService;
         this.validationRepository = validationRepository;

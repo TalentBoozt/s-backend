@@ -13,6 +13,8 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import com.talentboozt.s_backend.shared.security.interceptor.RbacInterceptor;
+import com.talentboozt.s_backend.shared.security.ratelimit.RateLimitInterceptor;
+import com.talentboozt.s_backend.shared.monitoring.MonitoringInterceptor;
 import com.talentboozt.s_backend.shared.security.cfg.AuthenticatedUserResolver;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 
@@ -26,6 +28,12 @@ public class WebConfig implements WebMvcConfigurer {
     private RbacInterceptor rbacInterceptor;
 
     @Autowired
+    private RateLimitInterceptor rateLimitInterceptor;
+
+    @Autowired
+    private MonitoringInterceptor monitoringInterceptor;
+
+    @Autowired
     private AuthenticatedUserResolver authenticatedUserResolver;
 
     @Override
@@ -35,6 +43,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(rateLimitInterceptor)
+                .addPathPatterns("/api/**");
+
+        registry.addInterceptor(monitoringInterceptor)
+                .addPathPatterns("/api/**");
+                
         registry.addInterceptor(rbacInterceptor)
                 .addPathPatterns("/api/edu/**"); // Default apply to edu paths
     }

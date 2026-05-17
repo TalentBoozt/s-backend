@@ -17,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
 import com.talentboozt.s_backend.shared.utils.JwtUtil;
 import com.talentboozt.s_backend.domains.auth.service.CustomUserDetailsService;
+import com.talentboozt.s_backend.shared.security.websocket.WebSocketAuthInterceptor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -31,16 +32,19 @@ import org.slf4j.LoggerFactory;
 @RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
+    
     private final com.talentboozt.s_backend.domains.finance_planning.security.interceptor.FinWebSocketSecurityInterceptor securityInterceptor;
+    private final WebSocketAuthInterceptor webSocketAuthInterceptor;
 
     @Override
     public void configureClientInboundChannel(org.springframework.messaging.simp.config.ChannelRegistration registration) {
-        registration.interceptors(securityInterceptor);
+        // Register both the legacy finance planning interceptor and the new global auth interceptor
+        registration.interceptors(securityInterceptor, webSocketAuthInterceptor);
     }
 
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic", "/queue");
+        config.enableSimpleBroker("/topic", "/queue", "/user");
         config.setApplicationDestinationPrefixes("/app");
         config.setUserDestinationPrefix("/user");
     }
@@ -51,14 +55,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             @Override
             public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                     WebSocketHandler wsHandler, Map<String, Object> attributes) {
-                // Log essential headers to help diagnose proxy stripping
-                // logger.info("WebSocket Handshake Attempt: {} | Upgrade: {} | Connection: {} |
-                // Host: {}",
-                // request.getURI(),
-                // request.getHeaders().getUpgrade(),
-                // request.getHeaders().getConnection(),
-                // request.getHeaders().getHost());
-
+                
                 // Extract JWT token from "?token="
                 String token = null;
                 if (request.getURI().getQuery() != null) {
@@ -89,7 +86,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                 if (token != null) {
                     try {
-                        // We need access to JwtUtil and CustomUserDetailsService, they are beans.
                         if (request instanceof org.springframework.http.server.ServletServerHttpRequest) {
                             ServletContext servletContext = ((org.springframework.http.server.ServletServerHttpRequest) request)
                                     .getServletRequest().getServletContext();
@@ -154,7 +150,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setDisconnectDelay(30 * 1000);
 
         registry.addEndpoint("/api/ws-leados")
-
                 .setAllowedOriginPatterns("*")
                 .addInterceptors(handshakeInterceptor)
                 .withSockJS();
