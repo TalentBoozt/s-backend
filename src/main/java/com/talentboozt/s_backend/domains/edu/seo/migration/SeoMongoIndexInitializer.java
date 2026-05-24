@@ -27,8 +27,9 @@ public class SeoMongoIndexInitializer implements CommandLineRunner {
         if (mongoTemplate.collectionExists("courses")) {
             // Unique Sparse Slug Index for bot mapping
             mongoTemplate.indexOps("courses").ensureIndex(
-                new Index().on("seoSlug", Sort.Direction.ASC).unique().sparse()
+                new Index().on("seoSlug", Sort.Direction.ASC).named("seoSlug").unique().sparse()
             );
+
 
             // Sparse Lang Group Index for alternate mapping
             mongoTemplate.indexOps("courses").ensureIndex(
@@ -56,7 +57,7 @@ public class SeoMongoIndexInitializer implements CommandLineRunner {
         if (mongoTemplate.collectionExists("instructor_profiles")) {
             // Unique Sparse Slug Index for bot mapping
             mongoTemplate.indexOps("instructor_profiles").ensureIndex(
-                new Index().on("seoSlug", Sort.Direction.ASC).unique().sparse()
+                new Index().on("seoSlug", Sort.Direction.ASC).named("seoSlug").unique().sparse()
             );
 
             // Composite Text Index for educator lookup
