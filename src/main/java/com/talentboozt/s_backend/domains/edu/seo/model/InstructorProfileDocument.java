@@ -17,7 +17,7 @@ public class InstructorProfileDocument {
     @Id
     private String id;
 
-    @Indexed(unique = true, sparse = true)
+    @Indexed(name = "seoSlug", unique = true, sparse = true)
     private String seoSlug;
 
     private String canonicalUrl;

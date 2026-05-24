@@ -18,7 +18,7 @@ public class CourseDocument {
     @Id
     private String id;
 
-    @Indexed(unique = true, sparse = true)
+    @Indexed(name = "seoSlug", unique = true, sparse = true)
     private String seoSlug;
 
     @TextIndexed(weight = 3)
