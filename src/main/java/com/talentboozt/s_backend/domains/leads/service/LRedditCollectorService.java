@@ -62,29 +62,29 @@ public class LRedditCollectorService {
 
             for (String subreddit : subreddits) {
                 for (String keyword : keywords) {
-                    try {
-                        LRedditResponseDTO response = redditClient.searchSubreddit(subreddit, keyword, 25);
-                        if (response != null && response.getData() != null
-                                && response.getData().getChildren() != null) {
-                            for (LRedditResponseDTO.RedditChild child : response.getData().getChildren()) {
-                                LRedditResponseDTO.RedditPost post = child.getData();
-                                totalFetched++;
+                    // try {
+                    //     LRedditResponseDTO response = redditClient.searchSubreddit(subreddit, keyword, 25);
+                    //     if (response != null && response.getData() != null
+                    //             && response.getData().getChildren() != null) {
+                    //         for (LRedditResponseDTO.RedditChild child : response.getData().getChildren()) {
+                    //             LRedditResponseDTO.RedditPost post = child.getData();
+                    //             totalFetched++;
 
-                                // Deduplicate using the Reddit name ID (e.g., t3_xxx)
-                                if (!rawSignalRepository.existsByPlatformId(post.getName())) {
-                                    LRawSignal signal = createSignal(source, post);
-                                    rawSignalRepository.save(signal);
-                                    newSignals++;
-                                    eventPublisher.publishEvent(new LNewSignalEvent(this, signal));
-                                }
-                            }
-                        }
-                        // Sleep to avoid strict rate limiting
-                        Thread.sleep(3000);
+                    //             // Deduplicate using the Reddit name ID (e.g., t3_xxx)
+                    //             if (!rawSignalRepository.existsByPlatformId(post.getName())) {
+                    //                 LRawSignal signal = createSignal(source, post);
+                    //                 rawSignalRepository.save(signal);
+                    //                 newSignals++;
+                    //                 eventPublisher.publishEvent(new LNewSignalEvent(this, signal));
+                    //             }
+                    //         }
+                    //     }
+                    //     // Sleep to avoid strict rate limiting
+                    //     Thread.sleep(3000);
 
-                    } catch (Exception e) {
-                        log.error("Error processing subreddit {} with keyword {}", subreddit, keyword, e);
-                    }
+                    // } catch (Exception e) {
+                    //     log.error("Error processing subreddit {} with keyword {}", subreddit, keyword, e);
+                    // }
                 }
             }
         }
