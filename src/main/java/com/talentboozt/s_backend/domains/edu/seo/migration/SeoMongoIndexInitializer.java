@@ -33,15 +33,15 @@ public class SeoMongoIndexInitializer implements CommandLineRunner {
 
             // Sparse Lang Group Index for alternate mapping
             mongoTemplate.indexOps("courses").ensureIndex(
-                new Index().on("localizedLangGroupId", Sort.Direction.ASC).sparse()
+                new Index().on("localizedLangGroupId", Sort.Direction.ASC).named("localizedLangGroupId").sparse()
             );
 
             // Published/Updated Sorting Indices
             mongoTemplate.indexOps("courses").ensureIndex(
-                new Index().on("publishedAt", Sort.Direction.DESC)
+                new Index().on("publishedAt", Sort.Direction.DESC).named("publishedAtDesc")
             );
             mongoTemplate.indexOps("courses").ensureIndex(
-                new Index().on("updatedAt", Sort.Direction.DESC)
+                new Index().on("updatedAt", Sort.Direction.DESC).named("updatedAtDesc")
             );
 
             // Composite Text Index for high-density keyword searches

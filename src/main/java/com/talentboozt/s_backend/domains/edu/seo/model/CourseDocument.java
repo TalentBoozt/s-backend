@@ -31,7 +31,7 @@ public class CourseDocument {
     private String schemaJsonLd;
     private String canonicalUrl;
 
-    @Indexed(sparse = true)
+    @Indexed(name = "localizedLangGroupId", sparse = true)
     private String localizedLangGroupId;
 
     private Boolean indexable = true;
