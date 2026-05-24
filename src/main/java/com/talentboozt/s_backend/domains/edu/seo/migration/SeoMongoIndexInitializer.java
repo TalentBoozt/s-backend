@@ -46,6 +46,7 @@ public class SeoMongoIndexInitializer implements CommandLineRunner {
 
             // Composite Text Index for high-density keyword searches
             TextIndexDefinition coursesTextIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
+                .named("CourseDocument_TextIndex")
                 .onField("seoTitle", 3f)
                 .onField("seoDescription", 2f)
                 .onField("semanticKeywords", 1f)
@@ -62,8 +63,7 @@ public class SeoMongoIndexInitializer implements CommandLineRunner {
 
             // Composite Text Index for educator lookup
             TextIndexDefinition profilesTextIndex = new TextIndexDefinition.TextIndexDefinitionBuilder()
-                .onField("name", 3f)
-                .onField("expertise", 2f)
+                .named("InstructorProfileDocument_TextIndex")
                 .onField("semanticKeywords", 1f)
                 .build();
             mongoTemplate.indexOps("instructor_profiles").ensureIndex(profilesTextIndex);
