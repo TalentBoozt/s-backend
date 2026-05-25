@@ -1,8 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.seo.freshness;
 
-import com.talentboozt.s_backend.domains.edu.seo.model.CourseDocument;
+import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import org.springframework.stereotype.Service;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -16,10 +15,10 @@ public class StaleContentDetector {
     /**
      * Asserts if a course has exceeded maximum freshness thresholds.
      */
-    public boolean isContentStale(CourseDocument course, int maxDaysThreshold) {
+    public boolean isContentStale(ECourses course, int maxDaysThreshold) {
         if (course.getUpdatedAt() == null) return true;
         
-        long diffInMillis = Math.abs(new Date().getTime() - course.getUpdatedAt().getTime());
+        long diffInMillis = Math.abs(java.time.Instant.now().toEpochMilli() - course.getUpdatedAt().toEpochMilli());
         long diffInDays = TimeUnit.DAYS.convert(diffInMillis, TimeUnit.MILLISECONDS);
         
         return diffInDays > maxDaysThreshold;

@@ -41,10 +41,10 @@ public class ECourses {
     @Indexed
     private String creatorId;
     
-    @TextIndexed
+    @TextIndexed(weight = 1.0f)
     private String title;
     
-    @TextIndexed
+    @TextIndexed(weight = 1.0f)
     private String description;
     
     private String shortDescription;
@@ -72,7 +72,7 @@ public class ECourses {
     private String[] categories;
     private String[] subCategories;
     
-    @TextIndexed
+    @TextIndexed(weight = 1.0f)
     private String[] keywords;
     private String[] skills;
     private String[] prerequisites;
@@ -123,6 +123,28 @@ public class ECourses {
     @Transient
     private String instructorName;
 
+    @Indexed(name = "seoSlug", unique = true, sparse = true)
+    private String seoSlug;
+
+    @TextIndexed(weight = 3.0f)
+    private String seoTitle;
+    @TextIndexed(weight = 2.0f)
+    private String seoDescription;
+    private String seoKeywords;
+    private String schemaJsonLd;
+    private String canonicalUrl;
+
+    @Indexed(name = "localizedLangGroupId", sparse = true)
+    private String localizedLangGroupId;
+
+    private Boolean indexable = true;
+    private Boolean aiReady = true;
+    private String aiSummary;
+
+    @TextIndexed(weight = 1.0f)
+    private java.util.List<String> semanticKeywords;
+    private String embeddingHints;
+
     private Instant publishedAt;
     private String createdBy;
     private String updatedBy;
@@ -133,3 +155,4 @@ public class ECourses {
     @LastModifiedDate
     private Instant updatedAt;
 }
+

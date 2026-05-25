@@ -1,10 +1,9 @@
 package com.talentboozt.s_backend.domains.edu.seo.freshness;
 
-import com.talentboozt.s_backend.domains.edu.seo.model.CourseDocument;
+import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
-import java.util.Date;
 
 /**
  * Educational Content Freshness Score Service.
@@ -22,7 +21,7 @@ public class FreshnessScoreService {
     /**
      * Calculates mathematical freshness decay.
      */
-    public double calculateFreshnessScore(CourseDocument course) {
+    public double calculateFreshnessScore(ECourses course) {
         if (course.getUpdatedAt() == null) return 0.0;
         
         boolean isStale = detector.isContentStale(course, 30);
@@ -32,9 +31,9 @@ public class FreshnessScoreService {
     /**
      * Updates timestamps and refreshes caches.
      */
-    public void triggerContentRefresh(CourseDocument course) {
+    public void triggerContentRefresh(ECourses course) {
         System.out.println("[Freshness Service] Refreshing dynamic timestamps and dates for course: " + course.getSeoSlug());
-        course.setUpdatedAt(new Date());
+        course.setUpdatedAt(java.time.Instant.now());
         mongoTemplate.save(course);
         System.out.println("[Freshness Service] Course updated successfully with fresh date: " + course.getUpdatedAt());
     }

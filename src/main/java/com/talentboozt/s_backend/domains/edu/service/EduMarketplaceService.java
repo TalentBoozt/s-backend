@@ -123,7 +123,8 @@ public class EduMarketplaceService {
 
     public ECourses getCourseDetails(String courseId) {
         ECourses course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id: " + courseId));
+                .orElseGet(() -> courseRepository.findBySlug(courseId)
+                .orElseThrow(() -> new EduResourceNotFoundException("Course not found with id or slug: " + courseId)));
 
         if (!isPublicCatalogCourse(course)) {
             throw new EduBadRequestException("Course is not available in the marketplace");

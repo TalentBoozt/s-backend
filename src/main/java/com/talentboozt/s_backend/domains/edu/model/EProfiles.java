@@ -68,4 +68,15 @@ public class EProfiles {
     private Integer totalCourses;
     @org.springframework.data.annotation.Transient
     private Double rating;
+
+    @Indexed(name = "seoSlug", unique = true, sparse = true)
+    private String seoSlug;
+
+    private String canonicalUrl;
+    private String schemaJsonLd;
+    private String aiSummary;
+
+    private java.util.List<String> semanticKeywords;
+
+    private Boolean indexable = true;
 }

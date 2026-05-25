@@ -78,6 +78,27 @@ public class EduProfileService {
         existing.setNotificationSettings(updatedProfile.getNotificationSettings());
         existing.setUpdatedAt(Instant.now());
 
+        if (existing.getSeoSlug() == null || existing.getSeoSlug().isEmpty()) {
+            String name = (existing.getFirstName() != null ? existing.getFirstName() : "") + " " + (existing.getLastName() != null ? existing.getLastName() : "");
+            name = name.trim();
+            if (name.isEmpty()) {
+                name = "instructor";
+            }
+            String rawSlug = name.toLowerCase()
+                    .replaceAll("[^a-z0-9\\s]", "")
+                    .replaceAll("\\s+", "-");
+            String finalSlug = rawSlug + "-" + UUID.randomUUID().toString().substring(0, 4);
+            existing.setSeoSlug(finalSlug);
+        }
+        
+        existing.setCanonicalUrl("https://edu.talnova.io/p/" + existing.getSeoSlug());
+        existing.setIndexable(true);
+        existing.setAiSummary(existing.getBio() != null && !existing.getBio().isBlank() ? existing.getBio() : "Verified educator on the Talnova platform.");
+        if (existing.getSkills() != null) {
+            existing.setSemanticKeywords(java.util.Arrays.asList(existing.getSkills()));
+        }
+        existing.setSchemaJsonLd("{}");
+
         return profileRepository.save(existing);
     }
 
