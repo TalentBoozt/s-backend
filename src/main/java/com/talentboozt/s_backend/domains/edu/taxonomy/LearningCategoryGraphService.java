@@ -3,6 +3,7 @@ package com.talentboozt.s_backend.domains.edu.taxonomy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+import com.talentboozt.s_backend.domains.edu.model.ESkillNode;
 import java.util.List;
 
 /**
@@ -37,7 +38,7 @@ public class LearningCategoryGraphService {
     public void initializeDefaultSkillTaxonomies() {
         System.out.println("[Taxonomy Service] Initializing top-level skills taxonomies...");
         
-        SkillNodeDocument node = new SkillNodeDocument();
+        ESkillNode node = new ESkillNode();
         node.setSlug("prompt-engineering");
         node.setCategory("AI_AND_AUTOMATION");
         node.setDifficulty("BEGINNER");

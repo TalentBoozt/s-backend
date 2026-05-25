@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.seo.linking;
 
-import com.talentboozt.s_backend.domains.edu.seo.model.CourseDocument;
+import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.seo.repository.CourseSeoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,11 +24,11 @@ public class RelatedCourseEngine {
     /**
      * Finds related courses for a target subject matching score thresholds.
      */
-    public List<CourseDocument> resolveRelatedCourses(CourseDocument currentCourse, int limit) {
-        List<CourseDocument> allCourses = courseRepository.findAllIndexableProjections();
-        List<CourseDocument> results = new ArrayList<>();
+    public List<ECourses> resolveRelatedCourses(ECourses currentCourse, int limit) {
+        List<ECourses> allCourses = courseRepository.findAllIndexableProjections();
+        List<ECourses> results = new ArrayList<>();
 
-        for (CourseDocument course : allCourses) {
+        for (ECourses course : allCourses) {
             if (course.getId().equals(currentCourse.getId())) continue;
 
             double score = scorer.calculateRelevanceScore(

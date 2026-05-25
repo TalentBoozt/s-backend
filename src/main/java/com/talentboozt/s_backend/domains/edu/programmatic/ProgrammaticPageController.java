@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.edu.programmatic;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import com.talentboozt.s_backend.domains.edu.model.EProgrammaticPage;
 import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
@@ -11,7 +12,7 @@ import java.util.Optional;
  */
 @RestController
 @RequestMapping("/api/v1/edu/programmatic")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class ProgrammaticPageController {
 
     @Autowired
@@ -22,9 +23,9 @@ public class ProgrammaticPageController {
      * Supports wildcards for routes like /tuition/physics/colombo.
      */
     @GetMapping("/{*slug}")
-    public ResponseEntity<ProgrammaticPageDocument> getProgrammaticPage(@PathVariable String slug) {
+    public ResponseEntity<EProgrammaticPage> getProgrammaticPage(@PathVariable String slug) {
         String cleanSlug = (slug != null && slug.startsWith("/")) ? slug.substring(1) : slug;
-        Optional<ProgrammaticPageDocument> page = service.getPageBySlug(cleanSlug);
+        Optional<EProgrammaticPage> page = service.getPageBySlug(cleanSlug);
         
         return page.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());

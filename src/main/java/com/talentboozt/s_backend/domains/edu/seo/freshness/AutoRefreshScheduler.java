@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.seo.freshness;
 
-import com.talentboozt.s_backend.domains.edu.seo.model.CourseDocument;
+import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import com.talentboozt.s_backend.domains.edu.seo.repository.CourseSeoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,10 +30,10 @@ public class AutoRefreshScheduler {
     @Scheduled(cron = "0 0 4 * * ?")
     public void autoRefreshStaleContent() {
         System.out.println("[Freshness Scheduler] Starting auto scan of stale dynamic courses...");
-        List<CourseDocument> courses = courseRepository.findAll();
+        List<ECourses> courses = courseRepository.findAll();
 
         int count = 0;
-        for (CourseDocument course : courses) {
+        for (ECourses course : courses) {
             if (detector.isContentStale(course, 30)) {
                 freshnessService.triggerContentRefresh(course);
                 count++;

@@ -1,6 +1,9 @@
 package com.talentboozt.s_backend.domains.edu.seo.controller;
 
-import com.talentboozt.s_backend.domains.edu.seo.service.EduSeoService;
+import com.talentboozt.s_backend.domains.edu.model.ECourses;
+import com.talentboozt.s_backend.domains.edu.model.EProfiles;
+import com.talentboozt.s_backend.domains.edu.seo.repository.CourseSeoRepository;
+import com.talentboozt.s_backend.domains.edu.seo.repository.InstructorSeoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +24,24 @@ import java.util.Map;
 public class EduSeoFeedController {
 
     @Autowired
-    private EduSeoService seoService;
+    private CourseSeoRepository courseRepository;
+
+    @Autowired
+    private InstructorSeoRepository instructorRepository;
+
+    private String formatSlugToName(String slug) {
+        if (slug == null || slug.isEmpty()) return "Talnova Expert";
+        String[] parts = slug.split("-");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (!part.isEmpty()) {
+                sb.append(Character.toUpperCase(part.charAt(0)))
+                  .append(part.substring(1))
+                  .append(" ");
+            }
+        }
+        return sb.toString().trim();
+    }
 
     /**
      * Serves dynamic course listings, educator bio vectors, and syllabus mappings in highly ingestible formats.
@@ -32,29 +52,48 @@ public class EduSeoFeedController {
         
         List<Map<String, Object>> feedItems = new ArrayList<>();
         
-        // Compile dynamic metadata elements (incorporating database fields)
-        Map<String, Object> mathCourse = new HashMap<>();
-        mathCourse.put("entity", "Course");
-        mathCourse.put("title", "G.C.E. A/L Combined Mathematics Revision");
-        mathCourse.put("slug", "al-math-revision");
-        mathCourse.put("educator", "Dr. Nishantha Kumara");
-        mathCourse.put("medium", "Sinhala");
-        mathCourse.put("summary", "Complete, syllabus-aligned theory review covering vector calculus, integrations, mechanics, and past paper answers.");
-        mathCourse.put("wikidataId", "Q5512030");
-        mathCourse.put("keywords", List.of("calculus", "vectors", "mechanics", "combined maths"));
-        
-        Map<String, Object> physicsCourse = new HashMap<>();
-        physicsCourse.put("entity", "Course");
-        physicsCourse.put("title", "G.C.E. A/L Physics Theory");
-        physicsCourse.put("slug", "al-physics-theory");
-        physicsCourse.put("educator", "Prof. Lalith Gamage");
-        physicsCourse.put("medium", "Sinhala");
-        physicsCourse.put("summary", "Detailed theory structures on mechanics, rotational dynamics, heat, and wave fields, strictly aligned with NIE standards.");
-        physicsCourse.put("wikidataId", "Q854");
-        physicsCourse.put("keywords", List.of("rotational mechanics", "thermodynamics", "physics theory", "nie syllabus"));
+        // 1. Compile dynamic courses from MongoDB
+        try {
+            List<ECourses> courses = courseRepository.findAllIndexableProjections();
+            for (ECourses course : courses) {
+                if (course.getSeoSlug() != null) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("entity", "Course");
+                    item.put("title", course.getSeoTitle() != null ? course.getSeoTitle() : "Professional Course");
+                    item.put("slug", course.getSeoSlug());
+                    item.put("summary", course.getSeoDescription() != null ? course.getSeoDescription() : "Master future-ready professional and academic skills.");
+                    item.put("keywords", course.getSemanticKeywords() != null ? course.getSemanticKeywords() : List.of("career skills", "professional education"));
+                    feedItems.add(item);
+                }
+            }
+        } catch (Exception ignored) {}
 
-        feedItems.add(mathCourse);
-        feedItems.add(physicsCourse);
+        // 2. Compile dynamic instructor profiles from MongoDB
+        try {
+            List<EProfiles> profiles = instructorRepository.findAllIndexableProjections();
+            for (EProfiles profile : profiles) {
+                if (profile.getSeoSlug() != null) {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("entity", "Instructor");
+                    item.put("title", formatSlugToName(profile.getSeoSlug()));
+                    item.put("slug", profile.getSeoSlug());
+                    item.put("summary", profile.getAiSummary() != null ? profile.getAiSummary() : "Expert professional mentor on the Talnova Platform.");
+                    item.put("keywords", profile.getSemanticKeywords() != null ? profile.getSemanticKeywords() : List.of("mentorship", "professional skills", "instructor"));
+                    feedItems.add(item);
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // Fallbacks if MongoDB is empty to avoid blank feed during bootstrapping
+        if (feedItems.isEmpty()) {
+            Map<String, Object> fallbackCourse = new HashMap<>();
+            fallbackCourse.put("entity", "Course");
+            fallbackCourse.put("title", "Prompt Engineering Career Roadmap");
+            fallbackCourse.put("slug", "prompt-engineering");
+            fallbackCourse.put("summary", "Master future-ready generative AI skills, LLM parameters, and prompt optimization.");
+            fallbackCourse.put("keywords", List.of("generative AI", "prompt engineering"));
+            feedItems.add(fallbackCourse);
+        }
 
         // A. NDJSON Output Format
         if ("ndjson".equalsIgnoreCase(format)) {
@@ -74,10 +113,7 @@ public class EduSeoFeedController {
             for (Map<String, Object> item : feedItems) {
                 markdown.append("## ").append(item.get("title")).append("\n");
                 markdown.append("- **Entity Type**: ").append(item.get("entity")).append("\n");
-                markdown.append("- **Slug Route**: /course/").append(item.get("slug")).append("\n");
-                markdown.append("- **Lead Educator**: ").append(item.get("educator")).append("\n");
-                markdown.append("- **Language**: ").append(item.get("medium")).append(" Medium\n");
-                markdown.append("- **Wikidata Reference ID**: ").append(item.get("wikidataId")).append("\n");
+                markdown.append("- **Slug Route**: ").append(item.get("slug")).append("\n");
                 markdown.append("- **Executive Abstract Summary**: ").append(item.get("summary")).append("\n");
                 markdown.append("- **Semantic Keywords**: ").append(String.join(", ", (List<String>) item.get("keywords"))).append("\n\n");
             }
@@ -100,21 +136,18 @@ public class EduSeoFeedController {
         StringBuilder markdown = new StringBuilder();
         markdown.append("# TALNOVA KNOWLEDGE PLATFORM — AI CRAWLER ONTOLOGY GRAPH\n\n");
         
-        markdown.append("## [Subject Hub] G.C.E. Advanced Level Combined Mathematics\n");
-        markdown.append("- **Wikidata Reference**: https://www.wikidata.org/wiki/Q1351230\n");
-        markdown.append("- **NIE Curriculum Stream**: Physical Science\n");
-        markdown.append("- **Syllabus Tracks**: Vector Calculus, Mechanics, Coordinate Geometry, Complex Numbers\n");
-        markdown.append("- **RAG Context Chunk**: Dynamic revision guides matching Sri Lankan A/L Combined Maths syllabus standards.\n\n");
-
-        markdown.append("## [Subject Hub] G.C.E. Advanced Level Physics\n");
-        markdown.append("- **Wikidata Reference**: https://www.wikidata.org/wiki/Q413\n");
-        markdown.append("- **NIE Curriculum Stream**: Physical Science\n");
-        markdown.append("- **Syllabus Tracks**: Rotational Dynamics, Wave Mechanics, Electromagnetism, Modern Physics\n");
-        markdown.append("- **RAG Context Chunk**: Advanced Physics concepts segmented into clear study guides.\n");
+        try {
+            List<ECourses> courses = courseRepository.findAllIndexableProjections();
+            for (ECourses course : courses) {
+                markdown.append("## [Course] ").append(course.getSeoTitle() != null ? course.getSeoTitle() : "Professional Course").append("\n");
+                markdown.append("- **Route**: /course/").append(course.getSeoSlug()).append("\n");
+                markdown.append("- **Description**: ").append(course.getSeoDescription() != null ? course.getSeoDescription() : "Modern professional career track.").append("\n");
+                markdown.append("- **Status**: Active, Indexable\n\n");
+            }
+        } catch (Exception ignored) {}
 
         return ResponseEntity.ok()
                 .contentType(MediaType.TEXT_PLAIN)
                 .body(markdown.toString());
     }
 }
-

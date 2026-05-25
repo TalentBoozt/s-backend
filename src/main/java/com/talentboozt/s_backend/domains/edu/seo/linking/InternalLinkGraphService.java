@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.seo.linking;
 
-import com.talentboozt.s_backend.domains.edu.seo.model.CourseDocument;
+import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
@@ -19,7 +19,7 @@ public class InternalLinkGraphService {
     /**
      * Builds standard internal navigation linkages for a target course listing.
      */
-    public List<Map<String, String>> buildInternalLinkGraph(CourseDocument course) {
+    public List<Map<String, String>> buildInternalLinkGraph(ECourses course) {
         List<Map<String, String>> linkGraph = new ArrayList<>();
 
         if (course.getSemanticKeywords() == null || course.getSemanticKeywords().isEmpty()) {

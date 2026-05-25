@@ -72,6 +72,9 @@ public class EduCourseService {
         if (workspaceId != null && !workspaceId.isEmpty() && !"default".equals(workspaceId)) {
             guardService.enforceMembership(workspaceId, creatorId);
         }
+        
+        String slug = generateSlug(request.getTitle());
+        
         ECourses course = ECourses.builder()
                 .creatorId(creatorId)
                 .workspaceId(workspaceId)
@@ -102,7 +105,17 @@ public class EduCourseService {
                 .totalHours(0)
                 .totalLessons(0)
                 .rating(0.0)
-                .slug(generateSlug(request.getTitle()))
+                .slug(slug)
+                .seoSlug(slug)
+                .seoTitle(request.getTitle() + " | Talnova EDU")
+                .seoDescription(request.getShortDescription() != null ? request.getShortDescription() : "Master specialized exam-aligned professional tracks with certified instructors on Talnova.")
+                .seoKeywords(request.getKeywords() != null && request.getKeywords().length > 0 ? String.join(", ", request.getKeywords()) : "talnova, class, online")
+                .canonicalUrl("https://edu.talnova.io/course/" + slug)
+                .localizedLangGroupId("group-" + UUID.randomUUID().toString().substring(0, 8))
+                .indexable(true)
+                .aiReady(true)
+                .aiSummary("Study module for professional skills development.")
+                .semanticKeywords(request.getSkills() != null ? java.util.Arrays.asList(request.getSkills()) : java.util.Collections.singletonList("tutorials"))
                 .sections(new String[0])
                 .createdAt(Instant.now())
                 .build();
@@ -161,9 +174,22 @@ public class EduCourseService {
         ECourses course = getCourseById(id);
         if (request.getTitle() != null && !request.getTitle().equals(course.getTitle())) {
             course.setTitle(request.getTitle());
-            course.setSlug(generateSlug(request.getTitle()));
-        } else if (course.getSlug() == null || course.getSlug().isEmpty()) {
-            course.setSlug(generateSlug(course.getTitle()));
+            String newSlug = generateSlug(request.getTitle());
+            course.setSlug(newSlug);
+            course.setSeoSlug(newSlug);
+            course.setCanonicalUrl("https://edu.talnova.io/course/" + newSlug);
+            course.setSeoTitle(request.getTitle() + " | Talnova EDU");
+        } else {
+            if (course.getSlug() == null || course.getSlug().isEmpty()) {
+                String newSlug = generateSlug(course.getTitle());
+                course.setSlug(newSlug);
+                course.setSeoSlug(newSlug);
+                course.setCanonicalUrl("https://edu.talnova.io/course/" + newSlug);
+            }
+            if (course.getSeoSlug() == null || course.getSeoSlug().isEmpty()) {
+                course.setSeoSlug(course.getSlug());
+                course.setCanonicalUrl("https://edu.talnova.io/course/" + course.getSlug());
+            }
         }
         course.setDescription(request.getDescription());
         course.setShortDescription(request.getShortDescription());
@@ -192,6 +218,17 @@ public class EduCourseService {
             course.setIsTrending(request.getIsTrending());
         if (request.getSearchRank() != null)
             course.setSearchRank(request.getSearchRank());
+        
+        if (request.getShortDescription() != null) {
+            course.setSeoDescription(request.getShortDescription());
+        }
+        if (request.getKeywords() != null) {
+            course.setSeoKeywords(String.join(", ", request.getKeywords()));
+        }
+        if (request.getSkills() != null) {
+            course.setSemanticKeywords(java.util.Arrays.asList(request.getSkills()));
+        }
+        
         course.setUpdatedAt(Instant.now());
 
         // Quality Score update

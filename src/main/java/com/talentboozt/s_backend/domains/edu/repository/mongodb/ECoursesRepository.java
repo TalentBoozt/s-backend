@@ -18,5 +18,7 @@ public interface ECoursesRepository extends MongoRepository<ECourses, String> {
     List<ECourses> findByValidationStatusIn(List<ECourseValidationStatus> statuses);
     List<ECourses> findByPublishedTrueAndIsPrivateFalseAndStatus(ECourseStatus status);
 
+    java.util.Optional<ECourses> findBySlug(String slug);
+
     long countByCreatorIdAndStatusIn(String creatorId, java.util.Collection<ECourseStatus> statuses);
 }

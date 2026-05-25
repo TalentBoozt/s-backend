@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.programmatic;
 
 import org.springframework.stereotype.Service;
+import com.talentboozt.s_backend.domains.edu.model.EProgrammaticPage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,8 +16,8 @@ public class ProgrammaticTemplateEngine {
     /**
      * Compiles dynamic landing page document definitions.
      */
-    public ProgrammaticPageDocument buildPage(String slug) {
-        ProgrammaticPageDocument doc = new ProgrammaticPageDocument();
+    public EProgrammaticPage buildPage(String slug) {
+        EProgrammaticPage doc = new EProgrammaticPage();
         doc.setSlug(slug);
         
         String cleanSlug = slug.replace("tuition/", "").replace("-", " ");

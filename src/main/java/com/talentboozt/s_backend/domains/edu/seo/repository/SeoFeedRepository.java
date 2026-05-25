@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.seo.repository;
 
-import com.talentboozt.s_backend.domains.edu.seo.model.CourseDocument;
+import com.talentboozt.s_backend.domains.edu.model.ECourses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -12,8 +12,7 @@ import java.util.List;
 
 /**
  * AI Feed Repository.
- * Orchestrates paginated lookup streams on MongoDB to feed search engine indexers
- * and RAG indexing scripts.
+ * Orchestrates paginated lookup streams on MongoDB to feed search engine indexers and RAG indexing scripts.
  */
 @Repository
 public class SeoFeedRepository {
@@ -24,11 +23,11 @@ public class SeoFeedRepository {
     /**
      * Streams paginated listings of public, indexable courses.
      */
-    public List<CourseDocument> streamCoursesForFeed(int page, int size) {
+    public List<ECourses> streamCoursesForFeed(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Query query = new Query(Criteria.where("indexable").is(true))
                 .with(pageable);
                 
-        return mongoTemplate.find(query, CourseDocument.class, "courses");
+        return mongoTemplate.find(query, ECourses.class, "edu_courses");
     }
 }

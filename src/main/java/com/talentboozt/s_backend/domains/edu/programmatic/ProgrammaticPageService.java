@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.edu.programmatic;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.talentboozt.s_backend.domains.edu.model.EProgrammaticPage;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,9 +32,9 @@ public class ProgrammaticPageService {
         
         int count = 0;
         for (String slug : targetSlugs) {
-            Optional<ProgrammaticPageDocument> existing = repository.findBySlug(slug);
+            Optional<EProgrammaticPage> existing = repository.findBySlug(slug);
             if (existing.isEmpty()) {
-                ProgrammaticPageDocument page = templateEngine.buildPage(slug);
+                EProgrammaticPage page = templateEngine.buildPage(slug);
                 repository.save(page);
                 count++;
             }
@@ -44,7 +45,7 @@ public class ProgrammaticPageService {
     /**
      * Resolves a programmatic landing page by its slug route.
      */
-    public Optional<ProgrammaticPageDocument> getPageBySlug(String slug) {
+    public Optional<EProgrammaticPage> getPageBySlug(String slug) {
         return repository.findBySlug(slug);
     }
 }

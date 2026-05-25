@@ -2,6 +2,7 @@ package com.talentboozt.s_backend.domains.edu.seo.analytics;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.talentboozt.s_backend.domains.edu.model.ESeoKeywordMetrics;
 import java.util.Date;
 import java.util.Optional;
 
@@ -21,9 +22,9 @@ public class BingWebmasterService {
         System.out.println("[Bing Webmaster] Initiating Bing organic analytics synchronization...");
         
         String targetKeyword = "tuition online sri lanka";
-        Optional<SeoKeywordMetricsDocument> existing = tracker.findByKeyword(targetKeyword);
+        Optional<ESeoKeywordMetrics> existing = tracker.findByKeyword(targetKeyword);
         
-        SeoKeywordMetricsDocument metrics = existing.orElseGet(SeoKeywordMetricsDocument::new);
+        ESeoKeywordMetrics metrics = existing.orElseGet(ESeoKeywordMetrics::new);
         metrics.setKeyword(targetKeyword);
         metrics.setClicks(840);
         metrics.setImpressions(19200);
