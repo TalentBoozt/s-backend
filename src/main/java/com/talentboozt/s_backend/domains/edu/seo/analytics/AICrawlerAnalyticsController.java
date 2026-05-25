@@ -13,7 +13,7 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/api/v1/edu/seo/analytics")
-@CrossOrigin(origins = "*")
+@CrossOrigin(originPatterns = "*")
 public class AICrawlerAnalyticsController {
 
     @Autowired
