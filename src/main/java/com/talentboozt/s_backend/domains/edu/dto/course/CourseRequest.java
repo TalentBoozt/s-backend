@@ -35,4 +35,13 @@ public class CourseRequest {
     private Boolean isFeatured;
     private Boolean isTrending;
     private Integer searchRank;
+    
+    private String seoSlug;
+    private String seoTitle;
+    private String seoDescription;
+    private String seoKeywords;
+    private String schemaJsonLd;
+    private String canonicalUrl;
+    private Boolean indexable;
+    private Boolean aiReady;
 }

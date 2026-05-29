@@ -106,14 +106,14 @@ public class EduCourseService {
                 .totalLessons(0)
                 .rating(0.0)
                 .slug(slug)
-                .seoSlug(slug)
-                .seoTitle(request.getTitle() + " | Talnova EDU")
-                .seoDescription(request.getShortDescription() != null ? request.getShortDescription() : "Master specialized exam-aligned professional tracks with certified instructors on Talnova.")
-                .seoKeywords(request.getKeywords() != null && request.getKeywords().length > 0 ? String.join(", ", request.getKeywords()) : "talnova, class, online")
-                .canonicalUrl("https://edu.talnova.io/course/" + slug)
+                .seoSlug(request.getSeoSlug() != null && !request.getSeoSlug().isEmpty() ? generateSeoSlug(request.getSeoSlug()) : slug)
+                .seoTitle(request.getSeoTitle() != null && !request.getSeoTitle().isEmpty() ? request.getSeoTitle() : request.getTitle() + " | Talnova EDU")
+                .seoDescription(request.getSeoDescription() != null && !request.getSeoDescription().isEmpty() ? request.getSeoDescription() : (request.getShortDescription() != null ? request.getShortDescription() : "Master specialized exam-aligned professional tracks with certified instructors on Talnova."))
+                .seoKeywords(request.getSeoKeywords() != null && !request.getSeoKeywords().isEmpty() ? request.getSeoKeywords() : (request.getKeywords() != null && request.getKeywords().length > 0 ? String.join(", ", request.getKeywords()) : "talnova, class, online"))
+                .canonicalUrl(request.getCanonicalUrl() != null && !request.getCanonicalUrl().isEmpty() ? request.getCanonicalUrl() : "https://edu.talnova.io/course/" + slug)
                 .localizedLangGroupId("group-" + UUID.randomUUID().toString().substring(0, 8))
-                .indexable(true)
-                .aiReady(true)
+                .indexable(request.getIndexable() != null ? request.getIndexable() : true)
+                .aiReady(request.getAiReady() != null ? request.getAiReady() : true)
                 .aiSummary("Study module for professional skills development.")
                 .semanticKeywords(request.getSkills() != null ? java.util.Arrays.asList(request.getSkills()) : java.util.Collections.singletonList("tutorials"))
                 .sections(new String[0])
@@ -219,11 +219,30 @@ public class EduCourseService {
         if (request.getSearchRank() != null)
             course.setSearchRank(request.getSearchRank());
         
-        if (request.getShortDescription() != null) {
+        if (request.getSeoSlug() != null && !request.getSeoSlug().isEmpty()) {
+            course.setSeoSlug(generateSeoSlug(request.getSeoSlug()));
+        }
+        if (request.getSeoTitle() != null && !request.getSeoTitle().isEmpty()) {
+            course.setSeoTitle(request.getSeoTitle());
+        }
+        if (request.getSeoDescription() != null && !request.getSeoDescription().isEmpty()) {
+            course.setSeoDescription(request.getSeoDescription());
+        } else if (request.getShortDescription() != null) {
             course.setSeoDescription(request.getShortDescription());
         }
-        if (request.getKeywords() != null) {
+        if (request.getSeoKeywords() != null && !request.getSeoKeywords().isEmpty()) {
+            course.setSeoKeywords(request.getSeoKeywords());
+        } else if (request.getKeywords() != null) {
             course.setSeoKeywords(String.join(", ", request.getKeywords()));
+        }
+        if (request.getCanonicalUrl() != null && !request.getCanonicalUrl().isEmpty()) {
+            course.setCanonicalUrl(request.getCanonicalUrl());
+        }
+        if (request.getIndexable() != null) {
+            course.setIndexable(request.getIndexable());
+        }
+        if (request.getAiReady() != null) {
+            course.setAiReady(request.getAiReady());
         }
         if (request.getSkills() != null) {
             course.setSemanticKeywords(java.util.Arrays.asList(request.getSkills()));
@@ -436,5 +455,12 @@ public class EduCourseService {
         // Ensure uniqueness (simple append, ideally check in DB if needed but short
         // UUID is safer)
         return slug + "-" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private String generateSeoSlug(String seoSlug) {
+        if (seoSlug == null || seoSlug.isEmpty()) {
+            return "course-" + UUID.randomUUID().toString().substring(0, 8);
+        }
+        return seoSlug + "-" + UUID.randomUUID().toString().substring(0, 8);
     }
 }
