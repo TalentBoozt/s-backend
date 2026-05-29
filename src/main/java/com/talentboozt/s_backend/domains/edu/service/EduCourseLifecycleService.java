@@ -1,6 +1,7 @@
 package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.enums.ECourseStatus;
+import com.talentboozt.s_backend.domains.edu.enums.ECourseValidationStatus;
 import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
 import com.talentboozt.s_backend.domains.edu.exception.EduResourceNotFoundException;
 import com.talentboozt.s_backend.domains.edu.model.ECourses;
@@ -28,11 +29,14 @@ public class EduCourseLifecycleService {
         accessGuard.enforceCourseOwnership(creatorId, courseId);
         ECourses course = getCourseById(courseId);
 
-        if (course.getStatus() != ECourseStatus.DRAFT && course.getStatus() != ECourseStatus.REJECTED) {
-            throw new EduBadRequestException("Only courses in DRAFT or REJECTED status can be submitted.");
+        if (course.getStatus() != ECourseStatus.DRAFT && 
+            course.getStatus() != ECourseStatus.REJECTED &&
+            course.getStatus() != ECourseStatus.PUBLISHED) {
+            throw new EduBadRequestException("Only courses in DRAFT, REJECTED, or PUBLISHED status can be submitted for review.");
         }
 
         course.setStatus(ECourseStatus.SUBMITTED);
+        course.setValidationStatus(ECourseValidationStatus.MANUAL_PENDING);
         course.setUpdatedAt(Instant.now());
         log.info("Course {} submitted for review by creator {}", courseId, creatorId);
         return courseRepository.save(course);
@@ -63,7 +67,14 @@ public class EduCourseLifecycleService {
             throw new EduBadRequestException("Course must be UNDER_REVIEW to be approved.");
         }
 
-        course.setStatus(ECourseStatus.APPROVED);
+        course.setTalnovaVerified(true);
+        course.setValidationStatus(ECourseValidationStatus.VALIDATED);
+        // If it's already published, keep or set status to PUBLISHED, otherwise APPROVED
+        if (Boolean.TRUE.equals(course.getPublished())) {
+            course.setStatus(ECourseStatus.PUBLISHED);
+        } else {
+            course.setStatus(ECourseStatus.APPROVED);
+        }
         course.setModerationRejectionReason(null);
         course.setUpdatedAt(Instant.now());
 
@@ -81,8 +92,10 @@ public class EduCourseLifecycleService {
         }
 
         course.setStatus(ECourseStatus.REJECTED);
+        course.setValidationStatus(ECourseValidationStatus.REJECTED);
         course.setModerationRejectionReason(reason);
         course.setPublished(false);
+        course.setTalnovaVerified(false);
         course.setUpdatedAt(Instant.now());
 
         logReview(courseId, reviewerId, "REJECTED", reason);
@@ -95,8 +108,8 @@ public class EduCourseLifecycleService {
         accessGuard.enforceCourseOwnership(creatorId, courseId);
         ECourses course = getCourseById(courseId);
 
-        if (course.getStatus() != ECourseStatus.APPROVED) {
-            throw new EduBadRequestException("Course must be APPROVED before it can be published.");
+        if (course.getStatus() == ECourseStatus.ARCHIVED) {
+            throw new EduBadRequestException("Archived courses cannot be published.");
         }
 
         course.setStatus(ECourseStatus.PUBLISHED);

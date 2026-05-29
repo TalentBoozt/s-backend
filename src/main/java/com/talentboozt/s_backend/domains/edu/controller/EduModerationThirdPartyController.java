@@ -39,16 +39,16 @@ public class EduModerationThirdPartyController {
     }
 
     @GetMapping("/reports/pending")
-    @PreAuthorize("hasAuthority('ENTERPRISE_ADMIN')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_ADMIN') or hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<List<EReports>> getPendingReports() {
         return ResponseEntity.ok(moderationService.getPendingReports());
     }
 
     @PutMapping("/reports/{reportId}/resolve")
-    @PreAuthorize("hasAuthority('ENTERPRISE_ADMIN')")
+    @PreAuthorize("hasAuthority('ENTERPRISE_ADMIN') or hasAuthority('PLATFORM_ADMIN')")
     public ResponseEntity<EReports> resolveReport(
             @PathVariable String reportId,
-            @RequestParam String adminId,
+            @com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser String adminId,
             @RequestParam EReportStatus status,
             @RequestParam String notes) {
         return ResponseEntity.ok(moderationService.resolveReport(reportId, adminId, status, notes));

@@ -31,17 +31,13 @@ public class EduMarketplaceService {
         this.userRepository = userRepository;
     }
 
-    /** Legacy documents may have {@code published == true} with {@code status} unset. */
     private boolean isPublicCatalogCourse(ECourses c) {
-        ECourseStatus st = c.getStatus();
-        boolean approved = st == ECourseStatus.PUBLISHED
-                || (st == null && Boolean.TRUE.equals(c.getPublished()));
-        
         boolean notRejected = c.getValidationStatus() != ECourseValidationStatus.AI_REJECTED;
+        boolean notArchived = c.getStatus() != ECourseStatus.ARCHIVED;
 
         return Boolean.TRUE.equals(c.getPublished())
                 && !Boolean.TRUE.equals(c.getIsPrivate())
-                && approved
+                && notArchived
                 && notRejected;
     }
 
