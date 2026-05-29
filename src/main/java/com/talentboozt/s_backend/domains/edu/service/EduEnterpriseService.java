@@ -58,6 +58,30 @@ public class EduEnterpriseService {
         return inquiryRepository.findAll();
     }
 
+    private Double getAsDouble(Object val, Double defaultVal) {
+        if (val == null) return defaultVal;
+        if (val instanceof Number) {
+            return ((Number) val).doubleValue();
+        }
+        try {
+            return Double.parseDouble(val.toString());
+        } catch (Exception e) {
+            return defaultVal;
+        }
+    }
+
+    private Integer getAsInteger(Object val, Integer defaultVal) {
+        if (val == null) return defaultVal;
+        if (val instanceof Number) {
+            return ((Number) val).intValue();
+        }
+        try {
+            return Integer.parseInt(val.toString());
+        } catch (Exception e) {
+            return defaultVal;
+        }
+    }
+
     public EnterpriseInquiry approveInquiry(String inquiryId, String adminId, Map<String, Object> config) {
         EnterpriseInquiry inquiry = inquiryRepository.findById(inquiryId)
                 .orElseThrow(() -> new RuntimeException("Inquiry not found"));
@@ -65,9 +89,9 @@ public class EduEnterpriseService {
         // Provision the subscription
         subscriptionService.provisionManualEnterprise(
                 inquiry.getUserId(),
-                (Double) config.getOrDefault("commissionRate", 0.03),
-                (Integer) config.getOrDefault("maxCourses", 1000),
-                (Integer) config.getOrDefault("maxMembers", inquiry.getExpectedMembers()),
+                getAsDouble(config.get("commissionRate"), 0.03),
+                getAsInteger(config.get("maxCourses"), 1000),
+                getAsInteger(config.get("maxMembers"), inquiry.getExpectedMembers()),
                 (String) config.getOrDefault("billingNotes", "Inquiry Approved"));
 
         inquiry.setStatus("APPROVED");

@@ -246,8 +246,8 @@ public class EduCourseService {
         accessGuard.enforceCourseOwnership(creatorId, id);
         ECourses course = getCourseById(id);
 
-        if (course.getStatus() != ECourseStatus.APPROVED) {
-            throw new EduBadRequestException("Course must be APPROVED before it can be published.");
+        if (course.getStatus() == ECourseStatus.ARCHIVED) {
+            throw new EduBadRequestException("Archived courses cannot be published.");
         }
 
         course.setStatus(ECourseStatus.PUBLISHED);
