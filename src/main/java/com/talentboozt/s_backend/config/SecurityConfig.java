@@ -49,10 +49,10 @@ public class SecurityConfig {
     private final PasswordEncoder passwordEncoder;
 
     public SecurityConfig(
-            JwtAuthenticationFilter jwtAuthenticationFilter, 
-            ApiKeyAuthenticationFilter apiKeyAuthenticationFilter, 
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            ApiKeyAuthenticationFilter apiKeyAuthenticationFilter,
             CustomUserDetailsService userDetailsService,
-            ConfigUtility configUtil, 
+            ConfigUtility configUtil,
             CredentialsService credentialsService,
             PasswordEncoder passwordEncoder) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -137,6 +137,7 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/api/edu/assignments/**").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/edu/certificates/**").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/edu/personalization/**").authenticated()
+                            .requestMatchers(HttpMethod.GET, "/api/edu/workspaces/resolve/**").permitAll()
                             .requestMatchers(HttpMethod.GET, "/api/edu/workspaces/**").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/edu/subscriptions/**").authenticated()
                             .requestMatchers(HttpMethod.GET, "/api/edu/trust/reports/**").authenticated();
@@ -148,8 +149,9 @@ public class SecurityConfig {
                             auth.requestMatchers(path.trim()).permitAll();
                         }
                     }
-                    
-                    auth.requestMatchers("/api/auth/**", "/api/edu/auth/**", "/api/finance/auth/**", "/api/edu/courses/public/**").permitAll();
+
+                    auth.requestMatchers("/api/auth/**", "/api/edu/auth/**", "/api/finance/auth/**",
+                            "/api/edu/courses/public/**").permitAll();
                     auth.requestMatchers(HttpMethod.GET, "/**").permitAll();
 
                     // ── Legacy V2 Write Protection ──────────────────────────
@@ -189,7 +191,8 @@ public class SecurityConfig {
                             if (request.getRequestURI().startsWith("/api/")) {
                                 response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
                                 response.setContentType("application/json");
-                                response.getWriter().write("{\"error\": \"Unauthorized - Session may have expired. Please login again.\"}");
+                                response.getWriter().write(
+                                        "{\"error\": \"Unauthorized - Session may have expired. Please login again.\"}");
                             } else {
                                 response.sendRedirect(configUtil.getProperty("FAILURE_REDIRECT"));
                             }
@@ -219,19 +222,21 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowCredentials(true);
-        
+
         // Dynamic Origin Loading
         String origins = configUtil.getProperty("ALLOWED_ORIGINS");
         if (origins != null && !origins.isEmpty()) {
             configuration.setAllowedOriginPatterns(List.of(origins.split(",")));
         } else {
             // Fallback for development if .env is missing
-            configuration.setAllowedOriginPatterns(List.of("http://localhost:4200", "http://localhost:3000", "http://localhost:3269"));
+            configuration.setAllowedOriginPatterns(
+                    List.of("http://localhost:4200", "http://localhost:3000", "http://localhost:3269"));
         }
 
         // Dynamic Methods Loading
         String methods = configUtil.getProperty("ALLOWED_METHODS");
-        configuration.setAllowedMethods(methods != null ? List.of(methods.split(",")) : List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedMethods(methods != null ? List.of(methods.split(","))
+                : List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 
         // Dynamic Headers Loading
         String headers = configUtil.getProperty("ALLOWED_HEADERS");
@@ -239,13 +244,13 @@ public class SecurityConfig {
 
         // Dynamic Exposed Headers
         String exposedHeaders = configUtil.getProperty("EXPOSED_HEADERS");
-        configuration.setExposedHeaders(exposedHeaders != null ? List.of(exposedHeaders.split(",")) : List.of("X-XSRF-TOKEN", "x-user-id"));
+        configuration.setExposedHeaders(
+                exposedHeaders != null ? List.of(exposedHeaders.split(",")) : List.of("X-XSRF-TOKEN", "x-user-id"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 
     private OidcUserService oidcUserService() {
         OidcUserService delegate = new OidcUserService();

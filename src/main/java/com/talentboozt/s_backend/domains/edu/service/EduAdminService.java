@@ -13,8 +13,19 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Service
 public class EduAdminService {
+
+    @Autowired
+    private com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService;
+
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private org.springframework.mail.javamail.JavaMailSender mailSender;
 
     private final ECoursesRepository coursesRepository;
     private final EEnrollmentsRepository enrollmentsRepository;
@@ -100,6 +111,9 @@ public class EduAdminService {
                 .orElseThrow(() -> new EduResourceNotFoundException("User not found with id: " + userId));
         user.setRoles(roles);
         userRepository.save(user);
+
+        // Synchronize with global credentials
+        credentialsService.updateUserRoles(userId, java.util.Arrays.stream(roles).map(Enum::name).collect(java.util.stream.Collectors.toList()));
     }
 
     public EUser inviteUser(String email, String firstName, String lastName,
@@ -108,18 +122,140 @@ public class EduAdminService {
             throw new IllegalArgumentException("User with email " + email + " already exists");
         }
 
+        String userIdToUse;
+        String defaultPassword = null;
+        com.talentboozt.s_backend.domains.auth.model.CredentialsModel globalCreds = credentialsService.getCredentialsByEmail(email);
+        if (globalCreds != null) {
+            userIdToUse = globalCreds.getEmployeeId();
+        } else {
+            defaultPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
+            String encryptedPass = defaultPassword;
+            try {
+                encryptedPass = com.talentboozt.s_backend.shared.utils.EncryptionUtility.encrypt(defaultPassword);
+            } catch (Exception e) {
+                // Ignore
+            }
+            com.talentboozt.s_backend.domains.auth.model.CredentialsModel newCreds = com.talentboozt.s_backend.domains.auth.model.CredentialsModel
+                    .builder()
+                    .email(email)
+                    .password(encryptedPass)
+                    .firstname(firstName)
+                    .lastname(lastName)
+                    .roles(java.util.Arrays.stream(roles).map(Enum::name).collect(java.util.stream.Collectors.toList()))
+                    .platformRole("USER")
+                    .registeredFrom("EDU_PLATFORM")
+                    .build();
+            newCreds = credentialsService.addCredentials(newCreds, "EDU_PLATFORM", null);
+            userIdToUse = newCreds.getEmployeeId();
+        }
+
         EUser newUser = EUser.builder()
+                .id(userIdToUse)
                 .email(email)
                 .displayName(firstName + " " + lastName)
                 .roles(roles != null ? roles
                         : new com.talentboozt.s_backend.domains.edu.enums.ERoles[] {
                                 com.talentboozt.s_backend.domains.edu.enums.ERoles.LEARNER })
-                .passwordHash("INVITED_NO_PASS")
+                .passwordHash(passwordEncoder.encode(defaultPassword != null ? defaultPassword : "INVITED_NO_PASS"))
                 .isEmailVerified(false)
                 .isActive(true)
                 .build();
 
-        return userRepository.save(newUser);
+        EUser savedUser = userRepository.save(newUser);
+
+        // Send email with credentials/invitation
+        sendInvitationEmail(email, firstName, lastName, defaultPassword);
+
+        return savedUser;
+    }
+
+    private void sendInvitationEmail(String to, String firstName, String lastName, String defaultPassword) {
+        try {
+            jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(message, true);
+            helper.setTo(to);
+            helper.setSubject("Invitation to Talnova Enterprise");
+
+            String htmlBody;
+            if (defaultPassword != null) {
+                htmlBody = "<!DOCTYPE html>\n" +
+                        "<html lang=\"en\">\n" +
+                        "<head>\n" +
+                        "    <meta charset=\"UTF-8\" />\n" +
+                        "    <title>Talnova Invitation</title>\n" +
+                        "</head>\n" +
+                        "<body style=\"font-family: Arial, sans-serif; background-color: #F5F7F9; color: #3D3D3D; margin: 0;\">\n" +
+                        "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden;\">\n" +
+                        "    <tr style=\"background: linear-gradient(135deg, #ff007f, #00e5ff);\">\n" +
+                        "        <td style=\"padding: 20px; text-align: center;\">\n" +
+                        "            <img src=\"https://talnova.io/assets/logos/g-l-w.avif\" alt=\"Talnova\" width=\"120\"/>\n" +
+                        "        </td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td style=\"padding: 30px;\">\n" +
+                        "            <h2 style=\"color: #ff007f;\">Welcome to Talnova! 🎉</h2>\n" +
+                        "            <p>Hello " + firstName + " " + lastName + ",</p>\n" +
+                        "            <p>You have been invited as an Enterprise Admin on the Talnova platform.</p>\n" +
+                        "            <p>Here are your temporary login credentials:</p>\n" +
+                        "            <p><strong>Email:</strong> " + to + "</p>\n" +
+                        "            <p><strong>Temporary Password:</strong> " + defaultPassword + "</p>\n" +
+                        "            <p>Please change your password immediately upon your first login.</p>\n" +
+                        "            <p style=\"text-align: center; margin: 30px 0;\">\n" +
+                        "                <a href=\"https://edu.talnova.io/login\" style=\"background: linear-gradient(135deg, #ff007f, #00e5ff); color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;\">Log In Now</a>\n" +
+                        "            </p>\n" +
+                        "            <p style=\"margin-top: 30px;\">– Team Talnova</p>\n" +
+                        "        </td>\n" +
+                        "    </tr>\n" +
+                        "    <tr style=\"background-color: #EAEEF2;\">\n" +
+                        "        <td style=\"padding: 20px; text-align: center; font-size: 12px; color: #7D7D7D;\">\n" +
+                        "            © " + java.time.Year.now().getValue() + " Talnova. All rights reserved.\n" +
+                        "        </td>\n" +
+                        "    </tr>\n" +
+                        "</table>\n" +
+                        "</body>\n" +
+                        "</html>";
+            } else {
+                htmlBody = "<!DOCTYPE html>\n" +
+                        "<html lang=\"en\">\n" +
+                        "<head>\n" +
+                        "    <meta charset=\"UTF-8\" />\n" +
+                        "    <title>Talnova Invitation</title>\n" +
+                        "</head>\n" +
+                        "<body style=\"font-family: Arial, sans-serif; background-color: #F5F7F9; color: #3D3D3D; margin: 0;\">\n" +
+                        "<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width: 600px; margin: auto; background: #fff; border-radius: 8px; overflow: hidden;\">\n" +
+                        "    <tr style=\"background: linear-gradient(135deg, #ff007f, #00e5ff);\">\n" +
+                        "        <td style=\"padding: 20px; text-align: center;\">\n" +
+                        "            <img src=\"https://talnova.io/assets/logos/g-l-w.avif\" alt=\"Talnova\" width=\"120\"/>\n" +
+                        "        </td>\n" +
+                        "    </tr>\n" +
+                        "    <tr>\n" +
+                        "        <td style=\"padding: 30px;\">\n" +
+                        "            <h2 style=\"color: #ff007f;\">Welcome back to Talnova! 🎉</h2>\n" +
+                        "            <p>Hello " + firstName + " " + lastName + ",</p>\n" +
+                        "            <p>You have been assigned as an Enterprise Admin for a new workspace on the Talnova platform.</p>\n" +
+                        "            <p>Since you already have a Talnova account, you can log in using your existing credentials:</p>\n" +
+                        "            <p><strong>Email:</strong> " + to + "</p>\n" +
+                        "            <p style=\"text-align: center; margin: 30px 0;\">\n" +
+                        "                <a href=\"https://edu.talnova.io/login\" style=\"background: linear-gradient(135deg, #ff007f, #00e5ff); color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;\">Log In Now</a>\n" +
+                        "            </p>\n" +
+                        "            <p style=\"margin-top: 30px;\">– Team Talnova</p>\n" +
+                        "        </td>\n" +
+                        "    </tr>\n" +
+                        "    <tr style=\"background-color: #EAEEF2;\">\n" +
+                        "        <td style=\"padding: 20px; text-align: center; font-size: 12px; color: #7D7D7D;\">\n" +
+                        "            © " + java.time.Year.now().getValue() + " Talnova. All rights reserved.\n" +
+                        "        </td>\n" +
+                        "    </tr>\n" +
+                        "</table>\n" +
+                        "</body>\n" +
+                        "</html>";
+            }
+
+            helper.setText(htmlBody, true);
+            mailSender.send(message);
+        } catch (Exception e) {
+            System.err.println("Failed to send invitation email to " + to + ": " + e.getMessage());
+        }
     }
 
     public Page<com.talentboozt.s_backend.domains.edu.model.EWorkspaces> getWorkspaces(String search, int page,
@@ -197,6 +333,29 @@ public class EduAdminService {
             });
         });
 
+        // Ensure owner has ENTERPRISE_ADMIN role
+        boolean hasAdminRole = false;
+        if (owner.getRoles() != null) {
+            for (com.talentboozt.s_backend.domains.edu.enums.ERoles r : owner.getRoles()) {
+                if (r == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_ADMIN) {
+                    hasAdminRole = true;
+                    break;
+                }
+            }
+        }
+        if (!hasAdminRole) {
+            java.util.List<com.talentboozt.s_backend.domains.edu.enums.ERoles> updatedRoles = new java.util.ArrayList<>();
+            if (owner.getRoles() != null) {
+                updatedRoles.addAll(java.util.Arrays.asList(owner.getRoles()));
+            }
+            updatedRoles.add(com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_ADMIN);
+            owner.setRoles(updatedRoles.toArray(new com.talentboozt.s_backend.domains.edu.enums.ERoles[0]));
+            userRepository.save(owner);
+            
+            // Sync globally too
+            credentialsService.updateUserRoles(owner.getId(), updatedRoles.stream().map(Enum::name).collect(java.util.stream.Collectors.toList()));
+        }
+
         // 2. Create the workspace
         com.talentboozt.s_backend.domains.edu.model.EWorkspaces workspace = com.talentboozt.s_backend.domains.edu.model.EWorkspaces
                 .builder()
@@ -210,7 +369,21 @@ public class EduAdminService {
                 .type(com.talentboozt.s_backend.domains.edu.enums.EWorkspaceType.ORGANIZATION)
                 .build();
 
-        return workspacesRepository.save(workspace);
+        com.talentboozt.s_backend.domains.edu.model.EWorkspaces savedWorkspace = workspacesRepository.save(workspace);
+
+        // Auto-assign owner as Admin member natively
+        com.talentboozt.s_backend.domains.edu.model.EWorkspaceMembers ownerMember = com.talentboozt.s_backend.domains.edu.model.EWorkspaceMembers.builder()
+                .workspaceId(savedWorkspace.getId())
+                .userId(owner.getId())
+                .role(com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_ADMIN)
+                .status("ACTIVE")
+                .joinedAt(java.time.Instant.now())
+                .lastActiveAt(java.time.Instant.now())
+                .createdBy("SYSTEM")
+                .build();
+        memberRepository.save(ownerMember);
+
+        return savedWorkspace;
     }
 
     public String generateImpersonationToken(String adminId, String userId) {
