@@ -17,8 +17,16 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Service
 public class EduSubscriptionService {
+
+    @Autowired
+    private com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService;
+
+    @Autowired
+    private com.talentboozt.s_backend.domains.edu.repository.mongodb.EWorkspacesRepository workspacesRepository;
 
     private static final Logger log = LoggerFactory.getLogger(EduSubscriptionService.class);
 
@@ -271,7 +279,8 @@ public class EduSubscriptionService {
                 for (ERoles r : user.getRoles()) {
                     // Preserves all roles EXCEPT subscription-based seller/enterprise roles
                     if (r == ERoles.SELLER_FREE || r == ERoles.SELLER_PRO || 
-                        r == ERoles.SELLER_PREMIUM || r == ERoles.ENTERPRISE_INSTRUCTOR) {
+                        r == ERoles.SELLER_PREMIUM || r == ERoles.ENTERPRISE_INSTRUCTOR ||
+                        r == ERoles.ENTERPRISE_ADMIN) {
                         wasSeller = true;
                     } else {
                         roles.add(r);
@@ -288,6 +297,7 @@ public class EduSubscriptionService {
                     roles.add(ERoles.SELLER_PREMIUM);
                     break;
                 case ENTERPRISE:
+                    roles.add(ERoles.ENTERPRISE_ADMIN);
                     roles.add(ERoles.ENTERPRISE_INSTRUCTOR);
                     break;
                 case FREE:
@@ -303,6 +313,13 @@ public class EduSubscriptionService {
             user.setRoles(roles.toArray(new ERoles[0]));
             userRepository.save(user);
             log.info("Synced user roles for {}: plan={}, roles={}", userId, newPlan, roles);
+
+            // Synchronize with global credentials
+            try {
+                credentialsService.updateUserRoles(userId, roles.stream().map(Enum::name).collect(java.util.stream.Collectors.toList()));
+            } catch (Exception e) {
+                log.error("Failed to sync roles to global credentials for user: {}", userId, e);
+            }
         });
     }
 
@@ -324,6 +341,23 @@ public class EduSubscriptionService {
         subscriptionsRepository.save(sub);
         syncUserRoles(userId, ESubscriptionPlan.ENTERPRISE);
         
+        // Sync owned workspaces to ENTERPRISE
+        try {
+            java.util.List<com.talentboozt.s_backend.domains.edu.model.EWorkspaces> workspaces = workspacesRepository.findByOwnerId(userId);
+            if (workspaces != null) {
+                for (com.talentboozt.s_backend.domains.edu.model.EWorkspaces ws : workspaces) {
+                    ws.setPlan(ESubscriptionPlan.ENTERPRISE);
+                    if (maxMembers != null) {
+                        ws.setMaxMembers(maxMembers);
+                    }
+                    workspacesRepository.save(ws);
+                    log.info("Synced workspace plan to ENTERPRISE for workspace: {}", ws.getId());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to sync owned workspaces to ENTERPRISE for user: {}", userId, e);
+        }
+
         log.info("Manual Enterprise provisioning complete for user: {}", userId);
     }
 }

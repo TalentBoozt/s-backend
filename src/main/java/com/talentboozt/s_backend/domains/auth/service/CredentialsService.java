@@ -301,6 +301,16 @@ public class CredentialsService {
     }
 
     @CacheEvict(value = "userCredentials", key = "#employeeId")
+    public void updateUserRoles(String employeeId, List<String> roles) {
+        Optional<CredentialsModel> optionalCredentials = credentialsRepository.findByEmployeeId(employeeId);
+        if (optionalCredentials.isPresent()) {
+            CredentialsModel credentials = optionalCredentials.get();
+            credentials.setRoles(roles);
+            credentialsRepository.save(credentials);
+        }
+    }
+
+    @CacheEvict(value = "userCredentials", key = "#employeeId")
     public CredentialsModel updateCredentials(String employeeId, CredentialsModel credentials) {
         Optional<CredentialsModel> optionalCredentials = credentialsRepository
                 .findById(Objects.requireNonNull(credentials.getId()));

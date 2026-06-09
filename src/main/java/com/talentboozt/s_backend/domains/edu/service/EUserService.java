@@ -32,6 +32,8 @@ import java.util.UUID;
 @Service
 public class EUserService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(EUserService.class);
+
     private final EUserRepository userRepository;
     private final EProfilesRepository profileRepository;
     private final EmployeeRepository employeeRepository;
@@ -83,10 +85,17 @@ public class EUserService {
         }
 
         // Core Ecosystem Orchestration: Ensuring a global SSO identity exists
+        String encryptedPassword = request.getPassword();
+        try {
+            encryptedPassword = com.talentboozt.s_backend.shared.utils.EncryptionUtility.encrypt(request.getPassword());
+        } catch (Exception e) {
+            log.error("Failed to encrypt password with EncryptionUtility", e);
+        }
+
         com.talentboozt.s_backend.domains.auth.model.CredentialsModel globalCreds = com.talentboozt.s_backend.domains.auth.model.CredentialsModel
                 .builder()
                 .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
+                .password(encryptedPassword)
                 .firstname(request.getFirstName())
                 .lastname(request.getLastName())
                 .roles(roles.stream().map(Enum::name).collect(java.util.stream.Collectors.toList()))
@@ -152,13 +161,21 @@ public class EUserService {
                 .getCredentialsByEmail(request.getEmail());
 
         if (globalCreds != null) {
-            // Verify global password (which is also encrypted with the same utility)
-            if (passwordEncoder.matches(request.getPassword(), globalCreds.getPassword())) {
+            boolean passwordMatches = false;
+            try {
+                String decryptedPassword = com.talentboozt.s_backend.shared.utils.EncryptionUtility.decrypt(globalCreds.getPassword());
+                passwordMatches = request.getPassword().equals(decryptedPassword);
+            } catch (Exception e) {
+                // Fallback to BCrypt matches if it wasn't AES encrypted
+                passwordMatches = passwordEncoder.matches(request.getPassword(), globalCreds.getPassword());
+            }
+
+            if (passwordMatches) {
                 // Auto-provision EDU profile linked to this global identity
                 EUser provisionedUser = EUser.builder()
                         .id(globalCreds.getEmployeeId())
                         .email(globalCreds.getEmail())
-                        .passwordHash(globalCreds.getPassword())
+                        .passwordHash(passwordEncoder.encode(request.getPassword()))
                         .displayName(globalCreds.getFirstname() + " " + globalCreds.getLastname())
                         .roles(new ERoles[] { ERoles.LEARNER }) // Default role
                         .isActive(true)
