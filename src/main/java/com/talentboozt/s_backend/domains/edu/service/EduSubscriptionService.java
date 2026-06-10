@@ -270,7 +270,7 @@ public class EduSubscriptionService {
         return null;
     }
 
-    private void syncUserRoles(String userId, ESubscriptionPlan newPlan) {
+    public void syncUserRoles(String userId, ESubscriptionPlan newPlan) {
         userRepository.findById(userId).ifPresent(user -> {
             java.util.Set<ERoles> roles = new java.util.HashSet<>();
             boolean wasSeller = false;

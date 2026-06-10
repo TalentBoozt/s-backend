@@ -48,10 +48,23 @@ public class EduAccessGuardService {
                 });
     }
 
+    private com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan getEffectivePlan(EUser user) {
+        if (user.getRoles() != null) {
+            for (com.talentboozt.s_backend.domains.edu.enums.ERoles r : user.getRoles()) {
+                if (r == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_ADMIN ||
+                    r == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_MANAGER ||
+                    r == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_INSTRUCTOR) {
+                    return com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.ENTERPRISE;
+                }
+            }
+        }
+        return user.getPlan() != null ? user.getPlan() : com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.FREE;
+    }
+
     // 1. Enforce Course Creation Limits
     public void enforceCourseCreationLimit(String userId) {
         EUser user = getUser(userId);
-        int maxCourses = planConfigService.getPlanLimits(user.getPlan()).getMaxCourses();
+        int maxCourses = planConfigService.getPlanLimits(getEffectivePlan(user)).getMaxCourses();
         
         // Count all courses except ARCHIVED ones
         long currentCount = courseRepository.countByCreatorIdAndStatusIn(userId, 
@@ -109,7 +122,7 @@ public class EduAccessGuardService {
         }
 
         EUser user = getUser(userId);
-        int maxGenerations = planConfigService.getPlanLimits(user.getPlan()).getMaxAiGenerationsPerMonth();
+        int maxGenerations = planConfigService.getPlanLimits(getEffectivePlan(user)).getMaxAiGenerationsPerMonth();
 
         Instant startOfMonth = ZonedDateTime.now(ZoneId.of("UTC")).withDayOfMonth(1).withHour(0).toInstant();
         long monthlyUsageCount = aiUsageRepository.countByUserIdAndCreatedAtGreaterThanEqual(userId, startOfMonth);

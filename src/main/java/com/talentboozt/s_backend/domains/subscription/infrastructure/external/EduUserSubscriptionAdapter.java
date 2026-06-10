@@ -29,6 +29,27 @@ public class EduUserSubscriptionAdapter implements UserSubscriptionPort {
 
     @Override
     public UserSubscription getLmsSubscriptionForUser(String userId) {
+        if (userId != null) {
+            boolean isEnterprise = userRepository.findById(userId)
+                    .map(user -> {
+                        if (user.getRoles() == null) return false;
+                        return Arrays.stream(user.getRoles()).anyMatch(role ->
+                            role == ERoles.ENTERPRISE_ADMIN ||
+                            role == ERoles.ENTERPRISE_MANAGER ||
+                            role == ERoles.ENTERPRISE_INSTRUCTOR
+                        );
+                    }).orElse(false);
+
+            if (isEnterprise) {
+                return new UserSubscription(
+                        "enterprise-override-" + userId,
+                        userId,
+                        SubscriptionPlanCode.ENTERPRISE,
+                        SubscriptionStatus.ACTIVE,
+                        null
+                );
+            }
+        }
         ESubscriptions raw = eduSubscriptionService.getUserSubscription(userId);
         return toUserSubscription(raw);
     }
@@ -39,7 +60,19 @@ public class EduUserSubscriptionAdapter implements UserSubscriptionPort {
             return SubscriptionPlanCode.FREE;
         }
         return userRepository.findById(userId)
-                .map(EUser::getPlan)
+                .map(user -> {
+                    if (user.getRoles() != null) {
+                        boolean isEnterprise = Arrays.stream(user.getRoles()).anyMatch(role ->
+                            role == ERoles.ENTERPRISE_ADMIN ||
+                            role == ERoles.ENTERPRISE_MANAGER ||
+                            role == ERoles.ENTERPRISE_INSTRUCTOR
+                        );
+                        if (isEnterprise) {
+                            return ESubscriptionPlan.ENTERPRISE;
+                        }
+                    }
+                    return user.getPlan() != null ? user.getPlan() : ESubscriptionPlan.FREE;
+                })
                 .map(LmsPlanAndStatusMapping::toPlanCode)
                 .orElse(SubscriptionPlanCode.FREE);
     }
@@ -68,6 +101,7 @@ public class EduUserSubscriptionAdapter implements UserSubscriptionPort {
                     roles.add(ERoles.SELLER_PREMIUM);
                     break;
                 case ENTERPRISE:
+                    roles.add(ERoles.ENTERPRISE_ADMIN);
                     roles.add(ERoles.ENTERPRISE_INSTRUCTOR);
                     break;
                 case FREE:

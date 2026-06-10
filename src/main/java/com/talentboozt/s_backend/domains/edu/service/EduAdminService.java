@@ -27,6 +27,9 @@ public class EduAdminService {
     @Autowired
     private org.springframework.mail.javamail.JavaMailSender mailSender;
 
+    @Autowired
+    private EduSubscriptionService subscriptionService;
+
     private final ECoursesRepository coursesRepository;
     private final EEnrollmentsRepository enrollmentsRepository;
     private final EUserRepository userRepository;
@@ -370,6 +373,14 @@ public class EduAdminService {
                 .build();
 
         com.talentboozt.s_backend.domains.edu.model.EWorkspaces savedWorkspace = workspacesRepository.save(workspace);
+
+        // Provision/Sync subscription for owner
+        com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan workspacePlan = com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.valueOf(planStr);
+        if (workspacePlan == com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.ENTERPRISE) {
+            subscriptionService.provisionManualEnterprise(owner.getId(), 0.0, Integer.MAX_VALUE, maxMembers != null ? maxMembers : 100, "Enterprise Workspace Setup");
+        } else {
+            subscriptionService.syncUserRoles(owner.getId(), workspacePlan);
+        }
 
         // Auto-assign owner as Admin member natively
         com.talentboozt.s_backend.domains.edu.model.EWorkspaceMembers ownerMember = com.talentboozt.s_backend.domains.edu.model.EWorkspaceMembers.builder()
