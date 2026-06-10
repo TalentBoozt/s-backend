@@ -53,7 +53,7 @@ public class EduAICreditService {
                     .lifetimeUsed(0)
                     .createdAt(Instant.now())
                     .updatedAt(Instant.now())
-                    .lastResetDate(Instant.now())
+                    .lastResetDate(null)
                     .build();
             return creditsRepository.save(newCredits);
         });

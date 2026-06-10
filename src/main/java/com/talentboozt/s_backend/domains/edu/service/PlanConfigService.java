@@ -35,7 +35,7 @@ public class PlanConfigService {
                         .hourlyAiLimit(10)
                         .dailyAiLimit(50)
                         .commissionRate(0.03)
-                        .features(List.of("COUPONS", "ADVANCED_ANALYTICS", "AI_GENERATION", "COURSE_VALIDATION", "PRIORITY_SUPPORT", "MARKETING_TOOLS", "COURSE_BUNDLES"))
+                        .features(List.of("COUPONS", "BASIC_ANALYTICS", "ADVANCED_ANALYTICS", "AI_GENERATION", "COURSE_VALIDATION", "PRIORITY_SUPPORT", "MARKETING_TOOLS", "COURSE_BUNDLES"))
                         .build();
             case ENTERPRISE:
                 return LimitConfig.builder()
@@ -46,7 +46,7 @@ public class PlanConfigService {
                         .hourlyAiLimit(200)
                         .dailyAiLimit(2000)
                         .commissionRate(0.01)
-                        .features(List.of("COUPONS", "ADVANCED_ANALYTICS", "AI_GENERATION", "COURSE_VALIDATION", "PRIORITY_SUPPORT", "MARKETING_TOOLS", "WHITE_LABEL", "CUSTOM_DOMAIN", "API_ACCESS", "WORKSPACE", "COURSE_BUNDLES"))
+                        .features(List.of("COUPONS", "BASIC_ANALYTICS", "ADVANCED_ANALYTICS", "AI_GENERATION", "COURSE_VALIDATION", "PRIORITY_SUPPORT", "MARKETING_TOOLS", "WHITE_LABEL", "CUSTOM_DOMAIN", "API_ACCESS", "WORKSPACE", "COURSE_BUNDLES"))
                         .build();
             case FREE:
             default:

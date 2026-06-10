@@ -8,8 +8,7 @@ import com.talentboozt.s_backend.domains.ai_tool.repository.mongodb.AIQuotaRepos
 import com.talentboozt.s_backend.domains.ai_tool.repository.mongodb.AIUsageRepository;
 import com.talentboozt.s_backend.domains.subscription.application.port.PlanCatalogPort;
 import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode;
-import com.talentboozt.s_backend.domains.subscription.model.Subscription;
-import com.talentboozt.s_backend.domains.subscription.service.SubscriptionService;
+import com.talentboozt.s_backend.domains.subscription.application.port.UserSubscriptionPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,14 +25,11 @@ public class AIUsageService {
 
     private final AIQuotaRepository quotaRepository;
     private final AIUsageRepository usageRepository;
-    private final SubscriptionService subscriptionService;
+    private final UserSubscriptionPort userSubscriptionPort;
     private final PlanCatalogPort planCatalogPort;
 
     public void checkQuota(String userId, AIUsageType type, Integer creditsRequired) {
-        Subscription subscription = subscriptionService.getActiveSubscription(userId);
-        SubscriptionPlanCode plan = subscription != null && subscription.getPlan() != null
-                ? subscription.getPlan()
-                : SubscriptionPlanCode.FREE;
+        SubscriptionPlanCode plan = userSubscriptionPort.resolvePlanCodeFromUserProfile(userId);
 
         log.info("Checking AI quota for user: {}, plan: {}, type: {}", userId, plan, type);
 
@@ -75,8 +71,7 @@ public class AIUsageService {
 
     public AIQuota getOrCreateQuota(String userId, SubscriptionPlanCode plan) {
         if (plan == null) {
-            Subscription sub = subscriptionService.getActiveSubscription(userId);
-            plan = sub != null && sub.getPlan() != null ? sub.getPlan() : SubscriptionPlanCode.FREE;
+            plan = userSubscriptionPort.resolvePlanCodeFromUserProfile(userId);
         }
 
         Optional<AIQuota> quotaOpt = quotaRepository.findByUserId(userId);

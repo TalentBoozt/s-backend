@@ -49,7 +49,10 @@ public class EduWorkspaceController {
     @GetMapping("/{workspaceId}")
     @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<EWorkspaces> getWorkspace(@PathVariable String workspaceId,
-                                                    @RequestParam String userId) {
+                                                    @RequestParam(required = false) String userId) {
+        if (userId == null) {
+            userId = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        }
         guardService.enforceMembership(workspaceId, userId);
         return ResponseEntity.ok(workspaceService.getWorkspaceById(workspaceId));
     }
@@ -90,7 +93,10 @@ public class EduWorkspaceController {
     @GetMapping("/{workspaceId}/members")
     @PreAuthorize("hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<List<WorkspaceMemberDTO>> getMembers(@PathVariable String workspaceId,
-                                                               @RequestParam String userId) {
+                                                               @RequestParam(required = false) String userId) {
+        if (userId == null) {
+            userId = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        }
         guardService.enforceMembership(workspaceId, userId);
         return ResponseEntity.ok(memberService.getMembers(workspaceId));
     }
@@ -118,7 +124,10 @@ public class EduWorkspaceController {
     @GetMapping("/{workspaceId}/paths")
     @PreAuthorize("hasAuthority('LEARNER') or hasAuthority('ENTERPRISE_INSTRUCTOR') or hasAuthority('SELLER_FREE') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<List<ELearningPaths>> getWorkspacePaths(@PathVariable String workspaceId,
-                                                                  @RequestParam String userId) {
+                                                                  @RequestParam(required = false) String userId) {
+        if (userId == null) {
+            userId = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        }
         guardService.enforceMembership(workspaceId, userId);
         return ResponseEntity.ok(pathService.getWorkspacePaths(workspaceId));
     }
