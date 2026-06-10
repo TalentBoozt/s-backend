@@ -30,16 +30,25 @@ public class SubscriptionEntitlementAdapter implements EntitlementPort {
     }
 
     private EntitlementResolutionResult toResult(EUser user) {
-        Set<String> roleNames = new HashSet<>();
+        Set<String> roleNames = new java.util.HashSet<>();
+        boolean isEnterprise = false;
         ERoles[] roles = user.getRoles();
         if (roles != null) {
             for (ERoles r : roles) {
                 roleNames.add(r.name());
+                if (r == ERoles.ENTERPRISE_ADMIN || r == ERoles.ENTERPRISE_MANAGER || r == ERoles.ENTERPRISE_INSTRUCTOR) {
+                    isEnterprise = true;
+                }
             }
         }
 
-        Subscription sub = subscriptionService.getActiveSubscription(user.getId());
-        SubscriptionPlanCode plan = sub != null && sub.getPlan() != null ? sub.getPlan() : SubscriptionPlanCode.FREE;
+        SubscriptionPlanCode plan;
+        if (isEnterprise) {
+            plan = SubscriptionPlanCode.ENTERPRISE;
+        } else {
+            Subscription sub = subscriptionService.getActiveSubscription(user.getId());
+            plan = sub != null && sub.getPlan() != null ? sub.getPlan() : SubscriptionPlanCode.FREE;
+        }
         int tierOrdinal = plan.ordinal();
 
         var snapshot = new SubscriptionEntitlementSnapshot(tierOrdinal);

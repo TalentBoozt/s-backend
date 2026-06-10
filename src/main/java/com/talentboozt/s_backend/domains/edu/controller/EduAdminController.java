@@ -100,7 +100,7 @@ public class EduAdminController {
     }
 
     @PostMapping("/users/invite")
-    @PreAuthorize("hasAuthority('PLATFORM_ADMIN')")
+    @PreAuthorize("hasAuthority('PLATFORM_ADMIN') or hasAuthority('ENTERPRISE_ADMIN')")
     public ResponseEntity<EUser> inviteUser(@RequestBody Map<String, Object> body, HttpServletRequest request) {
         String email = (String) body.get("email");
         String firstName = (String) body.get("firstName");

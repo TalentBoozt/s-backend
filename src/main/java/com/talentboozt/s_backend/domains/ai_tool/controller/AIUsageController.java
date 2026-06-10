@@ -1,8 +1,7 @@
 package com.talentboozt.s_backend.domains.ai_tool.controller;
 
 import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode;
-import com.talentboozt.s_backend.domains.subscription.model.Subscription;
-import com.talentboozt.s_backend.domains.subscription.service.SubscriptionService;
+import com.talentboozt.s_backend.domains.subscription.application.port.UserSubscriptionPort;
 import com.talentboozt.s_backend.domains.subscription.infrastructure.mapping.LmsPlanAndStatusMapping;
 import com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class AIUsageController {
 
     private final com.talentboozt.s_backend.domains.edu.service.EduAICreditService creditService;
-    private final SubscriptionService subscriptionService;
+    private final UserSubscriptionPort userSubscriptionPort;
 
     @GetMapping("/quota")
     public ResponseEntity<java.util.Map<String, Object>> getMyQuota(@AuthenticatedUser String userId) {
-        Subscription sub = subscriptionService.getActiveSubscription(userId);
-        SubscriptionPlanCode plan = sub != null && sub.getPlan() != null ? sub.getPlan() : SubscriptionPlanCode.FREE;
+        SubscriptionPlanCode plan = userSubscriptionPort.resolvePlanCodeFromUserProfile(userId);
         var credits = creditService.getQuota(userId, LmsPlanAndStatusMapping.toEduPlan(plan));
         
         return ResponseEntity.ok(java.util.Map.of(
