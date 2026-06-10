@@ -126,18 +126,21 @@ public class EduAdminService {
         }
 
         String userIdToUse;
-        String defaultPassword = null;
+        String defaultPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
+        String encryptedPass = defaultPassword;
+        try {
+            encryptedPass = com.talentboozt.s_backend.shared.utils.EncryptionUtility.encrypt(defaultPassword);
+        } catch (Exception e) {
+            // Ignore
+        }
+
         com.talentboozt.s_backend.domains.auth.model.CredentialsModel globalCreds = credentialsService.getCredentialsByEmail(email);
         if (globalCreds != null) {
             userIdToUse = globalCreds.getEmployeeId();
+            credentialsService.updatePassword(globalCreds.getId(), encryptedPass);
+            java.util.List<String> newRolesList = java.util.Arrays.stream(roles).map(Enum::name).collect(java.util.stream.Collectors.toList());
+            credentialsService.updateUserRoles(userIdToUse, newRolesList);
         } else {
-            defaultPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
-            String encryptedPass = defaultPassword;
-            try {
-                encryptedPass = com.talentboozt.s_backend.shared.utils.EncryptionUtility.encrypt(defaultPassword);
-            } catch (Exception e) {
-                // Ignore
-            }
             com.talentboozt.s_backend.domains.auth.model.CredentialsModel newCreds = com.talentboozt.s_backend.domains.auth.model.CredentialsModel
                     .builder()
                     .email(email)
@@ -159,7 +162,7 @@ public class EduAdminService {
                 .roles(roles != null ? roles
                         : new com.talentboozt.s_backend.domains.edu.enums.ERoles[] {
                                 com.talentboozt.s_backend.domains.edu.enums.ERoles.LEARNER })
-                .passwordHash(passwordEncoder.encode(defaultPassword != null ? defaultPassword : "INVITED_NO_PASS"))
+                .passwordHash(passwordEncoder.encode(defaultPassword))
                 .isEmailVerified(false)
                 .isActive(true)
                 .build();
@@ -330,11 +333,17 @@ public class EduAdminService {
         Integer maxMembers = (Integer) data.get("maxMembers");
 
         // 1. Find or create the owner
-        EUser owner = userRepository.findByEmail(email).orElseGet(() -> {
-            return inviteUser(email, name, "Admin", new com.talentboozt.s_backend.domains.edu.enums.ERoles[] {
+        EUser owner;
+        boolean isNewUser = false;
+        java.util.Optional<EUser> existingOwnerOpt = userRepository.findByEmail(email);
+        if (existingOwnerOpt.isEmpty()) {
+            owner = inviteUser(email, name, "Admin", new com.talentboozt.s_backend.domains.edu.enums.ERoles[] {
                     com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_ADMIN
             });
-        });
+            isNewUser = true;
+        } else {
+            owner = existingOwnerOpt.get();
+        }
 
         // Ensure owner has ENTERPRISE_ADMIN role
         boolean hasAdminRole = false;
@@ -346,17 +355,44 @@ public class EduAdminService {
                 }
             }
         }
+
+        java.util.List<com.talentboozt.s_backend.domains.edu.enums.ERoles> updatedRoles = new java.util.ArrayList<>();
+        if (owner.getRoles() != null) {
+            updatedRoles.addAll(java.util.Arrays.asList(owner.getRoles()));
+        }
         if (!hasAdminRole) {
-            java.util.List<com.talentboozt.s_backend.domains.edu.enums.ERoles> updatedRoles = new java.util.ArrayList<>();
-            if (owner.getRoles() != null) {
-                updatedRoles.addAll(java.util.Arrays.asList(owner.getRoles()));
-            }
             updatedRoles.add(com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_ADMIN);
             owner.setRoles(updatedRoles.toArray(new com.talentboozt.s_backend.domains.edu.enums.ERoles[0]));
             userRepository.save(owner);
-            
-            // Sync globally too
             credentialsService.updateUserRoles(owner.getId(), updatedRoles.stream().map(Enum::name).collect(java.util.stream.Collectors.toList()));
+        }
+
+        // If the user already existed in our database, we should still reset/generate a default password
+        // and send them the invitation email. This ensures the admin credentials (email & password)
+        // are always sent to the enterprise owner.
+        if (!isNewUser) {
+            String defaultPassword = java.util.UUID.randomUUID().toString().substring(0, 8);
+            String encryptedPass = defaultPassword;
+            try {
+                encryptedPass = com.talentboozt.s_backend.shared.utils.EncryptionUtility.encrypt(defaultPassword);
+            } catch (Exception e) {
+                // Ignore
+            }
+
+            // Update globally
+            com.talentboozt.s_backend.domains.auth.model.CredentialsModel globalCreds = credentialsService.getCredentialsByEmail(email);
+            if (globalCreds != null) {
+                credentialsService.updatePassword(globalCreds.getId(), encryptedPass);
+                java.util.List<String> newRolesStr = updatedRoles.stream().map(Enum::name).collect(java.util.stream.Collectors.toList());
+                credentialsService.updateUserRoles(owner.getId(), newRolesStr);
+            }
+
+            // Update locally
+            owner.setPasswordHash(passwordEncoder.encode(defaultPassword));
+            userRepository.save(owner);
+
+            // Send invitation email with the temporary password
+            sendInvitationEmail(email, name, "Admin", defaultPassword);
         }
 
         // 2. Create the workspace

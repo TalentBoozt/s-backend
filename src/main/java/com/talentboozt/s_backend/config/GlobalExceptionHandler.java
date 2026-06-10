@@ -215,6 +215,23 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<ApiErrorResponse> handleResponseStatusException(
+            org.springframework.web.server.ResponseStatusException ex, WebRequest request) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        if (status.is4xxClientError()) {
+            logger.warn("Response status client exception for request {}: {} - {}", getRequestPath(request), status, ex.getReason());
+        } else {
+            logger.error("Response status server exception for request {}: {} - {}", getRequestPath(request), status, ex.getReason(), ex);
+        }
+        return buildErrorResponse(
+                status,
+                ex.getReason() != null ? ex.getReason() : ex.getMessage(),
+                "API_ERROR",
+                request
+        );
+    }
+
     @ExceptionHandler(EduBaseException.class)
     public ResponseEntity<ApiErrorResponse> handleEduBaseException(EduBaseException ex, WebRequest request) {
         if (ex.getStatus().is4xxClientError()) {

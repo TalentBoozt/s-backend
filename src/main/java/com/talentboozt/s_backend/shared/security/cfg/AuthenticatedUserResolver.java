@@ -47,7 +47,9 @@ public class AuthenticatedUserResolver implements HandlerMethodArgumentResolver 
 
         // Check if the parameter is required. Typically, we expect authentication because of @PreAuthorize,
         // but this resolver should be robust.
-        throw new RuntimeException("Authentication Required: No valid JWT found in cookies or headers for " + 
-            parameter.getParameterName() + ". Please check your login status.");
+        throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.UNAUTHORIZED,
+            "Authentication Required: No valid JWT found in cookies or headers for " + parameter.getParameterName() + ". Please check your login status."
+        );
     }
 }
