@@ -24,6 +24,9 @@ public class EduWorkspaceMemberService {
     private final EWorkspacesRepository workspaceRepository;
     private final EUserRepository userRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService;
+
     public EduWorkspaceMemberService(EWorkspaceMembersRepository memberRepository, 
                                      EWorkspacesRepository workspaceRepository,
                                      EUserRepository userRepository) {
@@ -56,10 +59,11 @@ public class EduWorkspaceMemberService {
             throw new EduBadRequestException("User " + userId + " is already in this workspace");
         }
 
+        ERoles memberRole = role != null ? role : ERoles.ENTERPRISE_LEARNER;
         EWorkspaceMembers member = EWorkspaceMembers.builder()
                 .workspaceId(workspaceId)
                 .userId(userId)
-                .role(role != null ? role : ERoles.ENTERPRISE_LEARNER)
+                .role(memberRole)
                 .status("ACTIVE")
                 .invitedBy(inviterId)
                 .joinedAt(Instant.now())
@@ -68,6 +72,37 @@ public class EduWorkspaceMemberService {
                 
         ws.setTotalMembers(ws.getTotalMembers() + 1);
         workspaceRepository.save(ws);
+
+        // Sync roles and plan on EUser and CredentialsModel
+        userRepository.findById(userId).ifPresent(user -> {
+            java.util.Set<ERoles> rolesSet = new java.util.HashSet<>();
+            if (user.getRoles() != null) {
+                rolesSet.addAll(java.util.Arrays.asList(user.getRoles()));
+            }
+            rolesSet.add(memberRole);
+            
+            // If the workspace is ENTERPRISE, promote memberRole and set plan
+            if (ws.getPlan() == com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.ENTERPRISE) {
+                user.setPlan(com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.ENTERPRISE);
+                if (memberRole == ERoles.ENTERPRISE_INSTRUCTOR) {
+                    rolesSet.add(ERoles.ENTERPRISE_INSTRUCTOR);
+                } else if (memberRole == ERoles.ENTERPRISE_ADMIN) {
+                    rolesSet.add(ERoles.ENTERPRISE_ADMIN);
+                }
+            } else if (user.getPlan() == null || user.getPlan() == com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.FREE) {
+                user.setPlan(ws.getPlan());
+            }
+
+            user.setRoles(rolesSet.toArray(new ERoles[0]));
+            userRepository.save(user);
+
+            // Sync globally
+            try {
+                credentialsService.updateUserRoles(userId, rolesSet.stream().map(Enum::name).collect(java.util.stream.Collectors.toList()));
+            } catch (Exception e) {
+                // Ignore/log
+            }
+        });
 
         EWorkspaceMembers saved = memberRepository.save(member);
         return mapToDTO(saved);

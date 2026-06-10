@@ -163,13 +163,34 @@ public class EduProfileService {
 
         // Roles
         dto.setRoles(java.util.Arrays.stream(user.getRoles()).map(Enum::name).toArray(String[]::new));
-        dto.setPlanShortCode(user.getPlan().name());
-        dto.setProMember(user.getPlan() == com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.PRO || user.getPlan() == com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.PREMIUM);
+        com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan effectivePlan = user.getPlan();
+        if (effectivePlan == null) {
+            effectivePlan = com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.FREE;
+        }
+        if (user.getRoles() != null) {
+            boolean isEnterprise = java.util.Arrays.stream(user.getRoles()).anyMatch(role ->
+                role == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_ADMIN ||
+                role == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_MANAGER ||
+                role == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_INSTRUCTOR
+            );
+            if (isEnterprise) {
+                effectivePlan = com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.ENTERPRISE;
+            }
+        }
+        dto.setPlanShortCode(effectivePlan.name());
+        dto.setProMember(effectivePlan == com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.PRO ||
+                         effectivePlan == com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.PREMIUM ||
+                         effectivePlan == com.talentboozt.s_backend.domains.edu.enums.ESubscriptionPlan.ENTERPRISE);
 
         // Stats & Content
         Map<String, Object> stats = new java.util.HashMap<>();
         
-        boolean isCreator = java.util.Arrays.stream(user.getRoles()).anyMatch(r -> r.name().startsWith("SELLER") || r == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_INSTRUCTOR);
+        boolean isCreator = java.util.Arrays.stream(user.getRoles()).anyMatch(r ->
+            r.name().startsWith("SELLER") ||
+            r == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_INSTRUCTOR ||
+            r == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_ADMIN ||
+            r == com.talentboozt.s_backend.domains.edu.enums.ERoles.ENTERPRISE_MANAGER
+        );
         if (isCreator) {
             var courses = courseRepository.findByCreatorId(userId);
             stats.put("coursesPublished", courses.size());
