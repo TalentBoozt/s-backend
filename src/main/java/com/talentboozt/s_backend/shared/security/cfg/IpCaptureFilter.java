@@ -1,12 +1,12 @@
 package com.talentboozt.s_backend.shared.security.cfg;
 
-import com.talentboozt.s_backend.domains.ai_tool.service.CreditService;
-import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
-import com.talentboozt.s_backend.domains.audit_logs.service.ClientActAuditLogService;
+import com.talentboozt.s_backend.shared.ai.tool.service.CreditService;
+import com.talentboozt.s_backend.shared.identity.model.CredentialsModel;
+import com.talentboozt.s_backend.shared.audit.logs.service.ClientActAuditLogService;
 import com.talentboozt.s_backend.shared.security.service.IpTimeZoneService;
 import com.talentboozt.s_backend.shared.security.service.RateLimiterService;
 import com.talentboozt.s_backend.shared.security.service.TimeZoneMismatchService;
-import com.talentboozt.s_backend.domains._private.service.UserActivityService;
+import com.talentboozt.s_backend.domains.admin.service.UserActivityService;
 import com.talentboozt.s_backend.shared.security.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -33,13 +33,13 @@ public class IpCaptureFilter extends OncePerRequestFilter {
     private final TimeZoneMismatchService timeZoneMisMatchService;
     private final ClientActAuditLogService clientActAuditLogService;
     private final CreditService creditService;
-    private final com.talentboozt.s_backend.domains.payment.service.PaymentSubscriptionService subscriptionService;
+    private final com.talentboozt.s_backend.shared.payment.service.PaymentSubscriptionService subscriptionService;
 
     public IpCaptureFilter(UserActivityService userActivityService, RateLimiterService rateLimiterService,
             JwtService jwtService,
             IpTimeZoneService ipTimeZoneService, TimeZoneMismatchService timeZoneMisMatchService,
             ClientActAuditLogService clientActAuditLogService, CreditService creditService,
-            com.talentboozt.s_backend.domains.payment.service.PaymentSubscriptionService subscriptionService) {
+            com.talentboozt.s_backend.shared.payment.service.PaymentSubscriptionService subscriptionService) {
         this.userActivityService = userActivityService;
         this.rateLimiterService = rateLimiterService;
         this.jwtService = jwtService;

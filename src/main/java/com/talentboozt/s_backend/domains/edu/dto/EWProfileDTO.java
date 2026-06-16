@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.domains.edu.dto;
 
-import com.talentboozt.s_backend.domains.common.dto.SocialLinksDTO;
+import com.talentboozt.s_backend.shared.common.dto.SocialLinksDTO;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

@@ -19,7 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class EduAdminService {
 
     @Autowired
-    private com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService;
+    private com.talentboozt.s_backend.shared.auth.service.CredentialsService credentialsService;
 
     @Autowired
     private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
@@ -134,14 +134,14 @@ public class EduAdminService {
             // Ignore
         }
 
-        com.talentboozt.s_backend.domains.auth.model.CredentialsModel globalCreds = credentialsService.getCredentialsByEmail(email);
+        com.talentboozt.s_backend.shared.identity.model.CredentialsModel globalCreds = credentialsService.getCredentialsByEmail(email);
         if (globalCreds != null) {
             userIdToUse = globalCreds.getEmployeeId();
             credentialsService.updatePassword(globalCreds.getId(), encryptedPass);
             java.util.List<String> newRolesList = java.util.Arrays.stream(roles).map(Enum::name).collect(java.util.stream.Collectors.toList());
             credentialsService.updateUserRoles(userIdToUse, newRolesList);
         } else {
-            com.talentboozt.s_backend.domains.auth.model.CredentialsModel newCreds = com.talentboozt.s_backend.domains.auth.model.CredentialsModel
+            com.talentboozt.s_backend.shared.identity.model.CredentialsModel newCreds = com.talentboozt.s_backend.shared.identity.model.CredentialsModel
                     .builder()
                     .email(email)
                     .password(encryptedPass)
@@ -380,7 +380,7 @@ public class EduAdminService {
             }
 
             // Update globally
-            com.talentboozt.s_backend.domains.auth.model.CredentialsModel globalCreds = credentialsService.getCredentialsByEmail(email);
+            com.talentboozt.s_backend.shared.identity.model.CredentialsModel globalCreds = credentialsService.getCredentialsByEmail(email);
             if (globalCreds != null) {
                 credentialsService.updatePassword(globalCreds.getId(), encryptedPass);
                 java.util.List<String> newRolesStr = updatedRoles.stream().map(Enum::name).collect(java.util.stream.Collectors.toList());

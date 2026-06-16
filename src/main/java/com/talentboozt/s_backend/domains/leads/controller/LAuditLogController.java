@@ -1,7 +1,7 @@
 package com.talentboozt.s_backend.domains.leads.controller;
 
-import com.talentboozt.s_backend.domains.audit_logs.model.LeadOSAuditLog;
-import com.talentboozt.s_backend.domains.audit_logs.repository.mongodb.LeadOSAuditLogRepository;
+import com.talentboozt.s_backend.shared.audit.logs.model.LeadOSAuditLog;
+import com.talentboozt.s_backend.shared.audit.logs.repository.mongodb.LeadOSAuditLogRepository;
 import com.talentboozt.s_backend.shared.security.utils.SecurityUtils;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;

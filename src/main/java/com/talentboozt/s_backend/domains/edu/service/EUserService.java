@@ -2,9 +2,9 @@ package com.talentboozt.s_backend.domains.edu.service;
 
 import com.talentboozt.s_backend.domains.edu.dto.auth.LoginRequest;
 import com.talentboozt.s_backend.domains.edu.dto.auth.RegisterRequest;
-import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
+import com.talentboozt.s_backend.shared.auth.service.CredentialsService;
 import com.talentboozt.s_backend.domains.edu.dto.auth.AuthResponse;
-import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
+import com.talentboozt.s_backend.shared.identity.model.CredentialsModel;
 import com.talentboozt.s_backend.domains.edu.enums.ERoles;
 import com.talentboozt.s_backend.domains.edu.exception.EduBadRequestException;
 import com.talentboozt.s_backend.domains.edu.exception.EduInvalidCredentialsException;
@@ -12,8 +12,8 @@ import com.talentboozt.s_backend.domains.edu.model.EProfiles;
 import com.talentboozt.s_backend.domains.edu.model.EUser;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EUserRepository;
-import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
-import com.talentboozt.s_backend.domains.user.repository.mongodb.EmployeeRepository;
+import com.talentboozt.s_backend.domains.portal.user_profile.model.EmployeeModel;
+import com.talentboozt.s_backend.domains.portal.user_profile.repository.mongodb.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -92,7 +92,7 @@ public class EUserService {
             log.error("Failed to encrypt password with EncryptionUtility", e);
         }
 
-        com.talentboozt.s_backend.domains.auth.model.CredentialsModel globalCreds = com.talentboozt.s_backend.domains.auth.model.CredentialsModel
+        com.talentboozt.s_backend.shared.identity.model.CredentialsModel globalCreds = com.talentboozt.s_backend.shared.identity.model.CredentialsModel
                 .builder()
                 .email(request.getEmail())
                 .password(encryptedPassword)
@@ -157,7 +157,7 @@ public class EUserService {
         }
 
         // Fallback: Check if user exists in the core ecosystem (SSO)
-        com.talentboozt.s_backend.domains.auth.model.CredentialsModel globalCreds = credentialsService
+        com.talentboozt.s_backend.shared.identity.model.CredentialsModel globalCreds = credentialsService
                 .getCredentialsByEmail(request.getEmail());
 
         if (globalCreds != null) {

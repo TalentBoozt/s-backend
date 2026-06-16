@@ -1,12 +1,12 @@
 package com.talentboozt.s_backend.shared.scheduler;
 
-import com.talentboozt.s_backend.domains.com_courses.dto.ModuleDTO;
-import com.talentboozt.s_backend.domains.plat_courses.dto.CourseEnrollment;
-import com.talentboozt.s_backend.domains.plat_courses.model.CourseReminderLog;
-import com.talentboozt.s_backend.domains.plat_courses.model.EmpCoursesModel;
-import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.CourseReminderLogRepository;
-import com.talentboozt.s_backend.domains.plat_courses.repository.mongodb.EmpCoursesRepository;
-import com.talentboozt.s_backend.domains.audit_logs.service.CourseReminderAuditLogService;
+import com.talentboozt.s_backend.domains.portal.courses.community.dto.ModuleDTO;
+import com.talentboozt.s_backend.domains.portal.courses.platform.dto.CourseEnrollment;
+import com.talentboozt.s_backend.domains.portal.courses.platform.model.CourseReminderLog;
+import com.talentboozt.s_backend.domains.portal.courses.platform.model.EmpCoursesModel;
+import com.talentboozt.s_backend.domains.portal.courses.platform.repository.mongodb.CourseReminderLogRepository;
+import com.talentboozt.s_backend.domains.portal.courses.platform.repository.mongodb.EmpCoursesRepository;
+import com.talentboozt.s_backend.shared.audit.logs.service.CourseReminderAuditLogService;
 import com.talentboozt.s_backend.shared.mail.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

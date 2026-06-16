@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.shared.realtime.adapter;
 
-import com.talentboozt.s_backend.domains.pipeline.domain.event.CandidateStageChangedEvent;
+import com.talentboozt.s_backend.domains.portal.job_portal.pipeline.domain.event.CandidateStageChangedEvent;
 import com.talentboozt.s_backend.shared.realtime.service.RealtimeBroadcaster;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;

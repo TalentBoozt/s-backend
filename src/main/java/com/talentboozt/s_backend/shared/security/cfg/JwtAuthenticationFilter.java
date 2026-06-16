@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.shared.security.cfg;
 
-import com.talentboozt.s_backend.domains.auth.service.CustomUserDetailsService;
+import com.talentboozt.s_backend.shared.auth.service.CustomUserDetailsService;
 import com.talentboozt.s_backend.shared.security.service.JwtService;
 import com.talentboozt.s_backend.shared.utils.JwtUtil;
 import io.jsonwebtoken.ExpiredJwtException;

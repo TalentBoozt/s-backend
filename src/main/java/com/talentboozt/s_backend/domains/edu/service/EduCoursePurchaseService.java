@@ -36,7 +36,7 @@ import com.talentboozt.s_backend.domains.edu.repository.mongodb.EAffiliatesRepos
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EBundlesRepository;
 import com.talentboozt.s_backend.domains.edu.repository.mongodb.EEnrollmentsRepository;
 
-import com.talentboozt.s_backend.domains.referral.service.ReferralService;
+import com.talentboozt.s_backend.domains.portal.referral.service.ReferralService;
 import com.talentboozt.s_backend.domains.edu.service.EduAnalyticsEventService;
 
 @Service

@@ -3,7 +3,7 @@ package com.talentboozt.s_backend.domains._public.controller;
 import com.talentboozt.s_backend.domains._public.dto.ContactFormRequest;
 import com.talentboozt.s_backend.domains._public.dto.CtaLeadRequest;
 import com.talentboozt.s_backend.domains._public.service.PublicContactService;
-import com.talentboozt.s_backend.domains.common.dto.ApiResponse;
+import com.talentboozt.s_backend.shared.common.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,0 +1,361 @@
+package com.talentboozt.s_backend.shared.auth.controller;
+
+import com.talentboozt.s_backend.shared.auth.service.UserPermissionsService;
+import com.talentboozt.s_backend.shared.common.dto.ErrorResponse;
+import com.talentboozt.s_backend.domains.portal.user_profile.model.EmployeeModel;
+import com.talentboozt.s_backend.domains.portal.user_profile.model.PlatformRole;
+import com.talentboozt.s_backend.domains.portal.user_profile.service.EmployeeService;
+import com.talentboozt.s_backend.shared.auth.dto.SSO.JwtUserPayload;
+import com.talentboozt.s_backend.shared.identity.model.CredentialsModel;
+import com.talentboozt.s_backend.shared.auth.service.CredentialsService;
+import com.talentboozt.s_backend.shared.security.service.JwtService;
+import com.talentboozt.s_backend.shared.security.service.KeyService;
+import com.talentboozt.s_backend.shared.utils.JwtUtil;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    private final CredentialsService credentialsService;
+    private final EmployeeService employeeService;
+    private final JwtService jwtService;
+    private final KeyService keyService;
+    private final JwtUtil jwtUtil;
+    private final UserPermissionsService userPermissionsService;
+    private final com.talentboozt.s_backend.shared.security.utils.SecurityUtils securityUtils;
+
+    private final int COOKIE_EXPIRATION = 60 * 60 * 24 * 7;
+
+    public AuthController(CredentialsService credentialsService, EmployeeService employeeService, JwtService jwtService,
+            KeyService keyService,
+            JwtUtil jwtUtil, UserPermissionsService userPermissionsService,
+            com.talentboozt.s_backend.shared.security.utils.SecurityUtils securityUtils) {
+        this.credentialsService = credentialsService;
+        this.employeeService = employeeService;
+        this.jwtService = jwtService;
+        this.keyService = keyService;
+        this.jwtUtil = jwtUtil;
+        this.userPermissionsService = userPermissionsService;
+        this.securityUtils = securityUtils;
+    }
+
+    @PostMapping({ "/login", "/login/{platform}", "/register", "/register/{platform}" })
+    public ResponseEntity<?> loginOrRegister(@PathVariable(value = "platform", required = false) String platform,
+            @RequestBody CredentialsModel loginRequest) {
+        Optional<CredentialsModel> userOptional = Optional
+                .ofNullable(credentialsService.getCredentialsByEmail(loginRequest.getEmail()));
+        Optional<EmployeeModel> employeeOptional = Optional
+                .ofNullable(employeeService.getEmployeeByEmail(loginRequest.getEmail()));
+
+        // If user exists → LOGIN
+        if (userOptional.isPresent() && employeeOptional.isPresent()) {
+            CredentialsModel user = userOptional.get();
+            EmployeeModel emp = employeeOptional.get();
+
+            if (user.isDisabled()) {
+                return ResponseEntity.badRequest().body(new ErrorResponse("Your account is disabled"));
+            }
+
+            JwtUserPayload userPayload = new JwtUserPayload();
+            userPayload.setUserId(user.getEmployeeId());
+            userPayload.setEmail(user.getEmail());
+            userPayload.setUserLevel(user.getUserLevel());
+            userPayload.setPlatformRole(emp.getPlatformRole());
+            userPayload.setRoles(user.getRoles());
+            userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
+
+            try {
+                // Decrypt stored password
+                ResponseEntity<Map<String, String>> decryptedPassword = keyService.decryptData(user.getPassword());
+                
+                if (!decryptedPassword.getStatusCode().is2xxSuccessful()) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(new ErrorResponse("Decryption failed: " + Objects.requireNonNull(decryptedPassword.getBody()).get("Decryption failed")));
+                }
+
+                String password = Objects.requireNonNull(decryptedPassword.getBody()).get("data");
+
+                // Compare decrypted password with input
+                if (password == null || !password.equals(loginRequest.getPassword())) {
+                    return ResponseEntity.badRequest().body(new ErrorResponse("Invalid password"));
+                }
+
+                // Generate JWT Token
+                String token = jwtService.generateToken(userPayload);
+                String refreshToken = jwtService.generateRefreshToken(userPayload);
+
+                return ResponseEntity.ok(new AuthResponse(token, refreshToken, user.getEmployeeId(), user.getEmail(),
+                        user.getUserLevel(), emp.getPlatformRole(), user.getOrganizations(), user.getActiveWorkspaceId(),
+                        user.getPermissions(),
+                        user.getRoles(), user.isActive(), user.getFirstname(), user.getLastname()));
+
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body(new ErrorResponse("Decryption failed: " + e.getMessage()));
+            }
+        }
+
+        // If user does NOT exist AND username is provided → REGISTER
+        if (loginRequest.getFirstname() != null && !loginRequest.getFirstname().trim().isEmpty()) {
+            try {
+                ResponseEntity<Map<String, String>> encryptedPassword = keyService
+                        .encryptData(loginRequest.getPassword());
+                String password = Objects.requireNonNull(encryptedPassword.getBody()).get("data");
+                String referrer = loginRequest.getReferrerId();
+
+                loginRequest.setPassword(password);
+
+                CredentialsModel newUser = credentialsService.addCredentials(loginRequest, platform, referrer);
+
+                if (newUser.isDisabled()) {
+                    return ResponseEntity.status(403)
+                            .body(new ErrorResponse("Registered user but your account is disabled"));
+                }
+
+                JwtUserPayload userPayload = new JwtUserPayload();
+                userPayload.setUserId(newUser.getEmployeeId());
+                userPayload.setEmail(newUser.getEmail());
+                userPayload.setUserLevel(newUser.getUserLevel());
+                userPayload.setPlatformRole(PlatformRole.USER);
+                userPayload.setRoles(newUser.getRoles());
+                userPayload.setPermissions(userPermissionsService.resolvePermissions(newUser.getRoles()));
+
+                // Generate JWT Token for new user
+                String token = jwtService.generateToken(userPayload);
+                String refreshToken = jwtService.generateRefreshToken(userPayload);
+
+                return ResponseEntity.ok(new AuthResponse(token, refreshToken, newUser.getEmployeeId(),
+                        newUser.getEmail(), newUser.getUserLevel(), PlatformRole.USER,
+                        newUser.getOrganizations(), newUser.getActiveWorkspaceId(), newUser.getPermissions(), newUser.getRoles(), newUser.isActive(),
+                        newUser.getFirstname(), newUser.getLastname()));
+
+            } catch (Exception e) {
+                return ResponseEntity.status(500).body(new ErrorResponse("Encryption failed: " + e.getMessage()));
+            }
+        }
+
+        // No username provided → cannot register
+        return ResponseEntity.badRequest().body(new ErrorResponse("User not found! Please register first"));
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+        String refreshToken = refreshTokenRequest.getRefreshToken();
+
+        // Validate and parse the refresh token
+        if (jwtService.validateToken(refreshToken)) {
+            // Extract user information from refresh token or database
+            String email = jwtUtil.extractUsername(refreshToken);
+            CredentialsModel user = credentialsService.getCredentialsByEmail(email);
+            EmployeeModel emp = employeeService.getEmployeeByEmail(email);
+            JwtUserPayload userPayload = new JwtUserPayload();
+            userPayload.setUserId(user.getEmployeeId());
+            userPayload.setEmail(user.getEmail());
+            userPayload.setUserLevel(user.getUserLevel());
+            userPayload.setPlatformRole(emp.getPlatformRole());
+            userPayload.setRoles(user.getRoles());
+            userPayload.setPermissions(userPermissionsService.resolvePermissions(user.getRoles()));
+
+            // Generate new access token
+            String newAccessToken = jwtService.generateToken(userPayload);
+            String newRefreshToken = jwtService.generateRefreshToken(userPayload);
+
+            // Return new access token
+            return ResponseEntity.ok(new AuthResponse(newAccessToken, newRefreshToken, user.getEmployeeId(),
+                    user.getEmail(), user.getUserLevel(), emp.getPlatformRole(), user.getOrganizations(),
+                    user.getActiveWorkspaceId(),
+                    user.getPermissions(), user.getRoles(), user.isActive(), user.getFirstname(), user.getLastname()));
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid refresh token"));
+    }
+
+    @PostMapping("/social-login-process/{platform}")
+    public ResponseEntity<?> socialLoginProcess(@RequestBody CredentialsModel credentials,
+            @PathVariable String platform, HttpServletResponse response) {
+        CredentialsModel savedUser = credentialsService.addCredentials(credentials, platform,
+                credentials.getReferrerId());
+
+        JwtUserPayload userPayload = new JwtUserPayload();
+        userPayload.setUserId(savedUser.getEmployeeId());
+        userPayload.setEmail(savedUser.getEmail());
+        userPayload.setUserLevel(savedUser.getUserLevel());
+        userPayload.setPlatformRole(PlatformRole.USER);
+        userPayload.setRoles(savedUser.getRoles());
+        userPayload.setPermissions(userPermissionsService.resolvePermissions(savedUser.getRoles()));
+
+        if (savedUser.isDisabled()) {
+            return ResponseEntity.status(403).body(new ErrorResponse("Registered user but your account is disabled"));
+        }
+
+        // After successful save or fetch, generate tokens
+        String accessToken = jwtService.generateToken(userPayload);
+        String refreshToken = jwtService.generateRefreshToken(userPayload);
+
+        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", Objects.requireNonNull(accessToken))
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talnova.io")
+                .path("/")
+                .maxAge(3600) // 1 hour
+                .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", Objects.requireNonNull(refreshToken))
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talnova.io")
+                .path("/")
+                .maxAge(2592000) // 30 days
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("accessToken", accessToken);
+        responseBody.put("refreshToken", refreshToken);
+        responseBody.put("user", savedUser);
+
+        return ResponseEntity.ok(responseBody);
+    }
+
+    @GetMapping("/getTokens/{email}")
+    public ResponseEntity<?> getCredentialsByEmail(@PathVariable String email, HttpServletResponse response) {
+        CredentialsModel credentials = credentialsService.getCredentialsByEmail(email);
+        EmployeeModel emp = employeeService.getEmployeeByEmail(email);
+        if (credentials == null)
+            return null;
+
+        JwtUserPayload userPayload = new JwtUserPayload();
+        userPayload.setUserId(credentials.getEmployeeId());
+        userPayload.setEmail(credentials.getEmail());
+        userPayload.setUserLevel(credentials.getUserLevel());
+        userPayload.setPlatformRole(emp.getPlatformRole());
+        userPayload.setRoles(credentials.getRoles());
+        userPayload.setPermissions(userPermissionsService.resolvePermissions(credentials.getRoles()));
+
+        String accessToken = jwtService.generateToken(userPayload);
+        String refreshToken = jwtService.generateRefreshToken(userPayload);
+
+        ResponseCookie accessCookie = ResponseCookie.from("TB_SESSION", Objects.requireNonNull(accessToken))
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talnova.io")
+                .path("/")
+                .maxAge(3600) // 1 hour
+                .build();
+
+        ResponseCookie refreshCookie = ResponseCookie.from("TB_REFRESH", Objects.requireNonNull(refreshToken))
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("None")
+                .domain(".talnova.io")
+                .path("/")
+                .maxAge(2592000) // 30 days
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessCookie.toString());
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("accessToken", accessToken);
+        responseBody.put("refreshToken", refreshToken);
+
+        return ResponseEntity.ok(responseBody);
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("Email is required"));
+        }
+        return ResponseEntity.ok(Map.of("message", "Password reset instructions sent to " + email));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(Map.of("message", "Password reset successfully."));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser() {
+        String userId = securityUtils.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Not authenticated"));
+        }
+        return credentialsService.getCredentials(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/workspace/{workspaceId}/select")
+    public ResponseEntity<?> selectWorkspace(@PathVariable String workspaceId) {
+        String userId = securityUtils.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Not authenticated"));
+        }
+        credentialsService.setActiveWorkspaceId(userId, workspaceId);
+        return ResponseEntity.ok(Map.of("message", "Workspace selected successfully", "workspaceId", workspaceId));
+    }
+}
+
+@Getter
+@Setter
+class AuthResponse {
+    private String token;
+    private String refreshToken;
+    private String employeeId;
+    private String email;
+    private List<Map<String, String>> organizations;
+    private String activeWorkspaceId;
+    private List<String> permissions;
+    private List<String> roles;
+    private String userLevel;
+    private PlatformRole platformRole;
+    private boolean active;
+    private String firstname;
+    private String lastname;
+
+    public AuthResponse(String token, String refreshToken, String employeeId, String email, String userLevel,
+            PlatformRole platformRole, List<Map<String, String>> organizations, String activeWorkspaceId,
+            List<String> permissions,
+            List<String> roles,
+            boolean active, String firstname, String lastname) {
+        this.token = token;
+        this.refreshToken = refreshToken;
+        this.employeeId = employeeId;
+        this.email = email;
+        this.userLevel = userLevel;
+        this.platformRole = platformRole;
+        this.organizations = organizations;
+        this.activeWorkspaceId = activeWorkspaceId;
+        this.permissions = permissions;
+        this.roles = roles;
+        this.active = active;
+        this.firstname = firstname;
+        this.lastname = lastname;
+    }
+}
+
+@Getter
+@Setter
+class RefreshTokenRequest {
+    private String refreshToken;
+}

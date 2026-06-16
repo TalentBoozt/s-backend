@@ -1,8 +1,8 @@
 package com.talentboozt.s_backend.config;
 
-import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
-import com.talentboozt.s_backend.domains.auth.service.CredentialsService;
-import com.talentboozt.s_backend.domains.auth.service.CustomUserDetailsService;
+import com.talentboozt.s_backend.shared.identity.model.CredentialsModel;
+import com.talentboozt.s_backend.shared.auth.service.CredentialsService;
+import com.talentboozt.s_backend.shared.auth.service.CustomUserDetailsService;
 import com.talentboozt.s_backend.shared.security.cfg.JwtAuthenticationFilter;
 import com.talentboozt.s_backend.shared.security.cfg.ApiKeyAuthenticationFilter;
 import com.talentboozt.s_backend.shared.utils.ConfigUtility;

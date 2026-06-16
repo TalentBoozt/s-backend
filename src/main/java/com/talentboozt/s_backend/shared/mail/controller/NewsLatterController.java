@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.shared.mail.controller;
 
-import com.talentboozt.s_backend.domains.common.dto.ApiResponse;
+import com.talentboozt.s_backend.shared.common.dto.ApiResponse;
 import com.talentboozt.s_backend.shared.mail.model.NewsLatterModel;
 import com.talentboozt.s_backend.shared.mail.service.EmailService;
 import com.talentboozt.s_backend.shared.mail.service.NewsLatterService;

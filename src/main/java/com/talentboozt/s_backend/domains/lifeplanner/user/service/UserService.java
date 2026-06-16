@@ -7,7 +7,7 @@ import com.talentboozt.s_backend.domains.lifeplanner.user.model.UserPreferences;
 import com.talentboozt.s_backend.domains.lifeplanner.user.repository.mongodb.UserRepository;
 import com.talentboozt.s_backend.domains.lifeplanner.user.repository.mongodb.UserProfileRepository;
 import com.talentboozt.s_backend.domains.lifeplanner.user.repository.mongodb.UserPreferencesRepository;
-import com.talentboozt.s_backend.domains.user.repository.mongodb.EmployeeRepository;
+import com.talentboozt.s_backend.domains.portal.user_profile.repository.mongodb.EmployeeRepository;
 import java.time.Instant;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;

@@ -1,8 +1,8 @@
 package com.talentboozt.s_backend.shared.security.interceptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.talentboozt.s_backend.domains.subscription.application.entitlement.EntitlementResolutionResult;
-import com.talentboozt.s_backend.domains.subscription.application.entitlement.UserEntitlement;
+import com.talentboozt.s_backend.shared.subscription.application.entitlement.EntitlementResolutionResult;
+import com.talentboozt.s_backend.shared.subscription.application.entitlement.UserEntitlement;
 import com.talentboozt.s_backend.shared.security.annotations.RequirePlan;
 import com.talentboozt.s_backend.shared.security.annotations.RequireRole;
 import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;

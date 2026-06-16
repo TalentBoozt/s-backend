@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class EduSubscriptionService {
 
     @Autowired
-    private com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService;
+    private com.talentboozt.s_backend.shared.auth.service.CredentialsService credentialsService;
 
     @Autowired
     private com.talentboozt.s_backend.domains.edu.repository.mongodb.EWorkspacesRepository workspacesRepository;

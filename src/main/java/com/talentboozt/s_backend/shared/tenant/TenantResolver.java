@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.shared.tenant;
 
-import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
+import com.talentboozt.s_backend.shared.identity.model.CredentialsModel;
 import com.talentboozt.s_backend.shared.security.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
@@ -64,9 +64,16 @@ public class TenantResolver {
         }
         
         // 3. Try subdomain-based resolution (if needed)
+        // Note: Automatic subdomain registration is virtual/dynamic in this codebase.
+        // It relies on wildcard DNS records (e.g. *.talnova.io / *.edu.talnova.io) at the infrastructure
+        // layer (Cloudflare/Netlify) to route all subdomains to the same backend. The backend then extracts
+        // and resolves the tenant dynamically using the request's Host header.
+        // (TEMPORARILY DISABLED: Netlify free plan does not support wildcard operators)
+        /*
         if (tenantId == null) {
             tenantId = extractTenantFromSubdomain(request);
         }
+        */
         // 4. Workspace isolation (EDU multi-tenancy)
         String workspaceId = request.getHeader(WORKSPACE_HEADER);
         context.setWorkspaceId(workspaceId);
@@ -78,11 +85,17 @@ public class TenantResolver {
         return context;
     }
     
+    /**
+     * Extracts the virtual tenant subdomain from the Host header of the request.
+     * This enables dynamic wildcard subdomain mapping without requiring explicit API calls to a DNS provider.
+     * (TEMPORARILY DISABLED: Netlify free plan does not support wildcard operators)
+     */
+    /*
     private String extractTenantFromSubdomain(HttpServletRequest request) {
         String host = request.getHeader("Host");
         if (host != null && host.contains(".")) {
             String subdomain = host.split("\\.")[0];
-            // Validate subdomain format if needed
+            // Validate subdomain format - skip common/system subdomains like www or api
             if (subdomain != null && !subdomain.isEmpty() && 
                 !subdomain.equals("www") && !subdomain.equals("api")) {
                 return subdomain;
@@ -90,4 +103,5 @@ public class TenantResolver {
         }
         return null;
     }
+    */
 }
