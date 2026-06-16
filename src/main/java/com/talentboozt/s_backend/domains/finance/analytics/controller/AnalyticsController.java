@@ -1,0 +1,43 @@
+package com.talentboozt.s_backend.domains.finance.analytics.controller;
+
+import com.talentboozt.s_backend.domains.finance.analytics.service.AnalyticsPrecomputationService;
+import com.talentboozt.s_backend.domains.finance.analytics.service.AnalyticsQueryService;
+import com.talentboozt.s_backend.domains.finance.security.annotations.RequiresFinPermission;
+import com.talentboozt.s_backend.domains.finance.security.rbac.FinPermission;
+import com.talentboozt.s_backend.shared.dto.ApiResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/v1/finance/analytics")
+@RequiredArgsConstructor
+public class AnalyticsController {
+    private final AnalyticsQueryService queryService;
+    private final AnalyticsPrecomputationService precomputationService;
+
+    @GetMapping
+    @RequiresFinPermission(value = FinPermission.VIEW_ANALYTICS, orgIdSource = "header")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getAnalytics(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @RequestParam String projectId,
+            @RequestParam(required = false, defaultValue = "base") String scenarioId,
+            @RequestParam String metric,
+            @RequestParam(required = false, defaultValue = "MONTH") String groupBy) {
+        
+        return ResponseEntity.ok(ApiResponse.success(queryService.getMetricData(organizationId, projectId, scenarioId, metric, groupBy)));
+    }
+
+    @PostMapping("/precompute")
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header")
+    public ResponseEntity<ApiResponse<Void>> triggerPrecomputation(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @RequestParam String projectId,
+            @RequestParam(required = false, defaultValue = "base") String scenarioId) {
+        
+        precomputationService.precomputeAll(organizationId, projectId, scenarioId);
+        return ResponseEntity.ok(ApiResponse.success(null));
+    }
+}

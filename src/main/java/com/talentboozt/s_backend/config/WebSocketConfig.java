@@ -16,7 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.talentboozt.s_backend.shared.security.model.CustomUserDetails;
 import com.talentboozt.s_backend.shared.utils.JwtUtil;
-import com.talentboozt.s_backend.domains.auth.service.CustomUserDetailsService;
+import com.talentboozt.s_backend.shared.auth.service.CustomUserDetailsService;
 import com.talentboozt.s_backend.shared.security.websocket.WebSocketAuthInterceptor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
     
-    private final com.talentboozt.s_backend.domains.finance_planning.security.interceptor.FinWebSocketSecurityInterceptor securityInterceptor;
+    private final com.talentboozt.s_backend.domains.finance.security.interceptor.FinWebSocketSecurityInterceptor securityInterceptor;
     private final WebSocketAuthInterceptor webSocketAuthInterceptor;
 
     @Override

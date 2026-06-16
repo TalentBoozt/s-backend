@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.shared.security.cfg;
 
-import com.talentboozt.s_backend.domains.auth.model.CredentialsModel;
+import com.talentboozt.s_backend.shared.identity.model.CredentialsModel;
 import com.talentboozt.s_backend.shared.security.annotations.AuthenticatedUser;
 import com.talentboozt.s_backend.shared.security.service.JwtService;
 import jakarta.servlet.http.HttpServletRequest;

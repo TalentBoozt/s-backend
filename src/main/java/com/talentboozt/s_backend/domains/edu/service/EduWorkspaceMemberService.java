@@ -25,7 +25,7 @@ public class EduWorkspaceMemberService {
     private final EUserRepository userRepository;
 
     @org.springframework.beans.factory.annotation.Autowired
-    private com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService;
+    private com.talentboozt.s_backend.shared.auth.service.CredentialsService credentialsService;
 
     public EduWorkspaceMemberService(EWorkspaceMembersRepository memberRepository, 
                                      EWorkspacesRepository workspaceRepository,

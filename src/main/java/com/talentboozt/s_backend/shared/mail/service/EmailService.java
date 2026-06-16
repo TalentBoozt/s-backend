@@ -339,7 +339,7 @@ public class EmailService {
     }
 
     public void sendSupportRequestNotification(
-            com.talentboozt.s_backend.domains.support.model.SupportRequestModel request) {
+            com.talentboozt.s_backend.domains.portal.support.model.SupportRequestModel request) {
         String to = "info@talnova.io";
         String[] cc = { "kavindu@talnova.io", "dilum@talnova.io" };
         String subject = "New Resume Builder Request - " + request.getService();

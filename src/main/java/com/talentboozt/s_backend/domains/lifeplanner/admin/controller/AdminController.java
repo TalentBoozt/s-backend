@@ -1,9 +1,9 @@
 package com.talentboozt.s_backend.domains.lifeplanner.admin.controller;
 
 import com.talentboozt.s_backend.domains.lifeplanner.admin.service.LifePlannerAdminService;
-import com.talentboozt.s_backend.domains.user.model.EmployeeModel;
-import com.talentboozt.s_backend.domains.user.model.PlatformRole;
-import com.talentboozt.s_backend.domains.user.repository.mongodb.EmployeeRepository;
+import com.talentboozt.s_backend.domains.portal.user_profile.model.EmployeeModel;
+import com.talentboozt.s_backend.domains.portal.user_profile.model.PlatformRole;
+import com.talentboozt.s_backend.domains.portal.user_profile.repository.mongodb.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

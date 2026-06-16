@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.shared.mail.cfg;
 
-import com.talentboozt.s_backend.domains.audit_logs.service.SchedulerLoggerService;
+import com.talentboozt.s_backend.shared.audit.logs.service.SchedulerLoggerService;
 import com.talentboozt.s_backend.shared.mail.dto.EmailJob;
 import com.talentboozt.s_backend.shared.mail.service.HTMLEmailService;
 import jakarta.annotation.PostConstruct;

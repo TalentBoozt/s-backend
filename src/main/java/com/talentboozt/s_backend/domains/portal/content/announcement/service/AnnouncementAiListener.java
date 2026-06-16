@@ -1,0 +1,48 @@
+package com.talentboozt.s_backend.domains.portal.content.announcement.service;
+
+import com.talentboozt.s_backend.shared.ai.tool.dto.AiGeneratedSummary;
+import com.talentboozt.s_backend.shared.ai.tool.service.AiService;
+import com.talentboozt.s_backend.domains.portal.content.announcement.event.AnnouncementPublishedEvent;
+import com.talentboozt.s_backend.domains.portal.content.announcement.model.Announcement;
+import com.talentboozt.s_backend.domains.portal.content.announcement.model.AnnouncementType;
+import com.talentboozt.s_backend.domains.portal.content.announcement.repository.mongodb.AnnouncementRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor
+public class AnnouncementAiListener {
+    private final AiService aiService;
+    private final AnnouncementRepository announcementRepository;
+
+    @Async
+    @EventListener
+    public void handleAnnouncementPublished(AnnouncementPublishedEvent event) {
+        Announcement announcement = event.getAnnouncement();
+        String userId = announcement.getCreatedBy();
+
+        boolean shouldGenerate = announcement.isGenerateSummary() ||
+                announcement.getType() == AnnouncementType.FEATURE_RELEASE;
+
+        if (shouldGenerate) {
+            try {
+                log.info("Generating AI summary for announcement: {}", announcement.getId());
+                AiGeneratedSummary summary = aiService.generateReleaseSummary(userId, announcement.getContent());
+
+                announcement.setAiSummary(summary.getSummary());
+                announcement.setAiHighlights(summary.getHighlights());
+                announcement.setAiSnippet(summary.getSnippet());
+                announcement.setAiSeoDescription(summary.getSeoDescription());
+
+                announcementRepository.save(announcement);
+                log.info("AI summary generated and saved for announcement: {}", announcement.getId());
+            } catch (Exception e) {
+                log.error("Failed to generate AI summary for announcement: {}", announcement.getId(), e);
+            }
+        }
+    }
+}

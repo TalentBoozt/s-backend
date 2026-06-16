@@ -1,0 +1,267 @@
+package com.talentboozt.s_backend.domains.portal.content.article.service;
+
+import com.talentboozt.s_backend.domains.portal.content.article.dto.*;
+import com.talentboozt.s_backend.domains.portal.content.article.model.*;
+import com.talentboozt.s_backend.domains.portal.content.article.repository.mongodb.*;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class ArticleService {
+    private final ArticleRepository articleRepository;
+    private final TagRepository tagRepository;
+    private final MongoTemplate mongoTemplate;
+    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final ArticleValidationService articleValidationService;
+    private final ArticleEvaluationLogRepository evaluationLogRepository;
+
+    public ArticleResponse createArticle(ArticleRequest request, String authorId) {
+        List<String> tagIds = getOrCreateTags(request.getTags());
+
+        Article article = Article.builder()
+                .title(request.getTitle())
+                .slug(generateSlug(request.getTitle()))
+                .content(request.getContent())
+                .excerpt(request.getExcerpt())
+                .authorId(authorId)
+                .coverImage(request.getCoverImage())
+                .tagIds(tagIds)
+                .status(request.getStatus() != null ? request.getStatus() : ArticleStatus.DRAFT)
+                .readTime(calculateReadTime(request.getContent()))
+                .featured(request.isFeatured())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        Article saved = articleRepository.save(article);
+
+        if (saved.getStatus() == ArticleStatus.AI_VALIDATION_PENDING) {
+            // Alternatively, could be async. For now, doing it synchronously.
+            articleValidationService.validateArticle(saved);
+        } else if (saved.getStatus() == ArticleStatus.PUBLISHED) {
+            eventPublisher.publishEvent(
+                    new com.talentboozt.s_backend.domains.portal.content.article.event.ArticlePublishedEvent(this, saved));
+        }
+
+        return mapToResponse(saved);
+    }
+
+    public List<ArticleResponse> getTopArticles() {
+        // first 6 articles
+        return articleRepository.findTopArticles().stream()
+                .limit(6)
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public ArticleResponse getBySlug(String slug) {
+        Article article = articleRepository.findBySlug(slug)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+
+        incrementViews(article.getId());
+        return mapToResponse(article);
+    }
+
+    public ArticleResponse getById(String id) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+        incrementViews(id);
+        return mapToResponse(article);
+    }
+
+    public Page<ArticleResponse> search(String q, Pageable pageable) {
+        return articleRepository.searchArticles(q, pageable).map(this::mapToResponse);
+    }
+
+    public Page<ArticleResponse> getMyArticles(String authorId, Pageable pageable) {
+        return articleRepository.findByAuthorId(authorId, pageable).map(this::mapToResponse);
+    }
+
+    public ArticleResponse updateArticle(String id, ArticleRequest request, String userId) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+
+        if (!article.getAuthorId().equals(userId)) {
+            throw new RuntimeException("Unauthorized to update this article");
+        }
+
+        List<String> tagIds = getOrCreateTags(request.getTags());
+
+        article.setTitle(request.getTitle());
+        article.setSlug(generateSlug(request.getTitle()));
+        article.setContent(request.getContent());
+        article.setExcerpt(request.getExcerpt());
+        article.setCoverImage(request.getCoverImage());
+        article.setTagIds(tagIds);
+        article.setStatus(request.getStatus() != null ? request.getStatus() : article.getStatus());
+        article.setFeatured(request.isFeatured());
+        article.setReadTime(calculateReadTime(request.getContent()));
+        article.setUpdatedAt(LocalDateTime.now());
+
+        Article saved = articleRepository.save(article);
+
+        if (saved.getStatus() == ArticleStatus.AI_VALIDATION_PENDING) {
+            articleValidationService.validateArticle(saved);
+        } else if (saved.getStatus() == ArticleStatus.PUBLISHED) {
+            eventPublisher.publishEvent(
+                    new com.talentboozt.s_backend.domains.portal.content.article.event.ArticlePublishedEvent(this, saved));
+        }
+
+        return mapToResponse(saved);
+    }
+
+    public void deleteArticle(String id, String userId) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+
+        if (!article.getAuthorId().equals(userId)) {
+            throw new RuntimeException("Unauthorized to delete this article");
+        }
+
+        articleRepository.delete(article);
+    }
+
+    public Page<ArticleResponse> getPendingArticles(Pageable pageable) {
+        return articleRepository.findByStatus(ArticleStatus.PENDING_MANUAL_REVIEW, pageable).map(this::mapToResponse);
+    }
+
+    public ArticleResponse approveArticle(String id) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+        article.setStatus(ArticleStatus.PUBLISHED);
+        article.setUpdatedAt(LocalDateTime.now());
+        Article saved = articleRepository.save(article);
+        eventPublisher
+                .publishEvent(new com.talentboozt.s_backend.domains.portal.content.article.event.ArticlePublishedEvent(this, saved));
+        return mapToResponse(saved);
+    }
+
+    public ArticleResponse rejectArticle(String id) {
+        Article article = articleRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+        article.setStatus(ArticleStatus.REJECTED);
+        article.setUpdatedAt(LocalDateTime.now());
+        Article saved = articleRepository.save(article);
+        return mapToResponse(saved);
+    }
+
+    public ArticleEvaluationDTO getArticleEvaluation(String articleId) {
+        return evaluationLogRepository.findFirstByArticleIdOrderByEvaluatedAtDesc(articleId)
+                .map(ArticleEvaluationLog::getEvaluationResult)
+                .orElseThrow(() -> new RuntimeException("Evaluation not found for article " + articleId));
+    }
+
+    public List<ArticleResponse> getFeatured() {
+        return articleRepository.findFeaturedArticles().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private void incrementViews(String articleId) {
+        Query query = new Query(Criteria.where("id").is(articleId));
+        Update update = new Update().inc("views", 1);
+        mongoTemplate.updateFirst(query, update, Article.class);
+    }
+
+    private List<String> getOrCreateTags(List<String> tagNames) {
+        if (tagNames == null)
+            return Collections.emptyList();
+
+        return tagNames.stream().map(name -> {
+            return tagRepository.findByName(name)
+                    .orElseGet(() -> tagRepository.save(Tag.builder()
+                            .name(name)
+                            .slug(generateSlug(name))
+                            .build()));
+        }).map(Tag::getId).collect(Collectors.toList());
+    }
+
+    private String generateSlug(String text) {
+        return text.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
+    }
+
+    private int calculateReadTime(String content) {
+        if (content == null)
+            return 0;
+        int wordCount = content.trim().split("\\s+").length;
+        return (int) Math.ceil(wordCount / 225.0); // Avg reading speed: 225 wpm
+    }
+
+    public ArticleResponse likeArticle(String articleId, String userId) {
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+
+        Query query = new Query(Criteria.where("id").is(articleId));
+        Update update = new Update().inc("likes", 1);
+        mongoTemplate.updateFirst(query, update, Article.class);
+
+        eventPublisher.publishEvent(com.talentboozt.s_backend.domains.portal.content.article.event.ArticleLikedEvent.builder()
+                .articleId(articleId)
+                .userId(userId)
+                .authorId(article.getAuthorId())
+                .build());
+
+        return getBySlug(article.getSlug());
+    }
+
+    public void bookmarkArticle(String articleId, String userId) {
+        // In a real system, this would add to a bookmarks collection
+        // For now, we just trigger the reputation event as requested
+        Article article = articleRepository.findById(articleId)
+                .orElseThrow(() -> new RuntimeException("Article not found"));
+
+        // Trigger reputation event
+        eventPublisher.publishEvent(com.talentboozt.s_backend.domains.portal.content.article.event.ArticleBookmarkedEvent.builder()
+                .articleId(articleId)
+                .userId(userId)
+                .authorId(article.getAuthorId())
+                .build());
+    }
+
+    private ArticleResponse mapToResponse(Article article) {
+        ArticleResponse response = new ArticleResponse();
+        response.setId(article.getId());
+        response.setTitle(article.getTitle());
+        response.setSlug(article.getSlug());
+        response.setContent(article.getContent());
+        response.setExcerpt(article.getExcerpt());
+        response.setAuthorId(article.getAuthorId());
+        response.setCoverImage(article.getCoverImage());
+        response.setStatus(article.getStatus());
+        response.setReadTime(article.getReadTime());
+        response.setViews(article.getViews());
+        response.setLikes(article.getLikes());
+        response.setFeatured(article.isFeatured());
+        response.setCreatedAt(article.getCreatedAt());
+        response.setUpdatedAt(article.getUpdatedAt());
+
+        // Map AI Generated Fields
+        response.setAiSummary(article.getAiSummary());
+        response.setAiHighlights(article.getAiHighlights());
+        response.setAiSnippet(article.getAiSnippet());
+        response.setAiSeoDescription(article.getAiSeoDescription());
+
+        response.setMarkAsHighValue(article.isMarkAsHighValue());
+        response.setMarkAsInformative(article.isMarkAsInformative());
+        response.setManualReviewRequired(article.isManualReviewRequired());
+
+        if (article.getTagIds() != null) {
+            response.setTags(tagRepository.findAllById(article.getTagIds()).stream()
+                    .map(tag -> new TagResponse(tag.getId(), tag.getName(), tag.getSlug()))
+                    .collect(Collectors.toList()));
+        }
+
+        return response;
+    }
+}

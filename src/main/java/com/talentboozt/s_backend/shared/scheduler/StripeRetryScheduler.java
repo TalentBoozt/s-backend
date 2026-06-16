@@ -1,9 +1,9 @@
 package com.talentboozt.s_backend.shared.scheduler;
 
 import com.stripe.model.Event;
-import com.talentboozt.s_backend.domains.payment.controller.StripeWebhookController;
-import com.talentboozt.s_backend.domains.audit_logs.model.StripeAuditLog;
-import com.talentboozt.s_backend.domains.audit_logs.service.StripeAuditLogService;
+import com.talentboozt.s_backend.shared.payment.controller.StripeWebhookController;
+import com.talentboozt.s_backend.shared.audit.logs.model.StripeAuditLog;
+import com.talentboozt.s_backend.shared.audit.logs.service.StripeAuditLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

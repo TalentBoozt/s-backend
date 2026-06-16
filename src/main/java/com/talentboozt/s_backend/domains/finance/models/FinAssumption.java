@@ -1,0 +1,23 @@
+package com.talentboozt.s_backend.domains.finance.models;
+
+import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
+import org.springframework.data.mongodb.core.mapping.Document;
+import java.time.Instant;
+
+@Data
+@Document(collection = "fin_assumptions")
+public class FinAssumption implements VersionedEntity {
+    @Id
+    private String id;
+    private String organizationId;
+    private String projectId;
+    private String key;
+    private String value;
+    private String unit;
+    private String category;
+    @Version
+    private Integer version;
+    private Instant createdAt;
+}

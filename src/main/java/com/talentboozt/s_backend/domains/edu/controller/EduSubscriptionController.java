@@ -1,8 +1,8 @@
 package com.talentboozt.s_backend.domains.edu.controller;
 
-import com.talentboozt.s_backend.domains.subscription.domain.model.SubscriptionPlanCode;
-import com.talentboozt.s_backend.domains.subscription.model.Subscription;
-import com.talentboozt.s_backend.domains.subscription.service.SubscriptionService;
+import com.talentboozt.s_backend.shared.subscription.domain.model.SubscriptionPlanCode;
+import com.talentboozt.s_backend.shared.subscription.model.Subscription;
+import com.talentboozt.s_backend.shared.subscription.service.SubscriptionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;

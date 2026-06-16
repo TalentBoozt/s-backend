@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.shared.security.port;
 
-import com.talentboozt.s_backend.domains.subscription.application.entitlement.EntitlementResolutionResult;
+import com.talentboozt.s_backend.shared.subscription.application.entitlement.EntitlementResolutionResult;
 
 import java.util.Optional;
 

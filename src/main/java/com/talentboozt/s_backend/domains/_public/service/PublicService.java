@@ -1,9 +1,9 @@
 package com.talentboozt.s_backend.domains._public.service;
 
-import com.talentboozt.s_backend.domains.com_courses.dto.CourseMissedNotify;
-import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
-import com.talentboozt.s_backend.domains.com_courses.repository.mongodb.CourseRepository;
-import com.talentboozt.s_backend.domains.common.dto.ApiResponse;
+import com.talentboozt.s_backend.domains.portal.courses.community.dto.CourseMissedNotify;
+import com.talentboozt.s_backend.domains.portal.courses.community.model.CourseModel;
+import com.talentboozt.s_backend.domains.portal.courses.community.repository.mongodb.CourseRepository;
+import com.talentboozt.s_backend.shared.common.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 

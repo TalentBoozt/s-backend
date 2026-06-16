@@ -1,0 +1,68 @@
+package com.talentboozt.s_backend.domains.finance.controllers;
+
+import com.talentboozt.s_backend.domains.finance.models.FinPricingModel;
+import com.talentboozt.s_backend.domains.finance.repository.mongodb.FinPricingModelRepository;
+import com.talentboozt.s_backend.domains.finance.security.annotations.RequiresFinPermission;
+import com.talentboozt.s_backend.domains.finance.security.rbac.FinPermission;
+import com.talentboozt.s_backend.domains.finance.services.FinFinancialComputationService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/finance/pricing")
+@RequiredArgsConstructor
+public class FinPricingModelController {
+
+    private final FinPricingModelRepository repository;
+    private final FinFinancialComputationService computationService;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
+    @PostMapping("/bulk")
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header", projectIdSource = "param", projectIdKey = "projectId")
+    public ResponseEntity<List<FinPricingModel>> bulkUpdate(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @RequestParam String projectId,
+            @RequestBody List<FinPricingModel> entities) {
+        
+        entities.forEach(p -> {
+            p.setOrganizationId(organizationId);
+            p.setProjectId(projectId);
+            if (p.getPrice() == null) p.setPrice(0.0);
+            if (p.getCostPerUser() == null) p.setCostPerUser(0.0);
+        });
+        
+        List<FinPricingModel> saved = repository.saveAll(entities);
+        computationService.recomputeFinancials(organizationId, projectId);
+        
+        // Broadcast refresh
+        messagingTemplate.convertAndSend("/topic/project/" + projectId + "/state_update", "REFRESH");
+        
+        return ResponseEntity.ok(saved);
+    }
+
+    @PostMapping
+    @RequiresFinPermission(value = FinPermission.WRITE_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
+    public ResponseEntity<FinPricingModel> create(
+            @RequestHeader("X-Organization-Id") String organizationId,
+            @RequestBody FinPricingModel entity) {
+        entity.setOrganizationId(organizationId);
+        FinPricingModel saved = repository.save(entity);
+        // Trigger recomputation async or via event
+        computationService.recomputeFinancials(saved.getOrganizationId(), saved.getProjectId());
+        
+        // Broadcast refresh
+        messagingTemplate.convertAndSend("/topic/project/" + saved.getProjectId() + "/state_update", "REFRESH");
+        
+        return ResponseEntity.ok(saved);
+    }
+    
+    @GetMapping
+    @RequiresFinPermission(value = FinPermission.READ_PROJECT, orgIdSource = "header", projectIdSource = "header", projectIdKey = "X-Project-Id")
+    public ResponseEntity<List<FinPricingModel>> getByProject(@RequestParam String projectId,
+            @RequestHeader("X-Organization-Id") String organizationId) {
+        return ResponseEntity.ok(repository.findByOrganizationIdAndProjectId(organizationId, projectId));
+    }
+}

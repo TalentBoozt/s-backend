@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.config;
 
-import com.talentboozt.s_backend.domains.common.dto.ApiErrorResponse;
+import com.talentboozt.s_backend.shared.common.dto.ApiErrorResponse;
 import com.talentboozt.s_backend.domains.edu.exception.EduBaseException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
@@ -167,9 +167,9 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(com.talentboozt.s_backend.domains.community.exception.ResourceNotFoundException.class)
+    @ExceptionHandler(com.talentboozt.s_backend.domains.portal.community.exception.ResourceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleResourceNotFoundException(
-            com.talentboozt.s_backend.domains.community.exception.ResourceNotFoundException ex, WebRequest request) {
+            com.talentboozt.s_backend.domains.portal.community.exception.ResourceNotFoundException ex, WebRequest request) {
         logger.warn("Resource not found for request {}: {}", getRequestPath(request), ex.getMessage());
         return buildErrorResponse(
                 HttpStatus.NOT_FOUND,

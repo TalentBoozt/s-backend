@@ -1,11 +1,11 @@
 package com.talentboozt.s_backend.shared.async;
 
-import com.talentboozt.s_backend.domains.audit_logs.model.AsyncUpdateAuditLog;
-import com.talentboozt.s_backend.domains.audit_logs.repository.mongodb.AsyncUpdateAuditLogRepository;
-import com.talentboozt.s_backend.domains.com_courses.model.CourseBatchModel;
-import com.talentboozt.s_backend.domains.com_courses.model.CourseModel;
-import com.talentboozt.s_backend.domains.com_courses.service.CourseBatchService;
-import com.talentboozt.s_backend.domains.com_courses.service.CourseService;
+import com.talentboozt.s_backend.shared.audit.logs.model.AsyncUpdateAuditLog;
+import com.talentboozt.s_backend.shared.audit.logs.repository.mongodb.AsyncUpdateAuditLogRepository;
+import com.talentboozt.s_backend.domains.portal.courses.community.model.CourseBatchModel;
+import com.talentboozt.s_backend.domains.portal.courses.community.model.CourseModel;
+import com.talentboozt.s_backend.domains.portal.courses.community.service.CourseBatchService;
+import com.talentboozt.s_backend.domains.portal.courses.community.service.CourseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

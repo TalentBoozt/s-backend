@@ -1,0 +1,155 @@
+package com.talentboozt.s_backend.domains.finance.services;
+
+import com.talentboozt.s_backend.shared.identity.model.CredentialsModel;
+import com.talentboozt.s_backend.shared.auth.service.CredentialsService;
+import com.talentboozt.s_backend.domains.finance.dtos.auth.FinAuthResponse;
+import com.talentboozt.s_backend.domains.finance.dtos.auth.FinLoginRequest;
+import com.talentboozt.s_backend.domains.finance.dtos.auth.FinRegisterRequest;
+import com.talentboozt.s_backend.domains.finance.models.FinUser;
+import com.talentboozt.s_backend.domains.finance.repository.mongodb.FinUserRepository;
+import com.talentboozt.s_backend.domains.portal.user_profile.repository.mongodb.EmployeeRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.util.Optional;
+
+@Service
+public class FinUserService {
+
+    private final FinUserRepository finUserRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final FinJwtService jwtService;
+    private final CredentialsService credentialsService;
+
+    public FinUserService(FinUserRepository finUserRepository, 
+                         PasswordEncoder passwordEncoder, 
+                         FinJwtService jwtService,
+                         CredentialsService credentialsService) {
+        this.finUserRepository = finUserRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
+        this.credentialsService = credentialsService;
+    }
+
+    @Transactional
+    public FinAuthResponse register(FinRegisterRequest request) {
+        // Global SSO check/creation
+        CredentialsModel globalCreds = CredentialsModel.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .firstname(request.getFirstName())
+                .lastname(request.getLastName())
+                .platformRole("USER")
+                .roles(java.util.List.of("FINANCE_USER"))
+                .registeredFrom("FINANCE_PLATFORM")
+                .build();
+
+        // This will find existing user or create a new one across all domains
+        globalCreds = credentialsService.addCredentials(globalCreds, "FINANCE_PLATFORM", null);
+        String userIdToUse = globalCreds.getEmployeeId();
+
+        // Check if Finance-specific profile already exists for this unique platform ID
+        if (finUserRepository.findById(userIdToUse).isPresent() || finUserRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("Profile already exists on this platform. Please login.");
+        }
+
+        String displayName = (request.getFirstName() != null ? request.getFirstName() : "") + 
+                             (request.getLastName() != null ? " " + request.getLastName() : "");
+        if (displayName.trim().isEmpty()) displayName = request.getEmail();
+
+        FinUser newUser = FinUser.builder()
+                .id(userIdToUse)
+                .email(request.getEmail())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .displayName(displayName.trim())
+                .roles(globalCreds.getRoles() != null ? globalCreds.getRoles().toArray(new String[0]) : new String[]{"FINANCE_USER"})
+                .organizations(globalCreds.getOrganizations())
+                .activeWorkspaceId(globalCreds.getActiveWorkspaceId())
+                .isActive(true)
+                .build();
+
+        FinUser savedUser = finUserRepository.save(newUser);
+        return buildAuthResponse(savedUser);
+    }
+
+    public FinAuthResponse login(FinLoginRequest request) {
+        Optional<FinUser> userOpt = finUserRepository.findByEmail(request.getEmail());
+
+        if (userOpt.isPresent()) {
+            FinUser user = userOpt.get();
+            if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+                throw new RuntimeException("Invalid credentials");
+            }
+            
+            // Sync with global credentials to get latest organizations
+            syncWithGlobal(user);
+            
+            user.setLastLoginAt(Instant.now());
+            finUserRepository.save(user);
+            return buildAuthResponse(user);
+        }
+
+        // Fallback: SSO check
+        CredentialsModel globalCreds = credentialsService.getCredentialsByEmail(request.getEmail());
+        if (globalCreds != null) {
+            // Note: credentialsService.getCredentialsByEmail already calls syncWorkspaces
+            if (passwordEncoder.matches(request.getPassword(), globalCreds.getPassword())) {
+                // Auto-provision
+                String displayName = (globalCreds.getFirstname() != null ? globalCreds.getFirstname() : "") + 
+                                     (globalCreds.getLastname() != null ? " " + globalCreds.getLastname() : "");
+                if (displayName.trim().isEmpty()) displayName = globalCreds.getEmail();
+
+                FinUser provisionedUser = FinUser.builder()
+                        .id(globalCreds.getEmployeeId())
+                        .email(globalCreds.getEmail())
+                        .passwordHash(globalCreds.getPassword())
+                        .displayName(displayName.trim())
+                        .roles(globalCreds.getRoles() != null ? globalCreds.getRoles().toArray(new String[0]) : null)
+                        .organizations(globalCreds.getOrganizations())
+                        .activeWorkspaceId(globalCreds.getActiveWorkspaceId())
+                        .isActive(true)
+                        .lastLoginAt(Instant.now())
+                        .build();
+
+                FinUser saved = finUserRepository.save(provisionedUser);
+                return buildAuthResponse(saved);
+            }
+        }
+
+        throw new RuntimeException("Invalid credentials");
+    }
+
+    private void syncWithGlobal(FinUser user) {
+        CredentialsModel globalCreds = credentialsService.getCredentialsByEmail(user.getEmail());
+        if (globalCreds != null) {
+            user.setOrganizations(globalCreds.getOrganizations());
+            user.setActiveWorkspaceId(globalCreds.getActiveWorkspaceId());
+            String displayName = (globalCreds.getFirstname() != null ? globalCreds.getFirstname() : "") + 
+                                 (globalCreds.getLastname() != null ? " " + globalCreds.getLastname() : "");
+            if (!displayName.trim().isEmpty()) {
+                user.setDisplayName(displayName.trim());
+            }
+            finUserRepository.save(user);
+        }
+    }
+
+    private FinAuthResponse buildAuthResponse(FinUser user) {
+        return FinAuthResponse.builder()
+                .accessToken(jwtService.generateToken(user))
+                .refreshToken(jwtService.generateRefreshToken(user))
+                .user(user)
+                .build();
+    }
+
+    public FinAuthResponse getMe(String token) {
+        String userId = jwtService.extractUserId(token);
+        FinUser user = finUserRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        syncWithGlobal(user);
+        
+        return buildAuthResponse(user);
+    }
+}

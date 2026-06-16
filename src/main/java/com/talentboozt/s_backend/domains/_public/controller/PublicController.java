@@ -1,10 +1,10 @@
 package com.talentboozt.s_backend.domains._public.controller;
 
 import com.talentboozt.s_backend.domains._public.service.PublicService;
-import com.talentboozt.s_backend.domains.com_courses.dto.CourseMissedNotify;
-import com.talentboozt.s_backend.domains.com_courses.model.RecordedCourseModel;
-import com.talentboozt.s_backend.domains.com_courses.service.RecordedCourseService;
-import com.talentboozt.s_backend.domains.common.dto.ApiResponse;
+import com.talentboozt.s_backend.domains.portal.courses.community.dto.CourseMissedNotify;
+import com.talentboozt.s_backend.domains.portal.courses.community.model.RecordedCourseModel;
+import com.talentboozt.s_backend.domains.portal.courses.community.service.RecordedCourseService;
+import com.talentboozt.s_backend.shared.common.dto.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,0 +1,67 @@
+package com.talentboozt.s_backend.domains.portal.courses.community.model;
+
+import com.talentboozt.s_backend.domains.portal.courses.community.dto.InstallmentDTO;
+import com.talentboozt.s_backend.domains.portal.courses.community.dto.RecModuleDTO;
+import com.talentboozt.s_backend.domains.portal.courses.community.dto.RecordedCourseReviewDTO;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Getter
+@Setter
+@Document(collection = "recorded_courses")
+public class RecordedCourseModel {
+
+    @Id
+    private String id;
+
+    private String title;
+    private String subtitle;
+    private String description;
+
+    private String courseType = "recorded"; // constant/fixed
+
+    private BigDecimal price;  // can be string or BigDecimal
+    private boolean published;
+    private boolean approved;
+
+    private String createdAt;
+    private String updatedAt;
+
+    @Field("modules")
+    private List<RecModuleDTO> modules;
+
+    private String image;
+
+    private List<String> skills;
+    private List<String> requirements;
+    private String level;
+
+    private String lecturer;  // instructor/trainer name
+    private String lecturerNameTag;  // senior react developer
+    private String lecturerEmail;
+    private String language = "English"; // Optional, default to "English"
+    private String category;  // e.g., "Development", "Design"
+
+    @Field("reviews")
+    private List<RecordedCourseReviewDTO> reviews;
+
+    private double rating = 0.0; // average rating (computed)
+    private int reviewCount = 0; // number of reviews
+
+    private boolean certificate; // true if certificate available after completion
+
+    private String currency = "USD"; // pricing currency
+
+    private String companyId;          // link to company
+    private String trainerId;          // link to trainer user account
+    private BigDecimal trainerShare;   // percentage, default 0.6 (60%)
+    private BigDecimal platformShare;  // percentage, default 0.4 (40%)
+
+    private InstallmentDTO installment; // installment details
+}

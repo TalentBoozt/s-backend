@@ -6,7 +6,7 @@ import com.talentboozt.s_backend.domains._public.model.ContactSubmission;
 import com.talentboozt.s_backend.domains._public.model.CtaLeadSubmission;
 import com.talentboozt.s_backend.domains._public.repository.ContactSubmissionRepository;
 import com.talentboozt.s_backend.domains._public.repository.CtaLeadRepository;
-import com.talentboozt.s_backend.domains.common.dto.ApiResponse;
+import com.talentboozt.s_backend.shared.common.dto.ApiResponse;
 import com.talentboozt.s_backend.shared.mail.dto.ContactUsDTO;
 import com.talentboozt.s_backend.shared.mail.dto.LeadsDTO;
 import com.talentboozt.s_backend.shared.mail.service.EmailService;

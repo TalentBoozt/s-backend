@@ -1,6 +1,6 @@
 package com.talentboozt.s_backend.shared.security.service;
 
-import com.talentboozt.s_backend.domains.audit_logs.service.ClientActAuditLogService;
+import com.talentboozt.s_backend.shared.audit.logs.service.ClientActAuditLogService;
 import com.talentboozt.s_backend.shared.security.dto.IpGeoData;
 import com.talentboozt.s_backend.shared.security.dto.SessionContext;
 import com.talentboozt.s_backend.shared.security.cfg.SessionContextCache;

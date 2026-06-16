@@ -34,7 +34,7 @@ public class EduCourseService {
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository;
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository sectionRepository;
     private final com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonRepository;
-    private final com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService;
+    private final com.talentboozt.s_backend.shared.auth.service.CredentialsService credentialsService;
     private final EduContentValidationService validationService;
     private final EduAnalyticsEventService analyticsEventService;
     private final SecurityUtils securityUtils;
@@ -48,7 +48,7 @@ public class EduCourseService {
             com.talentboozt.s_backend.domains.edu.repository.mongodb.EProfilesRepository profilesRepository,
             com.talentboozt.s_backend.domains.edu.repository.mongodb.ECourseSectionsRepository sectionRepository,
             com.talentboozt.s_backend.domains.edu.repository.mongodb.ELessonsRepository lessonRepository,
-            com.talentboozt.s_backend.domains.auth.service.CredentialsService credentialsService,
+            com.talentboozt.s_backend.shared.auth.service.CredentialsService credentialsService,
             EduContentValidationService validationService, SecurityUtils securityUtils,
             EduAnalyticsEventService analyticsEventService) {
         this.courseRepository = courseRepository;
