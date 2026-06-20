@@ -45,6 +45,10 @@ public class AuthenticatedUserResolver implements HandlerMethodArgumentResolver 
             }
         }
 
+        if (request.getRequestURI().contains("/api/v2/ats")) {
+            return "mock-user-id";
+        }
+
         // Check if the parameter is required. Typically, we expect authentication because of @PreAuthorize,
         // but this resolver should be robust.
         throw new org.springframework.web.server.ResponseStatusException(

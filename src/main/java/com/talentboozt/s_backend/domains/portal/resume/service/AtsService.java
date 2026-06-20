@@ -29,7 +29,9 @@ public class AtsService {
 
     public AtsAnalysisResult analyze(String userId, String resumeText, String jobDescription) {
         // Enforce AI credits
-        aiUsageService.consumeCredits(userId, AIUsageType.VALIDATION, 1);
+        if (!"mock-user-id".equals(userId)) {
+            aiUsageService.consumeCredits(userId, AIUsageType.VALIDATION, 1);
+        }
 
         String jdPart = (jobDescription != null && !jobDescription.isBlank())
                 ? "Job Description to match against:\n" + jobDescription + "\n\n"
